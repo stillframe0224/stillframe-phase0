@@ -1,0 +1,7 @@
+{"ts":"2026-02-13T05:20:00.000Z","step":"create_project","status":"ok","detail":"Next.js + TypeScript + Tailwind initialized"}
+{"ts":"2026-02-13T05:21:00.000Z","step":"create_lib","status":"ok","detail":"copy.ts, cardTypes.ts, track.ts created"}
+{"ts":"2026-02-13T05:22:00.000Z","step":"create_components","status":"ok","detail":"ThoughtCard, Pricing, Waitlist, LangToggle, TrackEvent created"}
+{"ts":"2026-02-13T05:23:00.000Z","step":"create_pages","status":"ok","detail":"layout.tsx, page.tsx, globals.css, api/track/route.ts created"}
+{"ts":"2026-02-13T05:24:00.000Z","step":"create_ops","status":"ok","detail":"OPS/deploy.md, .env.example created"}
+{"ts":"2026-02-13T05:25:00.000Z","step":"build_fix","status":"ok","detail":"Fixed package.json type: commonjs -> module"}
+{"ts":"2026-02-13T05:26:00.000Z","step":"build_pages","status":"ok","detail":"next build succeeded — static: /, /_not-found; dynamic: /api/track"}

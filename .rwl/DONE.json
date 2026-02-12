@@ -1,0 +1,20 @@
+{
+  "phase": "phase0",
+  "status": "done",
+  "completed_at": "2026-02-13T05:26:00.000Z",
+  "build_result": "success",
+  "routes": {
+    "static": ["/", "/_not-found"],
+    "dynamic": ["/api/track"]
+  },
+  "failure_count": 1,
+  "failures": [
+    {
+      "step": "build_pages",
+      "attempt": 1,
+      "error": "package.json type:commonjs conflicted with ESM imports",
+      "resolution": "Changed type to module"
+    }
+  ],
+  "files_generated": 16
+}
