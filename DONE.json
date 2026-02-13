@@ -1,0 +1,22 @@
+{
+  "completed": true,
+  "phase": "phase1",
+  "ts": "2026-02-13T00:00:00Z",
+  "summary": "Phase1 MVP: Supabase auth (Google + Magic Link), card CRUD with RLS, OGP image extraction, drag-and-drop upload, SVG fallback. Build passes without Supabase configured.",
+  "routes": {
+    "/": "Landing page (Phase0)",
+    "/app": "Main app - Quick Capture + card grid",
+    "/auth/login": "Login page (Google OAuth + Magic Link)",
+    "/auth/callback": "OAuth callback",
+    "/api/track": "Analytics tracking",
+    "/api/og-image": "OGP image extraction"
+  },
+  "next_steps": [
+    "Create Supabase project",
+    "Run SQL for cards table + RLS",
+    "Set up Google OAuth",
+    "Create card-images Storage bucket",
+    "Add env vars to Vercel",
+    "Redeploy"
+  ]
+}
