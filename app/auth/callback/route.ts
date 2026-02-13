@@ -29,11 +29,13 @@ export async function GET(request: Request) {
     );
 
     const { error } = await supabase.auth.exchangeCodeForSession(code);
-    if (!error) {
-      return NextResponse.redirect(`${origin}${next}`);
+    if (error) {
+      console.error('callback error:', error);
+      return NextResponse.redirect(`${origin}/auth/login?error=${encodeURIComponent(error.message || 'callback_failed')}`);
     }
+    return NextResponse.redirect(`${origin}${next}`);
   }
 
-  // エラー時はログインページへ（エラー情報付き）
+  // code が無い場合
   return NextResponse.redirect(`${origin}/auth/login?error=callback_failed`);
 }
