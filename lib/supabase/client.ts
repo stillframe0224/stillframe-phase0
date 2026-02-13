@@ -1,16 +1,33 @@
 import { createBrowserClient } from "@supabase/ssr";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
+declare global {
+  interface Window {
+    __SUPABASE_CONFIG__?: { url: string; key: string };
+  }
+}
+
+function getEnv() {
+  const buildUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+  const buildKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
+  const rt =
+    typeof window !== "undefined" ? window.__SUPABASE_CONFIG__ : undefined;
+  return {
+    url: buildUrl || rt?.url || "",
+    key: buildKey || rt?.key || "",
+  };
+}
 
 export function createClient() {
-  return createBrowserClient(supabaseUrl, supabaseAnonKey);
+  const { url, key } = getEnv();
+  return createBrowserClient(url, key);
 }
 
 export function isSupabaseConfigured(): boolean {
-  return !!(supabaseUrl && supabaseAnonKey);
+  const { url, key } = getEnv();
+  return !!(url && key);
 }
 
 export function getConfigStatus(): { url: boolean; key: boolean } {
-  return { url: !!supabaseUrl, key: !!supabaseAnonKey };
+  const { url, key } = getEnv();
+  return { url: !!url, key: !!key };
 }
