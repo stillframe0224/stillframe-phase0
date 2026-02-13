@@ -10,3 +10,7 @@ export function createClient() {
 export function isSupabaseConfigured(): boolean {
   return !!(supabaseUrl && supabaseAnonKey);
 }
+
+export function getConfigStatus(): { url: boolean; key: boolean } {
+  return { url: !!supabaseUrl, key: !!supabaseAnonKey };
+}

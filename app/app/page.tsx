@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
+import { createClient, isSupabaseConfigured, getConfigStatus } from "@/lib/supabase/client";
 import { cardTypes, getCardType } from "@/lib/cardTypes";
 import type { Card } from "@/lib/supabase/types";
 import AppCard from "./AppCard";
@@ -208,6 +208,9 @@ export default function AppPage() {
           <p style={{ fontSize: 14, color: "#777", lineHeight: 1.6 }}>
             Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in
             your environment. See OPS/supabase-setup.md for instructions.
+          </p>
+          <p style={{ fontSize: 12, color: "#bbb", marginTop: 12, fontFamily: "monospace" }}>
+            URL: {getConfigStatus().url ? "set" : "MISSING"} / KEY: {getConfigStatus().key ? "set" : "MISSING"}
           </p>
           <a
             href="/"
