@@ -228,12 +228,16 @@ export default function AppCard({ card, index, onDelete, onPinToggle }: AppCardP
 
         // Generate human-readable error message
         let msg = "Pin failed";
-        if (error.code === "42703" || error.message?.includes("column") || error.message?.includes("pinned")) {
+        const errMsg = error.message || "";
+        const errCode = error.code || "";
+
+        // PGRST204 = PostgREST "column not found", 42703 = PostgreSQL "column does not exist"
+        if (errCode === "PGRST204" || errCode === "42703" || errMsg.includes("column") || errMsg.includes("pinned")) {
           msg = "Run migration: ALTER TABLE cards ADD COLUMN pinned boolean DEFAULT false;";
-        } else if (error.code === "42501" || error.message?.includes("permission") || error.message?.includes("policy")) {
+        } else if (errCode === "42501" || errMsg.includes("permission") || errMsg.includes("policy")) {
           msg = "Add RLS UPDATE policy in Supabase";
-        } else if (error.message) {
-          msg = `Error: ${error.message.slice(0, 50)}`;
+        } else if (errMsg) {
+          msg = `Error: ${errMsg.slice(0, 50)}`;
         }
 
         setPinErrorMsg(msg);
