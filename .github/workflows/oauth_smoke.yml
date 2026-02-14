@@ -26,12 +26,22 @@ jobs:
         id: smoke
         run: node scripts/oauth_smoke.mjs 2>&1 | tee smoke_output.txt
 
+      - name: Run Link Preview smoke test
+        id: link_preview
+        if: always()
+        run: node scripts/link_preview_smoke.mjs 2>&1 | tee link_preview_output.txt
+
       - name: Add failure summary
         if: failure()
         run: |
-          echo "## OAuth Smoke Test Failed" >> "$GITHUB_STEP_SUMMARY"
+          echo "## Smoke Test Failures" >> "$GITHUB_STEP_SUMMARY"
+          echo "### OAuth Smoke" >> "$GITHUB_STEP_SUMMARY"
           echo '```' >> "$GITHUB_STEP_SUMMARY"
           tail -n 200 smoke_output.txt >> "$GITHUB_STEP_SUMMARY" || true
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          echo "### Link Preview Smoke" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          tail -n 200 link_preview_output.txt >> "$GITHUB_STEP_SUMMARY" || true
           echo '```' >> "$GITHUB_STEP_SUMMARY"
 
       - name: Create GitHub issue on failure
