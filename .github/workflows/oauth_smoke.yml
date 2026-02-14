@@ -31,6 +31,11 @@ jobs:
         if: always()
         run: node scripts/link_preview_smoke.mjs 2>&1 | tee link_preview_output.txt
 
+      - name: Run Bookmarklet smoke test
+        id: bookmarklet
+        if: always()
+        run: node scripts/bookmarklet_smoke.mjs 2>&1 | tee bookmarklet_output.txt
+
       - name: Add failure summary
         if: failure()
         run: |
@@ -42,6 +47,10 @@ jobs:
           echo "### Link Preview Smoke" >> "$GITHUB_STEP_SUMMARY"
           echo '```' >> "$GITHUB_STEP_SUMMARY"
           tail -n 200 link_preview_output.txt >> "$GITHUB_STEP_SUMMARY" || true
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          echo "### Bookmarklet Smoke" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          tail -n 200 bookmarklet_output.txt >> "$GITHUB_STEP_SUMMARY" || true
           echo '```' >> "$GITHUB_STEP_SUMMARY"
 
       - name: Create GitHub issue on failure
