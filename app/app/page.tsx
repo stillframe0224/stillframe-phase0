@@ -63,6 +63,7 @@ export default function AppPage() {
   const savingRef = useRef(false);
   const prefillAppliedRef = useRef(false);
   const autoSaveRanRef = useRef(false);
+  const autoSaveInProgressRef = useRef(false);
   const filterInitializedRef = useRef(false);
   const configured = isSupabaseConfigured();
 
@@ -128,6 +129,7 @@ export default function AppPage() {
     const bmUrl = params.get("url");
     if (!bmUrl || params.get("auto") !== "1") return;
     autoSaveRanRef.current = true;
+    autoSaveInProgressRef.current = true;
 
     (async () => {
       const title = (params.get("title") || "").slice(0, 200).trim();
@@ -215,7 +217,12 @@ export default function AppPage() {
               saved = true;
             }
           } else if (baseError) {
-            let msg = `Save failed: ${baseError.message}`;
+            const errCode = baseError.code || "";
+            const errMsg = baseError.message || "";
+            let msg = `Auto-save failed: ${errMsg}`;
+            if (errCode === "PGRST204" || errCode === "42703" || errMsg.includes("file_id")) {
+              msg += " — Run migration SQL to add file_id column (see OPS.md)";
+            }
             setErrorBanner(msg);
             setTimeout(() => setErrorBanner(null), 8000);
           } else if (baseData) {
@@ -226,7 +233,14 @@ export default function AppPage() {
             setTimeout(() => setErrorBanner(null), 8000);
           }
         } else if (error) {
-          let msg = `Save failed: ${error.message}`;
+          const errCode = error.code || "";
+          const errMsg = error.message || "";
+          let msg = `Auto-save failed: ${errMsg}`;
+          if (errCode === "PGRST204" || errCode === "42703" || errMsg.includes("file_id")) {
+            msg += " — Run migration SQL to add file_id column (see OPS.md)";
+          } else if (errMsg.includes("title") || errMsg.includes("source_url") || errMsg.includes("site_name")) {
+            msg += " — Run migration SQL to add metadata columns (see OPS.md)";
+          }
           setErrorBanner(msg);
           setTimeout(() => setErrorBanner(null), 8000);
         } else if (data) {
@@ -239,6 +253,7 @@ export default function AppPage() {
       }
 
       window.history.replaceState({}, "", "/app");
+      autoSaveInProgressRef.current = false;
       if (saved) {
         setBanner("Saved from bookmarklet");
         setTimeout(() => setBanner(null), 2500);
@@ -266,6 +281,15 @@ export default function AppPage() {
   // Sync search/filter/sort state to URL query params
   useEffect(() => {
     if (!filterInitializedRef.current) return; // Skip initial render
+    if (autoSaveInProgressRef.current) return; // Skip while auto-save is running
+
+    // Don't sync if bookmarklet params exist (auto-save will clean them)
+    const currentParams = new URLSearchParams(window.location.search);
+    const hasBookmarkletParams = currentParams.has("auto") || currentParams.has("url") ||
+      currentParams.has("title") || currentParams.has("img") ||
+      currentParams.has("site") || currentParams.has("s");
+    if (hasBookmarkletParams) return;
+
     const params = new URLSearchParams();
     if (searchQuery) params.set("q", searchQuery);
     if (domainFilter !== "all") params.set("d", domainFilter);
