@@ -1,7 +1,7 @@
 "use client";
 
 export default function BookmarkletPage() {
-  const bookmarkletCode = `javascript:void(window.open('https://stillframe-phase0.vercel.app/app?auto=1&url='+encodeURIComponent(location.href)+'&title='+encodeURIComponent(document.title),'_blank'))`;
+  const bookmarkletCode = `javascript:void((function(){var u=location.href,t=(document.title||'').slice(0,200),og=(document.querySelector('meta[property="og:image"]')||document.querySelector('meta[name="twitter:image"]')||{}).content||'',s=(document.querySelector('meta[property="og:site_name"]')||{}).content||'',sel=(window.getSelection()||'').toString().slice(0,1200);window.open('https://stillframe-phase0.vercel.app/app?auto=1&url='+encodeURIComponent(u)+'&title='+encodeURIComponent(t)+(og?'&img='+encodeURIComponent(og.slice(0,2000)):'')+(s?'&site='+encodeURIComponent(s.slice(0,100)):'')+(sel?'&s='+encodeURIComponent(sel):''),'_blank')})())`;
 
   return (
     <div

@@ -63,6 +63,33 @@ SELECT pinned, COUNT(*) FROM cards GROUP BY pinned;
 
 Pinned cards will appear at the top of the list regardless of date sort order.
 
+### Metadata columns missing (optional for rich cards)
+
+**Symptom**: Bookmarklet doesn't preserve preview images, uploaded media not supported.
+
+**To enable metadata-driven cards**: Run in Supabase SQL Editor:
+
+```sql
+ALTER TABLE public.cards ADD COLUMN IF NOT EXISTS title text;
+ALTER TABLE public.cards ADD COLUMN IF NOT EXISTS source_url text;
+ALTER TABLE public.cards ADD COLUMN IF NOT EXISTS site_name text;
+ALTER TABLE public.cards ADD COLUMN IF NOT EXISTS preview_image_url text;
+ALTER TABLE public.cards ADD COLUMN IF NOT EXISTS media_kind text;
+ALTER TABLE public.cards ADD COLUMN IF NOT EXISTS media_path text;
+ALTER TABLE public.cards ADD COLUMN IF NOT EXISTS media_thumb_path text;
+ALTER TABLE public.cards ADD COLUMN IF NOT EXISTS updated_at timestamptz DEFAULT now();
+CREATE INDEX IF NOT EXISTS cards_source_url_idx ON public.cards (source_url);
+CREATE INDEX IF NOT EXISTS cards_site_name_idx ON public.cards (site_name);
+```
+
+**Verify**:
+
+```sql
+SELECT column_name FROM information_schema.columns
+WHERE table_schema='public' AND table_name='cards'
+  AND column_name IN ('title', 'source_url', 'site_name', 'preview_image_url', 'media_kind');
+```
+
 ### Link previews not loading
 
 **Symptom**: Cards with URLs show SVG fallback instead of og:image preview.

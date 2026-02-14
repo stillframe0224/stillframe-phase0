@@ -93,7 +93,7 @@ export default function AppPage() {
     window.history.replaceState({}, "", "/app");
   }, []);
 
-  // Auto-save from bookmarklet: /app?auto=1&url=...&title=...
+  // Auto-save from bookmarklet: /app?auto=1&url=...&title=...&img=...&site=...&s=...
   useEffect(() => {
     if (autoSaveRanRef.current) return;
     if (loading || !user || !configured) return;
@@ -103,8 +103,14 @@ export default function AppPage() {
     autoSaveRanRef.current = true;
 
     (async () => {
-      const title = params.get("title") || "";
-      const text = title ? `${title}\n${bmUrl}` : bmUrl;
+      const title = (params.get("title") || "").slice(0, 200).trim();
+      const selection = (params.get("s") || "").slice(0, 1200).trim();
+      const previewImg = (params.get("img") || "").slice(0, 2000).trim();
+      const siteName = (params.get("site") || "").slice(0, 100).trim();
+
+      // Text body: title\nurl + optional selection
+      let text = title ? `${title}\n${bmUrl}` : bmUrl;
+      if (selection) text += `\n\n${selection}`;
 
       // Deterministic requestId from URL+title (same input = same ID, prevents StrictMode dupes)
       let requestId: string;
@@ -135,11 +141,21 @@ export default function AppPage() {
           card_type: "memo",
           image_url: imageUrl,
           image_source: imageSource,
+          client_request_id: requestId,
+        };
+
+        // Try with metadata fields first
+        const metadataPayload = {
+          ...basePayload,
+          source_url: bmUrl.slice(0, 2000),
+          title: title || null,
+          site_name: siteName || null,
+          preview_image_url: previewImg || null,
         };
 
         let { data, error } = await supabase
           .from("cards")
-          .insert({ ...basePayload, client_request_id: requestId })
+          .insert(metadataPayload)
           .select()
           .single();
 
@@ -153,15 +169,37 @@ export default function AppPage() {
             setCards((prev) => dedupeCards([existing, ...prev]));
             saved = true;
           }
-        } else if (error) {
-          // Schema error — show banner with migration hint
-          let msg = `Save failed: ${error.message}`;
-          if (
-            error.message?.includes("client_request_id") ||
-            error.message?.includes("column") && error.message?.includes("does not exist")
-          ) {
-            msg += " — Run in Supabase SQL Editor: ALTER TABLE cards ADD COLUMN client_request_id TEXT; CREATE UNIQUE INDEX cards_client_request_id_key ON cards(client_request_id);";
+        } else if (error && (error.message?.includes("column") || error.code === "42703" || error.code === "PGRST204")) {
+          // Metadata columns missing — retry with base payload only
+          const { data: baseData, error: baseError } = await supabase
+            .from("cards")
+            .insert(basePayload)
+            .select()
+            .single();
+
+          if (baseError?.code === "23505") {
+            const { data: existing } = await supabase
+              .from("cards")
+              .select("*")
+              .eq("client_request_id", requestId)
+              .single();
+            if (existing) {
+              setCards((prev) => dedupeCards([existing, ...prev]));
+              saved = true;
+            }
+          } else if (baseError) {
+            let msg = `Save failed: ${baseError.message}`;
+            setErrorBanner(msg);
+            setTimeout(() => setErrorBanner(null), 8000);
+          } else if (baseData) {
+            setCards((prev) => dedupeCards([baseData, ...prev]));
+            saved = true;
+            // Show migration hint banner
+            setErrorBanner("Metadata columns missing. Run migration SQL to enable rich cards (see OPS.md).");
+            setTimeout(() => setErrorBanner(null), 8000);
           }
+        } else if (error) {
+          let msg = `Save failed: ${error.message}`;
           setErrorBanner(msg);
           setTimeout(() => setErrorBanner(null), 8000);
         } else if (data) {

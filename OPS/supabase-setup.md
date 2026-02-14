@@ -147,6 +147,43 @@ select pinned, count(*) from cards group by pinned;
 
 This column is optional; the app works without it (pinning UI will be hidden if the column doesn't exist).
 
+## 9. Migration: Add metadata columns (for rich link previews and media uploads)
+
+Run this in **SQL Editor**:
+
+```sql
+-- Add metadata columns for rich cards
+alter table public.cards add column if not exists title text;
+alter table public.cards add column if not exists source_url text;
+alter table public.cards add column if not exists site_name text;
+alter table public.cards add column if not exists preview_image_url text;
+alter table public.cards add column if not exists media_kind text;
+alter table public.cards add column if not exists media_path text;
+alter table public.cards add column if not exists media_thumb_path text;
+alter table public.cards add column if not exists updated_at timestamptz default now();
+
+-- Index for source URL lookups
+create index if not exists cards_source_url_idx on public.cards (source_url);
+create index if not exists cards_site_name_idx on public.cards (site_name);
+```
+
+**Verify**:
+
+```sql
+select column_name from information_schema.columns
+where table_schema='public' and table_name='cards'
+  and column_name in ('title', 'source_url', 'site_name', 'preview_image_url', 'media_kind');
+```
+
+These columns enable:
+- `title`: Card title (extracted from bookmarklet or auto-generated from filename)
+- `source_url`: Original URL (for link cards)
+- `site_name`: Site name (extracted from og:site_name via bookmarklet)
+- `preview_image_url`: Pre-extracted preview image (from bookmarklet or API)
+- `media_kind`: Type of card ('link', 'image', 'video', 'note')
+- `media_path`: Supabase Storage path for uploaded media
+- `media_thumb_path`: Thumbnail path for videos/images
+
 ## 9. Verify
 
 1. Run `npm run dev`
