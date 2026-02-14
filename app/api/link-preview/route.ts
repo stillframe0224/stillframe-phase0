@@ -158,6 +158,7 @@ function resolveUrl(src: string | null, origin: string): string | null {
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const url = searchParams.get("url");
+  const debug = searchParams.get("debug") === "1";
 
   if (!url) {
     return NextResponse.json({ error: "url required" }, { status: 400 });
@@ -171,6 +172,7 @@ export async function GET(request: Request) {
   }
 
   if (!validateUrl(parsed)) {
+    if (debug) console.log(JSON.stringify({ event: "link_preview_blocked", url, reason: "validation" }));
     return NextResponse.json({ error: "blocked_url" }, { status: 400 });
   }
 
@@ -191,6 +193,7 @@ export async function GET(request: Request) {
     const { res, finalUrl } = await safeFetch(url);
 
     if (!res.ok) {
+      if (debug) console.log(JSON.stringify({ event: "link_preview_upstream", url, status: res.status }));
       return NextResponse.json(
         { image: null, favicon: `${parsed.origin}/favicon.ico`, title: null },
         { headers: { "Cache-Control": "public, max-age=3600" } }
@@ -211,7 +214,9 @@ export async function GET(request: Request) {
       { headers: { "Cache-Control": "public, max-age=3600" } }
     );
   } catch (e) {
-    if (e instanceof Error && e.message === "blocked") {
+    const reason = e instanceof Error ? e.message : "unknown";
+    if (debug) console.log(JSON.stringify({ event: "link_preview_error", url, reason }));
+    if (reason === "blocked") {
       return NextResponse.json({ error: "blocked_url" }, { status: 400 });
     }
     return NextResponse.json(

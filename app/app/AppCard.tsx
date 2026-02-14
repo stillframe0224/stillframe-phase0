@@ -8,6 +8,26 @@ import type { Card } from "@/lib/supabase/types";
 // Module-level preview cache: url -> image (null = confirmed no image)
 const previewCache = new Map<string, string | null>();
 
+// Debug mode: ?debug=1 in URL or localStorage SHINEN_DEBUG_PREVIEW=1
+let _debugChecked = false;
+let _debugOn = false;
+function isDebugPreview(): boolean {
+  if (_debugChecked) return _debugOn;
+  _debugChecked = true;
+  try {
+    _debugOn =
+      new URLSearchParams(window.location.search).get("debug") === "1" ||
+      localStorage.getItem("SHINEN_DEBUG_PREVIEW") === "1";
+  } catch {
+    _debugOn = false;
+  }
+  return _debugOn;
+}
+function dbg(event: string, data?: Record<string, unknown>) {
+  if (!isDebugPreview()) return;
+  console.log(`[preview] ${event}`, data ?? "");
+}
+
 const svgFallbacks: Record<string, React.ReactNode> = {
   memo: (
     <svg viewBox="0 0 210 120" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -123,10 +143,12 @@ export default function AppCard({ card, index, onDelete }: AppCardProps) {
   // Lazy-fetch link preview — only when visible
   useEffect(() => {
     if (!isVisible || hasRealImage || !cardUrl) return;
+    dbg("url", { cardId: card.id, url: cardUrl });
 
     // YouTube: derive thumbnail directly (no API call)
     const ytThumb = getYouTubeThumbnail(cardUrl);
     if (ytThumb) {
+      dbg("source", { url: cardUrl, source: "youtube" });
       setPreviewImg(ytThumb);
       return;
     }
@@ -134,27 +156,40 @@ export default function AppCard({ card, index, onDelete }: AppCardProps) {
     // Check in-memory cache (covers both "has image" and "no image" results)
     const cached = previewCache.get(cardUrl);
     if (cached !== undefined) {
+      dbg("cache_hit", { url: cardUrl, hasImage: !!cached });
       setPreviewImg(cached);
       return;
     }
 
     // Fetch from link-preview API
     const controller = new AbortController();
-    fetch(`/api/link-preview?url=${encodeURIComponent(cardUrl)}`, {
+    const t0 = performance.now();
+    const debugParam = isDebugPreview() ? "&debug=1" : "";
+    fetch(`/api/link-preview?url=${encodeURIComponent(cardUrl)}${debugParam}`, {
       signal: controller.signal,
     })
-      .then((r) => (r.ok ? r.json() : null))
+      .then((r) => {
+        dbg("fetch", { url: cardUrl, status: r.status, ms: Math.round(performance.now() - t0) });
+        return r.ok ? r.json() : null;
+      })
       .then((data) => {
         const image = data?.image ?? null;
         previewCache.set(cardUrl, image);
+        dbg("source", { url: cardUrl, source: image ? "api" : "none" });
         if (!controller.signal.aborted) setPreviewImg(image);
       })
       .catch(() => {});
     return () => controller.abort();
-  }, [cardUrl, hasRealImage, isVisible]);
+  }, [card.id, cardUrl, hasRealImage, isVisible]);
 
   const displayImage = hasRealImage ? card.image_url! : (previewFailed ? null : previewImg);
   const showImage = !!displayImage;
+
+  const debugSource = !cardUrl ? "none"
+    : hasRealImage && showImage ? "saved"
+    : showImage && getYouTubeThumbnail(cardUrl) ? "youtube"
+    : showImage ? "api"
+    : "svg";
 
   const imageContent = (
     <div style={{ aspectRatio: "7/4", overflow: "hidden", position: "relative" }}>
@@ -166,8 +201,10 @@ export default function AppCard({ card, index, onDelete }: AppCardProps) {
           referrerPolicy="no-referrer"
           onError={() => {
             if (hasRealImage) {
+              dbg("img_error", { type: "saved", url: card.image_url });
               setRealImgFailed(true);
             } else {
+              dbg("img_error", { type: "preview", url: displayImage });
               setPreviewFailed(true);
             }
           }}
@@ -351,6 +388,11 @@ export default function AppCard({ card, index, onDelete }: AppCardProps) {
             </span>
           )}
         </div>
+        {isDebugPreview() && cardUrl && (
+          <div style={{ fontSize: 8, color: "#aaa", fontFamily: "monospace", marginTop: 2 }}>
+            preview: {debugSource}
+          </div>
+        )}
       </div>
     </div>
   );
