@@ -1,7 +1,7 @@
 "use client";
 
 export default function BookmarkletPage() {
-  const bookmarkletCode = `javascript:void(window.open('https://stillframe-phase0.vercel.app/app?url='+encodeURIComponent(location.href)+'&title='+encodeURIComponent(document.title),'_blank'))`;
+  const bookmarkletCode = `javascript:void(window.open('https://stillframe-phase0.vercel.app/app?auto=1&url='+encodeURIComponent(location.href)+'&title='+encodeURIComponent(document.title),'_blank'))`;
 
   return (
     <div
@@ -42,8 +42,8 @@ export default function BookmarkletPage() {
         </h1>
         <p style={{ fontSize: 14, color: "#777", lineHeight: 1.6, marginBottom: 24 }}>
           Save any page to SHINEN with one click. Drag the link below to your
-          bookmark bar, then click it on any page to open SHINEN with the URL
-          and title pre-filled.
+          bookmark bar, then click it on any page to automatically save
+          the URL and title as a card.
         </p>
 
         {/* Bookmarklet drag target */}
@@ -85,8 +85,8 @@ export default function BookmarkletPage() {
           <li>Drag the button above to your bookmark bar</li>
           <li>Visit any page you want to save</li>
           <li>Click &quot;+ Save to SHINEN&quot; in your bookmarks</li>
-          <li>SHINEN opens with the page title and URL pre-filled</li>
-          <li>Press Enter to save (or edit the text first)</li>
+          <li>SHINEN opens and saves the page automatically</li>
+          <li>A green &quot;Saved&quot; banner confirms success</li>
         </ol>
 
         <div style={{ marginTop: 32, display: "flex", gap: 16 }}>

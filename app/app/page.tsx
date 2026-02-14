@@ -26,9 +26,11 @@ export default function AppPage() {
   const [user, setUser] = useState<{ id: string; email?: string; avatar_url?: string } | null>(null);
   const [dragOver, setDragOver] = useState(false);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
+  const [banner, setBanner] = useState<string | null>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const savingRef = useRef(false);
   const prefillAppliedRef = useRef(false);
+  const autoSaveRanRef = useRef(false);
   const configured = isSupabaseConfigured();
 
   // Load user and cards
@@ -65,17 +67,105 @@ export default function AppPage() {
     init();
   }, [configured]);
 
-  // Prefill from bookmarklet query: /app?url=...&title=...
+  // Prefill from query: /app?url=...&title=... (skip when auto=1, auto-save handles that)
   useEffect(() => {
     if (prefillAppliedRef.current) return;
     prefillAppliedRef.current = true;
     const params = new URLSearchParams(window.location.search);
     const url = params.get("url");
-    if (!url) return;
+    if (!url || params.get("auto") === "1") return;
     const title = params.get("title") || "";
     setInput(title ? `${title}\n${url}` : url);
     window.history.replaceState({}, "", "/app");
   }, []);
+
+  // Auto-save from bookmarklet: /app?auto=1&url=...&title=...
+  useEffect(() => {
+    if (autoSaveRanRef.current) return;
+    if (loading || !user || !configured) return;
+    const params = new URLSearchParams(window.location.search);
+    const bmUrl = params.get("url");
+    if (!bmUrl || params.get("auto") !== "1") return;
+    autoSaveRanRef.current = true;
+
+    (async () => {
+      const title = params.get("title") || "";
+      const text = title ? `${title}\n${bmUrl}` : bmUrl;
+
+      // Deterministic requestId from URL+title (same input = same ID, prevents StrictMode dupes)
+      let requestId: string;
+      try {
+        const encoded = new TextEncoder().encode(`${bmUrl}\n${title}`);
+        const hash = await crypto.subtle.digest("SHA-256", encoded);
+        const hex = Array.from(new Uint8Array(hash))
+          .map((b) => b.toString(16).padStart(2, "0"))
+          .join("");
+        requestId = `bm_${hex.slice(0, 32)}`;
+      } catch {
+        requestId = crypto.randomUUID();
+      }
+
+      if (savingRef.current) return;
+      savingRef.current = true;
+      setSaving(true);
+
+      let saved = false;
+      try {
+        const imageUrl = await fetchOgpImage(text);
+        const imageSource: Card["image_source"] = imageUrl ? "ogp" : "generated";
+
+        const supabase = createClient();
+        const basePayload = {
+          user_id: user.id,
+          text,
+          card_type: "memo",
+          image_url: imageUrl,
+          image_source: imageSource,
+        };
+
+        let { data, error } = await supabase
+          .from("cards")
+          .insert({ ...basePayload, client_request_id: requestId })
+          .select()
+          .single();
+
+        if (error?.code === "23505") {
+          const { data: existing } = await supabase
+            .from("cards")
+            .select("*")
+            .eq("client_request_id", requestId)
+            .single();
+          if (existing) {
+            setCards((prev) => dedupeCards([existing, ...prev]));
+            saved = true;
+          }
+        } else if (error) {
+          ({ data, error } = await supabase
+            .from("cards")
+            .insert(basePayload)
+            .select()
+            .single());
+          if (!error && data) {
+            setCards((prev) => dedupeCards([data, ...prev]));
+            saved = true;
+          }
+        } else if (data) {
+          setCards((prev) => dedupeCards([data, ...prev]));
+          saved = true;
+        }
+      } finally {
+        savingRef.current = false;
+        setSaving(false);
+      }
+
+      window.history.replaceState({}, "", "/app");
+      if (saved) {
+        setBanner("Saved from bookmarklet");
+        setTimeout(() => setBanner(null), 2500);
+      }
+    })();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading, user, configured]);
 
   const handleLogout = async () => {
     if (!configured) return;
@@ -293,6 +383,28 @@ export default function AppPage() {
         fontFamily: "var(--font-dm), system-ui, sans-serif",
       }}
     >
+      {/* Auto-save banner */}
+      {banner && (
+        <div
+          style={{
+            position: "fixed",
+            top: 16,
+            left: "50%",
+            transform: "translateX(-50%)",
+            padding: "8px 20px",
+            borderRadius: 8,
+            background: "#2D8F50",
+            color: "#fff",
+            fontSize: 13,
+            fontFamily: "var(--font-dm)",
+            zIndex: 100,
+            boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+          }}
+        >
+          {banner}
+        </div>
+      )}
+
       {/* Header */}
       <header
         style={{
