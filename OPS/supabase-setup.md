@@ -31,6 +31,7 @@ create table cards (
   card_type text not null default 'idea',
   image_url text,
   image_source text check (image_source in ('ogp', 'upload', 'generated')),
+  client_request_id text unique,
   created_at timestamptz default now(),
   updated_at timestamptz default now()
 );
@@ -114,7 +115,19 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=xxxxx
 
 Go to your Vercel project > Settings > Environment Variables and add the same two variables.
 
-## 7. Verify
+## 7. Migration: Add idempotency column (existing deployments)
+
+If you already have a `cards` table, run this in **SQL Editor**:
+
+```sql
+-- Add client_request_id for insert idempotency
+alter table cards add column if not exists client_request_id text;
+alter table cards add constraint cards_client_request_id_key unique (client_request_id);
+```
+
+This column is nullable so existing rows are unaffected.
+
+## 8. Verify
 
 1. Run `npm run dev`
 2. Go to `http://localhost:3000/app`

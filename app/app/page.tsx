@@ -118,6 +118,7 @@ export default function AppPage() {
       }
 
       const supabase = createClient();
+      const requestId = crypto.randomUUID();
       const { data, error } = await supabase
         .from("cards")
         .insert({
@@ -126,12 +127,25 @@ export default function AppPage() {
           card_type: selectedType,
           image_url,
           image_source,
+          client_request_id: requestId,
         })
         .select()
         .single();
 
       if (!error && data) {
         setCards((prev) => [data, ...prev]);
+      } else if (error?.code === "23505") {
+        // Unique constraint conflict — fetch the already-inserted row
+        const { data: existing } = await supabase
+          .from("cards")
+          .select("*")
+          .eq("client_request_id", requestId)
+          .single();
+        if (existing) {
+          setCards((prev) =>
+            prev.some((c) => c.id === existing.id) ? prev : [existing, ...prev]
+          );
+        }
       }
 
       setInput("");
