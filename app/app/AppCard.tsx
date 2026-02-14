@@ -118,6 +118,7 @@ export default function AppCard({ card, index, onDelete }: AppCardProps) {
   const [showDelete, setShowDelete] = useState(false);
   const [previewImg, setPreviewImg] = useState<string | null>(null);
   const [isVisible, setIsVisible] = useState(false);
+  const [proxiedUrl, setProxiedUrl] = useState<string | null>(null);
   const cardRef = useRef<HTMLDivElement>(null);
 
   const cardUrl = extractFirstHttpUrl(card.text);
@@ -184,22 +185,37 @@ export default function AppCard({ card, index, onDelete }: AppCardProps) {
 
   const displayImage = hasRealImage ? card.image_url! : (previewFailed ? null : previewImg);
   const showImage = !!displayImage;
+  const isProxied = !!proxiedUrl && proxiedUrl === displayImage;
+
+  // When proxied, route through same-origin image proxy (bypasses hotlink 403s)
+  const imgSrc = isProxied
+    ? `/api/image-proxy?url=${encodeURIComponent(displayImage!)}${cardUrl ? `&ref=${encodeURIComponent(cardUrl)}` : ""}`
+    : displayImage;
 
   const debugSource = !cardUrl ? "none"
-    : hasRealImage && showImage ? "saved"
-    : showImage && getYouTubeThumbnail(cardUrl) ? "youtube"
-    : showImage ? "api"
-    : "svg";
+    : !showImage ? "svg"
+    : isProxied ? "proxy"
+    : hasRealImage ? "saved"
+    : getYouTubeThumbnail(cardUrl) ? "youtube"
+    : "api";
 
   const imageContent = (
     <div style={{ aspectRatio: "7/4", overflow: "hidden", position: "relative" }}>
       {showImage ? (
         <img
-          src={displayImage}
+          src={imgSrc!}
           alt=""
           loading="lazy"
           referrerPolicy="no-referrer"
           onError={() => {
+            if (displayImage && proxiedUrl !== displayImage) {
+              // First failure on this image: retry via proxy
+              dbg("img_proxy", { url: displayImage });
+              setProxiedUrl(displayImage);
+              return;
+            }
+            // Proxy also failed — fall through to next source
+            setProxiedUrl(null);
             if (hasRealImage) {
               dbg("img_error", { type: "saved", url: card.image_url });
               setRealImgFailed(true);
@@ -248,7 +264,7 @@ export default function AppCard({ card, index, onDelete }: AppCardProps) {
             letterSpacing: "0.05em",
           }}
         >
-          {hasRealImage ? card.image_source : "preview"}
+          {isProxied ? "proxy" : hasRealImage ? card.image_source : "preview"}
         </span>
       )}
     </div>
