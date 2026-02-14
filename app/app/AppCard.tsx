@@ -90,12 +90,13 @@ interface AppCardProps {
 
 export default function AppCard({ card, index, onDelete }: AppCardProps) {
   const ct = getCardType(card.card_type);
-  const [imgError, setImgError] = useState(false);
+  const [realImgFailed, setRealImgFailed] = useState(false);
+  const [previewFailed, setPreviewFailed] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
   const [previewImg, setPreviewImg] = useState<string | null>(null);
 
   const cardUrl = extractFirstHttpUrl(card.text);
-  const hasRealImage = card.image_url && card.image_source !== "generated" && !imgError;
+  const hasRealImage = !!(card.image_url && card.image_source !== "generated" && !realImgFailed);
 
   // Lazy-fetch link preview for cards without a real image
   useEffect(() => {
@@ -119,8 +120,8 @@ export default function AppCard({ card, index, onDelete }: AppCardProps) {
     return () => { cancelled = true; };
   }, [cardUrl, hasRealImage]);
 
-  const displayImage = hasRealImage ? card.image_url! : previewImg;
-  const showImage = displayImage && !imgError;
+  const displayImage = hasRealImage ? card.image_url! : (previewFailed ? null : previewImg);
+  const showImage = !!displayImage;
 
   const imageContent = (
     <div style={{ aspectRatio: "7/4", overflow: "hidden", position: "relative" }}>
@@ -129,9 +130,13 @@ export default function AppCard({ card, index, onDelete }: AppCardProps) {
           src={displayImage}
           alt=""
           loading="lazy"
+          referrerPolicy="no-referrer"
           onError={() => {
-            if (!hasRealImage) setPreviewImg(null);
-            setImgError(true);
+            if (hasRealImage) {
+              setRealImgFailed(true);
+            } else {
+              setPreviewFailed(true);
+            }
           }}
           style={{
             width: "100%",
