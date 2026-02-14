@@ -68,14 +68,18 @@ export default function AppPage() {
   const autoSaveInProgressRef = useRef(false);
   const filterInitializedRef = useRef(false);
   const initialQueryRef = useRef<URLSearchParams | null>(null);
+  const bmConsumedRef = useRef(false);
   const configured = isSupabaseConfigured();
 
-  // Capture initial query params on mount (before any effects)
-  useEffect(() => {
-    if (!initialQueryRef.current) {
-      initialQueryRef.current = new URLSearchParams(window.location.search);
-    }
-  }, []);
+  // Capture initial query params synchronously during render (before any effects)
+  if (typeof window !== "undefined" && initialQueryRef.current === null) {
+    initialQueryRef.current = new URLSearchParams(window.location.search);
+  }
+
+  // Check if we have bookmarklet params (not yet consumed)
+  const hasBmParams = !bmConsumedRef.current &&
+    initialQueryRef.current?.has("auto") === true &&
+    initialQueryRef.current?.has("url") === true;
 
   // Load user and cards
   useEffect(() => {
@@ -134,14 +138,15 @@ export default function AppPage() {
   // Auto-save from bookmarklet: /app?auto=1&url=...&title=...&img=...&site=...&s=...
   useEffect(() => {
     if (autoSaveRanRef.current) return;
-    if (loading || !user || !configured || !initialQueryRef.current) return;
+    if (loading || !user || !configured) return;
+    if (!hasBmParams || !initialQueryRef.current) return;
 
-    // Read from immutable initial query ref (immune to router.replace races)
-    const params = initialQueryRef.current;
-    const bmUrl = params.get("url");
-    if (!bmUrl || params.get("auto") !== "1") return;
     autoSaveRanRef.current = true;
     autoSaveInProgressRef.current = true;
+
+    // Read from immutable initial query ref (captured during render)
+    const params = initialQueryRef.current;
+    const bmUrl = params.get("url")!;
 
     (async () => {
       const title = (params.get("title") || "").slice(0, 200).trim();
@@ -211,6 +216,13 @@ export default function AppPage() {
             saved = true;
           }
         } else if (error && (error.message?.includes("column") || error.code === "42703" || error.code === "PGRST204")) {
+          // Check if preview_image_url is the missing column
+          const errMsg = error.message || "";
+          if (errMsg.includes("preview_image_url")) {
+            setErrorBanner("Run migration: ALTER TABLE cards ADD COLUMN preview_image_url TEXT; (see OPS.md)");
+            setTimeout(() => setErrorBanner(null), 8000);
+            saved = false;
+          }
           // Metadata columns missing — retry with base payload only
           const { data: baseData, error: baseError } = await supabase
             .from("cards")
@@ -264,15 +276,18 @@ export default function AppPage() {
         setSaving(false);
       }
 
-      window.history.replaceState({}, "", "/app");
+      // Mark bookmarklet params as consumed and clean URL
+      bmConsumedRef.current = true;
       autoSaveInProgressRef.current = false;
+      window.history.replaceState({}, "", "/app");
+
       if (saved) {
         setBanner("Saved from bookmarklet");
         setTimeout(() => setBanner(null), 2500);
       }
     })();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loading, user, configured]);
+  }, [loading, user, configured, hasBmParams]);
 
   // Initialize search/filter/sort from URL query params (once)
   useEffect(() => {
@@ -294,15 +309,7 @@ export default function AppPage() {
   useEffect(() => {
     if (!filterInitializedRef.current) return; // Skip initial render
     if (autoSaveInProgressRef.current) return; // Skip while auto-save is running
-
-    // Don't sync if initial query had bookmarklet params (wait for auto-save to complete)
-    if (initialQueryRef.current) {
-      const hasBookmarkletParams = initialQueryRef.current.has("auto") ||
-        initialQueryRef.current.has("url") || initialQueryRef.current.has("title") ||
-        initialQueryRef.current.has("img") || initialQueryRef.current.has("site") ||
-        initialQueryRef.current.has("s");
-      if (hasBookmarkletParams) return;
-    }
+    if (hasBmParams) return; // Skip while bookmarklet params not yet consumed
 
     const params = new URLSearchParams();
     if (searchQuery) params.set("q", searchQuery);
