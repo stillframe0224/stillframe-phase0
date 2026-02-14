@@ -28,6 +28,7 @@ export default function AppPage() {
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const savingRef = useRef(false);
+  const prefillAppliedRef = useRef(false);
   const configured = isSupabaseConfigured();
 
   // Load user and cards
@@ -59,6 +60,18 @@ export default function AppPage() {
     }
     init();
   }, [configured]);
+
+  // Prefill from bookmarklet query: /app?url=...&title=...
+  useEffect(() => {
+    if (prefillAppliedRef.current) return;
+    prefillAppliedRef.current = true;
+    const params = new URLSearchParams(window.location.search);
+    const url = params.get("url");
+    if (!url) return;
+    const title = params.get("title") || "";
+    setInput(title ? `${title}\n${url}` : url);
+    window.history.replaceState({}, "", "/app");
+  }, []);
 
   const handleLogout = async () => {
     if (!configured) return;
@@ -328,6 +341,17 @@ export default function AppPage() {
               {(user?.email?.[0] || "?").toUpperCase()}
             </div>
           )}
+          <a
+            href="/bookmarklet"
+            style={{
+              fontSize: 12,
+              color: "#bbb",
+              textDecoration: "none",
+              fontFamily: "var(--font-dm)",
+            }}
+          >
+            Bookmarklet
+          </a>
           <button
             onClick={handleLogout}
             style={{
