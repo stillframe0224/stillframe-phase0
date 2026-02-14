@@ -160,6 +160,8 @@ alter table public.cards add column if not exists preview_image_url text;
 alter table public.cards add column if not exists media_kind text;
 alter table public.cards add column if not exists media_path text;
 alter table public.cards add column if not exists media_thumb_path text;
+alter table public.cards add column if not exists media_mime text;
+alter table public.cards add column if not exists media_size bigint;
 alter table public.cards add column if not exists notes text;
 alter table public.cards add column if not exists sort_key text;
 alter table public.cards add column if not exists file_id uuid;
@@ -168,6 +170,7 @@ alter table public.cards add column if not exists updated_at timestamptz default
 -- Index for source URL lookups
 create index if not exists cards_source_url_idx on public.cards (source_url);
 create index if not exists cards_site_name_idx on public.cards (site_name);
+create index if not exists cards_media_kind_idx on public.cards (media_kind);
 create index if not exists cards_sort_idx on public.cards (pinned, sort_key, created_at);
 create index if not exists cards_file_id_idx on public.cards (file_id);
 create index if not exists cards_file_sort_idx on public.cards (file_id, pinned, sort_key, created_at);
@@ -178,7 +181,7 @@ create index if not exists cards_file_sort_idx on public.cards (file_id, pinned,
 ```sql
 select column_name from information_schema.columns
 where table_schema='public' and table_name='cards'
-  and column_name in ('title', 'source_url', 'site_name', 'preview_image_url', 'media_kind', 'notes', 'sort_key', 'file_id');
+  and column_name in ('title', 'source_url', 'site_name', 'preview_image_url', 'media_kind', 'media_path', 'media_thumb_path', 'media_mime', 'media_size', 'notes', 'sort_key', 'file_id');
 ```
 
 ## 10. Migration: Add Files table (for organizing cards)
@@ -245,8 +248,50 @@ These columns enable:
 - `media_kind`: Type of card ('link', 'image', 'video', 'note')
 - `media_path`: Supabase Storage path for uploaded media
 - `media_thumb_path`: Thumbnail path for videos/images
+- `media_mime`: MIME type of uploaded media (e.g., 'image/jpeg', 'video/mp4')
+- `media_size`: File size in bytes
 
-## 9. Verify
+## 11. Storage: cards-media bucket (for uploaded images/videos)
+
+**Purpose**: Store user-uploaded media files with thumbnails.
+
+**To create the bucket** (Supabase Dashboard > Storage > New bucket):
+1. Name: `cards-media`
+2. Public bucket: **No** (use signed URLs or make public based on your security model)
+3. File size limit: 100MB (adjustable)
+4. Allowed MIME types: `image/*,video/*`
+
+**Path convention**:
+- Original: `${userId}/${cardId}/original.<ext>`
+- Thumbnail: `${userId}/${cardId}/thumb.jpg`
+
+**RLS Policies** (run in SQL Editor after creating bucket):
+
+```sql
+-- Allow authenticated users to upload to their own folder
+create policy "users_upload_own_media" on storage.objects
+  for insert to authenticated
+  with check (bucket_id = 'cards-media' and (storage.foldername(name))[1] = auth.uid()::text);
+
+-- Allow authenticated users to read their own media
+create policy "users_read_own_media" on storage.objects
+  for select to authenticated
+  using (bucket_id = 'cards-media' and (storage.foldername(name))[1] = auth.uid()::text);
+
+-- Allow authenticated users to delete their own media
+create policy "users_delete_own_media" on storage.objects
+  for delete to authenticated
+  using (bucket_id = 'cards-media' and (storage.foldername(name))[1] = auth.uid()::text);
+```
+
+**Verify**:
+
+```sql
+select * from storage.buckets where name = 'cards-media';
+select name, count(*) from storage.objects where bucket_id = 'cards-media' group by name;
+```
+
+## 12. Verify
 
 1. Run `npm run dev`
 2. Go to `http://localhost:3000/app`
