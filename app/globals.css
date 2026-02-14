@@ -36,3 +36,10 @@ body {
 ::selection {
   background: #f5c88266;
 }
+
+/* Hide hover text preview on touch devices (no hover support) */
+@media (hover: none) {
+  .hover-text-preview {
+    display: none !important;
+  }
+}

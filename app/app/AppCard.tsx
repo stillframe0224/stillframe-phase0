@@ -148,6 +148,7 @@ export default function AppCard({ card, index, onDelete, onPinToggle, isDraggabl
   const [memoSaveStatus, setMemoSaveStatus] = useState<"saved" | "error" | null>(null);
   const [memoError, setMemoError] = useState<string | null>(null);
   const [showMemoPreview, setShowMemoPreview] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
   const titleInputRef = useRef<HTMLInputElement>(null);
   const memoSaveTimeout = useRef<NodeJS.Timeout | null>(null);
@@ -158,6 +159,12 @@ export default function AppCard({ card, index, onDelete, onPinToggle, isDraggabl
   // Derive display title: prefer card.title, fallback to first line of text
   const displayTitle = card.title || card.text.split("\n")[0];
   const siteName = card.site_name || null;
+
+  // Extract body text (everything after first line if title exists)
+  const bodyText = card.title
+    ? card.text.split("\n").slice(1).join("\n").trim()
+    : card.text.split("\n").slice(1).join("\n").trim();
+  const hasBodyText = bodyText.length > 0;
 
   // Image priority: preview_image_url > image_url > link-preview chain
   const hasPreviewImageUrl = !!(card.preview_image_url && !realImgFailed);
@@ -517,6 +524,7 @@ export default function AppCard({ card, index, onDelete, onPinToggle, isDraggabl
           e.currentTarget.style.boxShadow =
             "0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.05)";
           setShowDelete(true);
+          setIsHovered(true);
         }
       }}
       onMouseLeave={(e) => {
@@ -524,9 +532,60 @@ export default function AppCard({ card, index, onDelete, onPinToggle, isDraggabl
           e.currentTarget.style.transform = dragStyle.transform || "translateY(0)";
           e.currentTarget.style.boxShadow = "none";
           setShowDelete(false);
+          setIsHovered(false);
         }
       }}
     >
+      {/* Hover text preview (full title + body snippet) */}
+      {isHovered && hasBodyText && (
+        <div
+          style={{
+            position: "absolute",
+            bottom: "calc(100% + 8px)",
+            left: 0,
+            right: 0,
+            background: "rgba(0,0,0,0.9)",
+            color: "#fff",
+            padding: "12px 14px",
+            borderRadius: 8,
+            zIndex: 20,
+            pointerEvents: "none",
+            maxWidth: 280,
+            boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
+          }}
+          className="hover-text-preview"
+        >
+          {/* Full title */}
+          <div
+            style={{
+              fontSize: 12,
+              fontWeight: 600,
+              marginBottom: 6,
+              lineHeight: 1.4,
+            }}
+          >
+            {displayTitle}
+          </div>
+
+          {/* Body snippet (6-8 lines max) */}
+          <div
+            style={{
+              fontSize: 11,
+              lineHeight: 1.5,
+              color: "#ddd",
+              display: "-webkit-box",
+              WebkitLineClamp: 8,
+              WebkitBoxOrient: "vertical",
+              overflow: "hidden",
+              whiteSpace: "pre-wrap",
+              wordBreak: "break-word",
+            }}
+          >
+            {bodyText}
+          </div>
+        </div>
+      )}
+
       {/* Pin button */}
       {card.pinned !== null && (
         <button
@@ -637,7 +696,7 @@ export default function AppCard({ card, index, onDelete, onPinToggle, isDraggabl
               overflow: "hidden",
               lineHeight: 1.4,
             }}
-            title={card.title !== undefined ? "Click to edit title" : undefined}
+            title={displayTitle}
           >
             {displayTitle}
           </div>
