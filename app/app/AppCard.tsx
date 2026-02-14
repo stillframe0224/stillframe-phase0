@@ -203,6 +203,8 @@ export default function AppCard({ card, index, onDelete, onPinToggle }: AppCardP
     : getYouTubeThumbnail(cardUrl) ? "youtube"
     : "api";
 
+  const [pinErrorMsg, setPinErrorMsg] = useState<string | null>(null);
+
   const handlePinToggle = async () => {
     const newPinned = !isPinned;
     const oldPinned = isPinned;
@@ -210,6 +212,7 @@ export default function AppCard({ card, index, onDelete, onPinToggle }: AppCardP
     // Optimistic update
     setIsPinned(newPinned);
     setPinError(false);
+    setPinErrorMsg(null);
 
     try {
       const supabase = createClient();
@@ -222,8 +225,23 @@ export default function AppCard({ card, index, onDelete, onPinToggle }: AppCardP
         // Revert on error
         setIsPinned(oldPinned);
         setPinError(true);
-        setTimeout(() => setPinError(false), 2000);
+
+        // Generate human-readable error message
+        let msg = "Pin failed";
+        if (error.code === "42703" || error.message?.includes("column") || error.message?.includes("pinned")) {
+          msg = "Run migration: ALTER TABLE cards ADD COLUMN pinned boolean DEFAULT false;";
+        } else if (error.code === "42501" || error.message?.includes("permission") || error.message?.includes("policy")) {
+          msg = "Add RLS UPDATE policy in Supabase";
+        } else if (error.message) {
+          msg = `Error: ${error.message.slice(0, 50)}`;
+        }
+
+        setPinErrorMsg(msg);
         console.error("Pin toggle failed:", error);
+        setTimeout(() => {
+          setPinError(false);
+          setPinErrorMsg(null);
+        }, 5000);
         return;
       }
 
@@ -232,7 +250,11 @@ export default function AppCard({ card, index, onDelete, onPinToggle }: AppCardP
     } catch (e) {
       setIsPinned(oldPinned);
       setPinError(true);
-      setTimeout(() => setPinError(false), 2000);
+      setPinErrorMsg("Network error");
+      setTimeout(() => {
+        setPinError(false);
+        setPinErrorMsg(null);
+      }, 5000);
     }
   };
 
@@ -426,7 +448,26 @@ export default function AppCard({ card, index, onDelete, onPinToggle }: AppCardP
         >
           {card.text}
         </p>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 8 }}>
+
+        {/* Pin error message */}
+        {pinErrorMsg && (
+          <div
+            style={{
+              fontSize: 9,
+              color: "#D93025",
+              background: "#FEE",
+              padding: "4px 6px",
+              borderRadius: 4,
+              marginTop: 6,
+              fontFamily: "var(--font-dm)",
+              lineHeight: 1.3,
+            }}
+          >
+            {pinErrorMsg}
+          </div>
+        )}
+
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 8, gap: 8 }}>
           <span
             style={{
               fontSize: 10,
@@ -442,34 +483,43 @@ export default function AppCard({ card, index, onDelete, onPinToggle }: AppCardP
           >
             {card.card_type}
           </span>
-          {cardUrl ? (
-            <a
-              href={cardUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                fontSize: 10,
-                color: ct.accent,
-                textDecoration: "none",
-                fontFamily: "var(--font-dm)",
-                fontWeight: 600,
-                opacity: 0.7,
-              }}
-            >
-              Open &rsaquo;
-            </a>
-          ) : (
+
+          <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 10 }}>
+            {/* Created timestamp */}
             <span
               style={{
-                fontSize: 10,
-                color: "#bbb",
+                color: "#999",
                 fontFamily: "var(--font-dm)",
               }}
+              title={new Date(card.created_at).toLocaleString()}
             >
-              {new Date(card.created_at).toLocaleDateString()}
+              {new Intl.DateTimeFormat("ja-JP", {
+                month: "short",
+                day: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+              }).format(new Date(card.created_at))}
             </span>
-          )}
+
+            {cardUrl && (
+              <a
+                href={cardUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  color: ct.accent,
+                  textDecoration: "none",
+                  fontFamily: "var(--font-dm)",
+                  fontWeight: 600,
+                  opacity: 0.7,
+                }}
+              >
+                Open &rsaquo;
+              </a>
+            )}
+          </div>
         </div>
+
         {isDebugPreview() && cardUrl && (
           <div style={{ fontSize: 8, color: "#aaa", fontFamily: "monospace", marginTop: 2 }}>
             preview: {debugSource}

@@ -29,6 +29,7 @@ async function safeFetch(
           "User-Agent":
             "Mozilla/5.0 (compatible; SHINEN-Bot/1.0; +https://shinen.app)",
           Accept: "text/html,application/xhtml+xml",
+          "Accept-Language": "ja,en;q=0.8",
         },
         redirect: "manual",
         signal: controller.signal,
@@ -90,6 +91,38 @@ function resolveUrl(src: string | null, origin: string): string | null {
   }
 }
 
+function extractJsonLdImage(html: string): string | null {
+  // Extract all JSON-LD script blocks
+  const jsonLdPattern = /<script[^>]+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi;
+  const matches = [...html.matchAll(jsonLdPattern)];
+
+  for (const match of matches) {
+    try {
+      const json = JSON.parse(match[1]);
+      // Handle single object or array
+      const items = Array.isArray(json) ? json : [json];
+
+      for (const item of items) {
+        // Check for image field (Product, Article, etc.)
+        if (item.image) {
+          if (typeof item.image === "string") return item.image;
+          if (item.image.url) return item.image.url;
+          if (Array.isArray(item.image) && item.image[0]) {
+            return typeof item.image[0] === "string" ? item.image[0] : item.image[0].url;
+          }
+        }
+        // Check for thumbnailUrl
+        if (item.thumbnailUrl) {
+          return typeof item.thumbnailUrl === "string" ? item.thumbnailUrl : item.thumbnailUrl.url;
+        }
+      }
+    } catch {
+      // Invalid JSON, skip
+    }
+  }
+  return null;
+}
+
 // --- Route handler ---
 
 export async function GET(request: Request) {
@@ -140,9 +173,12 @@ export async function GET(request: Request) {
     const finalOrigin = new URL(finalUrl).origin;
     const html = await res.text();
 
+    // Try OGP first, then Twitter Card, then JSON-LD fallback
     const ogImage = extractMeta(html, "og:image");
     const twImage = extractMeta(html, "twitter:image");
-    const image = resolveUrl(ogImage ?? twImage, finalOrigin);
+    const jsonLdImage = extractJsonLdImage(html);
+
+    const image = resolveUrl(ogImage ?? twImage ?? jsonLdImage, finalOrigin);
     const title = extractMeta(html, "og:title");
     const favicon = extractFavicon(html, finalOrigin);
 
