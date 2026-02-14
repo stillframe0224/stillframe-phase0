@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { getCardType } from "@/lib/cardTypes";
+import { extractFirstHttpUrl, getYouTubeThumbnail } from "@/lib/urlUtils";
 import type { Card } from "@/lib/supabase/types";
 
 const svgFallbacks: Record<string, React.ReactNode> = {
@@ -91,8 +92,92 @@ export default function AppCard({ card, index, onDelete }: AppCardProps) {
   const ct = getCardType(card.card_type);
   const [imgError, setImgError] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
+  const [previewImg, setPreviewImg] = useState<string | null>(null);
 
+  const cardUrl = extractFirstHttpUrl(card.text);
   const hasRealImage = card.image_url && card.image_source !== "generated" && !imgError;
+
+  // Lazy-fetch link preview for cards without a real image
+  useEffect(() => {
+    if (hasRealImage || !cardUrl) return;
+
+    // YouTube: derive thumbnail directly
+    const ytThumb = getYouTubeThumbnail(cardUrl);
+    if (ytThumb) {
+      setPreviewImg(ytThumb);
+      return;
+    }
+
+    // Fetch from link-preview API
+    let cancelled = false;
+    fetch(`/api/link-preview?url=${encodeURIComponent(cardUrl)}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (!cancelled && data?.image) setPreviewImg(data.image);
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [cardUrl, hasRealImage]);
+
+  const displayImage = hasRealImage ? card.image_url! : previewImg;
+  const showImage = displayImage && !imgError;
+
+  const imageContent = (
+    <div style={{ aspectRatio: "7/4", overflow: "hidden", position: "relative" }}>
+      {showImage ? (
+        <img
+          src={displayImage}
+          alt=""
+          loading="lazy"
+          onError={() => {
+            if (!hasRealImage) setPreviewImg(null);
+            setImgError(true);
+          }}
+          style={{
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+          }}
+        />
+      ) : (
+        <>
+          {svgFallbacks[card.card_type] || svgFallbacks.memo}
+          <span
+            style={{
+              position: "absolute",
+              bottom: 6,
+              right: 8,
+              fontSize: 9,
+              color: ct.accent,
+              opacity: 0.5,
+              fontFamily: "var(--font-dm)",
+              letterSpacing: "0.05em",
+            }}
+          >
+            auto / generated
+          </span>
+        </>
+      )}
+      {showImage && (
+        <span
+          style={{
+            position: "absolute",
+            bottom: 6,
+            right: 8,
+            fontSize: 9,
+            color: "#fff",
+            background: "rgba(0,0,0,0.3)",
+            padding: "1px 6px",
+            borderRadius: 4,
+            fontFamily: "var(--font-dm)",
+            letterSpacing: "0.05em",
+          }}
+        >
+          {hasRealImage ? card.image_source : "preview"}
+        </span>
+      )}
+    </div>
+  );
 
   return (
     <div
@@ -152,57 +237,19 @@ export default function AppCard({ card, index, onDelete }: AppCardProps) {
         </button>
       )}
 
-      {/* Image Area */}
-      <div style={{ aspectRatio: "7/4", overflow: "hidden", position: "relative" }}>
-        {hasRealImage ? (
-          <img
-            src={card.image_url!}
-            alt=""
-            onError={() => setImgError(true)}
-            style={{
-              width: "100%",
-              height: "100%",
-              objectFit: "cover",
-            }}
-          />
-        ) : (
-          <>
-            {svgFallbacks[card.card_type] || svgFallbacks.memo}
-            <span
-              style={{
-                position: "absolute",
-                bottom: 6,
-                right: 8,
-                fontSize: 9,
-                color: ct.accent,
-                opacity: 0.5,
-                fontFamily: "var(--font-dm)",
-                letterSpacing: "0.05em",
-              }}
-            >
-              auto / generated
-            </span>
-          </>
-        )}
-        {hasRealImage && card.image_source && (
-          <span
-            style={{
-              position: "absolute",
-              bottom: 6,
-              right: 8,
-              fontSize: 9,
-              color: "#fff",
-              background: "rgba(0,0,0,0.3)",
-              padding: "1px 6px",
-              borderRadius: 4,
-              fontFamily: "var(--font-dm)",
-              letterSpacing: "0.05em",
-            }}
-          >
-            {card.image_source}
-          </span>
-        )}
-      </div>
+      {/* Image Area — clickable if card has URL */}
+      {cardUrl ? (
+        <a
+          href={cardUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ display: "block", cursor: "pointer" }}
+        >
+          {imageContent}
+        </a>
+      ) : (
+        imageContent
+      )}
 
       {/* Text */}
       <div style={{ padding: "10px 14px 12px" }}>
@@ -237,15 +284,33 @@ export default function AppCard({ card, index, onDelete }: AppCardProps) {
           >
             {card.card_type}
           </span>
-          <span
-            style={{
-              fontSize: 10,
-              color: "#bbb",
-              fontFamily: "var(--font-dm)",
-            }}
-          >
-            {new Date(card.created_at).toLocaleDateString()}
-          </span>
+          {cardUrl ? (
+            <a
+              href={cardUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                fontSize: 10,
+                color: ct.accent,
+                textDecoration: "none",
+                fontFamily: "var(--font-dm)",
+                fontWeight: 600,
+                opacity: 0.7,
+              }}
+            >
+              Open &rsaquo;
+            </a>
+          ) : (
+            <span
+              style={{
+                fontSize: 10,
+                color: "#bbb",
+                fontFamily: "var(--font-dm)",
+              }}
+            >
+              {new Date(card.created_at).toLocaleDateString()}
+            </span>
+          )}
         </div>
       </div>
     </div>
