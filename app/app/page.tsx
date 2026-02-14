@@ -129,22 +129,21 @@ export default function AppPage() {
 
       const supabase = createClient();
       const requestId = crypto.randomUUID();
-      const { data, error } = await supabase
+      const basePayload = {
+        user_id: user.id,
+        text,
+        card_type: selectedType,
+        image_url,
+        image_source,
+      };
+
+      let { data, error } = await supabase
         .from("cards")
-        .insert({
-          user_id: user.id,
-          text,
-          card_type: selectedType,
-          image_url,
-          image_source,
-          client_request_id: requestId,
-        })
+        .insert({ ...basePayload, client_request_id: requestId })
         .select()
         .single();
 
-      if (!error && data) {
-        setCards((prev) => dedupeCards([data, ...prev]));
-      } else if (error?.code === "23505") {
+      if (error?.code === "23505") {
         // Unique constraint conflict — fetch the already-inserted row
         const { data: existing } = await supabase
           .from("cards")
@@ -154,6 +153,20 @@ export default function AppPage() {
         if (existing) {
           setCards((prev) => dedupeCards([existing, ...prev]));
         }
+        return;
+      }
+
+      // Fallback: column may not exist yet — retry without client_request_id
+      if (error) {
+        ({ data, error } = await supabase
+          .from("cards")
+          .insert(basePayload)
+          .select()
+          .single());
+      }
+
+      if (!error && data) {
+        setCards((prev) => dedupeCards([data, ...prev]));
       }
     } finally {
       savingRef.current = false;
@@ -182,7 +195,7 @@ export default function AppPage() {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Enter" && !e.shiftKey && !e.repeat) {
+    if (e.key === "Enter" && !e.shiftKey && !e.repeat && !e.nativeEvent.isComposing) {
       e.preventDefault();
       addCard();
     }
