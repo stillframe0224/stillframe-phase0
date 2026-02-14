@@ -278,7 +278,9 @@ export default function AppPage() {
       result = result.filter((card) => {
         const text = card.text.toLowerCase();
         const url = extractFirstHttpUrl(card.text) || "";
-        return text.includes(q) || url.toLowerCase().includes(q);
+        const title = (card.title || "").toLowerCase();
+        const siteName = (card.site_name || "").toLowerCase();
+        return text.includes(q) || url.toLowerCase().includes(q) || title.includes(q) || siteName.includes(q);
       });
     }
 

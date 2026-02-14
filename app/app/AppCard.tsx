@@ -123,10 +123,21 @@ export default function AppCard({ card, index, onDelete, onPinToggle }: AppCardP
   const [proxiedUrl, setProxiedUrl] = useState<string | null>(null);
   const [isPinned, setIsPinned] = useState(card.pinned ?? false);
   const [pinError, setPinError] = useState(false);
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [editedTitle, setEditedTitle] = useState("");
+  const [titleError, setTitleError] = useState<string | null>(null);
   const cardRef = useRef<HTMLDivElement>(null);
+  const titleInputRef = useRef<HTMLInputElement>(null);
 
   const cardUrl = extractFirstHttpUrl(card.text);
   const hasRealImage = !!(card.image_url && card.image_source !== "generated" && !realImgFailed);
+
+  // Derive display title: prefer card.title, fallback to first line of text
+  const displayTitle = card.title || card.text.split("\n")[0];
+  const siteName = card.site_name || null;
+
+  // Image priority: preview_image_url > image_url > link-preview chain
+  const hasPreviewImageUrl = !!(card.preview_image_url && !realImgFailed);
 
   // IntersectionObserver — fetch preview only when card is near viewport
   useEffect(() => {
@@ -145,9 +156,9 @@ export default function AppCard({ card, index, onDelete, onPinToggle }: AppCardP
     return () => observer.disconnect();
   }, []);
 
-  // Lazy-fetch link preview — only when visible
+  // Lazy-fetch link preview — only when visible and no preview_image_url
   useEffect(() => {
-    if (!isVisible || hasRealImage || !cardUrl) return;
+    if (!isVisible || hasPreviewImageUrl || hasRealImage || !cardUrl) return;
     dbg("url", { cardId: card.id, url: cardUrl });
 
     // YouTube: derive thumbnail directly (no API call)
@@ -185,9 +196,10 @@ export default function AppCard({ card, index, onDelete, onPinToggle }: AppCardP
       })
       .catch(() => {});
     return () => controller.abort();
-  }, [card.id, cardUrl, hasRealImage, isVisible]);
+  }, [card.id, cardUrl, hasPreviewImageUrl, hasRealImage, isVisible]);
 
-  const displayImage = hasRealImage ? card.image_url! : (previewFailed ? null : previewImg);
+  // Image priority: preview_image_url > image_url > link-preview chain
+  const displayImage = hasPreviewImageUrl ? card.preview_image_url! : (hasRealImage ? card.image_url! : (previewFailed ? null : previewImg));
   const showImage = !!displayImage;
   const isProxied = !!proxiedUrl && proxiedUrl === displayImage;
 
@@ -259,6 +271,62 @@ export default function AppCard({ card, index, onDelete, onPinToggle }: AppCardP
         setPinError(false);
         setPinErrorMsg(null);
       }, 5000);
+    }
+  };
+
+  const handleTitleClick = () => {
+    if (!card.title && card.title !== null) return; // Only allow editing if title column exists
+    setEditedTitle(displayTitle);
+    setIsEditingTitle(true);
+    setTitleError(null);
+    setTimeout(() => titleInputRef.current?.focus(), 0);
+  };
+
+  const handleTitleSave = async () => {
+    const newTitle = editedTitle.trim();
+    if (newTitle === displayTitle) {
+      setIsEditingTitle(false);
+      return;
+    }
+
+    const oldTitle = card.title;
+    card.title = newTitle || null; // Optimistic update
+
+    try {
+      const supabase = createClient();
+      const { error } = await supabase
+        .from("cards")
+        .update({ title: newTitle || null })
+        .eq("id", card.id);
+
+      if (error) {
+        card.title = oldTitle; // Revert
+        const errMsg = error.message || "";
+        const errCode = error.code || "";
+        if (errCode === "PGRST204" || errCode === "42703" || errMsg.includes("column") || errMsg.includes("title")) {
+          setTitleError("Run migration SQL to enable title editing (see OPS.md)");
+        } else {
+          setTitleError(`Save failed: ${errMsg.slice(0, 40)}`);
+        }
+        setTimeout(() => setTitleError(null), 5000);
+        return;
+      }
+
+      setIsEditingTitle(false);
+    } catch (e) {
+      card.title = oldTitle; // Revert
+      setTitleError("Network error");
+      setTimeout(() => setTitleError(null), 5000);
+    }
+  };
+
+  const handleTitleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleTitleSave();
+    } else if (e.key === "Escape") {
+      setIsEditingTitle(false);
+      setTitleError(null);
     }
   };
 
@@ -437,21 +505,93 @@ export default function AppCard({ card, index, onDelete, onPinToggle }: AppCardP
 
       {/* Text */}
       <div style={{ padding: "10px 14px 12px" }}>
+        {/* Title (editable if metadata columns exist) */}
+        {isEditingTitle ? (
+          <input
+            ref={titleInputRef}
+            type="text"
+            value={editedTitle}
+            onChange={(e) => setEditedTitle(e.target.value)}
+            onBlur={handleTitleSave}
+            onKeyDown={handleTitleKeyDown}
+            style={{
+              width: "100%",
+              fontSize: 13,
+              fontWeight: 600,
+              color: "#2a2a2a",
+              border: "1px solid #D9A441",
+              borderRadius: 4,
+              padding: "4px 6px",
+              marginBottom: 4,
+              fontFamily: "inherit",
+              outline: "none",
+            }}
+          />
+        ) : (
+          <div
+            onClick={handleTitleClick}
+            style={{
+              fontSize: 13,
+              fontWeight: 600,
+              color: "#2a2a2a",
+              marginBottom: 4,
+              cursor: card.title !== undefined ? "pointer" : "default",
+              wordBreak: "break-word",
+            }}
+            title={card.title !== undefined ? "Click to edit title" : undefined}
+          >
+            {displayTitle}
+          </div>
+        )}
+
+        {/* Site name */}
+        {siteName && (
+          <div
+            style={{
+              fontSize: 10,
+              color: "#999",
+              marginBottom: 4,
+              fontFamily: "var(--font-dm)",
+            }}
+          >
+            {siteName}
+          </div>
+        )}
+
+        {/* Body text (skip first line if title exists) */}
         <p
           style={{
-            fontSize: 13,
+            fontSize: 12,
             lineHeight: 1.5,
-            color: "#2a2a2a",
+            color: "#555",
             display: "-webkit-box",
-            WebkitLineClamp: 3,
+            WebkitLineClamp: card.title ? 2 : 3,
             WebkitBoxOrient: "vertical",
             overflow: "hidden",
             margin: 0,
             wordBreak: "break-word",
           }}
         >
-          {card.text}
+          {card.title ? card.text.split("\n").slice(1).join("\n").trim() || "" : card.text}
         </p>
+
+        {/* Title error message */}
+        {titleError && (
+          <div
+            style={{
+              fontSize: 9,
+              color: "#D93025",
+              background: "#FEE",
+              padding: "4px 6px",
+              borderRadius: 4,
+              marginTop: 6,
+              fontFamily: "var(--font-dm)",
+              lineHeight: 1.3,
+            }}
+          >
+            {titleError}
+          </div>
+        )}
 
         {/* Pin error message */}
         {pinErrorMsg && (
