@@ -1,9 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { getCardType } from "@/lib/cardTypes";
 import { extractFirstHttpUrl, getYouTubeThumbnail } from "@/lib/urlUtils";
 import type { Card } from "@/lib/supabase/types";
+
+// Module-level preview cache: url -> image (null = confirmed no image)
+const previewCache = new Map<string, string | null>();
 
 const svgFallbacks: Record<string, React.ReactNode> = {
   memo: (
@@ -94,31 +97,61 @@ export default function AppCard({ card, index, onDelete }: AppCardProps) {
   const [previewFailed, setPreviewFailed] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
   const [previewImg, setPreviewImg] = useState<string | null>(null);
+  const [isVisible, setIsVisible] = useState(false);
+  const cardRef = useRef<HTMLDivElement>(null);
 
   const cardUrl = extractFirstHttpUrl(card.text);
   const hasRealImage = !!(card.image_url && card.image_source !== "generated" && !realImgFailed);
 
-  // Lazy-fetch link preview for cards without a real image
+  // IntersectionObserver — fetch preview only when card is near viewport
   useEffect(() => {
-    if (hasRealImage || !cardUrl) return;
+    const el = cardRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "200px" }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
-    // YouTube: derive thumbnail directly
+  // Lazy-fetch link preview — only when visible
+  useEffect(() => {
+    if (!isVisible || hasRealImage || !cardUrl) return;
+
+    // YouTube: derive thumbnail directly (no API call)
     const ytThumb = getYouTubeThumbnail(cardUrl);
     if (ytThumb) {
       setPreviewImg(ytThumb);
       return;
     }
 
+    // Check in-memory cache (covers both "has image" and "no image" results)
+    const cached = previewCache.get(cardUrl);
+    if (cached !== undefined) {
+      setPreviewImg(cached);
+      return;
+    }
+
     // Fetch from link-preview API
-    let cancelled = false;
-    fetch(`/api/link-preview?url=${encodeURIComponent(cardUrl)}`)
+    const controller = new AbortController();
+    fetch(`/api/link-preview?url=${encodeURIComponent(cardUrl)}`, {
+      signal: controller.signal,
+    })
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
-        if (!cancelled && data?.image) setPreviewImg(data.image);
+        const image = data?.image ?? null;
+        previewCache.set(cardUrl, image);
+        if (!controller.signal.aborted) setPreviewImg(image);
       })
       .catch(() => {});
-    return () => { cancelled = true; };
-  }, [cardUrl, hasRealImage]);
+    return () => controller.abort();
+  }, [cardUrl, hasRealImage, isVisible]);
 
   const displayImage = hasRealImage ? card.image_url! : (previewFailed ? null : previewImg);
   const showImage = !!displayImage;
@@ -186,6 +219,7 @@ export default function AppCard({ card, index, onDelete }: AppCardProps) {
 
   return (
     <div
+      ref={cardRef}
       className="thought-card"
       style={{
         width: 210,
