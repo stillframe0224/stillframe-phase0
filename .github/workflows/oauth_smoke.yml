@@ -1,0 +1,69 @@
+name: oauth-smoke
+
+on:
+  push:
+    branches: ["main"]
+  schedule:
+    - cron: "30 18 * * *" # daily 03:30 JST (18:30 UTC)
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Run OAuth smoke test
+        id: smoke
+        run: node scripts/oauth_smoke.mjs 2>&1 | tee smoke_output.txt
+
+      - name: Add failure summary
+        if: failure()
+        run: |
+          echo "## OAuth Smoke Test Failed" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          tail -n 200 smoke_output.txt >> "$GITHUB_STEP_SUMMARY" || true
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Create GitHub issue on failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          BODY=$(cat <<'ISSUE_EOF'
+          ## OAuth smoke test failed
+
+          **Workflow run:** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          **Trigger:** ${{ github.event_name }}
+          **Commit:** ${{ github.sha }}
+
+          <details><summary>Test output</summary>
+
+          ```
+          ISSUE_EOF
+          )
+          BODY="${BODY}
+          $(tail -n 200 smoke_output.txt || echo '(no output)')
+          \`\`\`
+          </details>"
+
+          # Skip if a matching open issue already exists
+          EXISTING=$(gh issue list --label "oauth-smoke" --state open --limit 1 --json number --jq '.[0].number // empty' 2>/dev/null || true)
+          if [ -n "$EXISTING" ]; then
+            echo "Open issue #${EXISTING} already exists — adding comment instead"
+            gh issue comment "$EXISTING" --body "$BODY"
+          else
+            gh issue create \
+              --title "OAuth smoke test failed ($(date -u +%Y-%m-%d))" \
+              --body "$BODY" \
+              --label "oauth-smoke"
+          fi
