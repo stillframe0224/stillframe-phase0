@@ -67,6 +67,49 @@ async function main() {
     assert("External fetch (github.com)", false, `fetch error: ${e.message}`);
   }
 
+  // ── image-proxy tests ──
+
+  // 4) SSRF blocks on image-proxy
+  const proxySSRF = [
+    ["image-proxy SSRF block: 127.0.0.1", "http://127.0.0.1/img.png"],
+    ["image-proxy SSRF block: 169.254.169.254", "http://169.254.169.254/latest/meta-data/"],
+  ];
+  for (const [label, url] of proxySSRF) {
+    try {
+      const { status, body } = await fetchJSON(
+        `/api/image-proxy?url=${encodeURIComponent(url)}`
+      );
+      assert(label, status === 400 && body.error === "blocked_url",
+        `status=${status} error=${body.error || "(none)"}`);
+    } catch (e) {
+      assert(label, false, `fetch error: ${e.message}`);
+    }
+  }
+
+  // 5) image-proxy returns a valid image
+  try {
+    const imgUrl = "https://github.githubassets.com/favicons/favicon.svg";
+    const res = await fetch(
+      `${BASE}/api/image-proxy?url=${encodeURIComponent(imgUrl)}`
+    );
+    const ct = res.headers.get("content-type") || "";
+    assert("image-proxy returns image",
+      res.status === 200 && ct.startsWith("image/"),
+      `status=${res.status} content-type=${ct}`);
+  } catch (e) {
+    assert("image-proxy returns image", false, `fetch error: ${e.message}`);
+  }
+
+  // 6) image-proxy rejects missing url param
+  try {
+    const { status, body } = await fetchJSON("/api/image-proxy");
+    assert("image-proxy rejects missing url",
+      status === 400 && body.error === "url required",
+      `status=${status} error=${body.error || "(none)"}`);
+  } catch (e) {
+    assert("image-proxy rejects missing url", false, `fetch error: ${e.message}`);
+  }
+
   // Summary
   const passed = results.filter((r) => r.pass).length;
   console.log(`\n=== RESULT: ${failed ? "FAIL" : "PASS"} (${passed}/${results.length}) ===`);
