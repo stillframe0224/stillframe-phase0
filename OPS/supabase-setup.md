@@ -161,11 +161,13 @@ alter table public.cards add column if not exists media_kind text;
 alter table public.cards add column if not exists media_path text;
 alter table public.cards add column if not exists media_thumb_path text;
 alter table public.cards add column if not exists notes text;
+alter table public.cards add column if not exists sort_key text;
 alter table public.cards add column if not exists updated_at timestamptz default now();
 
 -- Index for source URL lookups
 create index if not exists cards_source_url_idx on public.cards (source_url);
 create index if not exists cards_site_name_idx on public.cards (site_name);
+create index if not exists cards_sort_idx on public.cards (pinned, sort_key, created_at);
 ```
 
 **Verify**:
@@ -173,7 +175,7 @@ create index if not exists cards_site_name_idx on public.cards (site_name);
 ```sql
 select column_name from information_schema.columns
 where table_schema='public' and table_name='cards'
-  and column_name in ('title', 'source_url', 'site_name', 'preview_image_url', 'media_kind');
+  and column_name in ('title', 'source_url', 'site_name', 'preview_image_url', 'media_kind', 'notes', 'sort_key');
 ```
 
 These columns enable:

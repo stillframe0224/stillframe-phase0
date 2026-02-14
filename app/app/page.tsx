@@ -7,6 +7,21 @@ import { cardTypes, getCardType } from "@/lib/cardTypes";
 import { extractFirstHttpUrl } from "@/lib/urlUtils";
 import type { Card } from "@/lib/supabase/types";
 import AppCard from "./AppCard";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
 
 const URL_REGEX = /https?:\/\/[^\s]+/;
 
@@ -37,7 +52,7 @@ export default function AppPage() {
   // Search/filter/sort state (initialized from URL query params)
   const [searchQuery, setSearchQuery] = useState("");
   const [domainFilter, setDomainFilter] = useState("all");
-  const [sortOrder, setSortOrder] = useState<"newest" | "oldest">("newest");
+  const [sortOrder, setSortOrder] = useState<"newest" | "oldest" | "custom">("newest");
   const [showPinnedOnly, setShowPinnedOnly] = useState(false);
 
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -298,14 +313,28 @@ export default function AppPage() {
       });
     }
 
-    // Sort: pinned cards first, then by date
+    // Sort: pinned cards first, then by sort mode
     result.sort((a, b) => {
       // Pinned cards always come first
       const aPinned = a.pinned ?? false;
       const bPinned = b.pinned ?? false;
       if (aPinned !== bPinned) return bPinned ? 1 : -1;
 
-      // Within same pin status, sort by date
+      // Within same pin status, sort by mode
+      if (sortOrder === "custom") {
+        // Custom sort: use sort_key if exists, fallback to created_at
+        const aKey = a.sort_key || "";
+        const bKey = b.sort_key || "";
+        if (aKey && bKey) return aKey.localeCompare(bKey);
+        if (aKey) return -1;
+        if (bKey) return 1;
+        // Both null: fallback to newest
+        const aTime = new Date(a.created_at).getTime();
+        const bTime = new Date(b.created_at).getTime();
+        return bTime - aTime;
+      }
+
+      // Date sort
       const aTime = new Date(a.created_at).getTime();
       const bTime = new Date(b.created_at).getTime();
       return sortOrder === "newest" ? bTime - aTime : aTime - bTime;
@@ -449,6 +478,88 @@ export default function AppPage() {
       prev.map((c) => (c.id === id ? { ...c, pinned: newPinned } : c))
     );
   }, []);
+
+  // Fractional indexing: generate sort_key between two values
+  const generateSortKey = (before: string | null, after: string | null): string => {
+    if (!before && !after) return "m"; // First item
+    if (!before) {
+      // Insert at beginning
+      const afterVal = after!.charCodeAt(0);
+      return String.fromCharCode(Math.max(97, afterVal - 1));
+    }
+    if (!after) {
+      // Insert at end
+      return before + "m";
+    }
+    // Insert between
+    if (before < after) {
+      const mid = String.fromCharCode(
+        Math.floor((before.charCodeAt(0) + after.charCodeAt(0)) / 2)
+      );
+      if (mid > before && mid < after) return mid;
+      return before + "m"; // Append if can't fit between
+    }
+    return before + "m";
+  };
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const handleDragEnd = useCallback(
+    async (event: DragEndEvent) => {
+      const { active, over } = event;
+      if (!over || active.id === over.id || !configured) return;
+
+      const oldIndex = filteredCards.findIndex((c) => c.id === active.id);
+      const newIndex = filteredCards.findIndex((c) => c.id === over.id);
+      if (oldIndex === -1 || newIndex === -1) return;
+
+      // Optimistic update
+      const reordered = arrayMove(filteredCards, oldIndex, newIndex);
+      setCards((prev) => {
+        const updated = [...prev];
+        // Update filtered cards order in the main array
+        const filterIds = new Set(filteredCards.map((c) => c.id));
+        const filtered = updated.filter((c) => filterIds.has(c.id));
+        const nonFiltered = updated.filter((c) => !filterIds.has(c.id));
+        const reorderedIds = reordered.map((c) => c.id);
+        const sortedFiltered = reorderedIds.map((id) => filtered.find((c) => c.id === id)!);
+        return [...sortedFiltered, ...nonFiltered];
+      });
+
+      // Compute new sort_key
+      const movedCard = filteredCards[oldIndex];
+      const beforeCard = newIndex > 0 ? reordered[newIndex - 1] : null;
+      const afterCard = newIndex < reordered.length - 1 ? reordered[newIndex + 1] : null;
+      const newSortKey = generateSortKey(
+        beforeCard?.sort_key || null,
+        afterCard?.sort_key || null
+      );
+
+      // Update in DB
+      const supabase = createClient();
+      const { error } = await supabase
+        .from("cards")
+        .update({ sort_key: newSortKey })
+        .eq("id", movedCard.id);
+
+      if (error) {
+        console.error("Drag reorder failed:", error);
+        // Revert optimistic update
+        setCards((prev) => prev);
+      } else {
+        // Update local state with new sort_key
+        setCards((prev) =>
+          prev.map((c) => (c.id === movedCard.id ? { ...c, sort_key: newSortKey } : c))
+        );
+      }
+    },
+    [filteredCards, configured]
+  );
 
   // Handle file drop
   const handleDrop = (e: React.DragEvent) => {
@@ -888,7 +999,7 @@ export default function AppPage() {
             {/* Sort order */}
             <select
               value={sortOrder}
-              onChange={(e) => setSortOrder(e.target.value as "newest" | "oldest")}
+              onChange={(e) => setSortOrder(e.target.value as "newest" | "oldest" | "custom")}
               style={{
                 padding: "8px 12px",
                 border: "1px solid #e0e0e0",
@@ -902,6 +1013,7 @@ export default function AppPage() {
             >
               <option value="newest">Newest first</option>
               <option value="oldest">Oldest first</option>
+              <option value="custom">Custom order (drag)</option>
             </select>
 
             {/* Pinned filter toggle */}
@@ -975,18 +1087,37 @@ export default function AppPage() {
             No cards match your filters.
           </p>
         )}
-        <div
-          style={{
-            display: "flex",
-            gap: 16,
-            flexWrap: "wrap",
-            justifyContent: filteredCards.length < 5 ? "center" : "flex-start",
-          }}
-        >
-          {filteredCards.map((card, i) => (
-            <AppCard key={card.id} card={card} index={i} onDelete={deleteCard} onPinToggle={handlePinToggle} />
-          ))}
-        </div>
+        {sortOrder === "custom" ? (
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+            <SortableContext items={filteredCards.map((c) => c.id)} strategy={verticalListSortingStrategy}>
+              <div
+                style={{
+                  display: "flex",
+                  gap: 16,
+                  flexWrap: "wrap",
+                  justifyContent: filteredCards.length < 5 ? "center" : "flex-start",
+                }}
+              >
+                {filteredCards.map((card, i) => (
+                  <AppCard key={card.id} card={card} index={i} onDelete={deleteCard} onPinToggle={handlePinToggle} isDraggable={true} />
+                ))}
+              </div>
+            </SortableContext>
+          </DndContext>
+        ) : (
+          <div
+            style={{
+              display: "flex",
+              gap: 16,
+              flexWrap: "wrap",
+              justifyContent: filteredCards.length < 5 ? "center" : "flex-start",
+            }}
+          >
+            {filteredCards.map((card, i) => (
+              <AppCard key={card.id} card={card} index={i} onDelete={deleteCard} onPinToggle={handlePinToggle} isDraggable={false} />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

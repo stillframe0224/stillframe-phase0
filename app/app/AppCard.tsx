@@ -5,6 +5,8 @@ import { createClient } from "@/lib/supabase/client";
 import { getCardType } from "@/lib/cardTypes";
 import { extractFirstHttpUrl, getYouTubeThumbnail } from "@/lib/urlUtils";
 import type { Card } from "@/lib/supabase/types";
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 // Module-level preview cache: url -> image (null = confirmed no image)
 const previewCache = new Map<string, string | null>();
@@ -111,9 +113,24 @@ interface AppCardProps {
   index: number;
   onDelete: (id: string) => void;
   onPinToggle?: (id: string, newPinned: boolean) => void;
+  isDraggable?: boolean;
 }
 
-export default function AppCard({ card, index, onDelete, onPinToggle }: AppCardProps) {
+export default function AppCard({ card, index, onDelete, onPinToggle, isDraggable = false }: AppCardProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: card.id, disabled: !isDraggable });
+
+  const dragStyle = {
+    transform: CSS.Transform.toString(transform),
+    transition: isDragging ? "none" : transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
   const ct = getCardType(card.card_type);
   const [realImgFailed, setRealImgFailed] = useState(false);
   const [previewFailed, setPreviewFailed] = useState(false);
@@ -472,7 +489,10 @@ export default function AppCard({ card, index, onDelete, onPinToggle }: AppCardP
 
   return (
     <div
-      ref={cardRef}
+      ref={(node) => {
+        cardRef.current = node;
+        setNodeRef(node);
+      }}
       className="thought-card"
       style={{
         width: 210,
@@ -481,25 +501,30 @@ export default function AppCard({ card, index, onDelete, onPinToggle }: AppCardP
         border: `1.5px solid ${ct.border}`,
         background: ct.bg,
         overflow: "hidden",
-        cursor: "default",
+        cursor: isDraggable ? "grab" : "default",
         position: "relative",
-        transition: "transform 0.2s, box-shadow 0.2s",
         animationName: "cardPop",
         animationDuration: "0.45s",
         animationTimingFunction: "ease-out",
         animationFillMode: "both",
         animationDelay: `${index * 0.04}s`,
+        ...dragStyle,
       }}
+      {...(isDraggable ? { ...attributes, ...listeners } : {})}
       onMouseEnter={(e) => {
-        e.currentTarget.style.transform = "translateY(-4px)";
-        e.currentTarget.style.boxShadow =
-          "0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.05)";
-        setShowDelete(true);
+        if (!isDragging) {
+          e.currentTarget.style.transform = dragStyle.transform || "translateY(-4px)";
+          e.currentTarget.style.boxShadow =
+            "0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.05)";
+          setShowDelete(true);
+        }
       }}
       onMouseLeave={(e) => {
-        e.currentTarget.style.transform = "translateY(0)";
-        e.currentTarget.style.boxShadow = "none";
-        setShowDelete(false);
+        if (!isDragging) {
+          e.currentTarget.style.transform = dragStyle.transform || "translateY(0)";
+          e.currentTarget.style.boxShadow = "none";
+          setShowDelete(false);
+        }
       }}
     >
       {/* Pin button */}

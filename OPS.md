@@ -78,9 +78,11 @@ ALTER TABLE public.cards ADD COLUMN IF NOT EXISTS media_kind text;
 ALTER TABLE public.cards ADD COLUMN IF NOT EXISTS media_path text;
 ALTER TABLE public.cards ADD COLUMN IF NOT EXISTS media_thumb_path text;
 ALTER TABLE public.cards ADD COLUMN IF NOT EXISTS notes text;
+ALTER TABLE public.cards ADD COLUMN IF NOT EXISTS sort_key text;
 ALTER TABLE public.cards ADD COLUMN IF NOT EXISTS updated_at timestamptz DEFAULT now();
 CREATE INDEX IF NOT EXISTS cards_source_url_idx ON public.cards (source_url);
 CREATE INDEX IF NOT EXISTS cards_site_name_idx ON public.cards (site_name);
+CREATE INDEX IF NOT EXISTS cards_sort_idx ON public.cards (pinned, sort_key, created_at);
 ```
 
 **Verify**:
@@ -88,7 +90,7 @@ CREATE INDEX IF NOT EXISTS cards_site_name_idx ON public.cards (site_name);
 ```sql
 SELECT column_name FROM information_schema.columns
 WHERE table_schema='public' AND table_name='cards'
-  AND column_name IN ('title', 'source_url', 'site_name', 'preview_image_url', 'media_kind', 'notes');
+  AND column_name IN ('title', 'source_url', 'site_name', 'preview_image_url', 'media_kind', 'notes', 'sort_key');
 ```
 
 ### Link previews not loading
