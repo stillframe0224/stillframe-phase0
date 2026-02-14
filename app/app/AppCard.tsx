@@ -116,9 +116,12 @@ interface AppCardProps {
   onFileAssign?: (cardId: string, fileId: string | null) => void;
   files?: FileRecord[];
   isDraggable?: boolean;
+  isBulkMode?: boolean;
+  isSelected?: boolean;
+  onToggleSelect?: (cardId: string) => void;
 }
 
-export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssign, files = [], isDraggable = false }: AppCardProps) {
+export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssign, files = [], isDraggable = false, isBulkMode = false, isSelected = false, onToggleSelect }: AppCardProps) {
   const {
     attributes,
     listeners,
@@ -497,6 +500,12 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
     </div>
   );
 
+  const handleCardClick = () => {
+    if (isBulkMode && onToggleSelect) {
+      onToggleSelect(card.id);
+    }
+  };
+
   return (
     <div
       ref={(node) => {
@@ -504,14 +513,15 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
         setNodeRef(node);
       }}
       className="thought-card"
+      onClick={handleCardClick}
       style={{
         width: 210,
         minWidth: 210,
         borderRadius: 16,
-        border: `1.5px solid ${ct.border}`,
-        background: ct.bg,
+        border: `1.5px solid ${isSelected ? "#4F6ED9" : ct.border}`,
+        background: isSelected ? "#EEF2FF" : ct.bg,
         overflow: "hidden",
-        cursor: isDraggable ? "grab" : "default",
+        cursor: isBulkMode ? "pointer" : (isDraggable ? "grab" : "default"),
         position: "relative",
         animationName: "cardPop",
         animationDuration: "0.45s",
@@ -520,9 +530,9 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
         animationDelay: `${index * 0.04}s`,
         ...dragStyle,
       }}
-      {...(isDraggable ? { ...attributes, ...listeners } : {})}
+      {...(isDraggable && !isBulkMode ? { ...attributes, ...listeners } : {})}
       onMouseEnter={(e) => {
-        if (!isDragging) {
+        if (!isDragging && !isBulkMode) {
           e.currentTarget.style.transform = dragStyle.transform || "translateY(-4px)";
           e.currentTarget.style.boxShadow =
             "0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.05)";
@@ -531,7 +541,7 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
         }
       }}
       onMouseLeave={(e) => {
-        if (!isDragging) {
+        if (!isDragging && !isBulkMode) {
           e.currentTarget.style.transform = dragStyle.transform || "translateY(0)";
           e.currentTarget.style.boxShadow = "none";
           setShowDelete(false);
@@ -539,6 +549,33 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
         }
       }}
     >
+      {/* Bulk mode checkbox */}
+      {isBulkMode && (
+        <div
+          style={{
+            position: "absolute",
+            top: 8,
+            left: 8,
+            width: 24,
+            height: 24,
+            borderRadius: 4,
+            border: `2px solid ${isSelected ? "#4F6ED9" : "#ddd"}`,
+            background: isSelected ? "#4F6ED9" : "#fff",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 10,
+            pointerEvents: "none",
+          }}
+        >
+          {isSelected && (
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <path d="M2 7L5.5 10.5L12 4" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          )}
+        </div>
+      )}
+
       {/* Hover text preview (full title + body snippet) */}
       {isHovered && hasBodyText && (
         <div
@@ -590,9 +627,12 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
       )}
 
       {/* Pin button */}
-      {card.pinned !== null && (
+      {card.pinned !== null && !isBulkMode && (
         <button
-          onClick={handlePinToggle}
+          onClick={(e) => {
+            e.stopPropagation();
+            handlePinToggle();
+          }}
           style={{
             position: "absolute",
             top: 6,
@@ -619,9 +659,12 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
       )}
 
       {/* Delete button */}
-      {showDelete && (
+      {showDelete && !isBulkMode && (
         <button
-          onClick={() => onDelete(card.id)}
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete(card.id);
+          }}
           style={{
             position: "absolute",
             top: 6,
@@ -646,11 +689,12 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
       )}
 
       {/* Image Area — clickable if card has URL */}
-      {cardUrl ? (
+      {cardUrl && !isBulkMode ? (
         <a
           href={cardUrl}
           target="_blank"
           rel="noopener noreferrer"
+          onClick={(e) => e.stopPropagation()}
           style={{ display: "block", cursor: "pointer" }}
         >
           {imageContent}
@@ -762,8 +806,15 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
           {/* MEMO pill with hover preview */}
           <div style={{ position: "relative" }}>
             <span
-              onClick={() => {
-                if (card.notes !== undefined) setShowMemoModal(true);
+              onClick={(e) => {
+                if (isBulkMode) {
+                  e.stopPropagation();
+                  return;
+                }
+                if (card.notes !== undefined) {
+                  e.stopPropagation();
+                  setShowMemoModal(true);
+                }
               }}
               onMouseEnter={() => {
                 if (card.notes && card.notes.trim()) setShowMemoPreview(true);
@@ -832,10 +883,13 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
             </span>
 
             {/* File assignment */}
-            {onFileAssign && files.length > 0 && (
+            {onFileAssign && files.length > 0 && !isBulkMode && (
               <div style={{ position: "relative" }}>
                 <button
-                  onClick={() => setShowFileSelect(!showFileSelect)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowFileSelect(!showFileSelect);
+                  }}
                   style={{
                     fontSize: 9,
                     color: "#888",
@@ -906,11 +960,12 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
               </div>
             )}
 
-            {cardUrl && (
+            {cardUrl && !isBulkMode && (
               <a
                 href={cardUrl}
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
                 style={{
                   color: ct.accent,
                   textDecoration: "none",
