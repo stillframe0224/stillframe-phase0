@@ -79,10 +79,12 @@ ALTER TABLE public.cards ADD COLUMN IF NOT EXISTS media_path text;
 ALTER TABLE public.cards ADD COLUMN IF NOT EXISTS media_thumb_path text;
 ALTER TABLE public.cards ADD COLUMN IF NOT EXISTS notes text;
 ALTER TABLE public.cards ADD COLUMN IF NOT EXISTS sort_key text;
+ALTER TABLE public.cards ADD COLUMN IF NOT EXISTS file_id uuid;
 ALTER TABLE public.cards ADD COLUMN IF NOT EXISTS updated_at timestamptz DEFAULT now();
 CREATE INDEX IF NOT EXISTS cards_source_url_idx ON public.cards (source_url);
 CREATE INDEX IF NOT EXISTS cards_site_name_idx ON public.cards (site_name);
 CREATE INDEX IF NOT EXISTS cards_sort_idx ON public.cards (pinned, sort_key, created_at);
+CREATE INDEX IF NOT EXISTS cards_file_id_idx ON public.cards (file_id);
 ```
 
 **Verify**:
@@ -90,7 +92,63 @@ CREATE INDEX IF NOT EXISTS cards_sort_idx ON public.cards (pinned, sort_key, cre
 ```sql
 SELECT column_name FROM information_schema.columns
 WHERE table_schema='public' AND table_name='cards'
-  AND column_name IN ('title', 'source_url', 'site_name', 'preview_image_url', 'media_kind', 'notes', 'sort_key');
+  AND column_name IN ('title', 'source_url', 'site_name', 'preview_image_url', 'media_kind', 'notes', 'sort_key', 'file_id');
+```
+
+## 10. Migration: Add Files table (for organizing cards into collections)
+
+Run this in **SQL Editor**:
+
+```sql
+-- Create files table
+CREATE TABLE IF NOT EXISTS public.files (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL,
+  name text NOT NULL,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS files_user_id_idx ON public.files(user_id);
+
+-- Add file_id to cards
+ALTER TABLE public.cards ADD COLUMN IF NOT EXISTS file_id uuid;
+
+ALTER TABLE public.cards
+  ADD CONSTRAINT cards_file_id_fkey
+  FOREIGN KEY (file_id) REFERENCES public.files(id) ON DELETE SET NULL;
+
+CREATE INDEX IF NOT EXISTS cards_file_id_idx ON public.cards(file_id);
+
+-- Enable RLS for files
+ALTER TABLE public.files ENABLE ROW LEVEL SECURITY;
+
+-- Files RLS policies
+CREATE POLICY "files_select_own" ON public.files
+  FOR SELECT TO authenticated
+  USING (user_id = auth.uid());
+
+CREATE POLICY "files_insert_own" ON public.files
+  FOR INSERT TO authenticated
+  WITH CHECK (user_id = auth.uid());
+
+CREATE POLICY "files_update_own" ON public.files
+  FOR UPDATE TO authenticated
+  USING (user_id = auth.uid())
+  WITH CHECK (user_id = auth.uid());
+
+CREATE POLICY "files_delete_own" ON public.files
+  FOR DELETE TO authenticated
+  USING (user_id = auth.uid());
+```
+
+**Verify**:
+
+```sql
+-- Check files table
+SELECT count(*) FROM files WHERE user_id = auth.uid();
+
+-- Check file_id column
+SELECT file_id, count(*) FROM cards GROUP BY file_id;
 ```
 
 ### Link previews not loading

@@ -162,12 +162,14 @@ alter table public.cards add column if not exists media_path text;
 alter table public.cards add column if not exists media_thumb_path text;
 alter table public.cards add column if not exists notes text;
 alter table public.cards add column if not exists sort_key text;
+alter table public.cards add column if not exists file_id uuid;
 alter table public.cards add column if not exists updated_at timestamptz default now();
 
 -- Index for source URL lookups
 create index if not exists cards_source_url_idx on public.cards (source_url);
 create index if not exists cards_site_name_idx on public.cards (site_name);
 create index if not exists cards_sort_idx on public.cards (pinned, sort_key, created_at);
+create index if not exists cards_file_id_idx on public.cards (file_id);
 ```
 
 **Verify**:
@@ -175,7 +177,63 @@ create index if not exists cards_sort_idx on public.cards (pinned, sort_key, cre
 ```sql
 select column_name from information_schema.columns
 where table_schema='public' and table_name='cards'
-  and column_name in ('title', 'source_url', 'site_name', 'preview_image_url', 'media_kind', 'notes', 'sort_key');
+  and column_name in ('title', 'source_url', 'site_name', 'preview_image_url', 'media_kind', 'notes', 'sort_key', 'file_id');
+```
+
+## 10. Migration: Add Files table (for organizing cards)
+
+Run this in **SQL Editor**:
+
+```sql
+-- Create files table
+create table if not exists public.files (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null,
+  name text not null,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists files_user_id_idx on public.files(user_id);
+
+-- Add file_id to cards
+alter table public.cards add column if not exists file_id uuid;
+
+alter table public.cards
+  add constraint cards_file_id_fkey
+  foreign key (file_id) references public.files(id) on delete set null;
+
+create index if not exists cards_file_id_idx on public.cards(file_id);
+
+-- Enable RLS for files
+alter table public.files enable row level security;
+
+-- Files RLS policies
+create policy "files_select_own" on public.files
+  for select to authenticated
+  using (user_id = auth.uid());
+
+create policy "files_insert_own" on public.files
+  for insert to authenticated
+  with check (user_id = auth.uid());
+
+create policy "files_update_own" on public.files
+  for update to authenticated
+  using (user_id = auth.uid())
+  with check (user_id = auth.uid());
+
+create policy "files_delete_own" on public.files
+  for delete to authenticated
+  using (user_id = auth.uid());
+```
+
+**Verify**:
+
+```sql
+-- Check files table
+select count(*) from files where user_id = auth.uid();
+
+-- Check file_id column
+select file_id, count(*) from cards group by file_id;
 ```
 
 These columns enable:

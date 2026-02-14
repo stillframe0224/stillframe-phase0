@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { getCardType } from "@/lib/cardTypes";
 import { extractFirstHttpUrl, getYouTubeThumbnail } from "@/lib/urlUtils";
-import type { Card } from "@/lib/supabase/types";
+import type { Card, File as FileRecord } from "@/lib/supabase/types";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
@@ -113,10 +113,12 @@ interface AppCardProps {
   index: number;
   onDelete: (id: string) => void;
   onPinToggle?: (id: string, newPinned: boolean) => void;
+  onFileAssign?: (cardId: string, fileId: string | null) => void;
+  files?: FileRecord[];
   isDraggable?: boolean;
 }
 
-export default function AppCard({ card, index, onDelete, onPinToggle, isDraggable = false }: AppCardProps) {
+export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssign, files = [], isDraggable = false }: AppCardProps) {
   const {
     attributes,
     listeners,
@@ -149,6 +151,7 @@ export default function AppCard({ card, index, onDelete, onPinToggle, isDraggabl
   const [memoError, setMemoError] = useState<string | null>(null);
   const [showMemoPreview, setShowMemoPreview] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+  const [showFileSelect, setShowFileSelect] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
   const titleInputRef = useRef<HTMLInputElement>(null);
   const memoSaveTimeout = useRef<NodeJS.Timeout | null>(null);
@@ -811,6 +814,98 @@ export default function AppCard({ card, index, onDelete, onPinToggle, isDraggabl
           </div>
 
           <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 10 }}>
+            {/* Created date - always visible */}
+            <span
+              style={{
+                fontSize: 9,
+                color: "#aaa",
+                fontFamily: "var(--font-dm)",
+              }}
+              title={new Date(card.created_at).toLocaleString()}
+            >
+              {new Intl.DateTimeFormat("ja-JP", {
+                month: "numeric",
+                day: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+              }).format(new Date(card.created_at))}
+            </span>
+
+            {/* File assignment */}
+            {onFileAssign && files.length > 0 && (
+              <div style={{ position: "relative" }}>
+                <button
+                  onClick={() => setShowFileSelect(!showFileSelect)}
+                  style={{
+                    fontSize: 9,
+                    color: "#888",
+                    background: "transparent",
+                    border: "none",
+                    cursor: "pointer",
+                    fontFamily: "var(--font-dm)",
+                    padding: 0,
+                  }}
+                  title="Move to file"
+                >
+                  📁
+                </button>
+
+                {showFileSelect && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      bottom: "calc(100% + 4px)",
+                      right: 0,
+                      background: "#fff",
+                      border: "1px solid #ddd",
+                      borderRadius: 6,
+                      boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                      zIndex: 15,
+                      minWidth: 120,
+                      maxHeight: 180,
+                      overflow: "auto",
+                    }}
+                  >
+                    <div
+                      onClick={() => {
+                        onFileAssign(card.id, null);
+                        setShowFileSelect(false);
+                      }}
+                      style={{
+                        padding: "6px 10px",
+                        fontSize: 11,
+                        cursor: "pointer",
+                        borderBottom: "1px solid #eee",
+                        fontFamily: "var(--font-dm)",
+                        background: !card.file_id ? "#f5f5f5" : "transparent",
+                      }}
+                    >
+                      Unfile
+                    </div>
+                    {files.map((file) => (
+                      <div
+                        key={file.id}
+                        onClick={() => {
+                          onFileAssign(card.id, file.id);
+                          setShowFileSelect(false);
+                        }}
+                        style={{
+                          padding: "6px 10px",
+                          fontSize: 11,
+                          cursor: "pointer",
+                          fontFamily: "var(--font-dm)",
+                          background: card.file_id === file.id ? "#f5f5f5" : "transparent",
+                          wordBreak: "break-word",
+                        }}
+                      >
+                        {file.name}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
             {cardUrl && (
               <a
                 href={cardUrl}

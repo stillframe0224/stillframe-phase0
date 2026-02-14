@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { createClient, isSupabaseConfigured, getConfigStatus } from "@/lib/supabase/client";
 import { cardTypes, getCardType } from "@/lib/cardTypes";
 import { extractFirstHttpUrl } from "@/lib/urlUtils";
-import type { Card } from "@/lib/supabase/types";
+import type { Card, File as FileRecord } from "@/lib/supabase/types";
 import AppCard from "./AppCard";
 import {
   DndContext,
@@ -39,6 +39,7 @@ export default function AppPage() {
   const searchParams = useSearchParams();
 
   const [cards, setCards] = useState<Card[]>([]);
+  const [files, setFiles] = useState<FileRecord[]>([]);
   const [input, setInput] = useState("");
   const [selectedType, setSelectedType] = useState("memo");
   const [loading, setLoading] = useState(true);
@@ -52,8 +53,11 @@ export default function AppPage() {
   // Search/filter/sort state (initialized from URL query params)
   const [searchQuery, setSearchQuery] = useState("");
   const [domainFilter, setDomainFilter] = useState("all");
+  const [fileFilter, setFileFilter] = useState<string>("all");
   const [sortOrder, setSortOrder] = useState<"newest" | "oldest" | "custom">("newest");
   const [showPinnedOnly, setShowPinnedOnly] = useState(false);
+  const [showNewFileInput, setShowNewFileInput] = useState(false);
+  const [newFileName, setNewFileName] = useState("");
 
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const savingRef = useRef(false);
@@ -91,6 +95,14 @@ export default function AppPage() {
         .select("*")
         .order("created_at", { ascending: false });
       if (data) setCards(dedupeCards(data));
+
+      // Load files
+      const { data: filesData } = await supabase
+        .from("files")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (filesData) setFiles(filesData);
+
       setLoading(false);
     }
     init();
@@ -241,11 +253,13 @@ export default function AppPage() {
     filterInitializedRef.current = true;
     const q = searchParams.get("q") || "";
     const d = searchParams.get("d") || "all";
+    const f = searchParams.get("f") || "all";
     const s = searchParams.get("sort") || "newest";
     const p = searchParams.get("p") === "1";
     setSearchQuery(q);
     setDomainFilter(d);
-    setSortOrder(s === "oldest" ? "oldest" : "newest");
+    setFileFilter(f);
+    setSortOrder(s === "oldest" ? "oldest" : s === "custom" ? "custom" : "newest");
     setShowPinnedOnly(p);
   }, [searchParams]);
 
@@ -255,12 +269,13 @@ export default function AppPage() {
     const params = new URLSearchParams();
     if (searchQuery) params.set("q", searchQuery);
     if (domainFilter !== "all") params.set("d", domainFilter);
+    if (fileFilter !== "all") params.set("f", fileFilter);
     if (sortOrder !== "newest") params.set("sort", sortOrder);
     if (showPinnedOnly) params.set("p", "1");
     const query = params.toString();
     const newUrl = query ? `/app?${query}` : "/app";
     router.replace(newUrl, { scroll: false });
-  }, [searchQuery, domainFilter, sortOrder, showPinnedOnly, router]);
+  }, [searchQuery, domainFilter, fileFilter, sortOrder, showPinnedOnly, router]);
 
   // Extract unique domains from cards
   const domains = useMemo(() => {
@@ -313,6 +328,15 @@ export default function AppPage() {
       });
     }
 
+    // File filter
+    if (fileFilter !== "all") {
+      if (fileFilter === "unfiled") {
+        result = result.filter((card) => !card.file_id);
+      } else {
+        result = result.filter((card) => card.file_id === fileFilter);
+      }
+    }
+
     // Sort: pinned cards first, then by sort mode
     result.sort((a, b) => {
       // Pinned cards always come first
@@ -341,7 +365,7 @@ export default function AppPage() {
     });
 
     return result;
-  }, [cards, searchQuery, domainFilter, sortOrder, showPinnedOnly]);
+  }, [cards, searchQuery, domainFilter, fileFilter, sortOrder, showPinnedOnly]);
 
   const handleLogout = async () => {
     if (!configured) return;
@@ -478,6 +502,85 @@ export default function AppPage() {
       prev.map((c) => (c.id === id ? { ...c, pinned: newPinned } : c))
     );
   }, []);
+
+  const createFile = async () => {
+    const name = newFileName.trim();
+    if (!name || !configured || !user) return;
+    setShowNewFileInput(false);
+    setNewFileName("");
+
+    try {
+      const supabase = createClient();
+      const { data, error } = await supabase
+        .from("files")
+        .insert({ user_id: user.id, name: name.slice(0, 60) })
+        .select()
+        .single();
+
+      if (error) {
+        const errCode = error.code || "";
+        const errMsg = error.message || "";
+        if (errCode === "PGRST204" || errCode === "42703" || errCode === "42P01" || errMsg.includes("relation") || errMsg.includes("does not exist")) {
+          setErrorBanner("Run migration SQL to enable Files (see OPS.md)");
+        } else {
+          setErrorBanner(`Create file failed: ${errMsg.slice(0, 50)}`);
+        }
+        setTimeout(() => setErrorBanner(null), 5000);
+        return;
+      }
+
+      if (data) {
+        setFiles((prev) => [data, ...prev]);
+        setBanner(`Created file: ${name}`);
+        setTimeout(() => setBanner(null), 2500);
+      }
+    } catch (e) {
+      setErrorBanner("Network error");
+      setTimeout(() => setErrorBanner(null), 5000);
+    }
+  };
+
+  const assignCardToFile = useCallback(async (cardId: string, fileId: string | null) => {
+    if (!configured) return;
+    const oldCard = cards.find((c) => c.id === cardId);
+    if (!oldCard) return;
+    const oldFileId = oldCard.file_id;
+
+    // Optimistic update
+    setCards((prev) =>
+      prev.map((c) => (c.id === cardId ? { ...c, file_id: fileId } : c))
+    );
+
+    try {
+      const supabase = createClient();
+      const { error } = await supabase
+        .from("cards")
+        .update({ file_id: fileId })
+        .eq("id", cardId);
+
+      if (error) {
+        // Revert
+        setCards((prev) =>
+          prev.map((c) => (c.id === cardId ? { ...c, file_id: oldFileId } : c))
+        );
+        const errCode = error.code || "";
+        const errMsg = error.message || "";
+        if (errCode === "PGRST204" || errCode === "42703" || errMsg.includes("column") || errMsg.includes("file_id")) {
+          setErrorBanner("Run migration SQL to enable Files (see OPS.md)");
+        } else {
+          setErrorBanner(`Assign failed: ${errMsg.slice(0, 50)}`);
+        }
+        setTimeout(() => setErrorBanner(null), 5000);
+      }
+    } catch (e) {
+      // Revert
+      setCards((prev) =>
+        prev.map((c) => (c.id === cardId ? { ...c, file_id: oldFileId } : c))
+      );
+      setErrorBanner("Network error");
+      setTimeout(() => setErrorBanner(null), 5000);
+    }
+  }, [cards, configured]);
 
   // Fractional indexing: generate sort_key between two values
   const generateSortKey = (before: string | null, after: string | null): string => {
@@ -996,6 +1099,108 @@ export default function AppPage() {
               ))}
             </select>
 
+            {/* File filter */}
+            <select
+              value={fileFilter}
+              onChange={(e) => setFileFilter(e.target.value)}
+              style={{
+                padding: "8px 12px",
+                border: "1px solid #e0e0e0",
+                borderRadius: 8,
+                fontSize: 13,
+                fontFamily: "var(--font-dm)",
+                outline: "none",
+                background: "#fff",
+                cursor: "pointer",
+              }}
+            >
+              <option value="all">All files</option>
+              <option value="unfiled">Unfiled</option>
+              {files.map((f) => (
+                <option key={f.id} value={f.id}>
+                  {f.name}
+                </option>
+              ))}
+            </select>
+
+            {/* New file button */}
+            {!showNewFileInput ? (
+              <button
+                onClick={() => setShowNewFileInput(true)}
+                style={{
+                  padding: "8px 12px",
+                  border: "1px solid #e0e0e0",
+                  borderRadius: 8,
+                  fontSize: 13,
+                  fontFamily: "var(--font-dm)",
+                  background: "#fff",
+                  cursor: "pointer",
+                }}
+                title="Create new file"
+              >
+                + File
+              </button>
+            ) : (
+              <div style={{ display: "flex", gap: 4 }}>
+                <input
+                  type="text"
+                  value={newFileName}
+                  onChange={(e) => setNewFileName(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") createFile();
+                    if (e.key === "Escape") {
+                      setShowNewFileInput(false);
+                      setNewFileName("");
+                    }
+                  }}
+                  placeholder="File name..."
+                  maxLength={60}
+                  style={{
+                    padding: "8px 12px",
+                    border: "1px solid #D9A441",
+                    borderRadius: 8,
+                    fontSize: 13,
+                    fontFamily: "var(--font-dm)",
+                    outline: "none",
+                    width: 150,
+                  }}
+                  autoFocus
+                />
+                <button
+                  onClick={createFile}
+                  style={{
+                    padding: "8px 12px",
+                    border: "none",
+                    borderRadius: 8,
+                    fontSize: 13,
+                    fontFamily: "var(--font-dm)",
+                    background: "#D9A441",
+                    color: "#fff",
+                    cursor: "pointer",
+                  }}
+                >
+                  ✓
+                </button>
+                <button
+                  onClick={() => {
+                    setShowNewFileInput(false);
+                    setNewFileName("");
+                  }}
+                  style={{
+                    padding: "8px 12px",
+                    border: "1px solid #e0e0e0",
+                    borderRadius: 8,
+                    fontSize: 13,
+                    fontFamily: "var(--font-dm)",
+                    background: "#fff",
+                    cursor: "pointer",
+                  }}
+                >
+                  ✕
+                </button>
+              </div>
+            )}
+
             {/* Sort order */}
             <select
               value={sortOrder}
@@ -1099,7 +1304,7 @@ export default function AppPage() {
                 }}
               >
                 {filteredCards.map((card, i) => (
-                  <AppCard key={card.id} card={card} index={i} onDelete={deleteCard} onPinToggle={handlePinToggle} isDraggable={true} />
+                  <AppCard key={card.id} card={card} index={i} onDelete={deleteCard} onPinToggle={handlePinToggle} onFileAssign={assignCardToFile} files={files} isDraggable={true} />
                 ))}
               </div>
             </SortableContext>
@@ -1114,7 +1319,7 @@ export default function AppPage() {
             }}
           >
             {filteredCards.map((card, i) => (
-              <AppCard key={card.id} card={card} index={i} onDelete={deleteCard} onPinToggle={handlePinToggle} isDraggable={false} />
+              <AppCard key={card.id} card={card} index={i} onDelete={deleteCard} onPinToggle={handlePinToggle} onFileAssign={assignCardToFile} files={files} isDraggable={false} />
             ))}
           </div>
         )}
