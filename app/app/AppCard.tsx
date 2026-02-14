@@ -130,6 +130,7 @@ export default function AppCard({ card, index, onDelete, onPinToggle }: AppCardP
   const [memoText, setMemoText] = useState(card.notes || "");
   const [memoSaveStatus, setMemoSaveStatus] = useState<"saved" | "error" | null>(null);
   const [memoError, setMemoError] = useState<string | null>(null);
+  const [showMemoPreview, setShowMemoPreview] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
   const titleInputRef = useRef<HTMLInputElement>(null);
   const memoSaveTimeout = useRef<NodeJS.Timeout | null>(null);
@@ -573,7 +574,7 @@ export default function AppCard({ card, index, onDelete, onPinToggle }: AppCardP
 
       {/* Text */}
       <div style={{ padding: "10px 14px 12px" }}>
-        {/* Title (editable if metadata columns exist) */}
+        {/* Title - compact 2-line clamp, editable on click */}
         {isEditingTitle ? (
           <input
             ref={titleInputRef}
@@ -602,9 +603,14 @@ export default function AppCard({ card, index, onDelete, onPinToggle }: AppCardP
               fontSize: 13,
               fontWeight: 600,
               color: "#2a2a2a",
-              marginBottom: 4,
+              marginBottom: siteName ? 2 : 0,
               cursor: card.title !== undefined ? "pointer" : "default",
               wordBreak: "break-word",
+              display: "-webkit-box",
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: "vertical",
+              overflow: "hidden",
+              lineHeight: 1.4,
             }}
             title={card.title !== undefined ? "Click to edit title" : undefined}
           >
@@ -612,36 +618,22 @@ export default function AppCard({ card, index, onDelete, onPinToggle }: AppCardP
           </div>
         )}
 
-        {/* Site name */}
+        {/* Site name - subtle, single line */}
         {siteName && (
           <div
             style={{
-              fontSize: 10,
-              color: "#999",
+              fontSize: 9,
+              color: "#aaa",
               marginBottom: 4,
               fontFamily: "var(--font-dm)",
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
             }}
           >
             {siteName}
           </div>
         )}
-
-        {/* Body text (skip first line if title exists) */}
-        <p
-          style={{
-            fontSize: 12,
-            lineHeight: 1.5,
-            color: "#555",
-            display: "-webkit-box",
-            WebkitLineClamp: card.title ? 2 : 3,
-            WebkitBoxOrient: "vertical",
-            overflow: "hidden",
-            margin: 0,
-            wordBreak: "break-word",
-          }}
-        >
-          {card.title ? card.text.split("\n").slice(1).join("\n").trim() || "" : card.text}
-        </p>
 
         {/* Title error message */}
         {titleError && (
@@ -680,44 +672,61 @@ export default function AppCard({ card, index, onDelete, onPinToggle }: AppCardP
         )}
 
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 8, gap: 8 }}>
-          <span
-            onClick={() => {
-              if (card.notes !== undefined) setShowMemoModal(true);
-            }}
-            style={{
-              fontSize: 10,
-              fontWeight: 600,
-              color: ct.accent,
-              background: `${ct.border}33`,
-              padding: "2px 8px",
-              borderRadius: 999,
-              fontFamily: "var(--font-dm)",
-              textTransform: "uppercase",
-              letterSpacing: "0.06em",
-              cursor: card.notes !== undefined ? "pointer" : "default",
-            }}
-            title={card.notes !== undefined ? "Click to add/edit notes" : undefined}
-          >
-            {card.card_type}
-          </span>
-
-          <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 10 }}>
-            {/* Created timestamp */}
+          {/* MEMO pill with hover preview */}
+          <div style={{ position: "relative" }}>
             <span
-              style={{
-                color: "#999",
-                fontFamily: "var(--font-dm)",
+              onClick={() => {
+                if (card.notes !== undefined) setShowMemoModal(true);
               }}
-              title={new Date(card.created_at).toLocaleString()}
+              onMouseEnter={() => {
+                if (card.notes && card.notes.trim()) setShowMemoPreview(true);
+              }}
+              onMouseLeave={() => setShowMemoPreview(false)}
+              style={{
+                fontSize: 10,
+                fontWeight: 600,
+                color: ct.accent,
+                background: `${ct.border}33`,
+                padding: "2px 8px",
+                borderRadius: 999,
+                fontFamily: "var(--font-dm)",
+                textTransform: "uppercase",
+                letterSpacing: "0.06em",
+                cursor: card.notes !== undefined ? "pointer" : "default",
+              }}
+              title={card.notes !== undefined ? "Click to add/edit notes" : undefined}
             >
-              {new Intl.DateTimeFormat("ja-JP", {
-                month: "short",
-                day: "numeric",
-                hour: "2-digit",
-                minute: "2-digit",
-              }).format(new Date(card.created_at))}
+              {card.card_type}
             </span>
 
+            {/* Memo preview bubble on hover */}
+            {showMemoPreview && card.notes && (
+              <div
+                style={{
+                  position: "absolute",
+                  bottom: "calc(100% + 4px)",
+                  left: 0,
+                  background: "rgba(0,0,0,0.85)",
+                  color: "#fff",
+                  padding: "6px 10px",
+                  borderRadius: 6,
+                  fontSize: 10,
+                  lineHeight: 1.4,
+                  maxWidth: 180,
+                  zIndex: 10,
+                  pointerEvents: "none",
+                  whiteSpace: "pre-wrap",
+                  wordBreak: "break-word",
+                  fontFamily: "var(--font-dm)",
+                }}
+              >
+                {card.notes.slice(0, 120)}
+                {card.notes.length > 120 ? "..." : ""}
+              </div>
+            )}
+          </div>
+
+          <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 10 }}>
             {cardUrl && (
               <a
                 href={cardUrl}
