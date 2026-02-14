@@ -1,8 +1,10 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { createClient, isSupabaseConfigured, getConfigStatus } from "@/lib/supabase/client";
 import { cardTypes, getCardType } from "@/lib/cardTypes";
+import { extractFirstHttpUrl } from "@/lib/urlUtils";
 import type { Card } from "@/lib/supabase/types";
 import AppCard from "./AppCard";
 
@@ -18,6 +20,9 @@ function dedupeCards(cards: Card[]): Card[] {
 }
 
 export default function AppPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
   const [cards, setCards] = useState<Card[]>([]);
   const [input, setInput] = useState("");
   const [selectedType, setSelectedType] = useState("memo");
@@ -28,10 +33,17 @@ export default function AppPage() {
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [banner, setBanner] = useState<string | null>(null);
   const [errorBanner, setErrorBanner] = useState<string | null>(null);
+
+  // Search/filter/sort state (initialized from URL query params)
+  const [searchQuery, setSearchQuery] = useState("");
+  const [domainFilter, setDomainFilter] = useState("all");
+  const [sortOrder, setSortOrder] = useState<"newest" | "oldest">("newest");
+
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const savingRef = useRef(false);
   const prefillAppliedRef = useRef(false);
   const autoSaveRanRef = useRef(false);
+  const filterInitializedRef = useRef(false);
   const configured = isSupabaseConfigured();
 
   // Load user and cards
@@ -168,6 +180,84 @@ export default function AppPage() {
     })();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loading, user, configured]);
+
+  // Initialize search/filter/sort from URL query params (once)
+  useEffect(() => {
+    if (filterInitializedRef.current) return;
+    filterInitializedRef.current = true;
+    const q = searchParams.get("q") || "";
+    const d = searchParams.get("d") || "all";
+    const s = searchParams.get("sort") || "newest";
+    setSearchQuery(q);
+    setDomainFilter(d);
+    setSortOrder(s === "oldest" ? "oldest" : "newest");
+  }, [searchParams]);
+
+  // Sync search/filter/sort state to URL query params
+  useEffect(() => {
+    if (!filterInitializedRef.current) return; // Skip initial render
+    const params = new URLSearchParams();
+    if (searchQuery) params.set("q", searchQuery);
+    if (domainFilter !== "all") params.set("d", domainFilter);
+    if (sortOrder !== "newest") params.set("sort", sortOrder);
+    const query = params.toString();
+    const newUrl = query ? `/app?${query}` : "/app";
+    router.replace(newUrl, { scroll: false });
+  }, [searchQuery, domainFilter, sortOrder, router]);
+
+  // Extract unique domains from cards
+  const domains = useMemo(() => {
+    const domainSet = new Set<string>();
+    cards.forEach((card) => {
+      const url = extractFirstHttpUrl(card.text);
+      if (!url) return;
+      try {
+        const hostname = new URL(url).hostname;
+        domainSet.add(hostname);
+      } catch {
+        // Invalid URL, skip
+      }
+    });
+    return Array.from(domainSet).sort();
+  }, [cards]);
+
+  // Filter and sort cards
+  const filteredCards = useMemo(() => {
+    let result = [...cards];
+
+    // Search filter
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      result = result.filter((card) => {
+        const text = card.text.toLowerCase();
+        const url = extractFirstHttpUrl(card.text) || "";
+        return text.includes(q) || url.toLowerCase().includes(q);
+      });
+    }
+
+    // Domain filter
+    if (domainFilter !== "all") {
+      result = result.filter((card) => {
+        const url = extractFirstHttpUrl(card.text);
+        if (!url) return false;
+        try {
+          const hostname = new URL(url).hostname;
+          return hostname === domainFilter;
+        } catch {
+          return false;
+        }
+      });
+    }
+
+    // Sort
+    result.sort((a, b) => {
+      const aTime = new Date(a.created_at).getTime();
+      const bTime = new Date(b.created_at).getTime();
+      return sortOrder === "newest" ? bTime - aTime : aTime - bTime;
+    });
+
+    return result;
+  }, [cards, searchQuery, domainFilter, sortOrder]);
 
   const handleLogout = async () => {
     if (!configured) return;
@@ -672,6 +762,104 @@ export default function AppPage() {
         )}
       </div>
 
+      {/* Search/Filter/Sort Controls */}
+      {cards.length > 0 && (
+        <div
+          style={{
+            maxWidth: 1100,
+            margin: "24px auto 0",
+            padding: "0 24px",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              gap: 12,
+              flexWrap: "wrap",
+              alignItems: "center",
+              padding: "12px 16px",
+              borderRadius: 12,
+              background: "#f9f9f9",
+              border: "1px solid #e8e5e0",
+            }}
+          >
+            {/* Search input */}
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search..."
+              style={{
+                flex: "1 1 200px",
+                padding: "8px 12px",
+                border: "1px solid #e0e0e0",
+                borderRadius: 8,
+                fontSize: 13,
+                fontFamily: "var(--font-dm)",
+                outline: "none",
+                background: "#fff",
+              }}
+            />
+
+            {/* Domain filter */}
+            <select
+              value={domainFilter}
+              onChange={(e) => setDomainFilter(e.target.value)}
+              style={{
+                padding: "8px 12px",
+                border: "1px solid #e0e0e0",
+                borderRadius: 8,
+                fontSize: 13,
+                fontFamily: "var(--font-dm)",
+                outline: "none",
+                background: "#fff",
+                cursor: "pointer",
+              }}
+            >
+              <option value="all">All domains</option>
+              {domains.map((d) => (
+                <option key={d} value={d}>
+                  {d}
+                </option>
+              ))}
+            </select>
+
+            {/* Sort order */}
+            <select
+              value={sortOrder}
+              onChange={(e) => setSortOrder(e.target.value as "newest" | "oldest")}
+              style={{
+                padding: "8px 12px",
+                border: "1px solid #e0e0e0",
+                borderRadius: 8,
+                fontSize: 13,
+                fontFamily: "var(--font-dm)",
+                outline: "none",
+                background: "#fff",
+                cursor: "pointer",
+              }}
+            >
+              <option value="newest">Newest first</option>
+              <option value="oldest">Oldest first</option>
+            </select>
+
+            {/* Results count */}
+            {(searchQuery || domainFilter !== "all") && (
+              <span
+                style={{
+                  fontSize: 12,
+                  color: "#777",
+                  fontFamily: "var(--font-dm)",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {filteredCards.length} of {cards.length}
+              </span>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Cards Grid */}
       <div
         style={{
@@ -692,15 +880,27 @@ export default function AppPage() {
             No thoughts yet. Start capturing.
           </p>
         )}
+        {cards.length > 0 && filteredCards.length === 0 && (
+          <p
+            style={{
+              textAlign: "center",
+              color: "#bbb",
+              fontSize: 14,
+              padding: "60px 0",
+            }}
+          >
+            No cards match your filters.
+          </p>
+        )}
         <div
           style={{
             display: "flex",
             gap: 16,
             flexWrap: "wrap",
-            justifyContent: cards.length < 5 ? "center" : "flex-start",
+            justifyContent: filteredCards.length < 5 ? "center" : "flex-start",
           }}
         >
-          {cards.map((card, i) => (
+          {filteredCards.map((card, i) => (
             <AppCard key={card.id} card={card} index={i} onDelete={deleteCard} />
           ))}
         </div>
