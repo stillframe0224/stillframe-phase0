@@ -7,8 +7,8 @@ declare global {
 }
 
 function getEnv() {
-  const buildUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-  const buildKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
+  const buildUrl = (process.env.NEXT_PUBLIC_SUPABASE_URL || "").trim();
+  const buildKey = (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "").trim();
   const rt =
     typeof window !== "undefined" ? window.__SUPABASE_CONFIG__ : undefined;
   return {
