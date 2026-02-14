@@ -38,6 +38,7 @@ export default function AppPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [domainFilter, setDomainFilter] = useState("all");
   const [sortOrder, setSortOrder] = useState<"newest" | "oldest">("newest");
+  const [showPinnedOnly, setShowPinnedOnly] = useState(false);
 
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const savingRef = useRef(false);
@@ -188,9 +189,11 @@ export default function AppPage() {
     const q = searchParams.get("q") || "";
     const d = searchParams.get("d") || "all";
     const s = searchParams.get("sort") || "newest";
+    const p = searchParams.get("p") === "1";
     setSearchQuery(q);
     setDomainFilter(d);
     setSortOrder(s === "oldest" ? "oldest" : "newest");
+    setShowPinnedOnly(p);
   }, [searchParams]);
 
   // Sync search/filter/sort state to URL query params
@@ -200,10 +203,11 @@ export default function AppPage() {
     if (searchQuery) params.set("q", searchQuery);
     if (domainFilter !== "all") params.set("d", domainFilter);
     if (sortOrder !== "newest") params.set("sort", sortOrder);
+    if (showPinnedOnly) params.set("p", "1");
     const query = params.toString();
     const newUrl = query ? `/app?${query}` : "/app";
     router.replace(newUrl, { scroll: false });
-  }, [searchQuery, domainFilter, sortOrder, router]);
+  }, [searchQuery, domainFilter, sortOrder, showPinnedOnly, router]);
 
   // Extract unique domains from cards
   const domains = useMemo(() => {
@@ -224,6 +228,11 @@ export default function AppPage() {
   // Filter and sort cards
   const filteredCards = useMemo(() => {
     let result = [...cards];
+
+    // Pinned-only filter
+    if (showPinnedOnly) {
+      result = result.filter((card) => card.pinned === true);
+    }
 
     // Search filter
     if (searchQuery) {
@@ -249,15 +258,21 @@ export default function AppPage() {
       });
     }
 
-    // Sort
+    // Sort: pinned cards first, then by date
     result.sort((a, b) => {
+      // Pinned cards always come first
+      const aPinned = a.pinned ?? false;
+      const bPinned = b.pinned ?? false;
+      if (aPinned !== bPinned) return bPinned ? 1 : -1;
+
+      // Within same pin status, sort by date
       const aTime = new Date(a.created_at).getTime();
       const bTime = new Date(b.created_at).getTime();
       return sortOrder === "newest" ? bTime - aTime : aTime - bTime;
     });
 
     return result;
-  }, [cards, searchQuery, domainFilter, sortOrder]);
+  }, [cards, searchQuery, domainFilter, sortOrder, showPinnedOnly]);
 
   const handleLogout = async () => {
     if (!configured) return;
@@ -388,6 +403,12 @@ export default function AppPage() {
       setCards((prev) => prev.filter((c) => c.id !== id));
     }
   }, [configured]);
+
+  const handlePinToggle = useCallback((id: string, newPinned: boolean) => {
+    setCards((prev) =>
+      prev.map((c) => (c.id === id ? { ...c, pinned: newPinned } : c))
+    );
+  }, []);
 
   // Handle file drop
   const handleDrop = (e: React.DragEvent) => {
@@ -843,8 +864,30 @@ export default function AppPage() {
               <option value="oldest">Oldest first</option>
             </select>
 
+            {/* Pinned filter toggle */}
+            <button
+              onClick={() => setShowPinnedOnly(!showPinnedOnly)}
+              style={{
+                padding: "8px 12px",
+                border: showPinnedOnly ? "1.5px solid #F5C882" : "1px solid #e0e0e0",
+                borderRadius: 8,
+                fontSize: 13,
+                fontFamily: "var(--font-dm)",
+                outline: "none",
+                background: showPinnedOnly ? "#FFF8F0" : "#fff",
+                cursor: "pointer",
+                fontWeight: showPinnedOnly ? 600 : 400,
+                color: showPinnedOnly ? "#D9A441" : "#555",
+                display: "flex",
+                alignItems: "center",
+                gap: 4,
+              }}
+            >
+              {showPinnedOnly ? "⭐" : "☆"} Pinned only
+            </button>
+
             {/* Results count */}
-            {(searchQuery || domainFilter !== "all") && (
+            {(searchQuery || domainFilter !== "all" || showPinnedOnly) && (
               <span
                 style={{
                   fontSize: 12,
@@ -901,7 +944,7 @@ export default function AppPage() {
           }}
         >
           {filteredCards.map((card, i) => (
-            <AppCard key={card.id} card={card} index={i} onDelete={deleteCard} />
+            <AppCard key={card.id} card={card} index={i} onDelete={deleteCard} onPinToggle={handlePinToggle} />
           ))}
         </div>
       </div>

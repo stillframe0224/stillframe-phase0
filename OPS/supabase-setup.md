@@ -127,7 +127,27 @@ alter table cards add constraint cards_client_request_id_key unique (client_requ
 
 This column is nullable so existing rows are unaffected.
 
-## 8. Verify
+## 8. Migration: Add pinned column (optional, for card pinning feature)
+
+If you want to enable the pin/star feature for cards, run this in **SQL Editor**:
+
+```sql
+-- Add pinned flag for card pinning feature
+alter table cards add column if not exists pinned boolean default false;
+
+-- Index for efficient pinned + date sorting
+create index if not exists cards_pinned_created_at_idx on cards (pinned, created_at);
+```
+
+**Verify**:
+
+```sql
+select pinned, count(*) from cards group by pinned;
+```
+
+This column is optional; the app works without it (pinning UI will be hidden if the column doesn't exist).
+
+## 9. Verify
 
 1. Run `npm run dev`
 2. Go to `http://localhost:3000/app`

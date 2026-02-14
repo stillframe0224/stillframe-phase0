@@ -6,6 +6,7 @@ export interface Card {
   image_url: string | null;
   image_source: "ogp" | "upload" | "generated" | null;
   client_request_id: string | null;
+  pinned: boolean | null;
   created_at: string;
   updated_at: string;
 }

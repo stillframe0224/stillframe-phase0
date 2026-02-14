@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { createClient } from "@/lib/supabase/client";
 import { getCardType } from "@/lib/cardTypes";
 import { extractFirstHttpUrl, getYouTubeThumbnail } from "@/lib/urlUtils";
 import type { Card } from "@/lib/supabase/types";
@@ -109,9 +110,10 @@ interface AppCardProps {
   card: Card;
   index: number;
   onDelete: (id: string) => void;
+  onPinToggle?: (id: string, newPinned: boolean) => void;
 }
 
-export default function AppCard({ card, index, onDelete }: AppCardProps) {
+export default function AppCard({ card, index, onDelete, onPinToggle }: AppCardProps) {
   const ct = getCardType(card.card_type);
   const [realImgFailed, setRealImgFailed] = useState(false);
   const [previewFailed, setPreviewFailed] = useState(false);
@@ -119,6 +121,8 @@ export default function AppCard({ card, index, onDelete }: AppCardProps) {
   const [previewImg, setPreviewImg] = useState<string | null>(null);
   const [isVisible, setIsVisible] = useState(false);
   const [proxiedUrl, setProxiedUrl] = useState<string | null>(null);
+  const [isPinned, setIsPinned] = useState(card.pinned ?? false);
+  const [pinError, setPinError] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
 
   const cardUrl = extractFirstHttpUrl(card.text);
@@ -198,6 +202,39 @@ export default function AppCard({ card, index, onDelete }: AppCardProps) {
     : hasRealImage ? "saved"
     : getYouTubeThumbnail(cardUrl) ? "youtube"
     : "api";
+
+  const handlePinToggle = async () => {
+    const newPinned = !isPinned;
+    const oldPinned = isPinned;
+
+    // Optimistic update
+    setIsPinned(newPinned);
+    setPinError(false);
+
+    try {
+      const supabase = createClient();
+      const { error } = await supabase
+        .from("cards")
+        .update({ pinned: newPinned })
+        .eq("id", card.id);
+
+      if (error) {
+        // Revert on error
+        setIsPinned(oldPinned);
+        setPinError(true);
+        setTimeout(() => setPinError(false), 2000);
+        console.error("Pin toggle failed:", error);
+        return;
+      }
+
+      // Notify parent to update state
+      if (onPinToggle) onPinToggle(card.id, newPinned);
+    } catch (e) {
+      setIsPinned(oldPinned);
+      setPinError(true);
+      setTimeout(() => setPinError(false), 2000);
+    }
+  };
 
   const imageContent = (
     <div style={{ aspectRatio: "7/4", overflow: "hidden", position: "relative" }}>
@@ -302,6 +339,35 @@ export default function AppCard({ card, index, onDelete }: AppCardProps) {
         setShowDelete(false);
       }}
     >
+      {/* Pin button */}
+      {card.pinned !== null && (
+        <button
+          onClick={handlePinToggle}
+          style={{
+            position: "absolute",
+            top: 6,
+            left: 6,
+            width: 24,
+            height: 24,
+            borderRadius: "50%",
+            border: pinError ? "1px solid #D93025" : "none",
+            background: isPinned ? "rgba(255,215,0,0.9)" : "rgba(0,0,0,0.3)",
+            color: isPinned ? "#000" : "#fff",
+            fontSize: 14,
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 2,
+            lineHeight: 1,
+            transition: "all 0.2s",
+          }}
+          title={isPinned ? "Unpin" : "Pin"}
+        >
+          {isPinned ? "⭐" : "☆"}
+        </button>
+      )}
+
       {/* Delete button */}
       {showDelete && (
         <button

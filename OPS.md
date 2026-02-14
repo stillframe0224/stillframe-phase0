@@ -44,6 +44,25 @@ ALTER TABLE cards ADD COLUMN IF NOT EXISTS client_request_id text;
 ALTER TABLE cards ADD CONSTRAINT cards_client_request_id_key UNIQUE (client_request_id);
 ```
 
+### `pinned` column missing (optional feature)
+
+**Symptom**: Card pinning feature is hidden/disabled. The app works normally without this column.
+
+**To enable pinning**: Run in Supabase SQL Editor:
+
+```sql
+ALTER TABLE cards ADD COLUMN IF NOT EXISTS pinned boolean DEFAULT false;
+CREATE INDEX IF NOT EXISTS cards_pinned_created_at_idx ON cards (pinned, created_at);
+```
+
+**Verify**:
+
+```sql
+SELECT pinned, COUNT(*) FROM cards GROUP BY pinned;
+```
+
+Pinned cards will appear at the top of the list regardless of date sort order.
+
 ### Link previews not loading
 
 **Symptom**: Cards with URLs show SVG fallback instead of og:image preview.
