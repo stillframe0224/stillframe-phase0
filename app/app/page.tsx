@@ -18,6 +18,7 @@ export default function AppPage() {
   const [dragOver, setDragOver] = useState(false);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const savingRef = useRef(false);
   const configured = isSupabaseConfigured();
 
   // Load user and cards
@@ -98,41 +99,47 @@ export default function AppPage() {
   const addCard = async () => {
     const text = input.trim();
     if (!text || !configured || !user) return;
+    if (savingRef.current) return;
+    savingRef.current = true;
     setSaving(true);
 
-    let image_url: string | null = null;
-    let image_source: Card["image_source"] = null;
+    try {
+      let image_url: string | null = null;
+      let image_source: Card["image_source"] = null;
 
-    // Priority: uploaded file > OGP from URL > generated fallback
-    if (pendingFile) {
-      image_url = await uploadImage(pendingFile, user.id);
-      image_source = image_url ? "upload" : "generated";
-      setPendingFile(null);
-    } else {
-      image_url = await fetchOgpImage(text);
-      image_source = image_url ? "ogp" : "generated";
+      // Priority: uploaded file > OGP from URL > generated fallback
+      if (pendingFile) {
+        image_url = await uploadImage(pendingFile, user.id);
+        image_source = image_url ? "upload" : "generated";
+        setPendingFile(null);
+      } else {
+        image_url = await fetchOgpImage(text);
+        image_source = image_url ? "ogp" : "generated";
+      }
+
+      const supabase = createClient();
+      const { data, error } = await supabase
+        .from("cards")
+        .insert({
+          user_id: user.id,
+          text,
+          card_type: selectedType,
+          image_url,
+          image_source,
+        })
+        .select()
+        .single();
+
+      if (!error && data) {
+        setCards((prev) => [data, ...prev]);
+      }
+
+      setInput("");
+    } finally {
+      savingRef.current = false;
+      setSaving(false);
+      inputRef.current?.focus();
     }
-
-    const supabase = createClient();
-    const { data, error } = await supabase
-      .from("cards")
-      .insert({
-        user_id: user.id,
-        text,
-        card_type: selectedType,
-        image_url,
-        image_source,
-      })
-      .select()
-      .single();
-
-    if (!error && data) {
-      setCards((prev) => [data, ...prev]);
-    }
-
-    setInput("");
-    setSaving(false);
-    inputRef.current?.focus();
   };
 
   const deleteCard = useCallback(async (id: string) => {
