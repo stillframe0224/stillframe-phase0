@@ -11,6 +11,11 @@ export interface Card {
   source_url?: string | null;
   site_name?: string | null;
   preview_image_url?: string | null;
+  media_kind?: string | null;
+  media_path?: string | null;
+  media_thumb_path?: string | null;
+  media_mime?: string | null;
+  media_size?: number | null;
   notes?: string | null;
   sort_key?: string | null;
   file_id?: string | null;
