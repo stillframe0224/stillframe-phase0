@@ -1316,7 +1316,20 @@ export default function AppPage() {
             No cards match your filters.
           </p>
         )}
-        {sortOrder === "custom" ? (
+        {sortOrder === "custom" && (fileFilter === "all") && (
+          <p
+            style={{
+              textAlign: "center",
+              color: "#999",
+              fontSize: 13,
+              padding: "20px 0",
+              fontFamily: "var(--font-dm)",
+            }}
+          >
+            Select a file to enable drag reordering
+          </p>
+        )}
+        {sortOrder === "custom" && fileFilter !== "all" ? (
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
             <SortableContext items={filteredCards.map((c) => c.id)} strategy={verticalListSortingStrategy}>
               <div
@@ -1333,7 +1346,7 @@ export default function AppPage() {
               </div>
             </SortableContext>
           </DndContext>
-        ) : (
+        ) : sortOrder !== "custom" ? (
           <div
             style={{
               display: "flex",
@@ -1346,7 +1359,7 @@ export default function AppPage() {
               <AppCard key={card.id} card={card} index={i} onDelete={deleteCard} onPinToggle={handlePinToggle} onFileAssign={assignCardToFile} files={files} isDraggable={false} />
             ))}
           </div>
-        )}
+        ) : null}
       </div>
     </div>
   );

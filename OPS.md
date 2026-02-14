@@ -85,6 +85,7 @@ CREATE INDEX IF NOT EXISTS cards_source_url_idx ON public.cards (source_url);
 CREATE INDEX IF NOT EXISTS cards_site_name_idx ON public.cards (site_name);
 CREATE INDEX IF NOT EXISTS cards_sort_idx ON public.cards (pinned, sort_key, created_at);
 CREATE INDEX IF NOT EXISTS cards_file_id_idx ON public.cards (file_id);
+CREATE INDEX IF NOT EXISTS cards_file_sort_idx ON public.cards (file_id, pinned, sort_key, created_at);
 ```
 
 **Verify**:

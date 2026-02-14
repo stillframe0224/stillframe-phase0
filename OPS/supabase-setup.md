@@ -170,6 +170,7 @@ create index if not exists cards_source_url_idx on public.cards (source_url);
 create index if not exists cards_site_name_idx on public.cards (site_name);
 create index if not exists cards_sort_idx on public.cards (pinned, sort_key, created_at);
 create index if not exists cards_file_id_idx on public.cards (file_id);
+create index if not exists cards_file_sort_idx on public.cards (file_id, pinned, sort_key, created_at);
 ```
 
 **Verify**:
