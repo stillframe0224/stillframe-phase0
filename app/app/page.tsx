@@ -27,6 +27,7 @@ export default function AppPage() {
   const [dragOver, setDragOver] = useState(false);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [banner, setBanner] = useState<string | null>(null);
+  const [errorBanner, setErrorBanner] = useState<string | null>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const savingRef = useRef(false);
   const prefillAppliedRef = useRef(false);
@@ -140,15 +141,16 @@ export default function AppPage() {
             saved = true;
           }
         } else if (error) {
-          ({ data, error } = await supabase
-            .from("cards")
-            .insert(basePayload)
-            .select()
-            .single());
-          if (!error && data) {
-            setCards((prev) => dedupeCards([data, ...prev]));
-            saved = true;
+          // Schema error — show banner with migration hint
+          let msg = `Save failed: ${error.message}`;
+          if (
+            error.message?.includes("client_request_id") ||
+            error.message?.includes("column") && error.message?.includes("does not exist")
+          ) {
+            msg += " — Run in Supabase SQL Editor: ALTER TABLE cards ADD COLUMN client_request_id TEXT; CREATE UNIQUE INDEX cards_client_request_id_key ON cards(client_request_id);";
           }
+          setErrorBanner(msg);
+          setTimeout(() => setErrorBanner(null), 8000);
         } else if (data) {
           setCards((prev) => dedupeCards([data, ...prev]));
           saved = true;
@@ -218,7 +220,6 @@ export default function AppPage() {
     if (savingRef.current) return;
     savingRef.current = true;
     setSaving(true);
-    setInput(""); // Clear immediately — text captured in local var above
 
     try {
       let image_url: string | null = null;
@@ -236,17 +237,17 @@ export default function AppPage() {
 
       const supabase = createClient();
       const requestId = crypto.randomUUID();
-      const basePayload = {
-        user_id: user.id,
-        text,
-        card_type: selectedType,
-        image_url,
-        image_source,
-      };
 
       let { data, error } = await supabase
         .from("cards")
-        .insert({ ...basePayload, client_request_id: requestId })
+        .insert({
+          user_id: user.id,
+          text,
+          card_type: selectedType,
+          image_url,
+          image_source,
+          client_request_id: requestId,
+        })
         .select()
         .single();
 
@@ -259,21 +260,28 @@ export default function AppPage() {
           .single();
         if (existing) {
           setCards((prev) => dedupeCards([existing, ...prev]));
+          setInput(""); // Clear on success
         }
         return;
       }
 
-      // Fallback: column may not exist yet — retry without client_request_id
       if (error) {
-        ({ data, error } = await supabase
-          .from("cards")
-          .insert(basePayload)
-          .select()
-          .single());
+        // Schema error — show banner with migration hint
+        let msg = `Save failed: ${error.message}`;
+        if (
+          error.message?.includes("client_request_id") ||
+          (error.message?.includes("column") && error.message?.includes("does not exist"))
+        ) {
+          msg += " — Run in Supabase SQL Editor: ALTER TABLE cards ADD COLUMN client_request_id TEXT; CREATE UNIQUE INDEX cards_client_request_id_key ON cards(client_request_id);";
+        }
+        setErrorBanner(msg);
+        setTimeout(() => setErrorBanner(null), 8000);
+        return;
       }
 
-      if (!error && data) {
+      if (data) {
         setCards((prev) => dedupeCards([data, ...prev]));
+        setInput(""); // Clear only on success
       }
     } finally {
       savingRef.current = false;
@@ -402,6 +410,30 @@ export default function AppPage() {
           }}
         >
           {banner}
+        </div>
+      )}
+
+      {/* Error banner */}
+      {errorBanner && (
+        <div
+          style={{
+            position: "fixed",
+            top: 16,
+            left: "50%",
+            transform: "translateX(-50%)",
+            padding: "10px 20px",
+            borderRadius: 8,
+            background: "#D93025",
+            color: "#fff",
+            fontSize: 12,
+            fontFamily: "var(--font-dm)",
+            zIndex: 101,
+            boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
+            maxWidth: "90vw",
+            wordBreak: "break-word",
+          }}
+        >
+          {errorBanner}
         </div>
       )}
 
