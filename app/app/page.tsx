@@ -58,6 +58,8 @@ export default function AppPage() {
   const [showPinnedOnly, setShowPinnedOnly] = useState(false);
   const [showNewFileInput, setShowNewFileInput] = useState(false);
   const [newFileName, setNewFileName] = useState("");
+  const [isBulkMode, setIsBulkMode] = useState(false);
+  const [selectedCardIds, setSelectedCardIds] = useState<Set<string>>(new Set());
 
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const savingRef = useRef(false);
@@ -606,6 +608,92 @@ export default function AppPage() {
     }
   }, [cards, configured]);
 
+  const bulkMoveToFile = useCallback(async (targetFileId: string | null) => {
+    if (!configured || selectedCardIds.size === 0) return;
+
+    const idsToMove = Array.from(selectedCardIds);
+    const oldFileIds = new Map<string, string | null>();
+    idsToMove.forEach(id => {
+      const card = cards.find(c => c.id === id);
+      if (card) oldFileIds.set(id, card.file_id || null);
+    });
+
+    // Optimistic update
+    setCards((prev) =>
+      prev.map((c) =>
+        selectedCardIds.has(c.id)
+          ? { ...c, file_id: targetFileId, sort_key: null }
+          : c
+      )
+    );
+
+    try {
+      const supabase = createClient();
+      const { error } = await supabase
+        .from("cards")
+        .update({ file_id: targetFileId, sort_key: null })
+        .in("id", idsToMove);
+
+      if (error) {
+        // Revert
+        setCards((prev) =>
+          prev.map((c) => {
+            const oldFileId = oldFileIds.get(c.id);
+            return oldFileId !== undefined
+              ? { ...c, file_id: oldFileId }
+              : c;
+          })
+        );
+        const errCode = error.code || "";
+        const errMsg = error.message || "";
+        if (errCode === "PGRST204" || errCode === "42703" || errMsg.includes("column") || errMsg.includes("file_id")) {
+          setErrorBanner("Run migration SQL to enable Files (see OPS.md)");
+        } else {
+          setErrorBanner(`Bulk move failed: ${errMsg.slice(0, 50)}`);
+        }
+        setTimeout(() => setErrorBanner(null), 5000);
+      } else {
+        // Success
+        const targetName = targetFileId
+          ? files.find(f => f.id === targetFileId)?.name || "file"
+          : "Unfiled";
+        setBanner(`Moved ${idsToMove.length} cards to ${targetName}`);
+        setTimeout(() => setBanner(null), 2500);
+        setSelectedCardIds(new Set());
+        setIsBulkMode(false);
+      }
+    } catch (e) {
+      // Revert
+      setCards((prev) =>
+        prev.map((c) => {
+          const oldFileId = oldFileIds.get(c.id);
+          return oldFileId !== undefined
+            ? { ...c, file_id: oldFileId }
+            : c;
+        })
+      );
+      setErrorBanner("Network error");
+      setTimeout(() => setErrorBanner(null), 5000);
+    }
+  }, [cards, configured, selectedCardIds, files]);
+
+  const toggleCardSelection = useCallback((cardId: string) => {
+    setSelectedCardIds(prev => {
+      const next = new Set(prev);
+      if (next.has(cardId)) {
+        next.delete(cardId);
+      } else {
+        next.add(cardId);
+      }
+      return next;
+    });
+  }, []);
+
+  const toggleBulkMode = useCallback(() => {
+    setIsBulkMode(prev => !prev);
+    setSelectedCardIds(new Set());
+  }, []);
+
   // Fractional indexing: generate sort_key between two values
   const generateSortKey = (before: string | null, after: string | null): string => {
     if (!before && !after) return "m"; // First item
@@ -823,6 +911,60 @@ export default function AppPage() {
           }}
         >
           {errorBanner}
+        </div>
+      )}
+
+      {/* Bulk action toolbar */}
+      {isBulkMode && selectedCardIds.size > 0 && (
+        <div
+          style={{
+            position: "fixed",
+            bottom: 24,
+            left: "50%",
+            transform: "translateX(-50%)",
+            padding: "12px 20px",
+            borderRadius: 12,
+            background: "#fff",
+            border: "1.5px solid #4F6ED9",
+            boxShadow: "0 8px 24px rgba(0,0,0,0.15)",
+            zIndex: 102,
+            display: "flex",
+            alignItems: "center",
+            gap: 12,
+            fontFamily: "var(--font-dm)",
+          }}
+        >
+          <span style={{ fontSize: 14, fontWeight: 600, color: "#4F6ED9" }}>
+            {selectedCardIds.size} selected
+          </span>
+          <select
+            onChange={(e) => {
+              const val = e.target.value;
+              if (val) {
+                bulkMoveToFile(val === "unfiled" ? null : val);
+                e.target.value = "";
+              }
+            }}
+            style={{
+              padding: "6px 12px",
+              border: "1px solid #e0e0e0",
+              borderRadius: 6,
+              fontSize: 13,
+              fontFamily: "var(--font-dm)",
+              outline: "none",
+              background: "#fff",
+              cursor: "pointer",
+            }}
+            defaultValue=""
+          >
+            <option value="" disabled>Move to…</option>
+            <option value="unfiled">Unfiled</option>
+            {files.map((f) => (
+              <option key={f.id} value={f.id}>
+                {f.name}
+              </option>
+            ))}
+          </select>
         </div>
       )}
 
@@ -1267,6 +1409,25 @@ export default function AppPage() {
               {showPinnedOnly ? "⭐" : "☆"} Pinned only
             </button>
 
+            {/* Bulk select toggle */}
+            <button
+              onClick={toggleBulkMode}
+              style={{
+                padding: "8px 12px",
+                border: isBulkMode ? "1.5px solid #4F6ED9" : "1px solid #e0e0e0",
+                borderRadius: 8,
+                fontSize: 13,
+                fontFamily: "var(--font-dm)",
+                outline: "none",
+                background: isBulkMode ? "#EEF2FF" : "#fff",
+                cursor: "pointer",
+                fontWeight: isBulkMode ? 600 : 400,
+                color: isBulkMode ? "#4F6ED9" : "#555",
+              }}
+            >
+              {isBulkMode ? "Cancel" : "Select"}
+            </button>
+
             {/* Results count */}
             {(searchQuery || domainFilter !== "all" || showPinnedOnly) && (
               <span
@@ -1341,7 +1502,7 @@ export default function AppPage() {
                 }}
               >
                 {filteredCards.map((card, i) => (
-                  <AppCard key={card.id} card={card} index={i} onDelete={deleteCard} onPinToggle={handlePinToggle} onFileAssign={assignCardToFile} files={files} isDraggable={true} />
+                  <AppCard key={card.id} card={card} index={i} onDelete={deleteCard} onPinToggle={handlePinToggle} onFileAssign={assignCardToFile} files={files} isDraggable={true} isBulkMode={isBulkMode} isSelected={selectedCardIds.has(card.id)} onToggleSelect={toggleCardSelection} />
                 ))}
               </div>
             </SortableContext>
@@ -1356,7 +1517,7 @@ export default function AppPage() {
             }}
           >
             {filteredCards.map((card, i) => (
-              <AppCard key={card.id} card={card} index={i} onDelete={deleteCard} onPinToggle={handlePinToggle} onFileAssign={assignCardToFile} files={files} isDraggable={false} />
+              <AppCard key={card.id} card={card} index={i} onDelete={deleteCard} onPinToggle={handlePinToggle} onFileAssign={assignCardToFile} files={files} isDraggable={false} isBulkMode={isBulkMode} isSelected={selectedCardIds.has(card.id)} onToggleSelect={toggleCardSelection} />
             ))}
           </div>
         ) : null}
