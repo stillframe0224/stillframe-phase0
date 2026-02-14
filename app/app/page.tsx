@@ -8,6 +8,15 @@ import AppCard from "./AppCard";
 
 const URL_REGEX = /https?:\/\/[^\s]+/;
 
+function dedupeCards(cards: Card[]): Card[] {
+  const seen = new Set<string>();
+  return cards.filter((c) => {
+    if (seen.has(c.id)) return false;
+    seen.add(c.id);
+    return true;
+  });
+}
+
 export default function AppPage() {
   const [cards, setCards] = useState<Card[]>([]);
   const [input, setInput] = useState("");
@@ -45,7 +54,7 @@ export default function AppPage() {
         .from("cards")
         .select("*")
         .order("created_at", { ascending: false });
-      if (data) setCards(data);
+      if (data) setCards(dedupeCards(data));
       setLoading(false);
     }
     init();
@@ -102,6 +111,7 @@ export default function AppPage() {
     if (savingRef.current) return;
     savingRef.current = true;
     setSaving(true);
+    setInput(""); // Clear immediately — text captured in local var above
 
     try {
       let image_url: string | null = null;
@@ -133,7 +143,7 @@ export default function AppPage() {
         .single();
 
       if (!error && data) {
-        setCards((prev) => [data, ...prev]);
+        setCards((prev) => dedupeCards([data, ...prev]));
       } else if (error?.code === "23505") {
         // Unique constraint conflict — fetch the already-inserted row
         const { data: existing } = await supabase
@@ -142,13 +152,9 @@ export default function AppPage() {
           .eq("client_request_id", requestId)
           .single();
         if (existing) {
-          setCards((prev) =>
-            prev.some((c) => c.id === existing.id) ? prev : [existing, ...prev]
-          );
+          setCards((prev) => dedupeCards([existing, ...prev]));
         }
       }
-
-      setInput("");
     } finally {
       savingRef.current = false;
       setSaving(false);
@@ -176,7 +182,7 @@ export default function AppPage() {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Enter" && !e.shiftKey) {
+    if (e.key === "Enter" && !e.shiftKey && !e.repeat) {
       e.preventDefault();
       addCard();
     }
