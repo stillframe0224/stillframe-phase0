@@ -67,7 +67,15 @@ export default function AppPage() {
   const autoSaveRanRef = useRef(false);
   const autoSaveInProgressRef = useRef(false);
   const filterInitializedRef = useRef(false);
+  const initialQueryRef = useRef<URLSearchParams | null>(null);
   const configured = isSupabaseConfigured();
+
+  // Capture initial query params on mount (before any effects)
+  useEffect(() => {
+    if (!initialQueryRef.current) {
+      initialQueryRef.current = new URLSearchParams(window.location.search);
+    }
+  }, []);
 
   // Load user and cards
   useEffect(() => {
@@ -126,8 +134,10 @@ export default function AppPage() {
   // Auto-save from bookmarklet: /app?auto=1&url=...&title=...&img=...&site=...&s=...
   useEffect(() => {
     if (autoSaveRanRef.current) return;
-    if (loading || !user || !configured) return;
-    const params = new URLSearchParams(window.location.search);
+    if (loading || !user || !configured || !initialQueryRef.current) return;
+
+    // Read from immutable initial query ref (immune to router.replace races)
+    const params = initialQueryRef.current;
     const bmUrl = params.get("url");
     if (!bmUrl || params.get("auto") !== "1") return;
     autoSaveRanRef.current = true;
@@ -285,12 +295,14 @@ export default function AppPage() {
     if (!filterInitializedRef.current) return; // Skip initial render
     if (autoSaveInProgressRef.current) return; // Skip while auto-save is running
 
-    // Don't sync if bookmarklet params exist (auto-save will clean them)
-    const currentParams = new URLSearchParams(window.location.search);
-    const hasBookmarkletParams = currentParams.has("auto") || currentParams.has("url") ||
-      currentParams.has("title") || currentParams.has("img") ||
-      currentParams.has("site") || currentParams.has("s");
-    if (hasBookmarkletParams) return;
+    // Don't sync if initial query had bookmarklet params (wait for auto-save to complete)
+    if (initialQueryRef.current) {
+      const hasBookmarkletParams = initialQueryRef.current.has("auto") ||
+        initialQueryRef.current.has("url") || initialQueryRef.current.has("title") ||
+        initialQueryRef.current.has("img") || initialQueryRef.current.has("site") ||
+        initialQueryRef.current.has("s");
+      if (hasBookmarkletParams) return;
+    }
 
     const params = new URLSearchParams();
     if (searchQuery) params.set("q", searchQuery);
