@@ -77,12 +77,15 @@ ALTER TABLE public.cards ADD COLUMN IF NOT EXISTS preview_image_url text;
 ALTER TABLE public.cards ADD COLUMN IF NOT EXISTS media_kind text;
 ALTER TABLE public.cards ADD COLUMN IF NOT EXISTS media_path text;
 ALTER TABLE public.cards ADD COLUMN IF NOT EXISTS media_thumb_path text;
+ALTER TABLE public.cards ADD COLUMN IF NOT EXISTS media_mime text;
+ALTER TABLE public.cards ADD COLUMN IF NOT EXISTS media_size bigint;
 ALTER TABLE public.cards ADD COLUMN IF NOT EXISTS notes text;
 ALTER TABLE public.cards ADD COLUMN IF NOT EXISTS sort_key text;
 ALTER TABLE public.cards ADD COLUMN IF NOT EXISTS file_id uuid;
 ALTER TABLE public.cards ADD COLUMN IF NOT EXISTS updated_at timestamptz DEFAULT now();
 CREATE INDEX IF NOT EXISTS cards_source_url_idx ON public.cards (source_url);
 CREATE INDEX IF NOT EXISTS cards_site_name_idx ON public.cards (site_name);
+CREATE INDEX IF NOT EXISTS cards_media_kind_idx ON public.cards (media_kind);
 CREATE INDEX IF NOT EXISTS cards_sort_idx ON public.cards (pinned, sort_key, created_at);
 CREATE INDEX IF NOT EXISTS cards_file_id_idx ON public.cards (file_id);
 CREATE INDEX IF NOT EXISTS cards_file_sort_idx ON public.cards (file_id, pinned, sort_key, created_at);
@@ -93,7 +96,49 @@ CREATE INDEX IF NOT EXISTS cards_file_sort_idx ON public.cards (file_id, pinned,
 ```sql
 SELECT column_name FROM information_schema.columns
 WHERE table_schema='public' AND table_name='cards'
-  AND column_name IN ('title', 'source_url', 'site_name', 'preview_image_url', 'media_kind', 'notes', 'sort_key', 'file_id');
+  AND column_name IN ('title', 'source_url', 'site_name', 'preview_image_url', 'media_kind', 'media_path', 'media_thumb_path', 'media_mime', 'media_size', 'notes', 'sort_key', 'file_id');
+```
+
+## 9. Storage: cards-media bucket (for uploaded images/videos)
+
+**Purpose**: Store user-uploaded media files with thumbnails.
+
+**Bucket**: `cards-media`
+
+**Path convention**:
+- Original: `${userId}/${cardId}/original.<ext>`
+- Thumbnail: `${userId}/${cardId}/thumb.jpg`
+
+**To create bucket** (Supabase Dashboard > Storage > Create bucket):
+1. Name: `cards-media`
+2. Public bucket: **No** (use signed URLs or make public based on your security model)
+3. File size limit: 100MB (adjustable)
+4. Allowed MIME types: `image/*,video/*`
+
+**RLS Policies** (run in SQL Editor after creating bucket):
+
+```sql
+-- Allow authenticated users to upload to their own folder
+CREATE POLICY "users_upload_own_media" ON storage.objects
+  FOR INSERT TO authenticated
+  WITH CHECK (bucket_id = 'cards-media' AND (storage.foldername(name))[1] = auth.uid()::text);
+
+-- Allow authenticated users to read their own media
+CREATE POLICY "users_read_own_media" ON storage.objects
+  FOR SELECT TO authenticated
+  USING (bucket_id = 'cards-media' AND (storage.foldername(name))[1] = auth.uid()::text);
+
+-- Allow authenticated users to delete their own media
+CREATE POLICY "users_delete_own_media" ON storage.objects
+  FOR DELETE TO authenticated
+  USING (bucket_id = 'cards-media' AND (storage.foldername(name))[1] = auth.uid()::text);
+```
+
+**Verify**:
+
+```sql
+SELECT * FROM storage.buckets WHERE name = 'cards-media';
+SELECT name, COUNT(*) FROM storage.objects WHERE bucket_id = 'cards-media' GROUP BY name;
 ```
 
 ## 10. Migration: Add Files table (for organizing cards into collections)

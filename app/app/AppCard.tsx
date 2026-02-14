@@ -172,7 +172,8 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
     : card.text.split("\n").slice(1).join("\n").trim();
   const hasBodyText = bodyText.length > 0;
 
-  // Image priority: preview_image_url > image_url > link-preview chain
+  // Image priority: media_thumb_path > preview_image_url > image_url > link-preview chain
+  const hasMediaThumb = !!(card.media_thumb_path && !realImgFailed);
   const hasPreviewImageUrl = !!(card.preview_image_url && !realImgFailed);
 
   // IntersectionObserver — fetch preview only when card is near viewport
@@ -192,9 +193,9 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
     return () => observer.disconnect();
   }, []);
 
-  // Lazy-fetch link preview — only when visible and no preview_image_url
+  // Lazy-fetch link preview — only when visible and no media_thumb_path/preview_image_url
   useEffect(() => {
-    if (!isVisible || hasPreviewImageUrl || hasRealImage || !cardUrl) return;
+    if (!isVisible || hasMediaThumb || hasPreviewImageUrl || hasRealImage || !cardUrl) return;
     dbg("url", { cardId: card.id, url: cardUrl });
 
     // YouTube: derive thumbnail directly (no API call)
@@ -232,10 +233,26 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
       })
       .catch(() => {});
     return () => controller.abort();
-  }, [card.id, cardUrl, hasPreviewImageUrl, hasRealImage, isVisible]);
+  }, [card.id, cardUrl, hasMediaThumb, hasPreviewImageUrl, hasRealImage, isVisible]);
 
-  // Image priority: preview_image_url > image_url > link-preview chain
-  const displayImage = hasPreviewImageUrl ? card.preview_image_url! : (hasRealImage ? card.image_url! : (previewFailed ? null : previewImg));
+  // Get Supabase Storage public URL for media thumbnail
+  const getMediaThumbUrl = () => {
+    if (!card.media_thumb_path) return null;
+    const supabase = createClient();
+    const { data } = supabase.storage.from("cards-media").getPublicUrl(card.media_thumb_path);
+    return data?.publicUrl || null;
+  };
+
+  // Image priority: media_thumb_path > preview_image_url > image_url > link-preview chain
+  const displayImage = hasMediaThumb
+    ? getMediaThumbUrl()!
+    : hasPreviewImageUrl
+    ? card.preview_image_url!
+    : hasRealImage
+    ? card.image_url!
+    : previewFailed
+    ? null
+    : previewImg;
   const showImage = !!displayImage;
   const isProxied = !!proxiedUrl && proxiedUrl === displayImage;
 
@@ -244,11 +261,18 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
     ? `/api/image-proxy?url=${encodeURIComponent(displayImage!)}${cardUrl ? `&ref=${encodeURIComponent(cardUrl)}` : ""}`
     : displayImage;
 
-  const debugSource = !cardUrl ? "none"
-    : !showImage ? "svg"
-    : isProxied ? "proxy"
-    : hasRealImage ? "saved"
-    : getYouTubeThumbnail(cardUrl) ? "youtube"
+  const debugSource = !cardUrl
+    ? "none"
+    : !showImage
+    ? "svg"
+    : isProxied
+    ? "proxy"
+    : hasMediaThumb
+    ? "media"
+    : hasRealImage
+    ? "saved"
+    : getYouTubeThumbnail(cardUrl)
+    ? "youtube"
     : "api";
 
   const [pinErrorMsg, setPinErrorMsg] = useState<string | null>(null);

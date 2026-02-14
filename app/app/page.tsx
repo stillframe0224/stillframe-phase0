@@ -60,8 +60,11 @@ export default function AppPage() {
   const [newFileName, setNewFileName] = useState("");
   const [isBulkMode, setIsBulkMode] = useState(false);
   const [selectedCardIds, setSelectedCardIds] = useState<Set<string>>(new Set());
+  const [showAddHub, setShowAddHub] = useState(false);
 
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const addHubRef = useRef<HTMLDivElement>(null);
   const savingRef = useRef(false);
   const prefillAppliedRef = useRef(false);
   const autoSaveRanRef = useRef(false);
@@ -805,6 +808,186 @@ export default function AppPage() {
     }
   };
 
+  // Handle Add Hub file upload
+  const handleUploadSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !configured || !user) return;
+
+    // Validate file type
+    if (!file.type.startsWith("image/") && !file.type.startsWith("video/")) {
+      setErrorBanner("Only image and video files are supported");
+      setTimeout(() => setErrorBanner(null), 3000);
+      return;
+    }
+
+    // Validate file size (100MB)
+    if (file.size > 100 * 1024 * 1024) {
+      setErrorBanner("File size must be under 100MB");
+      setTimeout(() => setErrorBanner(null), 3000);
+      return;
+    }
+
+    setShowAddHub(false);
+    setSaving(true);
+
+    try {
+      const supabase = createClient();
+
+      // 1. Create card first (minimal insert)
+      const newCard: Partial<Card> = {
+        user_id: user.id,
+        text: `Uploaded: ${file.name}`,
+        title: file.name,
+        card_type: selectedType,
+        media_kind: file.type.startsWith("image/") ? "image" : "video",
+      };
+
+      const { data: inserted, error: insertError } = await supabase
+        .from("cards")
+        .insert(newCard)
+        .select()
+        .single();
+
+      if (insertError || !inserted) {
+        throw new Error(insertError?.message || "Failed to create card");
+      }
+
+      // Add to UI optimistically
+      setCards((prev) => [inserted, ...prev]);
+
+      // 2. Generate thumbnail client-side
+      const thumbnail = await generateThumbnail(file);
+
+      // 3. Upload original + thumb to storage
+      const fileExt = file.name.split(".").pop() || "bin";
+      const originalPath = `${user.id}/${inserted.id}/original.${fileExt}`;
+      const thumbPath = `${user.id}/${inserted.id}/thumb.jpg`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("cards-media")
+        .upload(originalPath, file);
+
+      if (uploadError) throw new Error("Failed to upload file");
+
+      const { error: thumbError } = await supabase.storage
+        .from("cards-media")
+        .upload(thumbPath, thumbnail);
+
+      if (thumbError) throw new Error("Failed to upload thumbnail");
+
+      // 4. Update card with media fields
+      const { error: updateError } = await supabase
+        .from("cards")
+        .update({
+          media_path: originalPath,
+          media_thumb_path: thumbPath,
+          media_mime: file.type,
+          media_size: file.size,
+        })
+        .eq("id", inserted.id);
+
+      if (updateError) throw new Error("Failed to update card metadata");
+
+      // Update local state
+      setCards((prev) =>
+        prev.map((c) =>
+          c.id === inserted.id
+            ? {
+                ...c,
+                media_path: originalPath,
+                media_thumb_path: thumbPath,
+                media_mime: file.type,
+                media_size: file.size,
+              }
+            : c
+        )
+      );
+
+      setBanner("Uploaded!");
+      setTimeout(() => setBanner(null), 2000);
+    } catch (err: any) {
+      setErrorBanner(err.message || "Upload failed");
+      setTimeout(() => setErrorBanner(null), 3000);
+    } finally {
+      setSaving(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
+  };
+
+  // Generate thumbnail from image or video
+  const generateThumbnail = async (file: File): Promise<Blob> => {
+    return new Promise((resolve, reject) => {
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return reject(new Error("Canvas not supported"));
+
+      if (file.type.startsWith("image/")) {
+        const img = new Image();
+        img.onload = () => {
+          const maxSize = 512;
+          let { width, height } = img;
+          if (width > height && width > maxSize) {
+            height = (height * maxSize) / width;
+            width = maxSize;
+          } else if (height > maxSize) {
+            width = (width * maxSize) / height;
+            height = maxSize;
+          }
+          canvas.width = width;
+          canvas.height = height;
+          ctx.drawImage(img, 0, 0, width, height);
+          canvas.toBlob((blob) => {
+            if (blob) resolve(blob);
+            else reject(new Error("Failed to generate thumbnail"));
+          }, "image/jpeg", 0.85);
+        };
+        img.onerror = () => reject(new Error("Failed to load image"));
+        img.src = URL.createObjectURL(file);
+      } else if (file.type.startsWith("video/")) {
+        const video = document.createElement("video");
+        video.onloadeddata = () => {
+          video.currentTime = 0.2; // Seek to 0.2s
+        };
+        video.onseeked = () => {
+          const maxSize = 512;
+          let { videoWidth: width, videoHeight: height } = video;
+          if (width > height && width > maxSize) {
+            height = (height * maxSize) / width;
+            width = maxSize;
+          } else if (height > maxSize) {
+            width = (width * maxSize) / height;
+            height = maxSize;
+          }
+          canvas.width = width;
+          canvas.height = height;
+          ctx.drawImage(video, 0, 0, width, height);
+          canvas.toBlob((blob) => {
+            if (blob) resolve(blob);
+            else reject(new Error("Failed to generate video thumbnail"));
+          }, "image/jpeg", 0.85);
+        };
+        video.onerror = () => reject(new Error("Failed to load video"));
+        video.src = URL.createObjectURL(file);
+      } else {
+        reject(new Error("Unsupported file type"));
+      }
+    });
+  };
+
+  // Close Add Hub when clicking outside
+  useEffect(() => {
+    if (!showAddHub) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (addHubRef.current && !addHubRef.current.contains(e.target as Node)) {
+        setShowAddHub(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [showAddHub]);
+
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey && !e.repeat && !e.nativeEvent.isComposing) {
       e.preventDefault();
@@ -1184,28 +1367,103 @@ export default function AppPage() {
               }}
             />
           </div>
-          <button
-            onClick={addCard}
-            disabled={saving || !input.trim()}
-            style={{
-              width: 46,
-              height: 46,
-              borderRadius: "50%",
-              border: "none",
-              background: saving || !input.trim() ? "#ddd" : ct.accent,
-              color: "#fff",
-              fontSize: 22,
-              fontWeight: 300,
-              cursor: saving || !input.trim() ? "default" : "pointer",
-              transition: "background 0.2s",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              flexShrink: 0,
-            }}
-          >
-            {saving ? "..." : "+"}
-          </button>
+          <div style={{ position: "relative" }} ref={addHubRef}>
+            <button
+              onClick={() => setShowAddHub((prev) => !prev)}
+              disabled={saving}
+              style={{
+                width: 46,
+                height: 46,
+                borderRadius: "50%",
+                border: "none",
+                background: saving ? "#ddd" : ct.accent,
+                color: "#fff",
+                fontSize: 22,
+                fontWeight: 300,
+                cursor: saving ? "default" : "pointer",
+                transition: "background 0.2s",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+              }}
+            >
+              {saving ? "..." : "+"}
+            </button>
+
+            {/* Add Hub Menu */}
+            {showAddHub && !saving && (
+              <div
+                style={{
+                  position: "absolute",
+                  bottom: 56,
+                  right: 0,
+                  background: "#fff",
+                  border: "1.5px solid #e8e5e0",
+                  borderRadius: 12,
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                  overflow: "hidden",
+                  minWidth: 140,
+                  zIndex: 50,
+                }}
+              >
+                <button
+                  onClick={() => {
+                    setShowAddHub(false);
+                    inputRef.current?.focus();
+                  }}
+                  style={{
+                    width: "100%",
+                    padding: "12px 16px",
+                    background: "none",
+                    border: "none",
+                    textAlign: "left",
+                    fontSize: 14,
+                    fontFamily: "var(--font-dm)",
+                    color: "#2a2a2a",
+                    cursor: "pointer",
+                    transition: "background 0.15s",
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = "#f9f9f9")}
+                  onMouseLeave={(e) => (e.currentTarget.style.background = "none")}
+                >
+                  Text
+                </button>
+                <button
+                  onClick={() => {
+                    setShowAddHub(false);
+                    fileInputRef.current?.click();
+                  }}
+                  style={{
+                    width: "100%",
+                    padding: "12px 16px",
+                    background: "none",
+                    border: "none",
+                    borderTop: "1px solid #f0f0f0",
+                    textAlign: "left",
+                    fontSize: 14,
+                    fontFamily: "var(--font-dm)",
+                    color: "#2a2a2a",
+                    cursor: "pointer",
+                    transition: "background 0.15s",
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = "#f9f9f9")}
+                  onMouseLeave={(e) => (e.currentTarget.style.background = "none")}
+                >
+                  Upload
+                </button>
+              </div>
+            )}
+
+            {/* Hidden file input */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*,video/*"
+              onChange={handleUploadSelect}
+              style={{ display: "none" }}
+            />
+          </div>
         </div>
 
         {dragOver && (
