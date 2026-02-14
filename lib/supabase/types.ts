@@ -11,6 +11,7 @@ export interface Card {
   source_url?: string | null;
   site_name?: string | null;
   preview_image_url?: string | null;
+  notes?: string | null;
   created_at: string;
   updated_at: string;
 }

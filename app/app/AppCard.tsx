@@ -126,8 +126,13 @@ export default function AppCard({ card, index, onDelete, onPinToggle }: AppCardP
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [editedTitle, setEditedTitle] = useState("");
   const [titleError, setTitleError] = useState<string | null>(null);
+  const [showMemoModal, setShowMemoModal] = useState(false);
+  const [memoText, setMemoText] = useState(card.notes || "");
+  const [memoSaveStatus, setMemoSaveStatus] = useState<"saved" | "error" | null>(null);
+  const [memoError, setMemoError] = useState<string | null>(null);
   const cardRef = useRef<HTMLDivElement>(null);
   const titleInputRef = useRef<HTMLInputElement>(null);
+  const memoSaveTimeout = useRef<NodeJS.Timeout | null>(null);
 
   const cardUrl = extractFirstHttpUrl(card.text);
   const hasRealImage = !!(card.image_url && card.image_source !== "generated" && !realImgFailed);
@@ -328,6 +333,69 @@ export default function AppCard({ card, index, onDelete, onPinToggle }: AppCardP
       setIsEditingTitle(false);
       setTitleError(null);
     }
+  };
+
+  const handleMemoSave = async (text: string) => {
+    try {
+      const supabase = createClient();
+      const { error } = await supabase
+        .from("cards")
+        .update({ notes: text || null })
+        .eq("id", card.id);
+
+      if (error) {
+        const errMsg = error.message || "";
+        const errCode = error.code || "";
+        if (errCode === "PGRST204" || errCode === "42703" || errMsg.includes("column") || errMsg.includes("notes")) {
+          setMemoError("Run migration SQL to enable notes (see OPS.md)");
+        } else {
+          setMemoError(`Save failed: ${errMsg.slice(0, 40)}`);
+        }
+        setMemoSaveStatus("error");
+        setTimeout(() => {
+          setMemoError(null);
+          setMemoSaveStatus(null);
+        }, 5000);
+        return;
+      }
+
+      card.notes = text || null; // Update local state
+      setMemoSaveStatus("saved");
+      setTimeout(() => setMemoSaveStatus(null), 2000);
+    } catch (e) {
+      setMemoError("Network error");
+      setMemoSaveStatus("error");
+      setTimeout(() => {
+        setMemoError(null);
+        setMemoSaveStatus(null);
+      }, 5000);
+    }
+  };
+
+  const handleMemoChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newText = e.target.value;
+    setMemoText(newText);
+    setMemoSaveStatus(null);
+    setMemoError(null);
+
+    // Clear existing timeout
+    if (memoSaveTimeout.current) {
+      clearTimeout(memoSaveTimeout.current);
+    }
+
+    // Debounce save by 500ms
+    memoSaveTimeout.current = setTimeout(() => {
+      handleMemoSave(newText);
+    }, 500);
+  };
+
+  const handleMemoModalClose = () => {
+    // Flush pending save immediately
+    if (memoSaveTimeout.current) {
+      clearTimeout(memoSaveTimeout.current);
+      handleMemoSave(memoText);
+    }
+    setShowMemoModal(false);
   };
 
   const imageContent = (
@@ -613,6 +681,9 @@ export default function AppCard({ card, index, onDelete, onPinToggle }: AppCardP
 
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 8, gap: 8 }}>
           <span
+            onClick={() => {
+              if (card.notes !== undefined) setShowMemoModal(true);
+            }}
             style={{
               fontSize: 10,
               fontWeight: 600,
@@ -623,7 +694,9 @@ export default function AppCard({ card, index, onDelete, onPinToggle }: AppCardP
               fontFamily: "var(--font-dm)",
               textTransform: "uppercase",
               letterSpacing: "0.06em",
+              cursor: card.notes !== undefined ? "pointer" : "default",
             }}
+            title={card.notes !== undefined ? "Click to add/edit notes" : undefined}
           >
             {card.card_type}
           </span>
@@ -670,6 +743,150 @@ export default function AppCard({ card, index, onDelete, onPinToggle }: AppCardP
           </div>
         )}
       </div>
+
+      {/* Memo Modal */}
+      {showMemoModal && (
+        <div
+          onClick={handleMemoModalClose}
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.4)",
+            zIndex: 999,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: 20,
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: "#fff",
+              borderRadius: 12,
+              padding: 20,
+              maxWidth: 500,
+              width: "100%",
+              boxShadow: "0 20px 40px rgba(0,0,0,0.2)",
+            }}
+          >
+            {/* Header */}
+            <div style={{ marginBottom: 12 }}>
+              <div
+                style={{
+                  fontSize: 14,
+                  fontWeight: 600,
+                  color: "#2a2a2a",
+                  marginBottom: 4,
+                  wordBreak: "break-word",
+                }}
+              >
+                {displayTitle}
+              </div>
+              <div style={{ fontSize: 11, color: "#999", fontFamily: "var(--font-dm)" }}>
+                {new Date(card.created_at).toLocaleString()}
+              </div>
+            </div>
+
+            {/* Open link */}
+            {cardUrl && (
+              <a
+                href={cardUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: "inline-block",
+                  fontSize: 11,
+                  color: ct.accent,
+                  textDecoration: "none",
+                  fontFamily: "var(--font-dm)",
+                  fontWeight: 600,
+                  marginBottom: 12,
+                }}
+              >
+                Open link &rsaquo;
+              </a>
+            )}
+
+            {/* Memo textarea */}
+            <textarea
+              value={memoText}
+              onChange={handleMemoChange}
+              placeholder="Add notes..."
+              style={{
+                width: "100%",
+                minHeight: 180,
+                padding: 12,
+                fontSize: 13,
+                lineHeight: 1.6,
+                color: "#2a2a2a",
+                border: "1.5px solid #ddd",
+                borderRadius: 8,
+                fontFamily: "inherit",
+                resize: "vertical",
+                outline: "none",
+              }}
+              onFocus={(e) => {
+                e.target.style.borderColor = ct.accent;
+              }}
+              onBlur={(e) => {
+                e.target.style.borderColor = "#ddd";
+              }}
+            />
+
+            {/* Save status */}
+            {memoSaveStatus === "saved" && (
+              <div
+                style={{
+                  fontSize: 11,
+                  color: "#2D8F50",
+                  marginTop: 8,
+                  fontFamily: "var(--font-dm)",
+                }}
+              >
+                ✓ Saved
+              </div>
+            )}
+
+            {/* Error message */}
+            {memoError && (
+              <div
+                style={{
+                  fontSize: 11,
+                  color: "#D93025",
+                  background: "#FEE",
+                  padding: "6px 10px",
+                  borderRadius: 6,
+                  marginTop: 8,
+                  fontFamily: "var(--font-dm)",
+                  lineHeight: 1.4,
+                }}
+              >
+                {memoError}
+              </div>
+            )}
+
+            {/* Close button */}
+            <button
+              onClick={handleMemoModalClose}
+              style={{
+                marginTop: 16,
+                padding: "8px 16px",
+                fontSize: 13,
+                fontWeight: 600,
+                color: "#fff",
+                background: ct.accent,
+                border: "none",
+                borderRadius: 8,
+                cursor: "pointer",
+                fontFamily: "var(--font-dm)",
+              }}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

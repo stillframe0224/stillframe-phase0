@@ -160,6 +160,7 @@ alter table public.cards add column if not exists preview_image_url text;
 alter table public.cards add column if not exists media_kind text;
 alter table public.cards add column if not exists media_path text;
 alter table public.cards add column if not exists media_thumb_path text;
+alter table public.cards add column if not exists notes text;
 alter table public.cards add column if not exists updated_at timestamptz default now();
 
 -- Index for source URL lookups
