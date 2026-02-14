@@ -42,7 +42,11 @@ export default function AppPage() {
     async function init() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        window.location.href = "/auth/login";
+        const search = window.location.search;
+        const loginUrl = search
+          ? `/auth/login?next=${encodeURIComponent(`/app${search}`)}`
+          : "/auth/login";
+        window.location.href = loginUrl;
         return;
       }
       setUser({
