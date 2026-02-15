@@ -293,6 +293,8 @@ After changing `NEXT_PUBLIC_*` env vars in Vercel, you must trigger a **manual r
 - Download: https://github.com/array0224-cloud/stillframe-phase0/releases
 - **Fully automated** — no manual tag creation required
 
+**One-button patch release**: Run `bash scripts/release_extension_patch.sh` to automatically bump the patch version, verify the ZIP structure (manifest at root), commit/push to main, wait for the GitHub Release to be created with assets, and audit the published ZIP. The script ensures end-to-end validation from version bump to verified release.
+
 **Release workflow** (zero manual steps):
 1. Update `manifest.json` version (e.g., `"version": "1.0.1"`)
 2. Merge to `main`
