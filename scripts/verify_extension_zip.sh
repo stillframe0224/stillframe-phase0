@@ -2,8 +2,15 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-ZIP_PATH="$REPO_ROOT/dist/save-to-shinen.zip"
+
+# Prefer git-derived repo root so this works from any CWD in CI.
+if command -v git >/dev/null 2>&1 && git -C "$SCRIPT_DIR/.." rev-parse --show-toplevel >/dev/null 2>&1; then
+  ROOT="$(git -C "$SCRIPT_DIR/.." rev-parse --show-toplevel)"
+else
+  ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+fi
+
+ZIP_PATH="$ROOT/dist/save-to-shinen.zip"
 
 REQUIRED_FILES=(
   "tools/chrome-extension/save-to-shinen/manifest.json"
@@ -25,14 +32,14 @@ if ! command -v unzip >/dev/null 2>&1; then
   fail "unzip is required but was not found in PATH"
 fi
 
-bash "$REPO_ROOT/scripts/package_extension.sh"
+bash "$ROOT/scripts/package_extension.sh"
 
 if [ ! -f "$ZIP_PATH" ]; then
-  fail "Expected ZIP not found: $ZIP_PATH"
+  fail "Expected ZIP not found: dist/save-to-shinen.zip"
 fi
 
 if [ ! -s "$ZIP_PATH" ]; then
-  fail "ZIP exists but is empty: $ZIP_PATH"
+  fail "ZIP exists but is empty: dist/save-to-shinen.zip"
 fi
 
 echo
@@ -77,6 +84,7 @@ count="$(wc -l <"$tmp_list" | tr -d ' ')"
 
 echo
 echo "OK: extension ZIP verified"
-echo "  Path: $ZIP_PATH"
+echo "  Root: $ROOT"
+echo "  Path: dist/save-to-shinen.zip"
 echo "  Entries: $count"
 echo "  Size: $size"
