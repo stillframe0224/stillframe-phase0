@@ -9,6 +9,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: extension-autotag-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   autotag:
     runs-on: ubuntu-latest
@@ -18,29 +22,32 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Read before/after manifest versions
+      - name: Read versions and decide tag
         id: ver
         run: |
           set -euo pipefail
 
           MANIFEST_PATH="tools/chrome-extension/save-to-shinen/manifest.json"
+          BEFORE="${{ github.event.before }}"
+          AFTER="${{ github.sha }}"
 
-          # Read JSON .version without jq to reduce dependencies.
-          read_version() {
-            node -e 'const fs=require("fs");const m=JSON.parse(fs.readFileSync(0,"utf8"));if(!m.version){process.exit(2)};process.stdout.write(String(m.version));'
-          }
+          NEW_VERSION="$(node -p \"require('./$MANIFEST_PATH').version\" || true)"
 
-          NEW_VERSION="$(read_version < "$MANIFEST_PATH" || true)"
-          if [[ -z "$NEW_VERSION" ]]; then
+          OLD_VERSION=""
+          if [[ "$BEFORE" != "0000000000000000000000000000000000000000" ]]; then
+            if git cat-file -e "$BEFORE:$MANIFEST_PATH" 2>/dev/null; then
+              OLD_VERSION="$(git show "$BEFORE:$MANIFEST_PATH" | node -p \"JSON.parse(require('fs').readFileSync(0,'utf8')).version\" || true)"
+            fi
+          fi
+
+          if [[ -z "$NEW_VERSION" || "$NEW_VERSION" == "null" ]]; then
             echo "ERROR: manifest.json version missing" >&2
             exit 1
           fi
 
-          OLD_VERSION=""
-          if git rev-parse --verify HEAD^ >/dev/null 2>&1; then
-            if git cat-file -e "HEAD^:$MANIFEST_PATH" 2>/dev/null; then
-              OLD_VERSION="$(git show "HEAD^:$MANIFEST_PATH" | read_version || true)"
-            fi
+          if ! [[ "$NEW_VERSION" =~ ^[0-9]+\\.[0-9]+\\.[0-9]+$ ]]; then
+            echo "ERROR: manifest.json version is not semver-like (expected X.Y.Z): $NEW_VERSION" >&2
+            exit 1
           fi
 
           echo "old_version=$OLD_VERSION" >> "$GITHUB_OUTPUT"
