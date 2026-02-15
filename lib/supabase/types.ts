@@ -19,6 +19,11 @@ export interface Card {
   notes?: string | null;
   sort_key?: string | null;
   file_id?: string | null;
+  ai_summary?: string | null;
+  ai_tags?: string[] | null;
+  ai_action?: string | null;
+  ai_model?: string | null;
+  ai_updated_at?: string | null;
   created_at: string;
   updated_at: string;
 }

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { STORAGE_BUCKETS } from "@/lib/supabase/constants";
 import { getCardType } from "@/lib/cardTypes";
 import { extractFirstHttpUrl, getYouTubeThumbnail } from "@/lib/urlUtils";
 import type { Card, File as FileRecord } from "@/lib/supabase/types";
@@ -114,6 +115,7 @@ interface AppCardProps {
   onDelete: (id: string) => void;
   onPinToggle?: (id: string, newPinned: boolean) => void;
   onFileAssign?: (cardId: string, fileId: string | null) => void;
+  onUpdate?: (cardId: string) => void;
   files?: FileRecord[];
   isDraggable?: boolean;
   isBulkMode?: boolean;
@@ -121,7 +123,7 @@ interface AppCardProps {
   onToggleSelect?: (cardId: string) => void;
 }
 
-export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssign, files = [], isDraggable = false, isBulkMode = false, isSelected = false, onToggleSelect }: AppCardProps) {
+export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssign, onUpdate, files = [], isDraggable = false, isBulkMode = false, isSelected = false, onToggleSelect }: AppCardProps) {
   const {
     attributes,
     listeners,
@@ -139,6 +141,8 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
   const ct = getCardType(card.card_type);
   const [realImgFailed, setRealImgFailed] = useState(false);
   const [previewFailed, setPreviewFailed] = useState(false);
+  const [ytQualityIndex, setYtQualityIndex] = useState(0); // 0=maxres, 1=sd, 2=hq, 3=mq, 4=default
+  const [ytThumbFailed, setYtThumbFailed] = useState(false); // Separate flag for YouTube thumb failures
   const [showDelete, setShowDelete] = useState(false);
   const [previewImg, setPreviewImg] = useState<string | null>(null);
   const [isVisible, setIsVisible] = useState(false);
@@ -155,11 +159,26 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
   const [showMemoPreview, setShowMemoPreview] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [showFileSelect, setShowFileSelect] = useState(false);
+  const [aiAnalyzing, setAiAnalyzing] = useState(false);
+  const [aiError, setAiError] = useState<string | null>(null);
   const cardRef = useRef<HTMLDivElement>(null);
   const titleInputRef = useRef<HTMLInputElement>(null);
   const memoSaveTimeout = useRef<NodeJS.Timeout | null>(null);
 
-  const cardUrl = extractFirstHttpUrl(card.text);
+  // Determine URL from multiple sources (source_url > text > preview_image_url)
+  const cardUrl = (() => {
+    if (card.source_url) return card.source_url;
+    const textUrl = extractFirstHttpUrl(card.text);
+    if (textUrl) return textUrl;
+    // Fallback: if preview_image_url looks like a YouTube page URL, use it
+    if (card.preview_image_url && (
+      card.preview_image_url.includes("youtube.com/") ||
+      card.preview_image_url.includes("youtu.be/")
+    )) {
+      return card.preview_image_url;
+    }
+    return null;
+  })();
   const hasRealImage = !!(card.image_url && card.image_source !== "generated" && !realImgFailed);
 
   // Derive display title: prefer card.title, fallback to first line of text
@@ -193,16 +212,47 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
     return () => observer.disconnect();
   }, []);
 
-  // Lazy-fetch link preview — only when visible and no media_thumb_path/preview_image_url
+  // Backfill source_url for YouTube cards (one-time client-side fix for legacy data)
   useEffect(() => {
-    if (!isVisible || hasMediaThumb || hasPreviewImageUrl || hasRealImage || !cardUrl) return;
+    if (!isVisible || card.source_url || !cardUrl) return;
+    // Only backfill if cardUrl is YouTube and was extracted from text
+    const textUrl = extractFirstHttpUrl(card.text);
+    if (textUrl && textUrl === cardUrl && getYouTubeThumbnail(cardUrl)) {
+      // Debounce: wait 2s after render to avoid spamming on initial load
+      const timer = setTimeout(async () => {
+        try {
+          const { createClient } = await import("@/lib/supabase/client");
+          const supabase = createClient();
+          await supabase
+            .from("cards")
+            .update({ source_url: cardUrl })
+            .eq("id", card.id);
+          dbg("backfill", { cardId: card.id, source_url: cardUrl });
+        } catch (err) {
+          // Best-effort, fail silently
+          console.warn("source_url backfill failed:", err);
+        }
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [isVisible, card.id, card.source_url, card.text, cardUrl]);
+
+  // Lazy-fetch link preview — only when visible and no media_thumb_path
+  useEffect(() => {
+    if (!isVisible || hasMediaThumb || hasRealImage || !cardUrl) return;
     dbg("url", { cardId: card.id, url: cardUrl });
 
-    // YouTube: derive thumbnail directly (no API call)
-    const ytThumb = getYouTubeThumbnail(cardUrl);
-    if (ytThumb) {
-      dbg("source", { url: cardUrl, source: "youtube" });
+    // YouTube: ALWAYS derive thumbnail from videoId (override preview_image_url if present)
+    const qualities: Array<"maxres" | "sd" | "hq" | "mq" | "default"> = ["maxres", "sd", "hq", "mq", "default"];
+    const ytThumb = getYouTubeThumbnail(cardUrl, qualities[ytQualityIndex]);
+    if (ytThumb && !ytThumbFailed) {
+      dbg("source", { url: cardUrl, source: "youtube", quality: qualities[ytQualityIndex] });
       setPreviewImg(ytThumb);
+      return;
+    }
+
+    // If preview_image_url exists and NOT YouTube, use it
+    if (hasPreviewImageUrl) {
       return;
     }
 
@@ -233,15 +283,26 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
       })
       .catch(() => {});
     return () => controller.abort();
-  }, [card.id, cardUrl, hasMediaThumb, hasPreviewImageUrl, hasRealImage, isVisible]);
+  }, [card.id, cardUrl, hasMediaThumb, hasPreviewImageUrl, hasRealImage, isVisible, ytQualityIndex]);
 
   // Get Supabase Storage public URL for media thumbnail
   const getMediaThumbUrl = () => {
     if (!card.media_thumb_path) return null;
     const supabase = createClient();
-    const { data } = supabase.storage.from("cards-media").getPublicUrl(card.media_thumb_path);
+    const { data } = supabase.storage.from(STORAGE_BUCKETS.CARDS_MEDIA).getPublicUrl(card.media_thumb_path);
     return data?.publicUrl || null;
   };
+
+  // Get Supabase Storage public URL for media original (video playback)
+  const getMediaOriginalUrl = () => {
+    if (!card.media_path) return null;
+    const supabase = createClient();
+    const { data } = supabase.storage.from(STORAGE_BUCKETS.CARDS_MEDIA).getPublicUrl(card.media_path);
+    return data?.publicUrl || null;
+  };
+
+  // Check if this card is a video
+  const isVideoCard = card.media_kind === "video" && !!card.media_path;
 
   // Image priority: media_thumb_path > preview_image_url > image_url > link-preview chain
   const displayImage = hasMediaThumb
@@ -453,15 +514,86 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
     setShowMemoModal(false);
   };
 
+  const handleAIAnalyze = async () => {
+    setAiAnalyzing(true);
+    setAiError(null);
+
+    try {
+      const supabase = createClient();
+      const response = await fetch("/api/ai-organize", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cardId: card.id }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "AI analysis failed");
+      }
+
+      // Reload card data to show updated AI fields
+      const { data: updated } = await supabase
+        .from("cards")
+        .select("ai_summary, ai_tags, ai_action")
+        .eq("id", card.id)
+        .single();
+
+      if (updated) {
+        // Update parent component (trigger re-render)
+        if (onUpdate) onUpdate(card.id);
+      }
+
+      // Show success briefly
+      setTimeout(() => setAiAnalyzing(false), 1500);
+    } catch (error: any) {
+      setAiError(error.message);
+      setAiAnalyzing(false);
+      setTimeout(() => setAiError(null), 3000);
+    }
+  };
+
   const imageContent = (
     <div style={{ aspectRatio: "7/4", overflow: "hidden", position: "relative" }}>
-      {showImage ? (
+      {isVideoCard ? (
+        <video
+          controls
+          playsInline
+          preload="metadata"
+          poster={showImage && imgSrc ? imgSrc : undefined}
+          src={getMediaOriginalUrl() || undefined}
+          style={{
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            background: "#000",
+          }}
+        />
+      ) : showImage ? (
         <img
           src={imgSrc!}
           alt=""
           loading="lazy"
           referrerPolicy="no-referrer"
           onError={() => {
+            // YouTube quality fallback: maxres → sd → hq → mq → default
+            if (cardUrl && getYouTubeThumbnail(cardUrl)) {
+              const qualities: Array<"maxres" | "sd" | "hq" | "mq" | "default"> = ["maxres", "sd", "hq", "mq", "default"];
+              if (ytQualityIndex < qualities.length - 1) {
+                const nextIndex = ytQualityIndex + 1;
+                dbg("img_error", {
+                  type: "youtube_quality_fallback",
+                  from: qualities[ytQualityIndex],
+                  to: qualities[nextIndex],
+                });
+                setYtQualityIndex(nextIndex);
+                return;
+              } else {
+                // All YouTube qualities failed, mark as failed
+                dbg("img_error", { type: "youtube_all_qualities_failed" });
+                setYtThumbFailed(true);
+              }
+            }
+
             if (displayImage && proxiedUrl !== displayImage) {
               // First failure on this image: retry via proxy
               dbg("img_proxy", { url: displayImage });
@@ -905,6 +1037,46 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
                 minute: "2-digit",
               }).format(new Date(card.created_at))}
             </span>
+
+            {/* AI organize button (hover only) */}
+            {isHovered && !isBulkMode && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleAIAnalyze();
+                }}
+                disabled={aiAnalyzing}
+                style={{
+                  fontSize: 9,
+                  color: aiAnalyzing ? "#999" : "#7B4FD9",
+                  background: card.ai_summary ? "#F5F0FF" : "transparent",
+                  border: card.ai_summary ? "1px solid #BBA0F5" : "none",
+                  borderRadius: 4,
+                  padding: "2px 6px",
+                  cursor: aiAnalyzing ? "default" : "pointer",
+                  fontFamily: "var(--font-dm)",
+                  fontWeight: 600,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.05em",
+                }}
+                title={card.ai_summary ? `AI: ${card.ai_summary}` : "Analyze with AI"}
+              >
+                {aiAnalyzing ? "..." : card.ai_summary ? "AI ✓" : "AI"}
+              </button>
+            )}
+
+            {/* AI error */}
+            {aiError && (
+              <span
+                style={{
+                  fontSize: 8,
+                  color: "#D93025",
+                  fontFamily: "var(--font-dm)",
+                }}
+              >
+                {aiError}
+              </span>
+            )}
 
             {/* File assignment */}
             {onFileAssign && files.length > 0 && !isBulkMode && (

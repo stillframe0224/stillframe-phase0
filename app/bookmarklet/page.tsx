@@ -1,7 +1,7 @@
 "use client";
 
 export default function BookmarkletPage() {
-  const bookmarkletCode = `javascript:void((function(){var u=location.href,t=(document.title||'').slice(0,200),s=(document.querySelector('meta[property="og:site_name"]')||{}).content||'',sel=(window.getSelection()||'').toString().slice(0,1200),img='';function getImg(){var m=document.querySelector('meta[property="og:image"]')||document.querySelector('meta[property="og:image:secure_url"]')||document.querySelector('meta[name="twitter:image"]')||document.querySelector('meta[property="twitter:image"]')||document.querySelector('link[rel="image_src"]');if(m)return(m.content||m.href||'').slice(0,2000);var ld=document.querySelector('script[type="application/ld+json"]');if(ld){try{var j=JSON.parse(ld.textContent||'');if(j.image)return(typeof j.image==='string'?j.image:(j.image.url||j.image[0]||'')).slice(0,2000)}catch(e){}}var az=document.querySelector('#landingImage');if(az){var h=az.getAttribute('data-old-hires');if(h&&/^https?:\\/\\//.test(h))return h.slice(0,2000);var d=az.getAttribute('data-a-dynamic-image');if(d){try{var o=JSON.parse(d),k=Object.keys(o);if(k.length)return k.sort((a,b)=>(o[b][0]*o[b][1])-(o[a][0]*o[a][1]))[0].slice(0,2000)}catch(e){}}}var azWrap=document.querySelector('#imgTagWrapperId img');if(azWrap){var src=azWrap.src;if(src&&/^https?:\\/\\//.test(src))return src.slice(0,2000)}var azDyn=document.querySelector('img[data-a-dynamic-image]');if(azDyn){var dd=azDyn.getAttribute('data-a-dynamic-image');if(dd){try{var oo=JSON.parse(dd),kk=Object.keys(oo);if(kk.length)return kk.sort((a,b)=>(oo[b][0]*oo[b][1])-(oo[a][0]*oo[a][1]))[0].slice(0,2000)}catch(e){}}}return''}img=getImg();window.open('https://stillframe-phase0.vercel.app/app?auto=1&url='+encodeURIComponent(u)+'&title='+encodeURIComponent(t)+(img?'&img='+encodeURIComponent(img):'')+(s?'&site='+encodeURIComponent(s.slice(0,100)):'')+(sel?'&s='+encodeURIComponent(sel):''),'_blank')})())`;
+  const bookmarkletCode = `javascript:void((function(){var u=location.href,t=(document.title||'').slice(0,200),s=(document.querySelector('meta[property="og:site_name"]')||{}).content||'',sel=(window.getSelection()||'').toString().slice(0,1200);function norm(r){if(!r)return null;var x=r.trim();if(!x)return null;if(x.startsWith('//')){x='https:'+x}if(x.startsWith('/')&&u){try{x=new URL(x,u).href}catch(e){return null}}if(!/^https?:\\/\\//.test(x))return null;return x.slice(0,2000)}function getImg(){var cs=[];function add(v){if(!v)return;if(typeof v==='string'){cs.push(v)}else if(Array.isArray(v)){v.forEach(add)}else if(v.url){cs.push(v.url)}}var metas=document.querySelectorAll('meta[property="og:image"],meta[property="og:image:secure_url"],meta[property="og:image:url"],meta[name="twitter:image"],meta[property="twitter:image"]');metas.forEach(function(m){add(m.content)});var lnk=document.querySelector('link[rel="image_src"]');if(lnk)add(lnk.href);var lds=document.querySelectorAll('script[type="application/ld+json"]');lds.forEach(function(ld){try{var j=JSON.parse(ld.textContent||'{}');if(j['@graph']){j['@graph'].forEach(function(g){add(g.image||g.thumbnailUrl)})}else{add(j.image||j.thumbnailUrl)}}catch(e){}});var az=document.querySelector('#landingImage');if(az){var h=az.getAttribute('data-old-hires');if(h)add(h);var d=az.getAttribute('data-a-dynamic-image');if(d){try{var o=JSON.parse(d),ks=Object.keys(o);if(ks.length){ks.sort(function(a,b){return(o[b][0]*o[b][1])-(o[a][0]*o[a][1])});add(ks[0])}}catch(e){}}}var azw=document.querySelector('#imgTagWrapperId img');if(azw)add(azw.src||azw.getAttribute('data-a-dynamic-image'));var azm=document.querySelectorAll('img[data-a-dynamic-image]');azm.forEach(function(im){var dd=im.getAttribute('data-a-dynamic-image');if(dd){try{var oo=JSON.parse(dd),kks=Object.keys(oo);if(kks.length){kks.sort(function(a,b){return(oo[b][0]*oo[b][1])-(oo[a][0]*oo[a][1])});add(kks[0])}}catch(e){}}});var fz=null;var imgs=document.querySelectorAll('img');imgs.forEach(function(im){var src=im.currentSrc||im.src||im.getAttribute('data-src')||im.getAttribute('data-original')||'';if(src&&(src.includes('pics.dmm.co.jp')||src.includes('dmm.co.jp'))){if(!fz||im.naturalWidth*im.naturalHeight>5000){fz=src}}});if(fz)cs.unshift(fz);for(var i=0;i<cs.length;i++){var n=norm(cs[i]);if(n)return n}return null}var img=getImg()||'';window.open('https://stillframe-phase0.vercel.app/app?auto=1&url='+encodeURIComponent(u)+'&title='+encodeURIComponent(t)+(img?'&img='+encodeURIComponent(img):'')+(s?'&site='+encodeURIComponent(s.slice(0,100)):'')+(sel?'&s='+encodeURIComponent(sel):''),'_blank')})())`;
 
   return (
     <div
@@ -99,8 +99,43 @@ export default function BookmarkletPage() {
               fontFamily: "var(--font-dm)",
             }}
           >
-            Back to app
+            Go to App →
           </a>
+          <a
+            href="/"
+            style={{
+              fontSize: 13,
+              color: "#999",
+              textDecoration: "none",
+              fontFamily: "var(--font-dm)",
+            }}
+          >
+            Back to Home
+          </a>
+        </div>
+
+        {/* Technical details */}
+        <div
+          style={{
+            marginTop: 48,
+            padding: "16px 20px",
+            borderRadius: 12,
+            background: "#f9f9f9",
+            border: "1px solid #e0e0e0",
+          }}
+        >
+          <h3 style={{ fontSize: 14, fontWeight: 600, color: "#2a2a2a", marginBottom: 8 }}>
+            Enhanced image extraction
+          </h3>
+          <p style={{ fontSize: 12, color: "#777", lineHeight: 1.6, marginBottom: 8 }}>
+            Supports: Open Graph, Twitter Cards, JSON-LD, Amazon product images, FANZA/DMM media
+          </p>
+          <ul style={{ fontSize: 11, color: "#999", lineHeight: 1.6, paddingLeft: 20 }}>
+            <li>Amazon: #landingImage data-a-dynamic-image (largest resolution)</li>
+            <li>FANZA/DMM: pics.dmm.co.jp images (auto-detected)</li>
+            <li>Protocol-relative URLs (//...) auto-converted to https://</li>
+            <li>Encoded URLs automatically normalized</li>
+          </ul>
         </div>
       </div>
     </div>
