@@ -312,6 +312,8 @@ Only use if autotag workflow fails. Version must match `manifest.json`.
 
 **Manual packaging**: `bash scripts/package_extension.sh` → creates `dist/save-to-shinen.zip`
 
+**Release asset audit**: `scripts/audit_release_asset.sh [TAG]` audits the published GitHub Release asset (`save-to-shinen.zip` + `.sha256`) for install-friendly ZIP structure (root-level `manifest.json`, required files present, no `__MACOSX`/`.DS_Store`) and verifies the SHA256 checksum.
+
 **Installation**: See `tools/chrome-extension/save-to-shinen/INSTALL.md`
 
 ## Related docs
