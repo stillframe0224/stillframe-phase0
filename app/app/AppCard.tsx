@@ -115,6 +115,7 @@ interface AppCardProps {
   onDelete: (id: string) => void;
   onPinToggle?: (id: string, newPinned: boolean) => void;
   onFileAssign?: (cardId: string, fileId: string | null) => void;
+  onUpdate?: (cardId: string) => void;
   files?: FileRecord[];
   isDraggable?: boolean;
   isBulkMode?: boolean;
@@ -122,7 +123,7 @@ interface AppCardProps {
   onToggleSelect?: (cardId: string) => void;
 }
 
-export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssign, files = [], isDraggable = false, isBulkMode = false, isSelected = false, onToggleSelect }: AppCardProps) {
+export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssign, onUpdate, files = [], isDraggable = false, isBulkMode = false, isSelected = false, onToggleSelect }: AppCardProps) {
   const {
     attributes,
     listeners,
@@ -156,6 +157,8 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
   const [showMemoPreview, setShowMemoPreview] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [showFileSelect, setShowFileSelect] = useState(false);
+  const [aiAnalyzing, setAiAnalyzing] = useState(false);
+  const [aiError, setAiError] = useState<string | null>(null);
   const cardRef = useRef<HTMLDivElement>(null);
   const titleInputRef = useRef<HTMLInputElement>(null);
   const memoSaveTimeout = useRef<NodeJS.Timeout | null>(null);
@@ -463,6 +466,44 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
       handleMemoSave(memoText);
     }
     setShowMemoModal(false);
+  };
+
+  const handleAIAnalyze = async () => {
+    setAiAnalyzing(true);
+    setAiError(null);
+
+    try {
+      const supabase = createClient();
+      const response = await fetch("/api/ai-organize", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cardId: card.id }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "AI analysis failed");
+      }
+
+      // Reload card data to show updated AI fields
+      const { data: updated } = await supabase
+        .from("cards")
+        .select("ai_summary, ai_tags, ai_action")
+        .eq("id", card.id)
+        .single();
+
+      if (updated) {
+        // Update parent component (trigger re-render)
+        if (onUpdate) onUpdate(card.id);
+      }
+
+      // Show success briefly
+      setTimeout(() => setAiAnalyzing(false), 1500);
+    } catch (error: any) {
+      setAiError(error.message);
+      setAiAnalyzing(false);
+      setTimeout(() => setAiError(null), 3000);
+    }
   };
 
   const imageContent = (
@@ -931,6 +972,46 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
                 minute: "2-digit",
               }).format(new Date(card.created_at))}
             </span>
+
+            {/* AI organize button (hover only) */}
+            {isHovered && !isBulkMode && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleAIAnalyze();
+                }}
+                disabled={aiAnalyzing}
+                style={{
+                  fontSize: 9,
+                  color: aiAnalyzing ? "#999" : "#7B4FD9",
+                  background: card.ai_summary ? "#F5F0FF" : "transparent",
+                  border: card.ai_summary ? "1px solid #BBA0F5" : "none",
+                  borderRadius: 4,
+                  padding: "2px 6px",
+                  cursor: aiAnalyzing ? "default" : "pointer",
+                  fontFamily: "var(--font-dm)",
+                  fontWeight: 600,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.05em",
+                }}
+                title={card.ai_summary ? `AI: ${card.ai_summary}` : "Analyze with AI"}
+              >
+                {aiAnalyzing ? "..." : card.ai_summary ? "AI ✓" : "AI"}
+              </button>
+            )}
+
+            {/* AI error */}
+            {aiError && (
+              <span
+                style={{
+                  fontSize: 8,
+                  color: "#D93025",
+                  fontFamily: "var(--font-dm)",
+                }}
+              >
+                {aiError}
+              </span>
+            )}
 
             {/* File assignment */}
             {onFileAssign && files.length > 0 && !isBulkMode && (

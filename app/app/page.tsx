@@ -409,7 +409,16 @@ export default function AppPage() {
         const url = extractFirstHttpUrl(card.text) || "";
         const title = (card.title || "").toLowerCase();
         const siteName = (card.site_name || "").toLowerCase();
-        return text.includes(q) || url.toLowerCase().includes(q) || title.includes(q) || siteName.includes(q);
+        const aiSummary = (card.ai_summary || "").toLowerCase();
+        const aiTags = (card.ai_tags || []).join(" ").toLowerCase();
+        return (
+          text.includes(q) ||
+          url.toLowerCase().includes(q) ||
+          title.includes(q) ||
+          siteName.includes(q) ||
+          aiSummary.includes(q) ||
+          aiTags.includes(q)
+        );
       });
     }
 
@@ -811,6 +820,22 @@ export default function AppPage() {
       coordinateGetter: sortableKeyboardCoordinates,
     })
   );
+
+  const handleCardUpdate = useCallback(async (cardId: string) => {
+    if (!configured) return;
+    const supabase = createClient();
+
+    // Reload the card to get updated AI fields
+    const { data } = await supabase
+      .from("cards")
+      .select("*")
+      .eq("id", cardId)
+      .single();
+
+    if (data) {
+      setCards((prev) => prev.map((c) => (c.id === cardId ? data : c)));
+    }
+  }, [configured]);
 
   const handleDragEnd = useCallback(
     async (event: DragEndEvent) => {
@@ -1915,7 +1940,7 @@ export default function AppPage() {
                 }}
               >
                 {filteredCards.map((card, i) => (
-                  <AppCard key={card.id} card={card} index={i} onDelete={deleteCard} onPinToggle={handlePinToggle} onFileAssign={assignCardToFile} files={files} isDraggable={true} isBulkMode={isBulkMode} isSelected={selectedCardIds.has(card.id)} onToggleSelect={toggleCardSelection} />
+                  <AppCard key={card.id} card={card} index={i} onDelete={deleteCard} onPinToggle={handlePinToggle} onFileAssign={assignCardToFile} onUpdate={handleCardUpdate} files={files} isDraggable={true} isBulkMode={isBulkMode} isSelected={selectedCardIds.has(card.id)} onToggleSelect={toggleCardSelection} />
                 ))}
               </div>
             </SortableContext>
@@ -1930,7 +1955,7 @@ export default function AppPage() {
             }}
           >
             {filteredCards.map((card, i) => (
-              <AppCard key={card.id} card={card} index={i} onDelete={deleteCard} onPinToggle={handlePinToggle} onFileAssign={assignCardToFile} files={files} isDraggable={false} isBulkMode={isBulkMode} isSelected={selectedCardIds.has(card.id)} onToggleSelect={toggleCardSelection} />
+              <AppCard key={card.id} card={card} index={i} onDelete={deleteCard} onPinToggle={handlePinToggle} onFileAssign={assignCardToFile} onUpdate={handleCardUpdate} files={files} isDraggable={false} isBulkMode={isBulkMode} isSelected={selectedCardIds.has(card.id)} onToggleSelect={toggleCardSelection} />
             ))}
           </div>
         ) : null}
