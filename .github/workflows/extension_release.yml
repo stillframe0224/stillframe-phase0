@@ -15,8 +15,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Package extension
-        run: bash scripts/package_extension.sh
+      - name: Package and verify extension
+        run: bash scripts/verify_extension_zip.sh
 
       - name: Generate SHA256 checksum
         run: |
