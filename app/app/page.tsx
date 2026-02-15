@@ -26,6 +26,51 @@ import {
 
 const URL_REGEX = /https?:\/\/[^\s]+/;
 
+/**
+ * Normalize external URLs from bookmarklet or user input
+ * Handles: protocol-relative (//...), double-encoding (https%3A%2F%2F...), relative paths
+ */
+function normalizeExternalUrl(raw: string | null | undefined, baseUrl?: string): string | null {
+  if (!raw) return null;
+
+  let url = raw.trim();
+  if (!url) return null;
+
+  // Detect and decode double-encoded URLs (https%3A%2F%2F... → https://...)
+  if (url.includes("%2F") || url.includes("%3A")) {
+    try {
+      const decoded = decodeURIComponent(url);
+      // Only use decoded if it looks like a valid URL
+      if (/^https?:\/\//.test(decoded) || /^\/\//.test(decoded)) {
+        url = decoded;
+      }
+    } catch {
+      // Malformed encoding, continue with original
+    }
+  }
+
+  // Handle protocol-relative URLs (//example.com → https://example.com)
+  if (url.startsWith("//")) {
+    url = `https:${url}`;
+  }
+
+  // Handle relative paths (requires baseUrl)
+  if (url.startsWith("/") && baseUrl) {
+    try {
+      url = new URL(url, baseUrl).href;
+    } catch {
+      return null;
+    }
+  }
+
+  // Accept only http/https
+  if (!/^https?:\/\//.test(url)) {
+    return null;
+  }
+
+  return url.slice(0, 2000); // Cap length
+}
+
 function dedupeCards(cards: Card[]): Card[] {
   const seen = new Set<string>();
   return cards.filter((c) => {
@@ -151,12 +196,15 @@ export default function AppPage() {
 
     // Read from immutable initial query ref (captured during render)
     const params = initialQueryRef.current;
-    const bmUrl = params.get("url")!;
+    const rawBmUrl = params.get("url")!;
 
     (async () => {
+      // Normalize all external URLs
+      const bmUrl = normalizeExternalUrl(rawBmUrl, rawBmUrl) || rawBmUrl;
       const title = (params.get("title") || "").slice(0, 200).trim();
       const selection = (params.get("s") || "").slice(0, 1200).trim();
-      const previewImg = (params.get("img") || "").slice(0, 2000).trim();
+      const rawPreviewImg = (params.get("img") || "").trim();
+      const previewImg = normalizeExternalUrl(rawPreviewImg, bmUrl);
       const siteName = (params.get("site") || "").slice(0, 100).trim();
 
       // Text body: title\nurl + optional selection
