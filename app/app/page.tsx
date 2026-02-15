@@ -814,10 +814,18 @@ export default function AppPage() {
     const file = e.target.files?.[0];
     if (!file || !configured || !user) return;
 
-    // Validate file type
-    if (!file.type.startsWith("image/") && !file.type.startsWith("video/")) {
-      setErrorBanner("Only image and video files are supported");
-      setTimeout(() => setErrorBanner(null), 3000);
+    // Validate file type (Phase0: limit to browser-compatible formats)
+    const isImage = file.type.startsWith("image/");
+    const isVideoMp4 = file.type === "video/mp4";
+    const isVideoWebm = file.type === "video/webm";
+    const isSupportedVideo = isVideoMp4 || isVideoWebm;
+
+    if (!isImage && !isSupportedVideo) {
+      const msg = file.type.startsWith("video/")
+        ? "Only MP4 and WebM videos are supported. Please convert QuickTime (.mov) files to MP4."
+        : "Only image and video files are supported";
+      setErrorBanner(msg);
+      setTimeout(() => setErrorBanner(null), 4000);
       return;
     }
 
@@ -866,13 +874,19 @@ export default function AppPage() {
 
       const { error: uploadError } = await supabase.storage
         .from(STORAGE_BUCKETS.CARDS_MEDIA)
-        .upload(originalPath, file);
+        .upload(originalPath, file, {
+          contentType: file.type,
+          upsert: false,
+        });
 
       if (uploadError) throw new Error("Failed to upload file");
 
       const { error: thumbError } = await supabase.storage
         .from(STORAGE_BUCKETS.CARDS_MEDIA)
-        .upload(thumbPath, thumbnail);
+        .upload(thumbPath, thumbnail, {
+          contentType: "image/jpeg",
+          upsert: false,
+        });
 
       if (thumbError) throw new Error("Failed to upload thumbnail");
 
