@@ -3,6 +3,8 @@ name: extension-autotag
 on:
   push:
     branches: [main]
+    paths:
+      - 'tools/chrome-extension/save-to-shinen/manifest.json'
 
 permissions:
   contents: write
@@ -16,57 +18,58 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Detect manifest change
-        id: diff
-        run: |
-          set -euo pipefail
-          BEFORE="${{ github.event.before }}"
-          AFTER="${{ github.sha }}"
-
-          # Handle first push edge-case
-          if [[ "$BEFORE" == "0000000000000000000000000000000000000000" ]]; then
-            CHANGED=$(git show --name-only --pretty="" "$AFTER" | grep -c '^tools/chrome-extension/save-to-shinen/manifest\.json$' || true)
-          else
-            CHANGED=$(git diff --name-only "$BEFORE" "$AFTER" | grep -c '^tools/chrome-extension/save-to-shinen/manifest\.json$' || true)
-          fi
-
-          if [[ "$CHANGED" -gt 0 ]]; then
-            echo "changed=true" >> "$GITHUB_OUTPUT"
-            echo "✅ manifest.json changed in this push"
-          else
-            echo "changed=false" >> "$GITHUB_OUTPUT"
-            echo "ℹ️  manifest.json not changed, skipping autotag"
-          fi
-
-      - name: Read version
-        if: steps.diff.outputs.changed == 'true'
+      - name: Read before/after manifest versions
         id: ver
         run: |
           set -euo pipefail
-          VERSION=$(jq -r '.version' tools/chrome-extension/save-to-shinen/manifest.json)
 
-          if [[ -z "$VERSION" || "$VERSION" == "null" ]]; then
-            echo "❌ Error: manifest.json version missing or null"
+          MANIFEST_PATH="tools/chrome-extension/save-to-shinen/manifest.json"
+          BEFORE="${{ github.event.before }}"
+          AFTER="${{ github.sha }}"
+
+          # Read JSON .version without jq to reduce dependencies.
+          read_version() {
+            node -e 'const fs=require("fs");const m=JSON.parse(fs.readFileSync(0,"utf8"));if(!m.version){process.exit(2)};process.stdout.write(String(m.version));'
+          }
+
+          NEW_VERSION="$(read_version < "$MANIFEST_PATH" || true)"
+          if [[ -z "$NEW_VERSION" ]]; then
+            echo "ERROR: manifest.json version missing" >&2
             exit 1
           fi
 
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-          echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
-          echo "📌 Version: $VERSION → Tag: v$VERSION"
+          OLD_VERSION=""
+          if [[ "$BEFORE" != "0000000000000000000000000000000000000000" ]]; then
+            if git cat-file -e "$BEFORE:$MANIFEST_PATH" 2>/dev/null; then
+              OLD_VERSION="$(git show "$BEFORE:$MANIFEST_PATH" | read_version || true)"
+            fi
+          fi
+
+          echo "old_version=$OLD_VERSION" >> "$GITHUB_OUTPUT"
+          echo "new_version=$NEW_VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=v$NEW_VERSION" >> "$GITHUB_OUTPUT"
+
+          echo "Before: ${OLD_VERSION:-<none>}"
+          echo "After:  $NEW_VERSION"
+
+      - name: Skip if version did not change
+        if: steps.ver.outputs.old_version == steps.ver.outputs.new_version
+        run: |
+          echo "Version unchanged; skipping tag."
 
       - name: Fetch tags
-        if: steps.diff.outputs.changed == 'true'
-        run: git fetch --tags origin
+        if: steps.ver.outputs.old_version != steps.ver.outputs.new_version
+        run: git fetch --tags origin --force
 
       - name: Create and push tag (idempotent)
-        if: steps.diff.outputs.changed == 'true'
+        if: steps.ver.outputs.old_version != steps.ver.outputs.new_version
         env:
           TAG: ${{ steps.ver.outputs.tag }}
         run: |
           set -euo pipefail
 
           if git show-ref --tags --verify --quiet "refs/tags/$TAG"; then
-            echo "ℹ️  Tag already exists: $TAG (skipping)"
+            echo "Tag already exists: $TAG (skipping)"
             exit 0
           fi
 
@@ -75,4 +78,4 @@ jobs:
           git tag -a "$TAG" -m "Release $TAG"
           git push origin "$TAG"
 
-          echo "✅ Created and pushed tag: $TAG"
+          echo "Created and pushed tag: $TAG"
