@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient, isSupabaseConfigured, getConfigStatus } from "@/lib/supabase/client";
+import { STORAGE_BUCKETS } from "@/lib/supabase/constants";
 import { cardTypes, getCardType } from "@/lib/cardTypes";
 import { extractFirstHttpUrl } from "@/lib/urlUtils";
 import type { Card, File as FileRecord } from "@/lib/supabase/types";
@@ -24,6 +25,51 @@ import {
 } from "@dnd-kit/sortable";
 
 const URL_REGEX = /https?:\/\/[^\s]+/;
+
+/**
+ * Normalize external URLs from bookmarklet or user input
+ * Handles: protocol-relative (//...), double-encoding (https%3A%2F%2F...), relative paths
+ */
+function normalizeExternalUrl(raw: string | null | undefined, baseUrl?: string): string | null {
+  if (!raw) return null;
+
+  let url = raw.trim();
+  if (!url) return null;
+
+  // Detect and decode double-encoded URLs (https%3A%2F%2F... → https://...)
+  if (url.includes("%2F") || url.includes("%3A")) {
+    try {
+      const decoded = decodeURIComponent(url);
+      // Only use decoded if it looks like a valid URL
+      if (/^https?:\/\//.test(decoded) || /^\/\//.test(decoded)) {
+        url = decoded;
+      }
+    } catch {
+      // Malformed encoding, continue with original
+    }
+  }
+
+  // Handle protocol-relative URLs (//example.com → https://example.com)
+  if (url.startsWith("//")) {
+    url = `https:${url}`;
+  }
+
+  // Handle relative paths (requires baseUrl)
+  if (url.startsWith("/") && baseUrl) {
+    try {
+      url = new URL(url, baseUrl).href;
+    } catch {
+      return null;
+    }
+  }
+
+  // Accept only http/https
+  if (!/^https?:\/\//.test(url)) {
+    return null;
+  }
+
+  return url.slice(0, 2000); // Cap length
+}
 
 function dedupeCards(cards: Card[]): Card[] {
   const seen = new Set<string>();
@@ -54,6 +100,7 @@ export default function AppPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [domainFilter, setDomainFilter] = useState("all");
   const [fileFilter, setFileFilter] = useState<string>("all");
+  const [mediaFilter, setMediaFilter] = useState<"all" | "link" | "image" | "video">("all");
   const [sortOrder, setSortOrder] = useState<"newest" | "oldest" | "custom">("newest");
   const [showPinnedOnly, setShowPinnedOnly] = useState(false);
   const [showNewFileInput, setShowNewFileInput] = useState(false);
@@ -61,6 +108,13 @@ export default function AppPage() {
   const [isBulkMode, setIsBulkMode] = useState(false);
   const [selectedCardIds, setSelectedCardIds] = useState<Set<string>>(new Set());
   const [showAddHub, setShowAddHub] = useState(false);
+  const [lastSavedCard, setLastSavedCard] = useState<{
+    id: string;
+    file_id?: string | null;
+    media_kind?: string | null;
+    created_at: string;
+    pinned?: boolean;
+  } | null>(null);
 
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -149,12 +203,15 @@ export default function AppPage() {
 
     // Read from immutable initial query ref (captured during render)
     const params = initialQueryRef.current;
-    const bmUrl = params.get("url")!;
+    const rawBmUrl = params.get("url")!;
 
     (async () => {
+      // Normalize all external URLs
+      const bmUrl = normalizeExternalUrl(rawBmUrl, rawBmUrl) || rawBmUrl;
       const title = (params.get("title") || "").slice(0, 200).trim();
       const selection = (params.get("s") || "").slice(0, 1200).trim();
-      const previewImg = (params.get("img") || "").slice(0, 2000).trim();
+      const rawPreviewImg = (params.get("img") || "").trim();
+      const previewImg = normalizeExternalUrl(rawPreviewImg, bmUrl);
       const siteName = (params.get("site") || "").slice(0, 100).trim();
 
       // Text body: title\nurl + optional selection
@@ -216,6 +273,13 @@ export default function AppPage() {
             .single();
           if (existing) {
             setCards((prev) => dedupeCards([existing, ...prev]));
+            setLastSavedCard({
+              id: existing.id,
+              file_id: existing.file_id,
+              media_kind: existing.media_kind,
+              created_at: existing.created_at,
+              pinned: existing.pinned,
+            });
             saved = true;
           }
         } else if (error && (error.message?.includes("column") || error.code === "42703" || error.code === "PGRST204")) {
@@ -241,6 +305,13 @@ export default function AppPage() {
               .single();
             if (existing) {
               setCards((prev) => dedupeCards([existing, ...prev]));
+              setLastSavedCard({
+                id: existing.id,
+                file_id: existing.file_id,
+                media_kind: existing.media_kind,
+                created_at: existing.created_at,
+                pinned: existing.pinned,
+              });
               saved = true;
             }
           } else if (baseError) {
@@ -254,6 +325,13 @@ export default function AppPage() {
             setTimeout(() => setErrorBanner(null), 8000);
           } else if (baseData) {
             setCards((prev) => dedupeCards([baseData, ...prev]));
+            setLastSavedCard({
+              id: baseData.id,
+              file_id: baseData.file_id,
+              media_kind: baseData.media_kind,
+              created_at: baseData.created_at,
+              pinned: baseData.pinned,
+            });
             saved = true;
             // Show migration hint banner
             setErrorBanner("Metadata columns missing. Run migration SQL to enable rich cards (see OPS.md).");
@@ -272,6 +350,13 @@ export default function AppPage() {
           setTimeout(() => setErrorBanner(null), 8000);
         } else if (data) {
           setCards((prev) => dedupeCards([data, ...prev]));
+          setLastSavedCard({
+            id: data.id,
+            file_id: data.file_id,
+            media_kind: data.media_kind,
+            created_at: data.created_at,
+            pinned: data.pinned,
+          });
           saved = true;
         }
       } finally {
@@ -318,12 +403,13 @@ export default function AppPage() {
     if (searchQuery) params.set("q", searchQuery);
     if (domainFilter !== "all") params.set("d", domainFilter);
     if (fileFilter !== "all") params.set("f", fileFilter);
+    if (mediaFilter !== "all") params.set("m", mediaFilter);
     if (sortOrder !== "newest") params.set("sort", sortOrder);
     if (showPinnedOnly) params.set("p", "1");
     const query = params.toString();
     const newUrl = query ? `/app?${query}` : "/app";
     router.replace(newUrl, { scroll: false });
-  }, [searchQuery, domainFilter, fileFilter, sortOrder, showPinnedOnly, router]);
+  }, [searchQuery, domainFilter, fileFilter, mediaFilter, sortOrder, showPinnedOnly, router]);
 
   // Extract unique domains from cards
   const domains = useMemo(() => {
@@ -340,6 +426,90 @@ export default function AppPage() {
     });
     return Array.from(domainSet).sort();
   }, [cards]);
+
+  // Check if a card would be hidden by current filters
+  const wouldBeHiddenByFilters = useCallback((card: Card) => {
+    // Pinned-only filter
+    if (showPinnedOnly && !card.pinned) return true;
+
+    // Search filter
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      const text = card.text.toLowerCase();
+      const url = extractFirstHttpUrl(card.text) || "";
+      const title = (card.title || "").toLowerCase();
+      const siteName = (card.site_name || "").toLowerCase();
+      const aiSummary = (card.ai_summary || "").toLowerCase();
+      const aiTags = (card.ai_tags || []).join(" ").toLowerCase();
+      const matches =
+        text.includes(q) ||
+        url.toLowerCase().includes(q) ||
+        title.includes(q) ||
+        siteName.includes(q) ||
+        aiSummary.includes(q) ||
+        aiTags.includes(q);
+      if (!matches) return true;
+    }
+
+    // Domain filter
+    if (domainFilter !== "all") {
+      const url = extractFirstHttpUrl(card.text);
+      if (!url) return true;
+      try {
+        const hostname = new URL(url).hostname;
+        if (hostname !== domainFilter) return true;
+      } catch {
+        return true;
+      }
+    }
+
+    // File filter
+    if (fileFilter === "unfiled" && card.file_id !== null) return true;
+    if (fileFilter !== "all" && fileFilter !== "unfiled" && card.file_id !== fileFilter) return true;
+
+    // Media filter
+    if (mediaFilter === "link" && card.media_kind && card.media_kind !== "link") return true;
+    if (mediaFilter === "image" && card.media_kind !== "image") return true;
+    if (mediaFilter === "video" && card.media_kind !== "video") return true;
+
+    return false;
+  }, [showPinnedOnly, searchQuery, domainFilter, fileFilter, mediaFilter]);
+
+  // Reveal a saved card by clearing filters that hide it
+  const revealSavedCard = useCallback((card: { id: string; file_id?: string | null; pinned?: boolean }) => {
+    setSearchQuery("");
+    setDomainFilter("all");
+    setShowPinnedOnly(false);
+    setMediaFilter("all");
+
+    // Set file filter to show the card
+    if (card.file_id) {
+      setFileFilter(card.file_id);
+    } else {
+      setFileFilter("all");
+    }
+
+    // Dismiss banner after revealing
+    setTimeout(() => setLastSavedCard(null), 2000);
+
+    // Scroll to card
+    setTimeout(() => {
+      const cardEl = document.getElementById(`card-${card.id}`);
+      if (cardEl) {
+        cardEl.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    }, 100);
+  }, []);
+
+  // Navigate to card's file
+  const goToCardFile = useCallback((fileId: string) => {
+    setFileFilter(fileId);
+    setSearchQuery("");
+    setDomainFilter("all");
+    setShowPinnedOnly(false);
+    setMediaFilter("all");
+    setTimeout(() => setLastSavedCard(null), 2000);
+  }, []);
 
   // Filter and sort cards
   const filteredCards = useMemo(() => {
@@ -358,7 +528,16 @@ export default function AppPage() {
         const url = extractFirstHttpUrl(card.text) || "";
         const title = (card.title || "").toLowerCase();
         const siteName = (card.site_name || "").toLowerCase();
-        return text.includes(q) || url.toLowerCase().includes(q) || title.includes(q) || siteName.includes(q);
+        const aiSummary = (card.ai_summary || "").toLowerCase();
+        const aiTags = (card.ai_tags || []).join(" ").toLowerCase();
+        return (
+          text.includes(q) ||
+          url.toLowerCase().includes(q) ||
+          title.includes(q) ||
+          siteName.includes(q) ||
+          aiSummary.includes(q) ||
+          aiTags.includes(q)
+        );
       });
     }
 
@@ -383,6 +562,21 @@ export default function AppPage() {
       } else {
         result = result.filter((card) => card.file_id === fileFilter);
       }
+    }
+
+    // Media filter
+    if (mediaFilter !== "all") {
+      result = result.filter((card) => {
+        if (mediaFilter === "link") {
+          // Links: null or 'link' media_kind
+          return !card.media_kind || card.media_kind === "link";
+        } else if (mediaFilter === "image") {
+          return card.media_kind === "image";
+        } else if (mediaFilter === "video") {
+          return card.media_kind === "video";
+        }
+        return true;
+      });
     }
 
     // Sort: pinned cards first, then by sort mode
@@ -413,7 +607,7 @@ export default function AppPage() {
     });
 
     return result;
-  }, [cards, searchQuery, domainFilter, fileFilter, sortOrder, showPinnedOnly]);
+  }, [cards, searchQuery, domainFilter, fileFilter, mediaFilter, sortOrder, showPinnedOnly]);
 
   const handleLogout = async () => {
     if (!configured) return;
@@ -448,7 +642,7 @@ export default function AppPage() {
     const path = `${userId}/${Date.now()}.${ext}`;
 
     const { error } = await supabase.storage
-      .from("card-images")
+      .from(STORAGE_BUCKETS.CARD_IMAGES)
       .upload(path, file, { cacheControl: "3600", upsert: false });
 
     if (error) {
@@ -456,7 +650,7 @@ export default function AppPage() {
       return null;
     }
 
-    const { data } = supabase.storage.from("card-images").getPublicUrl(path);
+    const { data } = supabase.storage.from(STORAGE_BUCKETS.CARD_IMAGES).getPublicUrl(path);
     return data.publicUrl;
   };
 
@@ -506,6 +700,13 @@ export default function AppPage() {
           .single();
         if (existing) {
           setCards((prev) => dedupeCards([existing, ...prev]));
+          setLastSavedCard({
+            id: existing.id,
+            file_id: existing.file_id,
+            media_kind: existing.media_kind,
+            created_at: existing.created_at,
+            pinned: existing.pinned,
+          });
           setInput(""); // Clear on success
         }
         return;
@@ -527,6 +728,13 @@ export default function AppPage() {
 
       if (data) {
         setCards((prev) => dedupeCards([data, ...prev]));
+        setLastSavedCard({
+          id: data.id,
+          file_id: data.file_id,
+          media_kind: data.media_kind,
+          created_at: data.created_at,
+          pinned: data.pinned,
+        });
         setInput(""); // Clear only on success
       }
     } finally {
@@ -746,6 +954,22 @@ export default function AppPage() {
     })
   );
 
+  const handleCardUpdate = useCallback(async (cardId: string) => {
+    if (!configured) return;
+    const supabase = createClient();
+
+    // Reload the card to get updated AI fields
+    const { data } = await supabase
+      .from("cards")
+      .select("*")
+      .eq("id", cardId)
+      .single();
+
+    if (data) {
+      setCards((prev) => prev.map((c) => (c.id === cardId ? data : c)));
+    }
+  }, [configured]);
+
   const handleDragEnd = useCallback(
     async (event: DragEndEvent) => {
       const { active, over } = event;
@@ -813,10 +1037,18 @@ export default function AppPage() {
     const file = e.target.files?.[0];
     if (!file || !configured || !user) return;
 
-    // Validate file type
-    if (!file.type.startsWith("image/") && !file.type.startsWith("video/")) {
-      setErrorBanner("Only image and video files are supported");
-      setTimeout(() => setErrorBanner(null), 3000);
+    // Validate file type (Phase0: limit to browser-compatible formats)
+    const isImage = file.type.startsWith("image/");
+    const isVideoMp4 = file.type === "video/mp4";
+    const isVideoWebm = file.type === "video/webm";
+    const isSupportedVideo = isVideoMp4 || isVideoWebm;
+
+    if (!isImage && !isSupportedVideo) {
+      const msg = file.type.startsWith("video/")
+        ? "Only MP4 and WebM videos are supported. Please convert QuickTime (.mov) files to MP4."
+        : "Only image and video files are supported";
+      setErrorBanner(msg);
+      setTimeout(() => setErrorBanner(null), 4000);
       return;
     }
 
@@ -864,31 +1096,58 @@ export default function AppPage() {
       const thumbPath = `${user.id}/${inserted.id}/thumb.jpg`;
 
       const { error: uploadError } = await supabase.storage
-        .from("cards-media")
-        .upload(originalPath, file);
+        .from(STORAGE_BUCKETS.CARDS_MEDIA)
+        .upload(originalPath, file, {
+          contentType: file.type,
+          upsert: false,
+        });
 
       if (uploadError) throw new Error("Failed to upload file");
 
       const { error: thumbError } = await supabase.storage
-        .from("cards-media")
-        .upload(thumbPath, thumbnail);
+        .from(STORAGE_BUCKETS.CARDS_MEDIA)
+        .upload(thumbPath, thumbnail, {
+          contentType: "image/jpeg",
+          upsert: false,
+        });
 
       if (thumbError) throw new Error("Failed to upload thumbnail");
 
-      // 4. Update card with media fields
+      // 4. Determine active file filter (read from URL to avoid state sync delay)
+      const urlF = new URLSearchParams(window.location.search).get("f");
+      const activeF = urlF ?? fileFilter;
+      const isUuid = (s: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s);
+
+      // 5. Build update payload with media fields + conditional file_id
+      const updatePayload: any = {
+        media_path: originalPath,
+        media_thumb_path: thumbPath,
+        media_mime: file.type,
+        media_size: file.size,
+      };
+
+      let assignedFileId: string | null = null;
+      if (activeF && isUuid(activeF)) {
+        // Assign to the currently selected file (UUID)
+        updatePayload.file_id = activeF;
+        updatePayload.sort_key = null;
+        assignedFileId = activeF;
+      } else if (activeF === "unfiled") {
+        // Explicitly set to unfiled
+        updatePayload.file_id = null;
+        assignedFileId = null;
+      }
+      // If activeF === "all" or invalid, do not modify file_id (leave as-is)
+
+      // Single PATCH to update all fields at once
       const { error: updateError } = await supabase
         .from("cards")
-        .update({
-          media_path: originalPath,
-          media_thumb_path: thumbPath,
-          media_mime: file.type,
-          media_size: file.size,
-        })
+        .update(updatePayload)
         .eq("id", inserted.id);
 
       if (updateError) throw new Error("Failed to update card metadata");
 
-      // Update local state
+      // Update local state with final values
       setCards((prev) =>
         prev.map((c) =>
           c.id === inserted.id
@@ -898,10 +1157,21 @@ export default function AppPage() {
                 media_thumb_path: thumbPath,
                 media_mime: file.type,
                 media_size: file.size,
+                file_id: assignedFileId !== undefined ? assignedFileId : c.file_id,
+                sort_key: assignedFileId !== undefined ? null : c.sort_key,
               }
             : c
         )
       );
+
+      // Capture saved card for reveal banner
+      setLastSavedCard({
+        id: inserted.id,
+        file_id: assignedFileId !== undefined ? assignedFileId : inserted.file_id,
+        media_kind: file.type.startsWith("image/") ? "image" : "video",
+        created_at: inserted.created_at,
+        pinned: inserted.pinned,
+      });
 
       setBanner("Uploaded!");
       setTimeout(() => setBanner(null), 2000);
@@ -1113,6 +1383,78 @@ export default function AppPage() {
           }}
         >
           {errorBanner}
+        </div>
+      )}
+
+      {/* Reveal saved card banner */}
+      {lastSavedCard && wouldBeHiddenByFilters(cards.find((c) => c.id === lastSavedCard.id) || lastSavedCard as Card) && (
+        <div
+          style={{
+            position: "fixed",
+            top: 60,
+            left: "50%",
+            transform: "translateX(-50%)",
+            padding: "12px 16px",
+            borderRadius: 8,
+            background: "#FF8F00",
+            color: "#fff",
+            fontSize: 13,
+            fontFamily: "var(--font-dm)",
+            zIndex: 102,
+            boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
+            display: "flex",
+            alignItems: "center",
+            gap: 12,
+          }}
+        >
+          <span>Saved, but hidden by filters.</span>
+          <button
+            onClick={() => revealSavedCard(lastSavedCard)}
+            style={{
+              padding: "6px 12px",
+              borderRadius: 4,
+              background: "#fff",
+              color: "#FF8F00",
+              fontSize: 12,
+              fontWeight: 600,
+              border: "none",
+              cursor: "pointer",
+            }}
+          >
+            Show card
+          </button>
+          {lastSavedCard.file_id && (
+            <button
+              onClick={() => goToCardFile(lastSavedCard.file_id!)}
+              style={{
+                padding: "6px 12px",
+                borderRadius: 4,
+                background: "rgba(255,255,255,0.2)",
+                color: "#fff",
+                fontSize: 12,
+                fontWeight: 600,
+                border: "1px solid rgba(255,255,255,0.3)",
+                cursor: "pointer",
+              }}
+            >
+              Go to its file
+            </button>
+          )}
+          <button
+            onClick={() => setLastSavedCard(null)}
+            style={{
+              padding: "4px 8px",
+              borderRadius: 4,
+              background: "transparent",
+              color: "#fff",
+              fontSize: 16,
+              border: "none",
+              cursor: "pointer",
+              marginLeft: 4,
+            }}
+          >
+            ×
+          </button>
         </div>
       )}
 
@@ -1566,6 +1908,27 @@ export default function AppPage() {
               ))}
             </select>
 
+            {/* Media filter */}
+            <select
+              value={mediaFilter}
+              onChange={(e) => setMediaFilter(e.target.value as "all" | "link" | "image" | "video")}
+              style={{
+                padding: "8px 12px",
+                border: "1px solid #e0e0e0",
+                borderRadius: 8,
+                fontSize: 13,
+                fontFamily: "var(--font-dm)",
+                outline: "none",
+                background: "#fff",
+                cursor: "pointer",
+              }}
+            >
+              <option value="all">All media</option>
+              <option value="link">Links</option>
+              <option value="image">Images</option>
+              <option value="video">Videos</option>
+            </select>
+
             {/* New file button */}
             {!showNewFileInput ? (
               <button
@@ -1706,7 +2069,7 @@ export default function AppPage() {
             </button>
 
             {/* Results count */}
-            {(searchQuery || domainFilter !== "all" || showPinnedOnly) && (
+            {(searchQuery || domainFilter !== "all" || mediaFilter !== "all" || showPinnedOnly) && (
               <span
                 style={{
                   fontSize: 12,
@@ -1779,7 +2142,9 @@ export default function AppPage() {
                 }}
               >
                 {filteredCards.map((card, i) => (
-                  <AppCard key={card.id} card={card} index={i} onDelete={deleteCard} onPinToggle={handlePinToggle} onFileAssign={assignCardToFile} files={files} isDraggable={true} isBulkMode={isBulkMode} isSelected={selectedCardIds.has(card.id)} onToggleSelect={toggleCardSelection} />
+                  <div key={card.id} id={`card-${card.id}`}>
+                    <AppCard card={card} index={i} onDelete={deleteCard} onPinToggle={handlePinToggle} onFileAssign={assignCardToFile} onUpdate={handleCardUpdate} files={files} isDraggable={true} isBulkMode={isBulkMode} isSelected={selectedCardIds.has(card.id)} onToggleSelect={toggleCardSelection} />
+                  </div>
                 ))}
               </div>
             </SortableContext>
@@ -1794,7 +2159,9 @@ export default function AppPage() {
             }}
           >
             {filteredCards.map((card, i) => (
-              <AppCard key={card.id} card={card} index={i} onDelete={deleteCard} onPinToggle={handlePinToggle} onFileAssign={assignCardToFile} files={files} isDraggable={false} isBulkMode={isBulkMode} isSelected={selectedCardIds.has(card.id)} onToggleSelect={toggleCardSelection} />
+              <div key={card.id} id={`card-${card.id}`}>
+                <AppCard card={card} index={i} onDelete={deleteCard} onPinToggle={handlePinToggle} onFileAssign={assignCardToFile} onUpdate={handleCardUpdate} files={files} isDraggable={false} isBulkMode={isBulkMode} isSelected={selectedCardIds.has(card.id)} onToggleSelect={toggleCardSelection} />
+              </div>
             ))}
           </div>
         ) : null}

@@ -99,6 +99,40 @@ WHERE table_schema='public' AND table_name='cards'
   AND column_name IN ('title', 'source_url', 'site_name', 'preview_image_url', 'media_kind', 'media_path', 'media_thumb_path', 'media_mime', 'media_size', 'notes', 'sort_key', 'file_id');
 ```
 
+### AI organize columns missing (optional for AI analysis)
+
+**Symptom**: AI organize feature disabled, "AI" button hidden on cards.
+
+**To enable AI organize**: Run in Supabase SQL Editor:
+
+```sql
+ALTER TABLE public.cards ADD COLUMN IF NOT EXISTS ai_summary text;
+ALTER TABLE public.cards ADD COLUMN IF NOT EXISTS ai_tags text[];
+ALTER TABLE public.cards ADD COLUMN IF NOT EXISTS ai_action text;
+ALTER TABLE public.cards ADD COLUMN IF NOT EXISTS ai_model text;
+ALTER TABLE public.cards ADD COLUMN IF NOT EXISTS ai_updated_at timestamptz;
+CREATE INDEX IF NOT EXISTS cards_ai_tags_idx ON public.cards USING gin(ai_tags);
+CREATE INDEX IF NOT EXISTS cards_ai_action_idx ON public.cards (ai_action);
+```
+
+**Configure OpenAI API** (Vercel Dashboard > Project > Settings > Environment Variables):
+- `OPENAI_API_KEY` — Your OpenAI API key
+- `OPENAI_MODEL` — Model to use (default: `gpt-4o-mini`)
+
+**Verify**:
+
+```sql
+SELECT column_name FROM information_schema.columns
+WHERE table_schema='public' AND table_name='cards'
+  AND column_name IN ('ai_summary', 'ai_tags', 'ai_action', 'ai_model', 'ai_updated_at');
+```
+
+**Usage**: Click "AI" button on any card (visible on hover). The API analyzes content and updates:
+- `ai_summary`: One-line summary (max 100 chars)
+- `ai_tags`: Array of 1-5 relevant tags
+- `ai_action`: One of "buy", "read", "watch", "do", "hold"
+- Cooldown: 24h per card (use `force=true` to override)
+
 ## 9. Storage: cards-media bucket (for uploaded images/videos)
 
 **Purpose**: Store user-uploaded media files with thumbnails.
