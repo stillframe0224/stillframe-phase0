@@ -6,14 +6,14 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 ZIP_PATH="$REPO_ROOT/dist/save-to-shinen.zip"
 
 REQUIRED_FILES=(
-  "tools/chrome-extension/save-to-shinen/manifest.json"
-  "tools/chrome-extension/save-to-shinen/background.js"
-  "tools/chrome-extension/save-to-shinen/icon16.png"
-  "tools/chrome-extension/save-to-shinen/icon48.png"
-  "tools/chrome-extension/save-to-shinen/icon128.png"
-  "tools/chrome-extension/save-to-shinen/INSTALL.md"
-  "tools/chrome-extension/save-to-shinen/README.md"
-  "tools/chrome-extension/save-to-shinen/TEST.md"
+  "manifest.json"
+  "background.js"
+  "icon16.png"
+  "icon48.png"
+  "icon128.png"
+  "INSTALL.md"
+  "README.md"
+  "TEST.md"
 )
 
 fail() {
@@ -44,11 +44,12 @@ cleanup() { rm -f "$tmp_list"; }
 trap cleanup EXIT
 
 if unzip -Z1 "$ZIP_PATH" >/dev/null 2>&1; then
-  unzip -Z1 "$ZIP_PATH" >"$tmp_list"
+  unzip -Z1 "$ZIP_PATH" | tr -d '\r' >"$tmp_list"
 else
   # Fallback: parse the last column from `unzip -l` output
   unzip -l "$ZIP_PATH" \
     | awk 'BEGIN{in_files=0} /^\s*-+\s*$/{if(!in_files){in_files=1;next}else{exit}} in_files{print $NF}' \
+    | tr -d '\r' \
     >"$tmp_list"
 fi
 
