@@ -141,7 +141,7 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
   const ct = getCardType(card.card_type);
   const [realImgFailed, setRealImgFailed] = useState(false);
   const [previewFailed, setPreviewFailed] = useState(false);
-  const [ytFallbackUsed, setYtFallbackUsed] = useState(false);
+  const [ytQualityIndex, setYtQualityIndex] = useState(0); // 0=hq, 1=mq, 2=default
   const [showDelete, setShowDelete] = useState(false);
   const [previewImg, setPreviewImg] = useState<string | null>(null);
   const [isVisible, setIsVisible] = useState(false);
@@ -164,7 +164,8 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
   const titleInputRef = useRef<HTMLInputElement>(null);
   const memoSaveTimeout = useRef<NodeJS.Timeout | null>(null);
 
-  const cardUrl = extractFirstHttpUrl(card.text);
+  // Prefer source_url (from bookmarklet/extension) over text-extracted URL
+  const cardUrl = card.source_url || extractFirstHttpUrl(card.text);
   const hasRealImage = !!(card.image_url && card.image_source !== "generated" && !realImgFailed);
 
   // Derive display title: prefer card.title, fallback to first line of text
@@ -198,16 +199,22 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
     return () => observer.disconnect();
   }, []);
 
-  // Lazy-fetch link preview — only when visible and no media_thumb_path/preview_image_url
+  // Lazy-fetch link preview — only when visible and no media_thumb_path
   useEffect(() => {
-    if (!isVisible || hasMediaThumb || hasPreviewImageUrl || hasRealImage || !cardUrl) return;
+    if (!isVisible || hasMediaThumb || hasRealImage || !cardUrl) return;
     dbg("url", { cardId: card.id, url: cardUrl });
 
-    // YouTube: derive thumbnail directly (no API call)
-    const ytThumb = getYouTubeThumbnail(cardUrl);
+    // YouTube: ALWAYS derive thumbnail from videoId (override preview_image_url if present)
+    const qualities: Array<"hq" | "mq" | "default"> = ["hq", "mq", "default"];
+    const ytThumb = getYouTubeThumbnail(cardUrl, qualities[ytQualityIndex]);
     if (ytThumb) {
-      dbg("source", { url: cardUrl, source: "youtube" });
+      dbg("source", { url: cardUrl, source: "youtube", quality: qualities[ytQualityIndex] });
       setPreviewImg(ytThumb);
+      return;
+    }
+
+    // If preview_image_url exists and NOT YouTube, use it
+    if (hasPreviewImageUrl) {
       return;
     }
 
@@ -238,7 +245,7 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
       })
       .catch(() => {});
     return () => controller.abort();
-  }, [card.id, cardUrl, hasMediaThumb, hasPreviewImageUrl, hasRealImage, isVisible]);
+  }, [card.id, cardUrl, hasMediaThumb, hasPreviewImageUrl, hasRealImage, isVisible, ytQualityIndex]);
 
   // Get Supabase Storage public URL for media thumbnail
   const getMediaThumbUrl = () => {
@@ -530,14 +537,19 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
           loading="lazy"
           referrerPolicy="no-referrer"
           onError={() => {
-            // YouTube hqdefault failed → try mqdefault fallback
-            const ytThumb = cardUrl ? getYouTubeThumbnail(cardUrl) : null;
-            if (ytThumb && displayImage === ytThumb && !ytFallbackUsed) {
-              const fallbackThumb = ytThumb.replace("/hqdefault.jpg", "/mqdefault.jpg");
-              dbg("img_error", { type: "youtube_hq_fallback", fallback: fallbackThumb });
-              setPreviewImg(fallbackThumb);
-              setYtFallbackUsed(true);
-              return;
+            // YouTube quality fallback: hq → mq → default
+            if (cardUrl && getYouTubeThumbnail(cardUrl)) {
+              const qualities: Array<"hq" | "mq" | "default"> = ["hq", "mq", "default"];
+              if (ytQualityIndex < qualities.length - 1) {
+                const nextIndex = ytQualityIndex + 1;
+                dbg("img_error", {
+                  type: "youtube_quality_fallback",
+                  from: qualities[ytQualityIndex],
+                  to: qualities[nextIndex],
+                });
+                setYtQualityIndex(nextIndex);
+                return;
+              }
             }
 
             if (displayImage && proxiedUrl !== displayImage) {

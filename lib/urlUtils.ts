@@ -49,15 +49,21 @@ function extractYouTubeVideoId(url: string): string | null {
   return null;
 }
 
-/** For YouTube URLs, return the hqdefault thumbnail; null otherwise. */
-export function getYouTubeThumbnail(url: string): string | null {
+/** For YouTube URLs, return the thumbnail; null otherwise. */
+export function getYouTubeThumbnail(url: string, quality: "hq" | "mq" | "default" = "hq"): string | null {
   const videoId = extractYouTubeVideoId(url);
   if (!videoId) return null;
 
   // Debug log in development
   if (typeof window !== "undefined" && localStorage.getItem("SHINEN_DEBUG_PREVIEW") === "1") {
-    console.log("[youtube] extracted videoId:", videoId, "from:", url);
+    console.log("[youtube] extracted videoId:", videoId, "quality:", quality, "from:", url);
   }
 
-  return `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
+  const qualityMap = {
+    hq: "hqdefault",
+    mq: "mqdefault",
+    default: "default",
+  };
+
+  return `https://i.ytimg.com/vi/${videoId}/${qualityMap[quality]}.jpg`;
 }
