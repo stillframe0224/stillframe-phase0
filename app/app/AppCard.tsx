@@ -244,6 +244,17 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
     return data?.publicUrl || null;
   };
 
+  // Get Supabase Storage public URL for media original (video playback)
+  const getMediaOriginalUrl = () => {
+    if (!card.media_path) return null;
+    const supabase = createClient();
+    const { data } = supabase.storage.from(STORAGE_BUCKETS.CARDS_MEDIA).getPublicUrl(card.media_path);
+    return data?.publicUrl || null;
+  };
+
+  // Check if this card is a video
+  const isVideoCard = card.media_kind === "video" && !!card.media_path;
+
   // Image priority: media_thumb_path > preview_image_url > image_url > link-preview chain
   const displayImage = hasMediaThumb
     ? getMediaThumbUrl()!
@@ -456,7 +467,21 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
 
   const imageContent = (
     <div style={{ aspectRatio: "7/4", overflow: "hidden", position: "relative" }}>
-      {showImage ? (
+      {isVideoCard ? (
+        <video
+          controls
+          playsInline
+          preload="metadata"
+          poster={showImage && imgSrc ? imgSrc : undefined}
+          src={getMediaOriginalUrl() || undefined}
+          style={{
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            background: "#000",
+          }}
+        />
+      ) : showImage ? (
         <img
           src={imgSrc!}
           alt=""
