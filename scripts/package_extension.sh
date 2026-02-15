@@ -7,41 +7,45 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-SOURCE_DIR="$REPO_ROOT/tools/chrome-extension/save-to-shinen"
 DIST_DIR="$REPO_ROOT/dist"
 OUTPUT_ZIP="$DIST_DIR/save-to-shinen.zip"
 
-echo "📦 Packaging Save to SHINEN Chrome Extension..."
+EXT_DIR="tools/chrome-extension/save-to-shinen"
 
-# Validate source directory
-if [ ! -d "$SOURCE_DIR" ]; then
-  echo "❌ Error: Source directory not found: $SOURCE_DIR"
-  exit 1
-fi
+REQUIRED_FILES=(
+  "$EXT_DIR/manifest.json"
+  "$EXT_DIR/background.js"
+  "$EXT_DIR/icon16.png"
+  "$EXT_DIR/icon48.png"
+  "$EXT_DIR/icon128.png"
+  "$EXT_DIR/INSTALL.md"
+  "$EXT_DIR/README.md"
+  "$EXT_DIR/TEST.md"
+)
 
-if [ ! -f "$SOURCE_DIR/manifest.json" ]; then
-  echo "❌ Error: manifest.json not found in $SOURCE_DIR"
-  exit 1
-fi
+echo "Packaging Save to SHINEN Chrome Extension..."
 
-# Create dist directory
+for f in "${REQUIRED_FILES[@]}"; do
+  if [ ! -f "$REPO_ROOT/$f" ]; then
+    echo "Error: required file not found: $f" >&2
+    exit 1
+  fi
+done
+
 mkdir -p "$DIST_DIR"
-
-# Remove old zip if exists
 rm -f "$OUTPUT_ZIP"
 
-# Create zip (cd into source so manifest.json is at root)
-echo "  Creating ZIP..."
-cd "$SOURCE_DIR"
-zip -r "$OUTPUT_ZIP" . -x "*.DS_Store" -x "__MACOSX*" -x "*.sh" -x "TEST.md" -x "README.md"
+# Create a minimal, deterministic zip. Keep the repo-relative paths.
+cd "$REPO_ROOT"
+zip -X -r "$OUTPUT_ZIP" "${REQUIRED_FILES[@]}" \
+  -x "*.DS_Store" \
+  -x "__MACOSX*" \
+  >/dev/null
 
-# Verify zip contents
-echo "  Verifying ZIP contents..."
-if ! unzip -l "$OUTPUT_ZIP" | grep -q "manifest.json"; then
-  echo "❌ Error: manifest.json not found in ZIP root"
+# Sanity check.
+if ! unzip -Z1 "$OUTPUT_ZIP" 2>/dev/null | grep -qx "$EXT_DIR/manifest.json"; then
+  echo "Error: manifest.json not found in ZIP at expected path" >&2
   exit 1
 fi
 
-echo "✅ Extension packaged successfully!"
-echo "   Output: $OUTPUT_ZIP"
-echo "   Size: $(du -h "$OUTPUT_ZIP" | cut -f1)"
+echo "OK: $OUTPUT_ZIP ($(du -h "$OUTPUT_ZIP" | awk '{print $1}'))"
