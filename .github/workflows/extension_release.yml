@@ -1,0 +1,49 @@
+name: extension-release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Package extension
+        run: bash scripts/package_extension.sh
+
+      - name: Generate SHA256 checksum
+        run: |
+          cd dist
+          sha256sum save-to-shinen.zip > save-to-shinen.zip.sha256
+          cat save-to-shinen.zip.sha256
+
+      - name: Verify version match
+        run: |
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          MANIFEST_VERSION=$(jq -r '.version' tools/chrome-extension/save-to-shinen/manifest.json)
+
+          echo "Tag version: $TAG_VERSION"
+          echo "Manifest version: $MANIFEST_VERSION"
+
+          if [ "$TAG_VERSION" != "$MANIFEST_VERSION" ]; then
+            echo "❌ Error: Tag version ($TAG_VERSION) does not match manifest.json version ($MANIFEST_VERSION)"
+            exit 1
+          fi
+
+          echo "✅ Version match confirmed: $TAG_VERSION"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/save-to-shinen.zip
+            dist/save-to-shinen.zip.sha256
+          generate_release_notes: true
+          fail_on_unmatched_files: true
