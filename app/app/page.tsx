@@ -108,6 +108,13 @@ export default function AppPage() {
   const [isBulkMode, setIsBulkMode] = useState(false);
   const [selectedCardIds, setSelectedCardIds] = useState<Set<string>>(new Set());
   const [showAddHub, setShowAddHub] = useState(false);
+  const [lastSavedCard, setLastSavedCard] = useState<{
+    id: string;
+    file_id?: string | null;
+    media_kind?: string | null;
+    created_at: string;
+    pinned?: boolean;
+  } | null>(null);
 
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -266,6 +273,13 @@ export default function AppPage() {
             .single();
           if (existing) {
             setCards((prev) => dedupeCards([existing, ...prev]));
+            setLastSavedCard({
+              id: existing.id,
+              file_id: existing.file_id,
+              media_kind: existing.media_kind,
+              created_at: existing.created_at,
+              pinned: existing.pinned,
+            });
             saved = true;
           }
         } else if (error && (error.message?.includes("column") || error.code === "42703" || error.code === "PGRST204")) {
@@ -291,6 +305,13 @@ export default function AppPage() {
               .single();
             if (existing) {
               setCards((prev) => dedupeCards([existing, ...prev]));
+              setLastSavedCard({
+                id: existing.id,
+                file_id: existing.file_id,
+                media_kind: existing.media_kind,
+                created_at: existing.created_at,
+                pinned: existing.pinned,
+              });
               saved = true;
             }
           } else if (baseError) {
@@ -304,6 +325,13 @@ export default function AppPage() {
             setTimeout(() => setErrorBanner(null), 8000);
           } else if (baseData) {
             setCards((prev) => dedupeCards([baseData, ...prev]));
+            setLastSavedCard({
+              id: baseData.id,
+              file_id: baseData.file_id,
+              media_kind: baseData.media_kind,
+              created_at: baseData.created_at,
+              pinned: baseData.pinned,
+            });
             saved = true;
             // Show migration hint banner
             setErrorBanner("Metadata columns missing. Run migration SQL to enable rich cards (see OPS.md).");
@@ -322,6 +350,13 @@ export default function AppPage() {
           setTimeout(() => setErrorBanner(null), 8000);
         } else if (data) {
           setCards((prev) => dedupeCards([data, ...prev]));
+          setLastSavedCard({
+            id: data.id,
+            file_id: data.file_id,
+            media_kind: data.media_kind,
+            created_at: data.created_at,
+            pinned: data.pinned,
+          });
           saved = true;
         }
       } finally {
@@ -391,6 +426,90 @@ export default function AppPage() {
     });
     return Array.from(domainSet).sort();
   }, [cards]);
+
+  // Check if a card would be hidden by current filters
+  const wouldBeHiddenByFilters = useCallback((card: Card) => {
+    // Pinned-only filter
+    if (showPinnedOnly && !card.pinned) return true;
+
+    // Search filter
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      const text = card.text.toLowerCase();
+      const url = extractFirstHttpUrl(card.text) || "";
+      const title = (card.title || "").toLowerCase();
+      const siteName = (card.site_name || "").toLowerCase();
+      const aiSummary = (card.ai_summary || "").toLowerCase();
+      const aiTags = (card.ai_tags || []).join(" ").toLowerCase();
+      const matches =
+        text.includes(q) ||
+        url.toLowerCase().includes(q) ||
+        title.includes(q) ||
+        siteName.includes(q) ||
+        aiSummary.includes(q) ||
+        aiTags.includes(q);
+      if (!matches) return true;
+    }
+
+    // Domain filter
+    if (domainFilter !== "all") {
+      const url = extractFirstHttpUrl(card.text);
+      if (!url) return true;
+      try {
+        const hostname = new URL(url).hostname;
+        if (hostname !== domainFilter) return true;
+      } catch {
+        return true;
+      }
+    }
+
+    // File filter
+    if (fileFilter === "unfiled" && card.file_id !== null) return true;
+    if (fileFilter !== "all" && fileFilter !== "unfiled" && card.file_id !== fileFilter) return true;
+
+    // Media filter
+    if (mediaFilter === "link" && card.media_kind && card.media_kind !== "link") return true;
+    if (mediaFilter === "image" && card.media_kind !== "image") return true;
+    if (mediaFilter === "video" && card.media_kind !== "video") return true;
+
+    return false;
+  }, [showPinnedOnly, searchQuery, domainFilter, fileFilter, mediaFilter]);
+
+  // Reveal a saved card by clearing filters that hide it
+  const revealSavedCard = useCallback((card: { id: string; file_id?: string | null; pinned?: boolean }) => {
+    setSearchQuery("");
+    setDomainFilter("all");
+    setShowPinnedOnly(false);
+    setMediaFilter("all");
+
+    // Set file filter to show the card
+    if (card.file_id) {
+      setFileFilter(card.file_id);
+    } else {
+      setFileFilter("all");
+    }
+
+    // Dismiss banner after revealing
+    setTimeout(() => setLastSavedCard(null), 2000);
+
+    // Scroll to card
+    setTimeout(() => {
+      const cardEl = document.getElementById(`card-${card.id}`);
+      if (cardEl) {
+        cardEl.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    }, 100);
+  }, []);
+
+  // Navigate to card's file
+  const goToCardFile = useCallback((fileId: string) => {
+    setFileFilter(fileId);
+    setSearchQuery("");
+    setDomainFilter("all");
+    setShowPinnedOnly(false);
+    setMediaFilter("all");
+    setTimeout(() => setLastSavedCard(null), 2000);
+  }, []);
 
   // Filter and sort cards
   const filteredCards = useMemo(() => {
@@ -581,6 +700,13 @@ export default function AppPage() {
           .single();
         if (existing) {
           setCards((prev) => dedupeCards([existing, ...prev]));
+          setLastSavedCard({
+            id: existing.id,
+            file_id: existing.file_id,
+            media_kind: existing.media_kind,
+            created_at: existing.created_at,
+            pinned: existing.pinned,
+          });
           setInput(""); // Clear on success
         }
         return;
@@ -602,6 +728,13 @@ export default function AppPage() {
 
       if (data) {
         setCards((prev) => dedupeCards([data, ...prev]));
+        setLastSavedCard({
+          id: data.id,
+          file_id: data.file_id,
+          media_kind: data.media_kind,
+          created_at: data.created_at,
+          pinned: data.pinned,
+        });
         setInput(""); // Clear only on success
       }
     } finally {
@@ -1043,6 +1176,15 @@ export default function AppPage() {
         )
       );
 
+      // Capture saved card for reveal banner
+      setLastSavedCard({
+        id: inserted.id,
+        file_id: assignedFileId !== undefined ? assignedFileId : inserted.file_id,
+        media_kind: file.type.startsWith("image/") ? "image" : "video",
+        created_at: inserted.created_at,
+        pinned: inserted.pinned,
+      });
+
       setBanner("Uploaded!");
       setTimeout(() => setBanner(null), 2000);
     } catch (err: any) {
@@ -1253,6 +1395,78 @@ export default function AppPage() {
           }}
         >
           {errorBanner}
+        </div>
+      )}
+
+      {/* Reveal saved card banner */}
+      {lastSavedCard && wouldBeHiddenByFilters(cards.find((c) => c.id === lastSavedCard.id) || lastSavedCard as Card) && (
+        <div
+          style={{
+            position: "fixed",
+            top: 60,
+            left: "50%",
+            transform: "translateX(-50%)",
+            padding: "12px 16px",
+            borderRadius: 8,
+            background: "#FF8F00",
+            color: "#fff",
+            fontSize: 13,
+            fontFamily: "var(--font-dm)",
+            zIndex: 102,
+            boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
+            display: "flex",
+            alignItems: "center",
+            gap: 12,
+          }}
+        >
+          <span>Saved, but hidden by filters.</span>
+          <button
+            onClick={() => revealSavedCard(lastSavedCard)}
+            style={{
+              padding: "6px 12px",
+              borderRadius: 4,
+              background: "#fff",
+              color: "#FF8F00",
+              fontSize: 12,
+              fontWeight: 600,
+              border: "none",
+              cursor: "pointer",
+            }}
+          >
+            Show card
+          </button>
+          {lastSavedCard.file_id && (
+            <button
+              onClick={() => goToCardFile(lastSavedCard.file_id!)}
+              style={{
+                padding: "6px 12px",
+                borderRadius: 4,
+                background: "rgba(255,255,255,0.2)",
+                color: "#fff",
+                fontSize: 12,
+                fontWeight: 600,
+                border: "1px solid rgba(255,255,255,0.3)",
+                cursor: "pointer",
+              }}
+            >
+              Go to its file
+            </button>
+          )}
+          <button
+            onClick={() => setLastSavedCard(null)}
+            style={{
+              padding: "4px 8px",
+              borderRadius: 4,
+              background: "transparent",
+              color: "#fff",
+              fontSize: 16,
+              border: "none",
+              cursor: "pointer",
+              marginLeft: 4,
+            }}
+          >
+            ×
+          </button>
         </div>
       )}
 
@@ -1940,7 +2154,9 @@ export default function AppPage() {
                 }}
               >
                 {filteredCards.map((card, i) => (
-                  <AppCard key={card.id} card={card} index={i} onDelete={deleteCard} onPinToggle={handlePinToggle} onFileAssign={assignCardToFile} onUpdate={handleCardUpdate} files={files} isDraggable={true} isBulkMode={isBulkMode} isSelected={selectedCardIds.has(card.id)} onToggleSelect={toggleCardSelection} />
+                  <div key={card.id} id={`card-${card.id}`}>
+                    <AppCard card={card} index={i} onDelete={deleteCard} onPinToggle={handlePinToggle} onFileAssign={assignCardToFile} onUpdate={handleCardUpdate} files={files} isDraggable={true} isBulkMode={isBulkMode} isSelected={selectedCardIds.has(card.id)} onToggleSelect={toggleCardSelection} />
+                  </div>
                 ))}
               </div>
             </SortableContext>
@@ -1955,7 +2171,9 @@ export default function AppPage() {
             }}
           >
             {filteredCards.map((card, i) => (
-              <AppCard key={card.id} card={card} index={i} onDelete={deleteCard} onPinToggle={handlePinToggle} onFileAssign={assignCardToFile} onUpdate={handleCardUpdate} files={files} isDraggable={false} isBulkMode={isBulkMode} isSelected={selectedCardIds.has(card.id)} onToggleSelect={toggleCardSelection} />
+              <div key={card.id} id={`card-${card.id}`}>
+                <AppCard card={card} index={i} onDelete={deleteCard} onPinToggle={handlePinToggle} onFileAssign={assignCardToFile} onUpdate={handleCardUpdate} files={files} isDraggable={false} isBulkMode={isBulkMode} isSelected={selectedCardIds.has(card.id)} onToggleSelect={toggleCardSelection} />
+              </div>
             ))}
           </div>
         ) : null}
