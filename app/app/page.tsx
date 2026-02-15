@@ -55,6 +55,7 @@ export default function AppPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [domainFilter, setDomainFilter] = useState("all");
   const [fileFilter, setFileFilter] = useState<string>("all");
+  const [mediaFilter, setMediaFilter] = useState<"all" | "link" | "image" | "video">("all");
   const [sortOrder, setSortOrder] = useState<"newest" | "oldest" | "custom">("newest");
   const [showPinnedOnly, setShowPinnedOnly] = useState(false);
   const [showNewFileInput, setShowNewFileInput] = useState(false);
@@ -319,12 +320,13 @@ export default function AppPage() {
     if (searchQuery) params.set("q", searchQuery);
     if (domainFilter !== "all") params.set("d", domainFilter);
     if (fileFilter !== "all") params.set("f", fileFilter);
+    if (mediaFilter !== "all") params.set("m", mediaFilter);
     if (sortOrder !== "newest") params.set("sort", sortOrder);
     if (showPinnedOnly) params.set("p", "1");
     const query = params.toString();
     const newUrl = query ? `/app?${query}` : "/app";
     router.replace(newUrl, { scroll: false });
-  }, [searchQuery, domainFilter, fileFilter, sortOrder, showPinnedOnly, router]);
+  }, [searchQuery, domainFilter, fileFilter, mediaFilter, sortOrder, showPinnedOnly, router]);
 
   // Extract unique domains from cards
   const domains = useMemo(() => {
@@ -386,6 +388,21 @@ export default function AppPage() {
       }
     }
 
+    // Media filter
+    if (mediaFilter !== "all") {
+      result = result.filter((card) => {
+        if (mediaFilter === "link") {
+          // Links: null or 'link' media_kind
+          return !card.media_kind || card.media_kind === "link";
+        } else if (mediaFilter === "image") {
+          return card.media_kind === "image";
+        } else if (mediaFilter === "video") {
+          return card.media_kind === "video";
+        }
+        return true;
+      });
+    }
+
     // Sort: pinned cards first, then by sort mode
     result.sort((a, b) => {
       // Pinned cards always come first
@@ -414,7 +431,7 @@ export default function AppPage() {
     });
 
     return result;
-  }, [cards, searchQuery, domainFilter, fileFilter, sortOrder, showPinnedOnly]);
+  }, [cards, searchQuery, domainFilter, fileFilter, mediaFilter, sortOrder, showPinnedOnly]);
 
   const handleLogout = async () => {
     if (!configured) return;
@@ -891,17 +908,50 @@ export default function AppPage() {
       if (thumbError) throw new Error("Failed to upload thumbnail");
 
       // 4. Update card with media fields
+      const updatePayload: Partial<Card> = {
+        media_path: originalPath,
+        media_thumb_path: thumbPath,
+        media_mime: file.type,
+        media_size: file.size,
+      };
+
       const { error: updateError } = await supabase
         .from("cards")
-        .update({
-          media_path: originalPath,
-          media_thumb_path: thumbPath,
-          media_mime: file.type,
-          media_size: file.size,
-        })
+        .update(updatePayload)
         .eq("id", inserted.id);
 
       if (updateError) throw new Error("Failed to update card metadata");
+
+      // 5. Auto-assign to current file if filter is active
+      let assignedFileId: string | null = null;
+      if (fileFilter !== "all" && fileFilter !== "unfiled") {
+        // Assign to the currently selected file
+        assignedFileId = fileFilter;
+        const { error: fileAssignError } = await supabase
+          .from("cards")
+          .update({
+            file_id: assignedFileId,
+            sort_key: null, // Clear sort_key to integrate with shelf ordering
+          })
+          .eq("id", inserted.id);
+
+        if (fileAssignError) {
+          console.error("Failed to assign file:", fileAssignError);
+          // Non-fatal: continue
+        }
+      } else if (fileFilter === "unfiled") {
+        // Explicitly set to unfiled
+        assignedFileId = null;
+        const { error: unfileError } = await supabase
+          .from("cards")
+          .update({ file_id: null })
+          .eq("id", inserted.id);
+
+        if (unfileError) {
+          console.error("Failed to unfile:", unfileError);
+        }
+      }
+      // If fileFilter === "all", do not assign
 
       // Update local state
       setCards((prev) =>
@@ -913,6 +963,8 @@ export default function AppPage() {
                 media_thumb_path: thumbPath,
                 media_mime: file.type,
                 media_size: file.size,
+                file_id: assignedFileId !== undefined ? assignedFileId : c.file_id,
+                sort_key: assignedFileId !== undefined ? null : c.sort_key,
               }
             : c
         )
@@ -1581,6 +1633,27 @@ export default function AppPage() {
               ))}
             </select>
 
+            {/* Media filter */}
+            <select
+              value={mediaFilter}
+              onChange={(e) => setMediaFilter(e.target.value as "all" | "link" | "image" | "video")}
+              style={{
+                padding: "8px 12px",
+                border: "1px solid #e0e0e0",
+                borderRadius: 8,
+                fontSize: 13,
+                fontFamily: "var(--font-dm)",
+                outline: "none",
+                background: "#fff",
+                cursor: "pointer",
+              }}
+            >
+              <option value="all">All media</option>
+              <option value="link">Links</option>
+              <option value="image">Images</option>
+              <option value="video">Videos</option>
+            </select>
+
             {/* New file button */}
             {!showNewFileInput ? (
               <button
@@ -1721,7 +1794,7 @@ export default function AppPage() {
             </button>
 
             {/* Results count */}
-            {(searchQuery || domainFilter !== "all" || showPinnedOnly) && (
+            {(searchQuery || domainFilter !== "all" || mediaFilter !== "all" || showPinnedOnly) && (
               <span
                 style={{
                   fontSize: 12,
