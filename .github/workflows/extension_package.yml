@@ -1,0 +1,27 @@
+name: extension-package
+
+on:
+  workflow_dispatch: {}
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Package extension
+        run: bash scripts/package_extension.sh
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: save-to-shinen-extension
+          path: dist/save-to-shinen.zip
+          retention-days: 90
