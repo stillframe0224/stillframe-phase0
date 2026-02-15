@@ -12,7 +12,9 @@
 
 3. **Load the Extension**
    - Click **Load unpacked**
-   - Navigate to: `tools/chrome-extension/save-to-shinen`
+   - Select a folder that has `manifest.json` at its root.
+   - If you downloaded a release ZIP: unzip it into a folder, then select that unzipped folder (it will contain `manifest.json` at the top level).
+   - If you're using the repo directly: navigate to `tools/chrome-extension/save-to-shinen`
    - Click **Select Folder**
 
 4. **Verify Installation**
