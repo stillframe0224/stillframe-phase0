@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient, isSupabaseConfigured, getConfigStatus } from "@/lib/supabase/client";
+import { STORAGE_BUCKETS } from "@/lib/supabase/constants";
 import { cardTypes, getCardType } from "@/lib/cardTypes";
 import { extractFirstHttpUrl } from "@/lib/urlUtils";
 import type { Card, File as FileRecord } from "@/lib/supabase/types";
@@ -448,7 +449,7 @@ export default function AppPage() {
     const path = `${userId}/${Date.now()}.${ext}`;
 
     const { error } = await supabase.storage
-      .from("card-images")
+      .from(STORAGE_BUCKETS.CARD_IMAGES)
       .upload(path, file, { cacheControl: "3600", upsert: false });
 
     if (error) {
@@ -456,7 +457,7 @@ export default function AppPage() {
       return null;
     }
 
-    const { data } = supabase.storage.from("card-images").getPublicUrl(path);
+    const { data } = supabase.storage.from(STORAGE_BUCKETS.CARD_IMAGES).getPublicUrl(path);
     return data.publicUrl;
   };
 
@@ -864,13 +865,13 @@ export default function AppPage() {
       const thumbPath = `${user.id}/${inserted.id}/thumb.jpg`;
 
       const { error: uploadError } = await supabase.storage
-        .from("cards-media")
+        .from(STORAGE_BUCKETS.CARDS_MEDIA)
         .upload(originalPath, file);
 
       if (uploadError) throw new Error("Failed to upload file");
 
       const { error: thumbError } = await supabase.storage
-        .from("cards-media")
+        .from(STORAGE_BUCKETS.CARDS_MEDIA)
         .upload(thumbPath, thumbnail);
 
       if (thumbError) throw new Error("Failed to upload thumbnail");
