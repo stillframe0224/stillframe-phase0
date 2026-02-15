@@ -10,8 +10,8 @@ permissions:
   contents: write
 
 concurrency:
-  group: extension-autotag-${{ github.ref }}
-  cancel-in-progress: false
+  group: extension-autotag
+  cancel-in-progress: true
 
 jobs:
   autotag:
