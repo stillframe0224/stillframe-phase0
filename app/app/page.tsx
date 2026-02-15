@@ -1113,14 +1113,33 @@ export default function AppPage() {
 
       if (thumbError) throw new Error("Failed to upload thumbnail");
 
-      // 4. Update card with media fields
-      const updatePayload: Partial<Card> = {
+      // 4. Determine active file filter (read from URL to avoid state sync delay)
+      const urlF = new URLSearchParams(window.location.search).get("f");
+      const activeF = urlF ?? fileFilter;
+      const isUuid = (s: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s);
+
+      // 5. Build update payload with media fields + conditional file_id
+      const updatePayload: any = {
         media_path: originalPath,
         media_thumb_path: thumbPath,
         media_mime: file.type,
         media_size: file.size,
       };
 
+      let assignedFileId: string | null = null;
+      if (activeF && isUuid(activeF)) {
+        // Assign to the currently selected file (UUID)
+        updatePayload.file_id = activeF;
+        updatePayload.sort_key = null;
+        assignedFileId = activeF;
+      } else if (activeF === "unfiled") {
+        // Explicitly set to unfiled
+        updatePayload.file_id = null;
+        assignedFileId = null;
+      }
+      // If activeF === "all" or invalid, do not modify file_id (leave as-is)
+
+      // Single PATCH to update all fields at once
       const { error: updateError } = await supabase
         .from("cards")
         .update(updatePayload)
@@ -1128,38 +1147,7 @@ export default function AppPage() {
 
       if (updateError) throw new Error("Failed to update card metadata");
 
-      // 5. Auto-assign to current file if filter is active
-      let assignedFileId: string | null = null;
-      if (fileFilter !== "all" && fileFilter !== "unfiled") {
-        // Assign to the currently selected file
-        assignedFileId = fileFilter;
-        const { error: fileAssignError } = await supabase
-          .from("cards")
-          .update({
-            file_id: assignedFileId,
-            sort_key: null, // Clear sort_key to integrate with shelf ordering
-          })
-          .eq("id", inserted.id);
-
-        if (fileAssignError) {
-          console.error("Failed to assign file:", fileAssignError);
-          // Non-fatal: continue
-        }
-      } else if (fileFilter === "unfiled") {
-        // Explicitly set to unfiled
-        assignedFileId = null;
-        const { error: unfileError } = await supabase
-          .from("cards")
-          .update({ file_id: null })
-          .eq("id", inserted.id);
-
-        if (unfileError) {
-          console.error("Failed to unfile:", unfileError);
-        }
-      }
-      // If fileFilter === "all", do not assign
-
-      // Update local state
+      // Update local state with final values
       setCards((prev) =>
         prev.map((c) =>
           c.id === inserted.id
