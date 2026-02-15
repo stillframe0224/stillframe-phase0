@@ -318,6 +318,78 @@ Only use if autotag workflow fails. Version must match `manifest.json`.
 
 **Installation**: See `tools/chrome-extension/save-to-shinen/INSTALL.md`
 
+### Extension Release: Failure Modes & Mitigations
+
+#### Top 10 Failure Modes
+
+**1) Autotag never runs**
+- **Symptom**: No new tag `vX.Y.Z` after merging to `main`.
+- **Likely root cause**: `extension_autotag.yml` trigger not matching (missing `paths` filter or manifest not changed).
+- **Fast check**: `git show --name-only HEAD | rg '^tools/chrome-extension/save-to-shinen/manifest\.json$'`
+- **Fix**: Commit a manifest version change on `main` (bump `"version"` in `tools/chrome-extension/save-to-shinen/manifest.json`).
+
+**2) Autotag runs but creates no tag (version unchanged)**
+- **Symptom**: Autotag workflow logs show "Version unchanged; skipping tag."
+- **Likely root cause**: `manifest.json` changed but `.version` stayed the same (formatting-only change).
+- **Fast check**: `git show HEAD:tools/chrome-extension/save-to-shinen/manifest.json | node -p 'JSON.parse(require("fs").readFileSync(0,"utf8")).version'`
+- **Fix**: Bump patch version (X.Y.Z -> X.Y.(Z+1)) and push to `main`.
+
+**3) Autotag fails semver validation**
+- **Symptom**: Autotag job errors like "version is not semver-like (expected X.Y.Z)".
+- **Likely root cause**: Version includes suffix (e.g., `1.0.0-beta`) or is missing.
+- **Fast check**: `node -p 'require("./tools/chrome-extension/save-to-shinen/manifest.json").version'`
+- **Fix**: Set version to strict `X.Y.Z` in `manifest.json`.
+
+**4) Autotag skips because tag already exists (idempotent no-op)**
+- **Symptom**: Workflow logs show "Tag already exists on remote … (skipping)".
+- **Likely root cause**: Tag was already pushed (manual tag, re-run, or re-merge).
+- **Fast check**: `git ls-remote --tags origin "refs/tags/v$(node -p 'require("./tools/chrome-extension/save-to-shinen/manifest.json").version')"`
+- **Fix**: Bump version again (patch) to generate a new tag.
+
+**5) Duplicate/racing tag creation attempts**
+- **Symptom**: One run fails with "tag already exists" or intermittent tag push failures.
+- **Likely root cause**: Parallel pushes to `main`; concurrency misconfigured.
+- **Fast check**: `rg -n "concurrency:" .github/workflows/extension_autotag.yml`
+- **Fix**: Ensure `concurrency.group: extension-autotag` and `cancel-in-progress: true`.
+
+**6) Release workflow doesn't run after tag**
+- **Symptom**: Tag exists, but no GitHub Release appears.
+- **Likely root cause**: trigger/permissions misconfigured.
+- **Fast check**: `rg -n "tags:|permissions:" .github/workflows/extension_release.yml`
+- **Fix**: Ensure tag trigger `v*` + permissions allow creating releases/assets.
+
+**7) Release ZIP not install-friendly (manifest not at ZIP root)**
+- **Symptom**: Chrome "Load unpacked" requires nested folder selection.
+- **Likely root cause**: packaging script zipped with prefix / wrong cwd.
+- **Fast check**: `bash scripts/verify_extension_zip.sh`
+- **Fix**: zip from `tools/chrome-extension/save-to-shinen/` so entries are root-level.
+
+**8) ZIP contains macOS junk (`__MACOSX/` / `.DS_Store`)**
+- **Symptom**: verify/audit fails due to junk entries.
+- **Fast check**: `unzip -Z1 dist/save-to-shinen.zip | rg '(__MACOSX/|\.DS_Store$)' || true`
+- **Fix**: rebuild using `scripts/package_extension.sh`.
+
+**9) Published asset SHA256 mismatch**
+- **Symptom**: `scripts/audit_release_asset.sh` fails with mismatch.
+- **Fast check**: `bash scripts/audit_release_asset.sh "v$(node -p 'require("./tools/chrome-extension/save-to-shinen/manifest.json").version')"`
+- **Fix**: bump version and release a new tag (avoid asset replacement).
+
+**10) GitHub token/permissions prevent tagging or release creation**
+- **Symptom**: permission denied pushing tag / creating release.
+- **Fast check**: `rg -n "permissions:" .github/workflows/extension_autotag.yml .github/workflows/extension_release.yml`
+- **Fix**: restore `permissions: contents: write` where needed.
+
+#### Runbook (6 Commands Max)
+
+```bash
+node -p 'require("./tools/chrome-extension/save-to-shinen/manifest.json").version'
+git show --name-only HEAD | rg '^tools/chrome-extension/save-to-shinen/manifest\.json$'
+git ls-remote --tags origin "refs/tags/v$(node -p 'require("./tools/chrome-extension/save-to-shinen/manifest.json").version')"
+bash scripts/verify_extension_zip.sh
+bash scripts/audit_release_asset.sh "v$(node -p 'require("./tools/chrome-extension/save-to-shinen/manifest.json").version')"
+gh run list --limit 10
+```
+
 ## Related docs
 
 - [OPS/supabase-setup.md](OPS/supabase-setup.md) — Full Supabase setup: table DDL, RLS policies, Google OAuth config, Storage bucket, env vars
