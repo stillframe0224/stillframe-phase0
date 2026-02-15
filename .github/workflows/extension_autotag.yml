@@ -24,8 +24,6 @@ jobs:
           set -euo pipefail
 
           MANIFEST_PATH="tools/chrome-extension/save-to-shinen/manifest.json"
-          BEFORE="${{ github.event.before }}"
-          AFTER="${{ github.sha }}"
 
           # Read JSON .version without jq to reduce dependencies.
           read_version() {
@@ -39,9 +37,9 @@ jobs:
           fi
 
           OLD_VERSION=""
-          if [[ "$BEFORE" != "0000000000000000000000000000000000000000" ]]; then
-            if git cat-file -e "$BEFORE:$MANIFEST_PATH" 2>/dev/null; then
-              OLD_VERSION="$(git show "$BEFORE:$MANIFEST_PATH" | read_version || true)"
+          if git rev-parse --verify HEAD^ >/dev/null 2>&1; then
+            if git cat-file -e "HEAD^:$MANIFEST_PATH" 2>/dev/null; then
+              OLD_VERSION="$(git show "HEAD^:$MANIFEST_PATH" | read_version || true)"
             fi
           fi
 
