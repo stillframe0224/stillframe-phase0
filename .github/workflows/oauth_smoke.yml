@@ -36,6 +36,11 @@ jobs:
         if: always()
         run: node scripts/bookmarklet_smoke.mjs 2>&1 | tee bookmarklet_output.txt
 
+      - name: Run AI Organize smoke test
+        id: ai_organize
+        if: always()
+        run: node scripts/ai_organize_smoke.mjs 2>&1 | tee ai_organize_output.txt
+
       - name: Add failure summary
         if: failure()
         run: |
@@ -51,6 +56,10 @@ jobs:
           echo "### Bookmarklet Smoke" >> "$GITHUB_STEP_SUMMARY"
           echo '```' >> "$GITHUB_STEP_SUMMARY"
           tail -n 200 bookmarklet_output.txt >> "$GITHUB_STEP_SUMMARY" || true
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          echo "### AI Organize Smoke" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          tail -n 200 ai_organize_output.txt >> "$GITHUB_STEP_SUMMARY" || true
           echo '```' >> "$GITHUB_STEP_SUMMARY"
 
       - name: Create GitHub issue on failure
