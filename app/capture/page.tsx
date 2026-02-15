@@ -42,14 +42,14 @@ export default function CapturePage() {
     }, []);
 
   return (
-        <div style={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                justifyContent: 'center', 
+        <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
                 height: '100vh',
                 fontFamily: 'sans-serif'
         }}>
-                <p>Capturing page...</p>p>
-        </div>div>
+                <p>Capturing page...</p>
+        </div>
       );
-}</p>
+}
