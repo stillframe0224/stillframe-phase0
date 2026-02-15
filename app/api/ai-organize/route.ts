@@ -54,7 +54,10 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (fetchError || !card) {
-      return NextResponse.json({ error: "Card not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: { code: "CARD_NOT_FOUND", message: "Card not found" } },
+        { status: 404 }
+      );
     }
 
     // 5. Ownership check

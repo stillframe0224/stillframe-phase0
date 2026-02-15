@@ -6,6 +6,8 @@
  * Verifies that /api/ai-organize correctly rejects unauthenticated requests.
  * This is a regression check - we don't test the full AI flow (which requires auth + OpenAI key),
  * just that the endpoint exists and has basic auth protection.
+ *
+ * Expected error format: { error: { code: "ERROR_CODE", message: "..." } } or legacy { error: "..." }
  */
 
 const PROD_URL = "https://stillframe-phase0.vercel.app";

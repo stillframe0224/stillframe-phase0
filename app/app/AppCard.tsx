@@ -528,7 +528,11 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.error || "AI analysis failed");
+        // Handle structured error from API
+        if (error.error?.code === "CARD_NOT_FOUND") {
+          throw new Error("Card was deleted or not created");
+        }
+        throw new Error(error.error?.message || error.error || "AI analysis failed");
       }
 
       // Reload card data to show updated AI fields
