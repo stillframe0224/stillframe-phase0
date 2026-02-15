@@ -1,0 +1,78 @@
+name: extension-autotag
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  autotag:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect manifest change
+        id: diff
+        run: |
+          set -euo pipefail
+          BEFORE="${{ github.event.before }}"
+          AFTER="${{ github.sha }}"
+
+          # Handle first push edge-case
+          if [[ "$BEFORE" == "0000000000000000000000000000000000000000" ]]; then
+            CHANGED=$(git show --name-only --pretty="" "$AFTER" | grep -c '^tools/chrome-extension/save-to-shinen/manifest\.json$' || true)
+          else
+            CHANGED=$(git diff --name-only "$BEFORE" "$AFTER" | grep -c '^tools/chrome-extension/save-to-shinen/manifest\.json$' || true)
+          fi
+
+          if [[ "$CHANGED" -gt 0 ]]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "✅ manifest.json changed in this push"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "ℹ️  manifest.json not changed, skipping autotag"
+          fi
+
+      - name: Read version
+        if: steps.diff.outputs.changed == 'true'
+        id: ver
+        run: |
+          set -euo pipefail
+          VERSION=$(jq -r '.version' tools/chrome-extension/save-to-shinen/manifest.json)
+
+          if [[ -z "$VERSION" || "$VERSION" == "null" ]]; then
+            echo "❌ Error: manifest.json version missing or null"
+            exit 1
+          fi
+
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
+          echo "📌 Version: $VERSION → Tag: v$VERSION"
+
+      - name: Fetch tags
+        if: steps.diff.outputs.changed == 'true'
+        run: git fetch --tags origin
+
+      - name: Create and push tag (idempotent)
+        if: steps.diff.outputs.changed == 'true'
+        env:
+          TAG: ${{ steps.ver.outputs.tag }}
+        run: |
+          set -euo pipefail
+
+          if git show-ref --tags --verify --quiet "refs/tags/$TAG"; then
+            echo "ℹ️  Tag already exists: $TAG (skipping)"
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a "$TAG" -m "Release $TAG"
+          git push origin "$TAG"
+
+          echo "✅ Created and pushed tag: $TAG"

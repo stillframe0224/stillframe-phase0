@@ -289,14 +289,26 @@ After changing `NEXT_PUBLIC_*` env vars in Vercel, you must trigger a **manual r
 
 **Canonical source**: `tools/chrome-extension/save-to-shinen/`
 
-**Distribution**: GitHub Releases is the canonical source (permanent, versioned)
-- Tag push `vX.Y.Z` automatically creates release with ZIP + SHA256
+**Distribution**: GitHub Releases (permanent, versioned)
 - Download: https://github.com/array0224-cloud/stillframe-phase0/releases
-- Version in tag must match `manifest.json` version (validated by workflow)
+- **Fully automated** — no manual tag creation required
 
-**Packaging workflows**:
-- `extension_release.yml` — Tag push `v*` → GitHub Release (permanent)
-- `extension_package.yml` — Manual trigger (for testing/PR validation, 90-day artifact)
+**Release workflow** (zero manual steps):
+1. Update `manifest.json` version (e.g., `"version": "1.0.1"`)
+2. Merge to `main`
+3. `extension_autotag.yml` auto-creates tag `v1.0.1`
+4. `extension_release.yml` auto-creates GitHub Release with ZIP + SHA256
+
+**Manual tag creation** (emergency fallback only):
+```bash
+git tag v1.0.0 && git push --tags
+```
+Only use if autotag workflow fails. Version must match `manifest.json`.
+
+**Workflows**:
+- `extension_autotag.yml` — Auto-creates tags when `manifest.json` changes on main (idempotent)
+- `extension_release.yml` — Tag push `v*` → GitHub Release with ZIP + SHA256
+- `extension_package.yml` — Manual trigger (testing/PR validation, 90-day artifact)
 
 **Manual packaging**: `bash scripts/package_extension.sh` → creates `dist/save-to-shinen.zip`
 
