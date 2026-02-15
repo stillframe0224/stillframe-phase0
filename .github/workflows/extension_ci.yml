@@ -1,0 +1,23 @@
+name: Extension ZIP CI
+
+on:
+  pull_request:
+    paths:
+      - 'tools/chrome-extension/save-to-shinen/**'
+      - 'scripts/package_extension.sh'
+  push:
+    branches:
+      - main
+    paths:
+      - 'tools/chrome-extension/save-to-shinen/**'
+      - 'scripts/package_extension.sh'
+
+jobs:
+  verify-zip:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Verify extension ZIP
+        run: bash scripts/verify_extension_zip.sh
