@@ -31,12 +31,12 @@ jobs:
           BEFORE="${{ github.event.before }}"
           AFTER="${{ github.sha }}"
 
-          NEW_VERSION="$(node -p \"require('./$MANIFEST_PATH').version\" || true)"
+          NEW_VERSION="$(node -p "require('./$MANIFEST_PATH').version" || true)"
 
           OLD_VERSION=""
           if [[ "$BEFORE" != "0000000000000000000000000000000000000000" ]]; then
             if git cat-file -e "$BEFORE:$MANIFEST_PATH" 2>/dev/null; then
-              OLD_VERSION="$(git show "$BEFORE:$MANIFEST_PATH" | node -p \"JSON.parse(require('fs').readFileSync(0,'utf8')).version\" || true)"
+              OLD_VERSION="$(git show "$BEFORE:$MANIFEST_PATH" | node -p "JSON.parse(require('fs').readFileSync(0,'utf8')).version" || true)"
             fi
           fi
 
@@ -53,6 +53,8 @@ jobs:
           echo "old_version=$OLD_VERSION" >> "$GITHUB_OUTPUT"
           echo "new_version=$NEW_VERSION" >> "$GITHUB_OUTPUT"
           echo "tag=v$NEW_VERSION" >> "$GITHUB_OUTPUT"
+          echo "before=$BEFORE" >> "$GITHUB_OUTPUT"
+          echo "after=$AFTER" >> "$GITHUB_OUTPUT"
 
           echo "Before: ${OLD_VERSION:-<none>}"
           echo "After:  $NEW_VERSION"
@@ -62,11 +64,18 @@ jobs:
         run: |
           echo "Version unchanged; skipping tag."
 
-      - name: Fetch tags
+      - name: Skip if tag exists on remote (idempotent)
         if: steps.ver.outputs.old_version != steps.ver.outputs.new_version
-        run: git fetch --tags origin --force
+        env:
+          TAG: ${{ steps.ver.outputs.tag }}
+        run: |
+          set -euo pipefail
+          if [[ -n "$(git ls-remote --tags origin "refs/tags/$TAG")" ]]; then
+            echo "Tag already exists on remote: $TAG (skipping)"
+            exit 0
+          fi
 
-      - name: Create and push tag (idempotent)
+      - name: Create and push tag
         if: steps.ver.outputs.old_version != steps.ver.outputs.new_version
         env:
           TAG: ${{ steps.ver.outputs.tag }}
