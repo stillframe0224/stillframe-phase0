@@ -141,6 +141,7 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
   const ct = getCardType(card.card_type);
   const [realImgFailed, setRealImgFailed] = useState(false);
   const [previewFailed, setPreviewFailed] = useState(false);
+  const [ytFallbackUsed, setYtFallbackUsed] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
   const [previewImg, setPreviewImg] = useState<string | null>(null);
   const [isVisible, setIsVisible] = useState(false);
@@ -529,6 +530,16 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
           loading="lazy"
           referrerPolicy="no-referrer"
           onError={() => {
+            // YouTube hqdefault failed → try mqdefault fallback
+            const ytThumb = cardUrl ? getYouTubeThumbnail(cardUrl) : null;
+            if (ytThumb && displayImage === ytThumb && !ytFallbackUsed) {
+              const fallbackThumb = ytThumb.replace("/hqdefault.jpg", "/mqdefault.jpg");
+              dbg("img_error", { type: "youtube_hq_fallback", fallback: fallbackThumb });
+              setPreviewImg(fallbackThumb);
+              setYtFallbackUsed(true);
+              return;
+            }
+
             if (displayImage && proxiedUrl !== displayImage) {
               // First failure on this image: retry via proxy
               dbg("img_proxy", { url: displayImage });
