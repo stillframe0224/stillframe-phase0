@@ -529,7 +529,9 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
       if (!response.ok) {
         const error = await response.json();
         // Handle structured error from API
-        if (error.error?.code === "CARD_NOT_FOUND") {
+        if (error.error?.code === "CARD_NOT_FOUND" || error.error === "Card not found") {
+          // Remove stale card from UI
+          onDelete(card.id);
           throw new Error("Card was deleted or not created");
         }
         throw new Error(error.error?.message || error.error || "AI analysis failed");
