@@ -164,8 +164,20 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
   const titleInputRef = useRef<HTMLInputElement>(null);
   const memoSaveTimeout = useRef<NodeJS.Timeout | null>(null);
 
-  // Prefer source_url (from bookmarklet/extension) over text-extracted URL
-  const cardUrl = card.source_url || extractFirstHttpUrl(card.text);
+  // Determine URL from multiple sources (source_url > text > preview_image_url)
+  const cardUrl = (() => {
+    if (card.source_url) return card.source_url;
+    const textUrl = extractFirstHttpUrl(card.text);
+    if (textUrl) return textUrl;
+    // Fallback: if preview_image_url looks like a YouTube page URL, use it
+    if (card.preview_image_url && (
+      card.preview_image_url.includes("youtube.com/") ||
+      card.preview_image_url.includes("youtu.be/")
+    )) {
+      return card.preview_image_url;
+    }
+    return null;
+  })();
   const hasRealImage = !!(card.image_url && card.image_source !== "generated" && !realImgFailed);
 
   // Derive display title: prefer card.title, fallback to first line of text
@@ -198,6 +210,31 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
     observer.observe(el);
     return () => observer.disconnect();
   }, []);
+
+  // Backfill source_url for YouTube cards (one-time client-side fix for legacy data)
+  useEffect(() => {
+    if (!isVisible || card.source_url || !cardUrl) return;
+    // Only backfill if cardUrl is YouTube and was extracted from text
+    const textUrl = extractFirstHttpUrl(card.text);
+    if (textUrl && textUrl === cardUrl && getYouTubeThumbnail(cardUrl)) {
+      // Debounce: wait 2s after render to avoid spamming on initial load
+      const timer = setTimeout(async () => {
+        try {
+          const { createClient } = await import("@/lib/supabase/client");
+          const supabase = createClient();
+          await supabase
+            .from("cards")
+            .update({ source_url: cardUrl })
+            .eq("id", card.id);
+          dbg("backfill", { cardId: card.id, source_url: cardUrl });
+        } catch (err) {
+          // Best-effort, fail silently
+          console.warn("source_url backfill failed:", err);
+        }
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [isVisible, card.id, card.source_url, card.text, cardUrl]);
 
   // Lazy-fetch link preview — only when visible and no media_thumb_path
   useEffect(() => {
