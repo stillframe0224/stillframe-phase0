@@ -50,7 +50,10 @@ function extractYouTubeVideoId(url: string): string | null {
 }
 
 /** For YouTube URLs, return the thumbnail; null otherwise. */
-export function getYouTubeThumbnail(url: string, quality: "hq" | "mq" | "default" = "hq"): string | null {
+export function getYouTubeThumbnail(
+  url: string,
+  quality: "maxres" | "sd" | "hq" | "mq" | "default" = "maxres"
+): string | null {
   const videoId = extractYouTubeVideoId(url);
   if (!videoId) return null;
 
@@ -60,9 +63,11 @@ export function getYouTubeThumbnail(url: string, quality: "hq" | "mq" | "default
   }
 
   const qualityMap = {
-    hq: "hqdefault",
-    mq: "mqdefault",
-    default: "default",
+    maxres: "maxresdefault", // 1920x1080 (not always available)
+    sd: "sddefault",         // 640x480
+    hq: "hqdefault",         // 480x360
+    mq: "mqdefault",         // 320x180
+    default: "default",      // 120x90 (always available)
   };
 
   return `https://i.ytimg.com/vi/${videoId}/${qualityMap[quality]}.jpg`;

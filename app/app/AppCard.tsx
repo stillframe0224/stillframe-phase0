@@ -141,7 +141,8 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
   const ct = getCardType(card.card_type);
   const [realImgFailed, setRealImgFailed] = useState(false);
   const [previewFailed, setPreviewFailed] = useState(false);
-  const [ytQualityIndex, setYtQualityIndex] = useState(0); // 0=hq, 1=mq, 2=default
+  const [ytQualityIndex, setYtQualityIndex] = useState(0); // 0=maxres, 1=sd, 2=hq, 3=mq, 4=default
+  const [ytThumbFailed, setYtThumbFailed] = useState(false); // Separate flag for YouTube thumb failures
   const [showDelete, setShowDelete] = useState(false);
   const [previewImg, setPreviewImg] = useState<string | null>(null);
   const [isVisible, setIsVisible] = useState(false);
@@ -242,9 +243,9 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
     dbg("url", { cardId: card.id, url: cardUrl });
 
     // YouTube: ALWAYS derive thumbnail from videoId (override preview_image_url if present)
-    const qualities: Array<"hq" | "mq" | "default"> = ["hq", "mq", "default"];
+    const qualities: Array<"maxres" | "sd" | "hq" | "mq" | "default"> = ["maxres", "sd", "hq", "mq", "default"];
     const ytThumb = getYouTubeThumbnail(cardUrl, qualities[ytQualityIndex]);
-    if (ytThumb) {
+    if (ytThumb && !ytThumbFailed) {
       dbg("source", { url: cardUrl, source: "youtube", quality: qualities[ytQualityIndex] });
       setPreviewImg(ytThumb);
       return;
@@ -574,9 +575,9 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
           loading="lazy"
           referrerPolicy="no-referrer"
           onError={() => {
-            // YouTube quality fallback: hq → mq → default
+            // YouTube quality fallback: maxres → sd → hq → mq → default
             if (cardUrl && getYouTubeThumbnail(cardUrl)) {
-              const qualities: Array<"hq" | "mq" | "default"> = ["hq", "mq", "default"];
+              const qualities: Array<"maxres" | "sd" | "hq" | "mq" | "default"> = ["maxres", "sd", "hq", "mq", "default"];
               if (ytQualityIndex < qualities.length - 1) {
                 const nextIndex = ytQualityIndex + 1;
                 dbg("img_error", {
@@ -586,6 +587,10 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
                 });
                 setYtQualityIndex(nextIndex);
                 return;
+              } else {
+                // All YouTube qualities failed, mark as failed
+                dbg("img_error", { type: "youtube_all_qualities_failed" });
+                setYtThumbFailed(true);
               }
             }
 
