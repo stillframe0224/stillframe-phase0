@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { STORAGE_BUCKETS } from "@/lib/supabase/constants";
 import { getCardType } from "@/lib/cardTypes";
 import { extractFirstHttpUrl, getYouTubeThumbnail } from "@/lib/urlUtils";
 import type { Card, File as FileRecord } from "@/lib/supabase/types";
@@ -239,7 +240,7 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
   const getMediaThumbUrl = () => {
     if (!card.media_thumb_path) return null;
     const supabase = createClient();
-    const { data } = supabase.storage.from("cards-media").getPublicUrl(card.media_thumb_path);
+    const { data } = supabase.storage.from(STORAGE_BUCKETS.CARDS_MEDIA).getPublicUrl(card.media_thumb_path);
     return data?.publicUrl || null;
   };
 
