@@ -148,7 +148,7 @@ For issues or feature requests, contact SHINEN support.
 
 ## Chat Completion Beep (ChatGPT / Claude)
 
-After reloading the extension, beep works without first click/keypress because playback is handled by an offscreen document.
+After reloading the extension, beep normally works without first click/keypress via offscreen playback. If offscreen is unavailable, fallback playback requires one initial click/keypress due to autoplay policy.
 
 ### Quick Test
 
@@ -156,4 +156,4 @@ After reloading the extension, beep works without first click/keypress because p
 2. Open `https://chatgpt.com/` or `https://claude.ai/`
 3. Send a prompt and wait for generation to finish
 4. You hear one high beep on normal completion, or two low beeps when error-like text is detected
-5. If no sound, check tab mute state and macOS output device selection
+5. If no sound, check tab mute state, macOS output device selection, and reload the extension
