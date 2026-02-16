@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Save to SHINEN",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Save any page to SHINEN with one click",
   "permissions": [
     "tabs",
@@ -29,6 +29,7 @@
     "default_title": "Save to SHINEN",
     "default_icon": {
       "16": "icon16.png",
+      "32": "icon32.png",
       "48": "icon48.png",
       "128": "icon128.png"
     }
@@ -38,6 +39,7 @@
   },
   "icons": {
     "16": "icon16.png",
+    "32": "icon32.png",
     "48": "icon48.png",
     "128": "icon128.png"
   }

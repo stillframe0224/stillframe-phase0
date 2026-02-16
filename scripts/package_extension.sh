@@ -19,6 +19,7 @@ REQUIRED_FILES=(
   "offscreen_audio.html"
   "offscreen_audio.js"
   "icon16.png"
+  "icon32.png"
   "icon48.png"
   "icon128.png"
   "INSTALL.md"

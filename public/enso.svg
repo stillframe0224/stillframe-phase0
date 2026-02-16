@@ -1,32 +1,11 @@
-<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-  <!-- Enso circle - brushstroke aesthetic with natural variation -->
-  <defs>
-    <!-- Gradient for subtle depth -->
-    <radialGradient id="brushGrad" cx="50%" cy="50%">
-      <stop offset="0%" style="stop-color:#1a1a1a;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#2a2a2a;stop-opacity:0.9" />
-    </radialGradient>
-  </defs>
-
-  <!-- Main brushstroke circle - thicker, hand-drawn aesthetic -->
-  <path
-    d="M 15 50 C 15 29 29 15 50 15 C 71 15 85 29 85 50 C 85 71 71 85 50 85 C 35 85 22 76 17 62"
-    fill="none"
-    stroke="url(#brushGrad)"
-    stroke-width="7"
-    stroke-linecap="round"
-    stroke-linejoin="round"
-    opacity="0.88"
-  />
-
-  <!-- Gap to show incompleteness (zen aesthetic) -->
-  <!-- Subtle inner shadow for depth -->
-  <path
-    d="M 18 55 C 19 64 23 72 30 78"
-    fill="none"
-    stroke="#2a2a2a"
-    stroke-width="5"
-    stroke-linecap="round"
-    opacity="0.3"
-  />
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024" fill="none">
+  <rect width="1024" height="1024" fill="white"/>
+  <path d="M 780 246 C 666 134, 456 110, 304 190 C 150 271, 90 452, 130 612 C 168 768, 294 881, 452 910"
+        stroke="#111111" stroke-width="88" stroke-linecap="round" stroke-linejoin="round" opacity="0.96"/>
+  <path d="M 452 910 C 656 946, 861 828, 911 626 C 948 480, 906 348, 820 258"
+        stroke="#111111" stroke-width="72" stroke-linecap="round" stroke-linejoin="round" opacity="0.9"/>
+  <path d="M 210 582 C 224 708, 304 816, 418 872"
+        stroke="#111111" stroke-width="36" stroke-linecap="round" stroke-linejoin="round" opacity="0.42"/>
+  <path d="M 764 286 C 834 352, 872 452, 852 556"
+        stroke="#111111" stroke-width="30" stroke-linecap="round" stroke-linejoin="round" opacity="0.35"/>
 </svg>
