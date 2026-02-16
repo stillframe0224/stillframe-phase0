@@ -115,6 +115,11 @@ export default function AppPage() {
     created_at: string;
     pinned?: boolean;
   } | null>(null);
+  const [lastAiUpdatedCard, setLastAiUpdatedCard] = useState<{
+    id: string;
+    file_id?: string | null;
+    created_at: string;
+  } | null>(null);
 
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -967,6 +972,16 @@ export default function AppPage() {
 
     if (data) {
       setCards((prev) => prev.map((c) => (c.id === cardId ? data : c)));
+
+      // Capture AI-updated card for reveal banner (if filters would hide it)
+      setLastAiUpdatedCard({
+        id: data.id,
+        file_id: data.file_id,
+        created_at: data.created_at,
+      });
+
+      // Auto-dismiss after 4 seconds
+      setTimeout(() => setLastAiUpdatedCard(null), 4000);
     }
   }, [configured]);
 
@@ -1442,6 +1457,61 @@ export default function AppPage() {
           )}
           <button
             onClick={() => setLastSavedCard(null)}
+            style={{
+              padding: "4px 8px",
+              borderRadius: 4,
+              background: "transparent",
+              color: "#fff",
+              fontSize: 16,
+              border: "none",
+              cursor: "pointer",
+              marginLeft: 4,
+            }}
+          >
+            ×
+          </button>
+        </div>
+      )}
+
+      {/* Reveal AI-updated card banner */}
+      {lastAiUpdatedCard && wouldBeHiddenByFilters(cards.find((c) => c.id === lastAiUpdatedCard.id) || lastAiUpdatedCard as Card) && (
+        <div
+          style={{
+            position: "fixed",
+            top: 120,
+            left: "50%",
+            transform: "translateX(-50%)",
+            padding: "12px 16px",
+            borderRadius: 8,
+            background: "#1976D2",
+            color: "#fff",
+            fontSize: 13,
+            fontFamily: "var(--font-dm)",
+            zIndex: 102,
+            boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
+            display: "flex",
+            alignItems: "center",
+            gap: 12,
+          }}
+        >
+          <span>AI updated, but card hidden by filters.</span>
+          <button
+            onClick={() => revealSavedCard(lastAiUpdatedCard)}
+            style={{
+              padding: "6px 12px",
+              borderRadius: 4,
+              background: "#fff",
+              color: "#1976D2",
+              fontSize: 12,
+              fontWeight: 600,
+              border: "none",
+              cursor: "pointer",
+            }}
+          >
+            Show card
+          </button>
+          <button
+            onClick={() => setLastAiUpdatedCard(null)}
             style={{
               padding: "4px 8px",
               borderRadius: 4,
@@ -2165,6 +2235,23 @@ export default function AppPage() {
             ))}
           </div>
         ) : null}
+      </div>
+
+      {/* Build stamp (subtle, always visible for screenshot verification) */}
+      <div
+        style={{
+          position: "fixed",
+          bottom: 8,
+          right: 8,
+          fontSize: 9,
+          color: "#999",
+          opacity: 0.5,
+          fontFamily: "monospace",
+          pointerEvents: "none",
+          userSelect: "none",
+        }}
+      >
+        build: {process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA?.slice(0, 7) || "unknown"}
       </div>
     </div>
   );

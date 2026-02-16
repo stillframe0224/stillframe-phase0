@@ -606,9 +606,15 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
       // Show success briefly
       setTimeout(() => setAiAnalyzing(false), 1500);
     } catch (error: any) {
-      setAiError(error.message);
+      // Always show error, even if message is missing
+      const errorMsg = error?.message || "AI analysis failed (unknown error)";
+      setAiError(errorMsg);
       setAiAnalyzing(false);
-      setTimeout(() => setAiError(null), 3000);
+      // Persist error for 5 seconds (was 3s) to ensure visibility
+      setTimeout(() => setAiError(null), 5000);
+    } finally {
+      // Guarantee analyzing state is cleared even if catch fails
+      setAiAnalyzing(false);
     }
   };
 
