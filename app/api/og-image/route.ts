@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
 
+const YT_RE =
+  /(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/|live\/|v\/)|youtu\.be\/)([\w-]{11})/;
+
 export async function POST(request: Request) {
   try {
     const { url } = await request.json();
@@ -17,6 +20,15 @@ export async function POST(request: Request) {
 
     if (!["http:", "https:"].includes(parsed.protocol)) {
       return NextResponse.json({ error: "invalid protocol" }, { status: 400 });
+    }
+
+    // YouTube shortcut — return hqdefault (always available) instead of maxresdefault (sometimes 404)
+    const ytMatch = url.match(YT_RE);
+    if (ytMatch) {
+      return NextResponse.json({
+        image: `https://i.ytimg.com/vi/${ytMatch[1]}/hqdefault.jpg`,
+        title: null,
+      });
     }
 
     const res = await fetch(url, {

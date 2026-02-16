@@ -161,6 +161,7 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
   const [showFileSelect, setShowFileSelect] = useState(false);
   const [aiAnalyzing, setAiAnalyzing] = useState(false);
   const [aiError, setAiError] = useState<string | null>(null);
+  const [aiSuccess, setAiSuccess] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
   const titleInputRef = useRef<HTMLInputElement>(null);
   const memoSaveTimeout = useRef<NodeJS.Timeout | null>(null);
@@ -193,7 +194,12 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
 
   // Image priority: media_thumb_path > preview_image_url > image_url > link-preview chain
   const hasMediaThumb = !!(card.media_thumb_path && !realImgFailed);
-  const hasPreviewImageUrl = !!(card.preview_image_url && !realImgFailed);
+  // Reject YouTube logo assets as invalid preview_image_url
+  const isYouTubeLogo = card.preview_image_url && (
+    card.preview_image_url.includes("youtube.com/img/desktop/yt_") ||
+    card.preview_image_url.includes("youtube.com/yts/img/")
+  );
+  const hasPreviewImageUrl = !!(card.preview_image_url && !realImgFailed && !isYouTubeLogo);
 
   // IntersectionObserver — fetch preview only when card is near viewport
   useEffect(() => {
@@ -243,7 +249,8 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
     dbg("url", { cardId: card.id, url: cardUrl });
 
     // YouTube: ALWAYS derive thumbnail from videoId (override preview_image_url if present)
-    const qualities: Array<"maxres" | "sd" | "hq" | "mq" | "default"> = ["maxres", "sd", "hq", "mq", "default"];
+    // Start with hq (always available) instead of maxres (sometimes 404)
+    const qualities: Array<"hq" | "mq" | "default"> = ["hq", "mq", "default"];
     const ytThumb = getYouTubeThumbnail(cardUrl, qualities[ytQualityIndex]);
     if (ytThumb && !ytThumbFailed) {
       dbg("source", { url: cardUrl, source: "youtube", quality: qualities[ytQualityIndex] });
@@ -305,8 +312,16 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
   const isVideoCard = card.media_kind === "video" && !!card.media_path;
 
   // Image priority: media_thumb_path > preview_image_url > image_url > link-preview chain
+  // BUT: For YouTube, ALWAYS use computed thumbnail (never trust preview_image_url)
+  const isYouTubeUrl = cardUrl && getYouTubeThumbnail(cardUrl) !== null;
+  const youtubeComputedThumb = isYouTubeUrl && !ytThumbFailed
+    ? getYouTubeThumbnail(cardUrl, ["hq", "mq", "default"][ytQualityIndex] as "hq" | "mq" | "default")
+    : null;
+
   const displayImage = hasMediaThumb
     ? getMediaThumbUrl()!
+    : youtubeComputedThumb // YouTube: use computed thumbnail (override preview_image_url)
+    ? youtubeComputedThumb
     : hasPreviewImageUrl
     ? card.preview_image_url!
     : hasRealImage
@@ -528,13 +543,12 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
 
       if (!response.ok) {
         const error = await response.json();
-        // Handle structured error from API
-        if (error.error?.code === "CARD_NOT_FOUND" || error.error === "Card not found") {
-          // Remove stale card from UI
-          onDelete(card.id);
-          throw new Error("Card was deleted or not created");
-        }
-        throw new Error(error.error?.message || error.error || "AI analysis failed");
+        // Never auto-delete card on API errors - show error message instead
+        // User can manually delete if needed
+        const errorMsg = error.error?.code === "CARD_NOT_FOUND" || error.error === "Card not found"
+          ? "Card not found - may have been deleted"
+          : error.error?.message || error.error || "AI analysis failed";
+        throw new Error(errorMsg);
       }
 
       // Reload card data to show updated AI fields
@@ -547,6 +561,15 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
       if (updated) {
         // Update parent component (trigger re-render)
         if (onUpdate) onUpdate(card.id);
+
+        // Show success feedback
+        setAiSuccess(true);
+        setTimeout(() => setAiSuccess(false), 2000);
+
+        // Scroll card into view after update to ensure it stays visible
+        setTimeout(() => {
+          cardRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        }, 100);
       }
 
       // Show success briefly
@@ -581,9 +604,9 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
           loading="lazy"
           referrerPolicy="no-referrer"
           onError={() => {
-            // YouTube quality fallback: maxres → sd → hq → mq → default
+            // YouTube quality fallback: hq → mq → default (avoid maxres 404s)
             if (cardUrl && getYouTubeThumbnail(cardUrl)) {
-              const qualities: Array<"maxres" | "sd" | "hq" | "mq" | "default"> = ["maxres", "sd", "hq", "mq", "default"];
+              const qualities: Array<"hq" | "mq" | "default"> = ["hq", "mq", "default"];
               if (ytQualityIndex < qualities.length - 1) {
                 const nextIndex = ytQualityIndex + 1;
                 dbg("img_error", {
@@ -1044,14 +1067,16 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
               }).format(new Date(card.created_at))}
             </span>
 
-            {/* AI organize button (hover only) */}
-            {isHovered && !isBulkMode && (
+            {/* AI organize button - always visible for discoverability */}
+            {!isBulkMode && (
               <button
                 onClick={(e) => {
                   e.stopPropagation();
                   handleAIAnalyze();
                 }}
                 disabled={aiAnalyzing}
+                data-testid="ai-button"
+                aria-label="AI"
                 style={{
                   fontSize: 9,
                   color: aiAnalyzing ? "#999" : "#7B4FD9",
@@ -1081,6 +1106,19 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
                 }}
               >
                 {aiError}
+              </span>
+            )}
+
+            {/* AI success */}
+            {aiSuccess && (
+              <span
+                style={{
+                  fontSize: 8,
+                  color: "#1E8E3E",
+                  fontFamily: "var(--font-dm)",
+                }}
+              >
+                AI updated
               </span>
             )}
 

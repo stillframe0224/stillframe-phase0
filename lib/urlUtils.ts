@@ -52,7 +52,7 @@ function extractYouTubeVideoId(url: string): string | null {
 /** For YouTube URLs, return the thumbnail; null otherwise. */
 export function getYouTubeThumbnail(
   url: string,
-  quality: "maxres" | "sd" | "hq" | "mq" | "default" = "maxres"
+  quality: "maxres" | "sd" | "hq" | "mq" | "default" = "hq"
 ): string | null {
   const videoId = extractYouTubeVideoId(url);
   if (!videoId) return null;
