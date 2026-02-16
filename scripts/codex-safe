@@ -1,38 +1,123 @@
 #!/bin/bash
-# codex-safe: Resilient wrapper for codex exec with project-local CODEX_HOME
-#
-# Usage: scripts/codex-safe "your prompt here"
-#
-# Features:
-# - Project-local CODEX_HOME (.rwl/codex-home) to prevent permission errors
-# - Auto-generates config.toml with OpenAI provider tuning (stream/retry/idle)
-# - Auto-retry on failure with exponential backoff (up to MAX_ATTEMPTS)
-# - Stream disconnect recovery: resume --last "continue" (once per attempt)
-# - Always sends ntfy notification (success=3, failure=4)
-# - Exit code reflects final success/failure
+# codex-safe: resilient wrapper for codex exec with project-local CODEX_HOME
 
 set -euo pipefail
 
-# Constants
 ROOT="/Users/array0224/stillframe-phase0"
 CODEX_HOME="$ROOT/.rwl/codex-home"
+CONFIG_PATH="$CODEX_HOME/config.toml"
+LOG_DIR="$ROOT/.rwl/logs"
 MAX_ATTEMPTS=8
+
 NTFY_SERVER="${NTFY_SERVER:-https://ntfy.sh}"
 NTFY_TOPIC="${NTFY_TOPIC:-shinen-a3138f616ac49f6db007e149d78872d4}"
 
-# Ensure CODEX_HOME exists
-mkdir -p "$CODEX_HOME"
+mkdir -p "$CODEX_HOME" "$LOG_DIR"
 export CODEX_HOME
 
-# Auto-generate config.toml if missing
-CONFIG_PATH="$CODEX_HOME/config.toml"
-if [ ! -f "$CONFIG_PATH" ]; then
-  echo "🔧 Generating $CONFIG_PATH (first run)" >&2
-  cat > "$CONFIG_PATH" <<'TOML_EOF'
-cli_auth_credentials_store = "auto"
+notify() {
+  local priority="$1"
+  local title="$2"
+  local message="$3"
+
+  NTFY_SERVER="$NTFY_SERVER" NTFY_TOPIC="$NTFY_TOPIC" \
+    node "$ROOT/tools/notify/ntfy.mjs" \
+      --title "$title" \
+      --message "$message" \
+      --priority "$priority" >/dev/null 2>&1 || true
+}
+
+truncate_for_notify() {
+  local input="$1"
+  local max=800
+  local head_len=520
+  local tail_len=220
+
+  if [ "${#input}" -le "$max" ]; then
+    printf '%s' "$input"
+    return
+  fi
+
+  printf '%s\n...\n%s' "${input:0:$head_len}" "${input: -$tail_len}"
+}
+
+set_root_key() {
+  local key="$1"
+  local value="$2"
+  local tmp
+  tmp="$(mktemp)"
+
+  awk -v k="$key" -v v="$value" '
+    BEGIN {
+      re = "^[[:space:]]*" k "[[:space:]]*="
+      done = 0
+    }
+    $0 ~ re {
+      if (!done) {
+        print k " = " v
+        done = 1
+      }
+      next
+    }
+    { print }
+    END {
+      if (!done) print k " = " v
+    }
+  ' "$CONFIG_PATH" > "$tmp"
+
+  mv "$tmp" "$CONFIG_PATH"
+}
+
+set_provider_field() {
+  local field="$1"
+  local value="$2"
+  local tmp
+  tmp="$(mktemp)"
+
+  awk -v f="$field" -v v="$value" '
+    BEGIN {
+      in_section = 0
+      replaced = 0
+      re = "^[[:space:]]*" f "[[:space:]]*="
+    }
+    {
+      if ($0 ~ /^\[/) {
+        if (in_section && !replaced) {
+          print f " = " v
+          replaced = 1
+        }
+        in_section = ($0 == "[model_providers.openai]")
+        print
+        next
+      }
+
+      if (in_section && $0 ~ re) {
+        if (!replaced) {
+          print f " = " v
+          replaced = 1
+        }
+        next
+      }
+
+      print
+    }
+    END {
+      if (in_section && !replaced) {
+        print f " = " v
+      }
+    }
+  ' "$CONFIG_PATH" > "$tmp"
+
+  mv "$tmp" "$CONFIG_PATH"
+}
+
+ensure_config() {
+  if [ ! -f "$CONFIG_PATH" ]; then
+    cat > "$CONFIG_PATH" <<'TOML'
+model_provider = "openai"
 approval_policy = "never"
 sandbox_mode = "workspace-write"
-model_provider = "openai"
+cli_auth_credentials_store = "file"
 
 [sandbox_workspace_write]
 network_access = true
@@ -43,28 +128,24 @@ requires_openai_auth = true
 request_max_retries = 10
 stream_max_retries = 25
 stream_idle_timeout_ms = 900000
-TOML_EOF
-fi
+TOML
+  fi
 
-# Auto-heal existing config.toml (ensure [model_providers.openai] has name)
-if [ -f "$CONFIG_PATH" ]; then
-  # Check if [model_providers.openai] exists but missing 'name ='
-  if grep -q '^\[model_providers\.openai\]' "$CONFIG_PATH"; then
-    if ! grep -A5 '^\[model_providers\.openai\]' "$CONFIG_PATH" | grep -q '^name\s*='; then
-      echo "⚠️  Healing $CONFIG_PATH (missing provider name)" >&2
-      # Backup before modification
-      cp "$CONFIG_PATH" "$CONFIG_PATH.bak.$(date +%s)"
-      # Insert 'name = "OpenAI"' right after [model_providers.openai]
-      awk '
-        /^\[model_providers\.openai\]/ { print; print "name = \"OpenAI\""; print "requires_openai_auth = true"; next }
-        { print }
-      ' "$CONFIG_PATH" > "$CONFIG_PATH.tmp" && mv "$CONFIG_PATH.tmp" "$CONFIG_PATH"
-    fi
-  else
-    # [model_providers.openai] block missing entirely, append it
-    echo "⚠️  Healing $CONFIG_PATH (missing provider block)" >&2
-    cp "$CONFIG_PATH" "$CONFIG_PATH.bak.$(date +%s)"
-    cat >> "$CONFIG_PATH" <<'TOML_APPEND'
+  set_root_key "model_provider" '"openai"'
+  set_root_key "approval_policy" '"never"'
+  set_root_key "sandbox_mode" '"workspace-write"'
+  set_root_key "cli_auth_credentials_store" '"file"'
+
+  if ! grep -q '^\[sandbox_workspace_write\]' "$CONFIG_PATH"; then
+    cat >> "$CONFIG_PATH" <<'TOML'
+
+[sandbox_workspace_write]
+network_access = true
+TOML
+  fi
+
+  if ! grep -q '^\[model_providers\.openai\]' "$CONFIG_PATH"; then
+    cat >> "$CONFIG_PATH" <<'TOML'
 
 [model_providers.openai]
 name = "OpenAI"
@@ -72,89 +153,140 @@ requires_openai_auth = true
 request_max_retries = 10
 stream_max_retries = 25
 stream_idle_timeout_ms = 900000
-TOML_APPEND
+TOML
   fi
-fi
 
-# Parse prompt
+  set_provider_field "name" '"OpenAI"'
+  set_provider_field "requires_openai_auth" "true"
+  set_provider_field "request_max_retries" "10"
+  set_provider_field "stream_max_retries" "25"
+  set_provider_field "stream_idle_timeout_ms" "900000"
+}
+
+auth_ok() {
+  (cd "$ROOT" && codex login status >/dev/null 2>&1)
+}
+
+ensure_auth() {
+  ensure_config
+
+  if auth_ok; then
+    return 0
+  fi
+
+  if [ -f "$HOME/.codex/auth.json" ]; then
+    cp "$HOME/.codex/auth.json" "$CODEX_HOME/auth.json"
+    chmod 600 "$CODEX_HOME/auth.json"
+    if auth_ok; then
+      return 0
+    fi
+  fi
+
+  if [ -n "${OPENAI_API_KEY:-}" ]; then
+    if printenv OPENAI_API_KEY | (cd "$ROOT" && codex login --with-api-key >/dev/null 2>&1); then
+      if auth_ok; then
+        return 0
+      fi
+    fi
+  fi
+
+  local device_log
+  device_log="$(cd "$ROOT" && codex login --device-auth 2>&1 || true)"
+  local clipped
+  clipped="$(truncate_for_notify "$device_log")"
+  notify "4" "🔐 Codex login required" "$clipped"
+
+  local max_wait=300
+  local i=0
+  while [ "$i" -lt "$max_wait" ]; do
+    if auth_ok; then
+      notify "3" "✅ Codex login OK" "Device auth completed for codex-safe"
+      return 0
+    fi
+    sleep 2
+    i=$((i + 1))
+  done
+
+  notify "4" "❌ Codex login timeout" "codex login status did not become ready within 10 minutes"
+  return 2
+}
+
 PROMPT="$*"
 if [ -z "$PROMPT" ]; then
   echo "Usage: $0 <prompt>" >&2
   exit 1
 fi
 
-# Send ntfy notification (failures are silent)
-notify() {
-  local priority="$1"
-  local title="$2"
-  local message="$3"
+if ! ensure_auth; then
+  echo "[FATAL] Codex authentication is not ready." >&2
+  exit 2
+fi
 
-  curl -sSf \
-    -H "Priority: $priority" \
-    -H "Title: $title" \
-    -d "$message" \
-    "$NTFY_SERVER/$NTFY_TOPIC" >/dev/null 2>&1 || true
-}
-
-# Main execution loop with exponential backoff
 attempt=1
-backoff=1  # seconds
-while [ $attempt -le $MAX_ATTEMPTS ]; do
+backoff=1
+reauth_on_401_done=0
+
+while [ "$attempt" -le "$MAX_ATTEMPTS" ]; do
   echo "=== Attempt $attempt/$MAX_ATTEMPTS (backoff: ${backoff}s) ===" >&2
 
-  # Try main codex exec
+  output_log="$LOG_DIR/codex-safe-attempt-${attempt}.log"
   set +e
-  codex exec --cd "$ROOT" "$PROMPT" 2>&1 | tee /tmp/codex-safe-output.log
+  (cd "$ROOT" && codex exec "$PROMPT") 2>&1 | tee "$output_log"
   exit_code=${PIPESTATUS[0]}
   set -e
 
-  if [ $exit_code -eq 0 ]; then
-    # Success
+  if [ "$exit_code" -eq 0 ]; then
     notify "3" "✅ Codex Success" "Task completed (attempt $attempt/$MAX_ATTEMPTS)"
     echo "SUCCESS: Task completed on attempt $attempt" >&2
     exit 0
   fi
 
-  # Failure
-  echo "FAILED: Attempt $attempt failed with exit code $exit_code" >&2
-
-  # Check if error was stream disconnect
-  stream_error=0
-  if grep -qi "stream.*disconnect\|connection.*reset\|timeout" /tmp/codex-safe-output.log; then
-    stream_error=1
-    echo "Detected stream disconnect — attempting resume" >&2
-
-    set +e
-    codex exec resume --last --cd "$ROOT" "continue" 2>&1 | tee /tmp/codex-safe-resume.log
-    resume_code=${PIPESTATUS[0]}
-    set -e
-
-    if [ $resume_code -eq 0 ]; then
-      notify "3" "✅ Codex Recovered" "Task recovered after stream disconnect (attempt $attempt)"
-      echo "SUCCESS: Recovered via resume on attempt $attempt" >&2
-      exit 0
-    else
-      echo "Resume failed with exit code $resume_code (continuing to next attempt)" >&2
+  if grep -Eiq '401 Unauthorized|Missing bearer or basic authentication' "$output_log"; then
+    echo "Detected auth failure (401). Running one-time auth bootstrap." >&2
+    if [ "$reauth_on_401_done" -eq 0 ]; then
+      reauth_on_401_done=1
+      if ensure_auth; then
+        continue
+      fi
+      notify "4" "❌ Codex Failed" "Authentication bootstrap failed after 401"
+      exit 2
     fi
   fi
 
-  # If we've exhausted attempts, fail
-  if [ $attempt -ge $MAX_ATTEMPTS ]; then
+  echo "FAILED: Attempt $attempt failed with exit code $exit_code" >&2
+
+  if grep -Eiq 'stream.*disconnect|connection.*reset|timeout' "$output_log"; then
+    echo "Detected stream disconnect — attempting resume" >&2
+    resume_log="$LOG_DIR/codex-safe-resume-${attempt}.log"
+
+    set +e
+    (cd "$ROOT" && codex exec resume --last "continue") 2>&1 | tee "$resume_log"
+    resume_code=${PIPESTATUS[0]}
+    set -e
+
+    if [ "$resume_code" -eq 0 ]; then
+      notify "3" "✅ Codex Recovered" "Task recovered after stream disconnect (attempt $attempt)"
+      echo "SUCCESS: Recovered via resume on attempt $attempt" >&2
+      exit 0
+    fi
+
+    echo "Resume failed with exit code $resume_code" >&2
+  fi
+
+  if [ "$attempt" -ge "$MAX_ATTEMPTS" ]; then
     notify "4" "❌ Codex Failed" "Task failed after $MAX_ATTEMPTS attempts"
     echo "FAILURE: All $MAX_ATTEMPTS attempts exhausted" >&2
     exit 1
   fi
 
-  # Exponential backoff (1s, 2s, 4s, 8s, 16s max)
-  sleep $backoff
+  sleep "$backoff"
   backoff=$((backoff * 2))
-  if [ $backoff -gt 16 ]; then
+  if [ "$backoff" -gt 16 ]; then
     backoff=16
   fi
 
-  ((attempt++))
+  attempt=$((attempt + 1))
 done
 
-# Should never reach here, but guard
 notify "4" "❌ Codex Failed" "Unexpected loop exit"
 exit 1
