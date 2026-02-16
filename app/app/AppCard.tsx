@@ -542,18 +542,43 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
       });
 
       if (!response.ok) {
-        const error = await response.json();
+        const status = response.status;
 
-        // Check if endpoint itself is missing (404 without CARD_NOT_FOUND error code)
-        if (response.status === 404 && !error.error?.code) {
+        // Try to parse response as JSON, fallback to text, then null
+        let errorData: any = null;
+        let errorText: string | null = null;
+        try {
+          errorData = await response.json();
+        } catch {
+          try {
+            errorText = await response.text();
+          } catch {
+            // Response body unreadable
+          }
+        }
+
+        // 404: Check if endpoint missing (HTML response) vs card not found (JSON)
+        if (status === 404) {
+          if (errorData?.error?.code === "CARD_NOT_FOUND" || errorData?.error === "Card not found") {
+            throw new Error("Card not found - may have been deleted");
+          }
+          // Endpoint missing (got HTML or no JSON error.code)
           throw new Error("AI endpoint unavailable (404) - check deployment");
         }
 
-        // Never auto-delete card on API errors - show error message instead
-        // User can manually delete if needed
-        const errorMsg = error.error?.code === "CARD_NOT_FOUND" || error.error === "Card not found"
-          ? "Card not found - may have been deleted"
-          : error.error?.message || error.error || `AI analysis failed (HTTP ${response.status})`;
+        // Other errors: extract message from JSON, text snippet, or generic fallback
+        let errorMsg = `AI analysis failed (HTTP ${status})`;
+
+        if (errorData?.error?.message) {
+          errorMsg = errorData.error.message;
+        } else if (errorData?.error) {
+          errorMsg = typeof errorData.error === 'string' ? errorData.error : errorMsg;
+        } else if (errorText) {
+          // Sanitize text snippet (remove HTML tags, limit length)
+          const sanitized = errorText.replace(/<[^>]*>/g, '').trim().slice(0, 120);
+          if (sanitized) errorMsg = sanitized;
+        }
+
         throw new Error(errorMsg);
       }
 
