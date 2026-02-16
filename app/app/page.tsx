@@ -1356,8 +1356,8 @@ export default function AppPage() {
         fontFamily: "var(--font-dm), system-ui, sans-serif",
       }}
     >
-      {/* Always-mounted AI feedback bus */}
-      <AiFeedbackBus />
+      {/* Always-mounted AI feedback bus - Phase0: hidden unless NEXT_PUBLIC_ENABLE_AI=1 */}
+      {process.env.NEXT_PUBLIC_ENABLE_AI === "1" && <AiFeedbackBus />}
 
       {/* Auto-save banner */}
       {banner && (
@@ -1601,6 +1601,9 @@ export default function AppPage() {
         <a
           href="/"
           style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
             fontFamily: "var(--font-serif)",
             fontSize: 20,
             fontWeight: 600,
@@ -1609,6 +1612,15 @@ export default function AppPage() {
             letterSpacing: "-0.01em",
           }}
         >
+          <img
+            src="/enso-logo.svg"
+            alt=""
+            style={{
+              width: 24,
+              height: 24,
+              opacity: 0.85,
+            }}
+          />
           SHINEN
         </a>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -2162,7 +2174,7 @@ export default function AppPage() {
       {/* Cards Grid */}
       <div
         style={{
-          maxWidth: 1100,
+          maxWidth: 1600,
           margin: "32px auto 0",
           padding: "0 24px 60px",
         }}
@@ -2209,10 +2221,10 @@ export default function AppPage() {
             <SortableContext items={filteredCards.map((c) => c.id)} strategy={verticalListSortingStrategy}>
               <div
                 style={{
-                  display: "flex",
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
                   gap: 16,
-                  flexWrap: "wrap",
-                  justifyContent: filteredCards.length < 5 ? "center" : "flex-start",
+                  justifyItems: filteredCards.length < 5 ? "center" : "stretch",
                 }}
               >
                 {filteredCards.map((card, i) => (
@@ -2226,10 +2238,10 @@ export default function AppPage() {
         ) : sortOrder !== "custom" ? (
           <div
             style={{
-              display: "flex",
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
               gap: 16,
-              flexWrap: "wrap",
-              justifyContent: filteredCards.length < 5 ? "center" : "flex-start",
+              justifyItems: filteredCards.length < 5 ? "center" : "stretch",
             }}
           >
             {filteredCards.map((card, i) => (
