@@ -318,7 +318,20 @@ Only use if autotag workflow fails. Version must match `manifest.json`.
 
 **Installation**: See `tools/chrome-extension/save-to-shinen/INSTALL.md`
 
-**Desktop push notify (ntfy)**: Set `NTFY_TOPIC` (and optionally `NTFY_SERVER`, auth) in local env, subscribe the same topic on Pixel with sound enabled, then run commands via `scripts/run-notify <command...>` for done/fail push notifications (`done=priority 3`, `fail=priority 4`). For RWL automation, set `RWL_NOTIFY=1` and call `node tools/notify/rwl-status-hook.mjs [status.json path]` when status updates (`critical=4`, `warning/done/complete=3`); it notifies once per `task_id+status`.
+**Desktop push notify (ntfy)**: `NTFY_TOPIC`（必要）と必要に応じて `NTFY_SERVER` / 認証をローカルenvに設定し、Codexは必ず `scripts/codex-run-notify` 経由で実行する（`--ask-for-approval never` + 停止時Pixel通知）。通知優先度は `done=3`, `fail=4`, `critical=4`, `warning/done/complete=3`。RWL連携は `RWL_NOTIFY=1` で `node tools/notify/rwl-status-hook.mjs [status.json path]` を status 更新時に呼ぶ。
+
+```bash
+# 1) 引数PROMPT
+bash scripts/codex-run-notify "Explain repo structure briefly"
+
+# 2) stdin PROMPT
+cat <<'EOF' | bash scripts/codex-run-notify
+List top 3 risks in this repo.
+EOF
+
+# 3) 失敗時のexit code確認
+bash -lc 'tmp=$(mktemp -d); printf "#!/usr/bin/env bash\nexit 7\n" > "$tmp/codex"; chmod +x "$tmp/codex"; PATH="$tmp:$PATH" bash scripts/codex-run-notify "test"; echo EXIT:$?'
+```
 
 ### Extension Release: Failure Modes & Mitigations
 
