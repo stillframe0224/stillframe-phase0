@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Save to SHINEN",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Save any page to SHINEN with one click",
   "permissions": [
     "tabs",
@@ -10,6 +10,19 @@
   ],
   "host_permissions": [
     "<all_urls>"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://chatgpt.com/*",
+        "https://chat.openai.com/*",
+        "https://claude.ai/*"
+      ],
+      "run_at": "document_idle",
+      "js": [
+        "content/beep_on_complete.js"
+      ]
+    }
   ],
   "action": {
     "default_title": "Save to SHINEN",

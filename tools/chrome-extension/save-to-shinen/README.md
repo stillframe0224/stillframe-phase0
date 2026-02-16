@@ -145,3 +145,15 @@ Same as SHINEN project
 ## Support
 
 For issues or feature requests, contact SHINEN support.
+
+## Chat Completion Beep (ChatGPT / Claude)
+
+After reloading the extension, the beep is armed only after your first click or keypress on ChatGPT/Claude pages (browser autoplay policy).
+
+### Quick Test
+
+1. Reload the extension at `chrome://extensions`
+2. Open `https://chatgpt.com/` or `https://claude.ai/`
+3. Click once (or press any key) to arm audio
+4. Send a prompt and wait for generation to finish
+5. You hear one high beep on normal completion, or two low beeps when error-like text is detected

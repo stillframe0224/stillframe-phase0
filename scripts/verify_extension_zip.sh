@@ -8,6 +8,7 @@ ZIP_PATH="$REPO_ROOT/dist/save-to-shinen.zip"
 REQUIRED_FILES=(
   "manifest.json"
   "background.js"
+  "content/beep_on_complete.js"
   "icon16.png"
   "icon48.png"
   "icon128.png"
@@ -36,6 +37,7 @@ if [ ! -s "$ZIP_PATH" ]; then
 fi
 
 echo
+
 echo "ZIP contents:"
 unzip -l "$ZIP_PATH"
 
@@ -77,6 +79,7 @@ size="$(du -h "$ZIP_PATH" | awk '{print $1}')"
 count="$(wc -l <"$tmp_list" | tr -d ' ')"
 
 echo
+
 echo "OK: extension ZIP verified"
 echo "  Path: $ZIP_PATH"
 echo "  Entries: $count"
