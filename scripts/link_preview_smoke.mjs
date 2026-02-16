@@ -52,6 +52,42 @@ async function main() {
     assert("YouTube shortcut", false, `fetch error: ${e.message}`);
   }
 
+  // 2b) YouTube video NpDNSAPtGrw — must return i.ytimg.com thumbnail, NOT yt_1200.png logo
+  try {
+    const ytUrl = "https://www.youtube.com/watch?v=NpDNSAPtGrw";
+    const { status, body } = await fetchJSON(
+      `/api/link-preview?url=${encodeURIComponent(ytUrl)}`
+    );
+    const isValidThumb =
+      body.image &&
+      body.image.includes("i.ytimg.com/vi/NpDNSAPtGrw") &&
+      body.image.includes("hqdefault.jpg") &&
+      !body.image.includes("yt_1200.png");
+    assert("YouTube NpDNSAPtGrw (no logo fallback)",
+      status === 200 && isValidThumb,
+      `status=${status} image=${body.image || "(null)"}`);
+  } catch (e) {
+    assert("YouTube NpDNSAPtGrw (no logo fallback)", false, `fetch error: ${e.message}`);
+  }
+
+  // 2c) YouTube Shorts 2Z4m4lnjxkY — must return hqdefault, NOT maxresdefault (which returns placeholder)
+  try {
+    const ytUrl = "https://www.youtube.com/shorts/2Z4m4lnjxkY";
+    const { status, body } = await fetchJSON(
+      `/api/link-preview?url=${encodeURIComponent(ytUrl)}`
+    );
+    const isValidThumb =
+      body.image &&
+      body.image.includes("i.ytimg.com/vi/2Z4m4lnjxkY") &&
+      body.image.includes("hqdefault.jpg") &&
+      !body.image.includes("maxresdefault");
+    assert("YouTube Shorts 2Z4m4lnjxkY (hq not maxres)",
+      status === 200 && isValidThumb,
+      `status=${status} image=${body.image || "(null)"}`);
+  } catch (e) {
+    assert("YouTube Shorts 2Z4m4lnjxkY (hq not maxres)", false, `fetch error: ${e.message}`);
+  }
+
   // 3) Normal external fetch — should return image or favicon
   try {
     const { status, body } = await fetchJSON(
