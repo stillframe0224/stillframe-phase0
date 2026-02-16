@@ -1133,9 +1133,12 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
               </button>
             )}
 
-            {/* AI error */}
+            {/* AI error - always visible, accessible */}
             {aiError && (
               <span
+                data-testid="ai-feedback"
+                role="alert"
+                aria-live="polite"
                 style={{
                   fontSize: 8,
                   color: "#D93025",
