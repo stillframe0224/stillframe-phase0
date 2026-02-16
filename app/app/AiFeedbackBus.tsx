@@ -1,18 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-
-/**
- * AiFeedbackBus — Always-mounted global AI feedback handler
- *
- * Ensures:
- * - data-testid="ai-feedback-global" exists in DOM at all times (hidden when empty)
- * - window.__SHINEN_AI_FEEDBACK_READY flag set on mount
- * - Listens on both window AND document for 'shinen:ai-feedback' CustomEvents
- * - Auto-dismisses messages after 5 seconds
- *
- * This component is mounted once at the app root and never unmounts.
- */
+import { useEffect, useRef, useState } from "react";
 
 declare global {
   interface Window {
@@ -20,50 +8,75 @@ declare global {
   }
 }
 
+const AUTO_HIDE_MS = 5000;
+
+function normalizeMessage(detail: unknown): string {
+  if (typeof detail === "string") {
+    return detail;
+  }
+
+  if (detail && typeof detail === "object") {
+    const message = (detail as { message?: unknown }).message;
+    if (typeof message === "string") {
+      return message;
+    }
+
+    try {
+      return JSON.stringify(detail);
+    } catch {
+      return "[object]";
+    }
+  }
+
+  if (detail == null) {
+    return "";
+  }
+
+  return String(detail);
+}
+
 export default function AiFeedbackBus() {
-  const [message, setMessage] = useState<string | null>(null);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const [message, setMessage] = useState("");
+  const [visible, setVisible] = useState(false);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    // Set readiness flag
-    window.__SHINEN_AI_FEEDBACK_READY = true;
+    const handler = (event: Event) => {
+      const msg = normalizeMessage((event as CustomEvent).detail).trim();
+      if (!msg) return;
 
-    // Event handler for CustomEvent
-    const handler = (e: Event) => {
-      const detail = String((e as CustomEvent).detail || "");
-      if (!detail) return;
+      setMessage(msg);
+      setVisible(true);
 
-      setMessage(detail);
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
 
-      // Clear existing timer
-      if (timerRef.current) clearTimeout(timerRef.current);
-
-      // Auto-dismiss after 5 seconds
-      timerRef.current = setTimeout(() => setMessage(null), 5000);
+      timerRef.current = setTimeout(() => {
+        setVisible(false);
+      }, AUTO_HIDE_MS);
     };
 
-    // Listen on both window AND document for safety
     window.addEventListener("shinen:ai-feedback", handler);
-    document.addEventListener("shinen:ai-feedback", handler);
+    window.__SHINEN_AI_FEEDBACK_READY = true;
 
     return () => {
       window.removeEventListener("shinen:ai-feedback", handler);
-      document.removeEventListener("shinen:ai-feedback", handler);
-      if (timerRef.current) clearTimeout(timerRef.current);
+      window.__SHINEN_AI_FEEDBACK_READY = false;
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
     };
   }, []);
 
   return (
     <>
-      {/* Readiness marker — always in DOM, invisible */}
       <div data-testid="ai-feedback-bus-mounted" style={{ display: "none" }} />
 
-      {/* Global feedback band — always in DOM, hidden when no message */}
       <div
         data-testid="ai-feedback-global"
         role="alert"
         aria-live="polite"
-        hidden={!message}
         style={{
           position: "fixed",
           top: 12,
@@ -79,14 +92,14 @@ export default function AiFeedbackBus() {
           boxShadow: "0 4px 16px rgba(0,0,0,0.25)",
           maxWidth: "90vw",
           wordBreak: "break-word",
-          display: message ? "flex" : "none",
+          display: visible ? "flex" : "none",
           alignItems: "center",
           gap: 12,
         }}
       >
-        <span>AI: {message}</span>
+        <span>{message}</span>
         <button
-          onClick={() => setMessage(null)}
+          onClick={() => setVisible(false)}
           style={{
             background: "transparent",
             border: "none",
