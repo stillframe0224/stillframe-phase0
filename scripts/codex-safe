@@ -1,0 +1,160 @@
+#!/bin/bash
+# codex-safe: Resilient wrapper for codex exec with project-local CODEX_HOME
+#
+# Usage: scripts/codex-safe "your prompt here"
+#
+# Features:
+# - Project-local CODEX_HOME (.rwl/codex-home) to prevent permission errors
+# - Auto-generates config.toml with OpenAI provider tuning (stream/retry/idle)
+# - Auto-retry on failure with exponential backoff (up to MAX_ATTEMPTS)
+# - Stream disconnect recovery: resume --last "continue" (once per attempt)
+# - Always sends ntfy notification (success=3, failure=4)
+# - Exit code reflects final success/failure
+
+set -euo pipefail
+
+# Constants
+ROOT="/Users/array0224/stillframe-phase0"
+CODEX_HOME="$ROOT/.rwl/codex-home"
+MAX_ATTEMPTS=8
+NTFY_SERVER="${NTFY_SERVER:-https://ntfy.sh}"
+NTFY_TOPIC="${NTFY_TOPIC:-shinen-a3138f616ac49f6db007e149d78872d4}"
+
+# Ensure CODEX_HOME exists
+mkdir -p "$CODEX_HOME"
+export CODEX_HOME
+
+# Auto-generate config.toml if missing
+CONFIG_PATH="$CODEX_HOME/config.toml"
+if [ ! -f "$CONFIG_PATH" ]; then
+  echo "🔧 Generating $CONFIG_PATH (first run)" >&2
+  cat > "$CONFIG_PATH" <<'TOML_EOF'
+cli_auth_credentials_store = "auto"
+approval_policy = "never"
+sandbox_mode = "workspace-write"
+model_provider = "openai"
+
+[sandbox_workspace_write]
+network_access = true
+
+[model_providers.openai]
+name = "OpenAI"
+requires_openai_auth = true
+request_max_retries = 10
+stream_max_retries = 25
+stream_idle_timeout_ms = 900000
+TOML_EOF
+fi
+
+# Auto-heal existing config.toml (ensure [model_providers.openai] has name)
+if [ -f "$CONFIG_PATH" ]; then
+  # Check if [model_providers.openai] exists but missing 'name ='
+  if grep -q '^\[model_providers\.openai\]' "$CONFIG_PATH"; then
+    if ! grep -A5 '^\[model_providers\.openai\]' "$CONFIG_PATH" | grep -q '^name\s*='; then
+      echo "⚠️  Healing $CONFIG_PATH (missing provider name)" >&2
+      # Backup before modification
+      cp "$CONFIG_PATH" "$CONFIG_PATH.bak.$(date +%s)"
+      # Insert 'name = "OpenAI"' right after [model_providers.openai]
+      awk '
+        /^\[model_providers\.openai\]/ { print; print "name = \"OpenAI\""; print "requires_openai_auth = true"; next }
+        { print }
+      ' "$CONFIG_PATH" > "$CONFIG_PATH.tmp" && mv "$CONFIG_PATH.tmp" "$CONFIG_PATH"
+    fi
+  else
+    # [model_providers.openai] block missing entirely, append it
+    echo "⚠️  Healing $CONFIG_PATH (missing provider block)" >&2
+    cp "$CONFIG_PATH" "$CONFIG_PATH.bak.$(date +%s)"
+    cat >> "$CONFIG_PATH" <<'TOML_APPEND'
+
+[model_providers.openai]
+name = "OpenAI"
+requires_openai_auth = true
+request_max_retries = 10
+stream_max_retries = 25
+stream_idle_timeout_ms = 900000
+TOML_APPEND
+  fi
+fi
+
+# Parse prompt
+PROMPT="$*"
+if [ -z "$PROMPT" ]; then
+  echo "Usage: $0 <prompt>" >&2
+  exit 1
+fi
+
+# Send ntfy notification (failures are silent)
+notify() {
+  local priority="$1"
+  local title="$2"
+  local message="$3"
+
+  curl -sSf \
+    -H "Priority: $priority" \
+    -H "Title: $title" \
+    -d "$message" \
+    "$NTFY_SERVER/$NTFY_TOPIC" >/dev/null 2>&1 || true
+}
+
+# Main execution loop with exponential backoff
+attempt=1
+backoff=1  # seconds
+while [ $attempt -le $MAX_ATTEMPTS ]; do
+  echo "=== Attempt $attempt/$MAX_ATTEMPTS (backoff: ${backoff}s) ===" >&2
+
+  # Try main codex exec
+  set +e
+  codex exec --cd "$ROOT" "$PROMPT" 2>&1 | tee /tmp/codex-safe-output.log
+  exit_code=${PIPESTATUS[0]}
+  set -e
+
+  if [ $exit_code -eq 0 ]; then
+    # Success
+    notify "3" "✅ Codex Success" "Task completed (attempt $attempt/$MAX_ATTEMPTS)"
+    echo "SUCCESS: Task completed on attempt $attempt" >&2
+    exit 0
+  fi
+
+  # Failure
+  echo "FAILED: Attempt $attempt failed with exit code $exit_code" >&2
+
+  # Check if error was stream disconnect
+  stream_error=0
+  if grep -qi "stream.*disconnect\|connection.*reset\|timeout" /tmp/codex-safe-output.log; then
+    stream_error=1
+    echo "Detected stream disconnect — attempting resume" >&2
+
+    set +e
+    codex exec resume --last --cd "$ROOT" "continue" 2>&1 | tee /tmp/codex-safe-resume.log
+    resume_code=${PIPESTATUS[0]}
+    set -e
+
+    if [ $resume_code -eq 0 ]; then
+      notify "3" "✅ Codex Recovered" "Task recovered after stream disconnect (attempt $attempt)"
+      echo "SUCCESS: Recovered via resume on attempt $attempt" >&2
+      exit 0
+    else
+      echo "Resume failed with exit code $resume_code (continuing to next attempt)" >&2
+    fi
+  fi
+
+  # If we've exhausted attempts, fail
+  if [ $attempt -ge $MAX_ATTEMPTS ]; then
+    notify "4" "❌ Codex Failed" "Task failed after $MAX_ATTEMPTS attempts"
+    echo "FAILURE: All $MAX_ATTEMPTS attempts exhausted" >&2
+    exit 1
+  fi
+
+  # Exponential backoff (1s, 2s, 4s, 8s, 16s max)
+  sleep $backoff
+  backoff=$((backoff * 2))
+  if [ $backoff -gt 16 ]; then
+    backoff=16
+  fi
+
+  ((attempt++))
+done
+
+# Should never reach here, but guard
+notify "4" "❌ Codex Failed" "Unexpected loop exit"
+exit 1

@@ -333,6 +333,86 @@ EOF
 bash -lc 'tmp=$(mktemp -d); printf "#!/usr/bin/env bash\nexit 7\n" > "$tmp/codex"; chmod +x "$tmp/codex"; PATH="$tmp:$PATH" bash scripts/codex-run-notify "test"; echo EXIT:$?'
 ```
 
+## 8. Codex: Project-Local State & Stream Resilience
+
+**Entry Point**: `scripts/codex-safe` (only way to invoke `codex exec`)
+
+**Why**: Prevents `~/.codex/sessions` permission errors and eliminates stream disconnect failures via auto-retry + resume.
+
+### Architecture
+
+**CODEX_HOME**: Always set to `.rwl/codex-home/` (repo-local, gitignored)
+- First run auto-generates `config.toml` with OpenAI provider tuning:
+  - `request_max_retries = 10`
+  - `stream_max_retries = 25`
+  - `stream_idle_timeout_ms = 900000` (15 min)
+- Subsequent runs reuse existing config (no overwrites)
+- Sessions stored locally → no cross-repo permission conflicts
+
+**Retry Logic**:
+- Max attempts: 8 (up from 3)
+- Exponential backoff: 1s, 2s, 4s, 8s, 16s (capped)
+- Stream disconnect detection: greps output for `stream.*disconnect|connection.*reset|timeout`
+- Auto-resume: On stream error, runs `codex exec resume --last --cd "$ROOT" "continue"` once per attempt
+- Non-stream errors: Skip resume, proceed to next attempt
+
+**Notifications** (ntfy):
+- Success: Priority 3 (✅ Codex Success)
+- Failure: Priority 4 (❌ Codex Failed)
+- Recovery: Priority 3 (✅ Codex Recovered)
+
+### Usage
+
+```bash
+# Standard invocation (from anywhere)
+cd /Users/array0224/stillframe-phase0
+scripts/codex-safe "Summarize CLAUDE.md in 3 bullet points"
+
+# First run (auto-generates config)
+# → Creates .rwl/codex-home/config.toml
+# → Runs codex with --cd "$ROOT"
+
+# Stream disconnect scenario
+# → Attempt 1 fails with "stream disconnect"
+# → Auto-resume with "continue"
+# → If resume succeeds → exit 0 + notify
+# → If resume fails → backoff → attempt 2
+
+# All attempts exhausted
+# → Sends Pixel (Priority 4) notification
+# → Exit code 1
+```
+
+### Verification
+
+```bash
+# 1) Config auto-generated
+cat .rwl/codex-home/config.toml
+# Should show: [model_providers.openai] with stream_max_retries=25
+
+# 2) Quick smoke test
+scripts/codex-safe "Say 'pong' and stop."
+# Should succeed on attempt 1, send Priority 3 notification
+
+# 3) Force failure (codex not in PATH)
+PATH="/tmp:$PATH" scripts/codex-safe "test"
+# Should fail after 8 attempts, send Priority 4 notification
+```
+
+### Files
+
+- `scripts/codex-safe` — Wrapper script (chmod +x)
+- `.rwl/codex-home/` — Runtime state (gitignored)
+- `.gitignore` — Excludes `.rwl/codex-home/`
+
+### Critical Invariants
+
+1. **Never invoke `codex` directly** — always use `scripts/codex-safe`
+2. **CODEX_HOME is always repo-local** — prevents `~/.codex/sessions` permission errors
+3. **--cd "$ROOT" on every exec** — prevents session cross-contamination
+4. **config.toml is never overwritten** — first-run only, preserves user edits
+5. **Auto-heal on startup** — `scripts/codex-safe` auto-repairs `.rwl/codex-home/config.toml` if `[model_providers.openai]` is missing `name` field (required by Codex)
+
 ### Extension Release: Failure Modes & Mitigations
 
 #### Top 10 Failure Modes

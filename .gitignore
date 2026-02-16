@@ -39,3 +39,6 @@ next-env.d.ts
 .env.local
 .env.*
 !.env.example
+
+# codex runtime state (local sessions, prevents permission errors)
+.rwl/codex-home/
