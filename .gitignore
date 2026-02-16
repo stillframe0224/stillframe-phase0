@@ -42,3 +42,9 @@ next-env.d.ts
 
 # codex runtime state (local sessions, prevents permission errors)
 .rwl/codex-home/
+
+# --- local runtimes / agents ---
+.claude/worktrees/
+
+# --- local ship evidence logs ---
+reports/triad/ship_evidence_*.md
