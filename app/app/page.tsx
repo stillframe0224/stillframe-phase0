@@ -120,6 +120,8 @@ export default function AppPage() {
     file_id?: string | null;
     created_at: string;
   } | null>(null);
+  const [globalAiMsg, setGlobalAiMsg] = useState<string | null>(null);
+  const globalAiTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -415,6 +417,19 @@ export default function AppPage() {
     const newUrl = query ? `/app?${query}` : "/app";
     router.replace(newUrl, { scroll: false });
   }, [searchQuery, domainFilter, fileFilter, mediaFilter, sortOrder, showPinnedOnly, router]);
+
+  // Global AI feedback event bus — catches ALL AI errors regardless of card state
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = String((e as CustomEvent).detail || "");
+      if (!detail) return;
+      setGlobalAiMsg(detail);
+      if (globalAiTimerRef.current) clearTimeout(globalAiTimerRef.current);
+      globalAiTimerRef.current = setTimeout(() => setGlobalAiMsg(null), 5000);
+    };
+    window.addEventListener("shinen:ai-feedback", handler);
+    return () => window.removeEventListener("shinen:ai-feedback", handler);
+  }, []);
 
   // Extract unique domains from cards
   const domains = useMemo(() => {
@@ -1398,6 +1413,50 @@ export default function AppPage() {
           }}
         >
           {errorBanner}
+        </div>
+      )}
+
+      {/* Global AI feedback band — event-bus driven, always mounted when message exists */}
+      {globalAiMsg && (
+        <div
+          data-testid="ai-feedback-global"
+          role="alert"
+          aria-live="polite"
+          style={{
+            position: "fixed",
+            top: 52,
+            left: "50%",
+            transform: "translateX(-50%)",
+            padding: "8px 20px",
+            borderRadius: 8,
+            background: "#7B4FD9",
+            color: "#fff",
+            fontSize: 12,
+            fontFamily: "var(--font-dm)",
+            zIndex: 103,
+            boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
+            maxWidth: "90vw",
+            wordBreak: "break-word",
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
+          }}
+        >
+          <span>AI: {globalAiMsg}</span>
+          <button
+            onClick={() => setGlobalAiMsg(null)}
+            style={{
+              background: "transparent",
+              border: "none",
+              color: "#fff",
+              fontSize: 16,
+              cursor: "pointer",
+              padding: "0 4px",
+              lineHeight: 1,
+            }}
+          >
+            x
+          </button>
         </div>
       )}
 
