@@ -1122,8 +1122,8 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
               }).format(new Date(card.created_at))}
             </span>
 
-            {/* AI organize button - always visible for discoverability */}
-            {!isBulkMode && (
+            {/* AI organize button - Phase0: hidden by default unless NEXT_PUBLIC_ENABLE_AI=1 */}
+            {!isBulkMode && process.env.NEXT_PUBLIC_ENABLE_AI === "1" && (
               <button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -1151,8 +1151,8 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
               </button>
             )}
 
-            {/* AI error - always visible, accessible */}
-            {aiError && (
+            {/* AI error - Phase0: hidden unless NEXT_PUBLIC_ENABLE_AI=1 */}
+            {aiError && process.env.NEXT_PUBLIC_ENABLE_AI === "1" && (
               <span
                 data-testid="ai-feedback"
                 role="alert"
@@ -1167,8 +1167,8 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
               </span>
             )}
 
-            {/* AI success */}
-            {aiSuccess && (
+            {/* AI success - Phase0: hidden unless NEXT_PUBLIC_ENABLE_AI=1 */}
+            {aiSuccess && process.env.NEXT_PUBLIC_ENABLE_AI === "1" && (
               <span
                 style={{
                   fontSize: 8,
@@ -1180,7 +1180,7 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
               </span>
             )}
 
-            {/* File assignment */}
+            {/* File assignment - enlarged for better UX */}
             {onFileAssign && files.length > 0 && !isBulkMode && (
               <div style={{ position: "relative" }}>
                 <button
@@ -1189,15 +1189,22 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
                     setShowFileSelect(!showFileSelect);
                   }}
                   style={{
-                    fontSize: 9,
-                    color: "#888",
-                    background: "transparent",
-                    border: "none",
+                    minHeight: 36,
+                    minWidth: 36,
+                    fontSize: 16,
+                    color: "#555",
+                    background: "#f5f5f5",
+                    border: "1px solid #e0e0e0",
+                    borderRadius: 6,
                     cursor: "pointer",
                     fontFamily: "var(--font-dm)",
-                    padding: 0,
+                    padding: "6px 8px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
                   }}
                   title="Move to file"
+                  aria-label="Move to file"
                 >
                   📁
                 </button>
@@ -1256,24 +1263,6 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
                   </div>
                 )}
               </div>
-            )}
-
-            {cardUrl && !isBulkMode && (
-              <a
-                href={cardUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={(e) => e.stopPropagation()}
-                style={{
-                  color: ct.accent,
-                  textDecoration: "none",
-                  fontFamily: "var(--font-dm)",
-                  fontWeight: 600,
-                  opacity: 0.7,
-                }}
-              >
-                Open &rsaquo;
-              </a>
             )}
           </div>
         </div>
