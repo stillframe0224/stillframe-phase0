@@ -149,6 +149,7 @@ For issues or feature requests, contact SHINEN support.
 ## Chat Completion Beep (ChatGPT / Claude)
 
 After reloading the extension, beep normally works without first click/keypress via offscreen playback. If offscreen is unavailable, fallback playback requires one initial click/keypress due to autoplay policy.
+When a beep event fires, the extension icon badge flashes for 1 second (`•` on success, `!` on fail).
 
 ### Quick Test
 
