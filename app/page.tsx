@@ -117,7 +117,14 @@ export default function Home() {
           margin: "0 auto",
         }}
       >
-        <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <img
+            src="/enso.png"
+            width={20}
+            height={20}
+            alt="enso"
+            style={{ display: "block" }}
+          />
           <span
             style={{
               fontFamily: "var(--font-serif)",
