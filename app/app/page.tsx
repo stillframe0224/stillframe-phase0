@@ -1613,7 +1613,7 @@ export default function AppPage() {
           }}
         >
           <img
-            src="/enso.svg"
+            src="/enso.png"
             alt=""
             style={{
               width: 20,
