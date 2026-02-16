@@ -1,5 +1,83 @@
 // Save to SHINEN - Background Script (MV3)
 
+const OFFSCREEN_AUDIO_PATH = 'offscreen_audio.html';
+let creatingOffscreenDocument = null;
+
+async function hasOffscreenDocument() {
+  const offscreenUrl = chrome.runtime.getURL(OFFSCREEN_AUDIO_PATH);
+
+  if (chrome.runtime.getContexts) {
+    const contexts = await chrome.runtime.getContexts({
+      contextTypes: ['OFFSCREEN_DOCUMENT'],
+      documentUrls: [offscreenUrl],
+    });
+    return contexts.length > 0;
+  }
+
+  if (typeof clients === 'undefined' || typeof clients.matchAll !== 'function') {
+    return false;
+  }
+
+  const matchedClients = await clients.matchAll();
+  return matchedClients.some((client) => {
+    const url = client && client.url ? client.url : '';
+    return url.includes(chrome.runtime.id) && url.includes(OFFSCREEN_AUDIO_PATH);
+  });
+}
+
+async function setupOffscreenDocument() {
+  if (await hasOffscreenDocument()) {
+    return;
+  }
+
+  if (creatingOffscreenDocument) {
+    await creatingOffscreenDocument;
+    return;
+  }
+
+  creatingOffscreenDocument = chrome.offscreen
+    .createDocument({
+      url: OFFSCREEN_AUDIO_PATH,
+      reasons: ['AUDIO_PLAYBACK'],
+      justification: 'Play beep sounds on completion events',
+    })
+    .catch((error) => {
+      const message = String((error && error.message) || error || '');
+      if (!message.includes('Only a single offscreen document may be created')) {
+        throw error;
+      }
+    })
+    .finally(() => {
+      creatingOffscreenDocument = null;
+    });
+
+  await creatingOffscreenDocument;
+}
+
+chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
+  if (!msg || msg.type !== 'SF_BEEP' || msg.from !== 'content') {
+    return;
+  }
+
+  (async () => {
+    try {
+      const kind = msg.kind === 'fail' ? 'fail' : 'success';
+      await setupOffscreenDocument();
+      await chrome.runtime.sendMessage({
+        target: 'offscreen',
+        type: 'SF_BEEP',
+        kind,
+      });
+      sendResponse({ ok: true });
+    } catch (error) {
+      console.error('Offscreen beep relay failed:', error);
+      sendResponse({ ok: false });
+    }
+  })();
+
+  return true;
+});
+
 chrome.action.onClicked.addListener(async (tab) => {
   try {
     // Get basic tab info

@@ -16,6 +16,8 @@ REQUIRED_FILES=(
   "manifest.json"
   "background.js"
   "content/beep_on_complete.js"
+  "offscreen_audio.html"
+  "offscreen_audio.js"
   "icon16.png"
   "icon48.png"
   "icon128.png"
