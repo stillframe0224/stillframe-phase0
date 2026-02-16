@@ -1613,12 +1613,11 @@ export default function AppPage() {
           }}
         >
           <img
-            src="/enso-logo.svg"
+            src="/enso.svg"
             alt=""
             style={{
-              width: 24,
-              height: 24,
-              opacity: 0.85,
+              width: 20,
+              height: 20,
             }}
           />
           SHINEN

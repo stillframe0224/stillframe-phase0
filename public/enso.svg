@@ -1,0 +1,32 @@
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <!-- Enso circle - brushstroke aesthetic with natural variation -->
+  <defs>
+    <!-- Gradient for subtle depth -->
+    <radialGradient id="brushGrad" cx="50%" cy="50%">
+      <stop offset="0%" style="stop-color:#1a1a1a;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#2a2a2a;stop-opacity:0.9" />
+    </radialGradient>
+  </defs>
+
+  <!-- Main brushstroke circle - thicker, hand-drawn aesthetic -->
+  <path
+    d="M 15 50 C 15 29 29 15 50 15 C 71 15 85 29 85 50 C 85 71 71 85 50 85 C 35 85 22 76 17 62"
+    fill="none"
+    stroke="url(#brushGrad)"
+    stroke-width="7"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    opacity="0.88"
+  />
+
+  <!-- Gap to show incompleteness (zen aesthetic) -->
+  <!-- Subtle inner shadow for depth -->
+  <path
+    d="M 18 55 C 19 64 23 72 30 78"
+    fill="none"
+    stroke="#2a2a2a"
+    stroke-width="5"
+    stroke-linecap="round"
+    opacity="0.3"
+  />
+</svg>
