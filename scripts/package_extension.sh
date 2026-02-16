@@ -15,6 +15,7 @@ SOURCE_DIR="$REPO_ROOT/tools/chrome-extension/save-to-shinen"
 REQUIRED_FILES=(
   "manifest.json"
   "background.js"
+  "content/beep_on_complete.js"
   "icon16.png"
   "icon48.png"
   "icon128.png"
