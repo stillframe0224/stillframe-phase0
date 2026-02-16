@@ -48,3 +48,6 @@ next-env.d.ts
 
 # --- local ship evidence logs ---
 reports/triad/ship_evidence_*.md
+
+# --- local triad reports ---
+reports/triad/*.md
