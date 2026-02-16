@@ -318,7 +318,7 @@ Only use if autotag workflow fails. Version must match `manifest.json`.
 
 **Installation**: See `tools/chrome-extension/save-to-shinen/INSTALL.md`
 
-**Desktop push notify (ntfy)**: `NTFY_TOPIC`（必要）と必要に応じて `NTFY_SERVER` / 認証をローカルenvに設定し、Codexは必ず `scripts/codex-run-notify` 経由で実行する（`--ask-for-approval never` + 停止時Pixel通知）。通知優先度は `done=3`, `fail=4`, `critical=4`, `warning/done/complete=3`。RWL連携は `RWL_NOTIFY=1` で `node tools/notify/rwl-status-hook.mjs [status.json path]` を status 更新時に呼ぶ。
+**Desktop push notify (ntfy)**: Codexは必ず `scripts/codex-run-notify` 経由のみで実行する。`NTFY_TOPIC` は必須（未設定なら実行しない/exit 64）で、`.env.local` 例: `NTFY_TOPIC=your-private-topic`（必要なら `NTFY_SERVER` / 認証も定義）。通知優先度は `done=3`, `fail=4`, `critical=4`, `warning/done/complete=3`。RWL連携は `RWL_NOTIFY=1` で `node tools/notify/rwl-status-hook.mjs [status.json path]` を status 更新時に呼ぶ。
 
 ```bash
 # 1) 引数PROMPT
