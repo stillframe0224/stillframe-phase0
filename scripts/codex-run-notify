@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+NOTIFIER="$SCRIPT_DIR/../tools/notify/ntfy.mjs"
+
+START_TS="$(date +%s)"
+PREVIEW=""
+CODE=0
+
+if [ "$#" -gt 0 ]; then
+  PROMPT="$*"
+  PREVIEW="$(printf '%s' "$PROMPT" | tr '\n' ' ' | cut -c1-120)"
+  set +e
+  codex exec \
+    --cd /Users/array0224/stillframe-phase0 \
+    --sandbox workspace-write \
+    --ask-for-approval never \
+    --config sandbox_workspace_write.network_access=true \
+    "$PROMPT"
+  CODE="$?"
+  set -e
+else
+  PROMPT_STDIN="$(cat)"
+  PREVIEW="(stdin)"
+  set +e
+  printf '%s' "$PROMPT_STDIN" | codex exec \
+    --cd /Users/array0224/stillframe-phase0 \
+    --sandbox workspace-write \
+    --ask-for-approval never \
+    --config sandbox_workspace_write.network_access=true \
+    -
+  CODE="$?"
+  set -e
+fi
+
+END_TS="$(date +%s)"
+DURATION="$((END_TS - START_TS))"
+
+if [ "$CODE" -eq 0 ]; then
+  TITLE="✅ codex done"
+  PRIORITY="3"
+else
+  TITLE="❌ codex fail($CODE)"
+  PRIORITY="4"
+fi
+
+MESSAGE="${DURATION}s | ${PREVIEW}"
+
+node "$NOTIFIER" --title "$TITLE" --message "$MESSAGE" --priority "$PRIORITY" >/dev/null 2>&1 || true
+
+exit "$CODE"

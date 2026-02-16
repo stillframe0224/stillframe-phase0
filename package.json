@@ -8,7 +8,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "notify:smoke": "node scripts/notify_smoke.mjs"
+    "notify:smoke": "node scripts/notify_smoke.mjs",
+    "codex:run": "bash scripts/codex-run-notify"
   },
   "keywords": [],
   "author": "",
