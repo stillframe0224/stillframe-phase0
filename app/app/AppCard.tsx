@@ -604,8 +604,9 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
         // Update parent component (trigger re-render)
         if (onUpdate) onUpdate(card.id);
 
-        // Show success feedback
+        // Show success feedback (local + global)
         setAiSuccess(true);
+        window.dispatchEvent(new CustomEvent("shinen:ai-feedback", { detail: "AI updated card" }));
         setTimeout(() => setAiSuccess(false), 2000);
 
         // Scroll card into view after update to ensure it stays visible
@@ -621,6 +622,8 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
       const errorMsg = error?.message?.trim() || "AI analysis failed (unknown error)";
       setAiError(errorMsg);
       setAiAnalyzing(false);
+      // Dispatch to global event bus — ensures feedback even if card unmounts/re-renders
+      window.dispatchEvent(new CustomEvent("shinen:ai-feedback", { detail: errorMsg }));
       // Persist error for 5 seconds (was 3s) to ensure visibility
       setTimeout(() => setAiError(null), 5000);
     } finally {
