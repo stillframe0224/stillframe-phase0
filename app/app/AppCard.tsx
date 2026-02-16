@@ -1180,7 +1180,7 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
               </span>
             )}
 
-            {/* File assignment - enlarged for better UX */}
+            {/* File assignment - clean pill button with icon + label */}
             {onFileAssign && files.length > 0 && !isBulkMode && (
               <div style={{ position: "relative" }}>
                 <button
@@ -1189,24 +1189,37 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
                     setShowFileSelect(!showFileSelect);
                   }}
                   style={{
-                    minHeight: 36,
-                    minWidth: 36,
-                    fontSize: 16,
+                    height: 28,
+                    padding: "0 10px",
+                    fontSize: 11,
+                    fontWeight: 500,
                     color: "#555",
-                    background: "#f5f5f5",
-                    border: "1px solid #e0e0e0",
-                    borderRadius: 6,
+                    background: "#fff",
+                    border: "1px solid #d0d0d0",
+                    borderRadius: 14,
                     cursor: "pointer",
                     fontFamily: "var(--font-dm)",
-                    padding: "6px 8px",
                     display: "flex",
                     alignItems: "center",
-                    justifyContent: "center",
+                    gap: 4,
+                    transition: "all 0.15s",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = "#f8f8f8";
+                    e.currentTarget.style.borderColor = "#999";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = "#fff";
+                    e.currentTarget.style.borderColor = "#d0d0d0";
                   }}
                   title="Move to file"
                   aria-label="Move to file"
                 >
-                  📁
+                  {/* Inline folder icon SVG */}
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+                  </svg>
+                  <span>File</span>
                 </button>
 
                 {showFileSelect && (
