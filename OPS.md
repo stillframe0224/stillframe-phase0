@@ -493,3 +493,11 @@ gh run list --limit 10
 - [OPS/supabase-setup.md](OPS/supabase-setup.md) — Full Supabase setup: table DDL, RLS policies, Google OAuth config, Storage bucket, env vars
 - [OPS/deploy.md](OPS/deploy.md) — Vercel deploy guide: initial setup, env vars, verification steps
 - [CLAUDE.md](CLAUDE.md) — Project conventions for AI-assisted development
+
+## AI Feedback Bus Console Self-Test
+
+Run this in browser Console to verify the global band event path:
+
+`window.dispatchEvent(new CustomEvent('shinen:ai-feedback',{detail:'TEST:global band'}))`
+
+Expected: the global band (`data-testid=\"ai-feedback-global\"`) becomes visible and includes `TEST:global band` in text.
