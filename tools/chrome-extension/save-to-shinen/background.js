@@ -71,7 +71,7 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
       sendResponse({ ok: true });
     } catch (error) {
       console.error('Offscreen beep relay failed:', error);
-      sendResponse({ ok: false });
+      sendResponse({ ok: false, reason: String((error && error.message) || error) });
     }
   })();
 
