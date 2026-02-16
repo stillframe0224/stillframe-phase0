@@ -4,11 +4,14 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 ZIP_PATH="$REPO_ROOT/dist/save-to-shinen.zip"
+MANIFEST_PATH="$REPO_ROOT/tools/chrome-extension/save-to-shinen/manifest.json"
 
 REQUIRED_FILES=(
   "manifest.json"
   "background.js"
   "content/beep_on_complete.js"
+  "offscreen_audio.html"
+  "offscreen_audio.js"
   "icon16.png"
   "icon48.png"
   "icon128.png"
@@ -24,6 +27,10 @@ fail() {
 
 if ! command -v unzip >/dev/null 2>&1; then
   fail "unzip is required but was not found in PATH"
+fi
+
+if ! command -v node >/dev/null 2>&1; then
+  fail "node is required but was not found in PATH"
 fi
 
 bash "$REPO_ROOT/scripts/package_extension.sh"
@@ -74,6 +81,20 @@ done
 if [ "$missing" -ne 0 ]; then
   exit 1
 fi
+
+node -e '
+const fs = require("fs");
+const p = process.argv[1];
+const m = JSON.parse(fs.readFileSync(p, "utf8"));
+if (!Array.isArray(m.permissions) || !m.permissions.includes("offscreen")) {
+  console.error("manifest missing permissions.offscreen");
+  process.exit(1);
+}
+if (!m.background || !m.background.service_worker) {
+  console.error("manifest missing background.service_worker");
+  process.exit(1);
+}
+' "$MANIFEST_PATH"
 
 size="$(du -h "$ZIP_PATH" | awk '{print $1}')"
 count="$(wc -l <"$tmp_list" | tr -d ' ')"
