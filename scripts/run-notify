@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [ "$#" -eq 0 ]; then
+  echo "usage: scripts/run-notify <command...>" >&2
+  exit 2
+fi
+
+START_TS="$(date +%s)"
+
+set +e
+"$@"
+CMD_EXIT="$?"
+set -e
+
+END_TS="$(date +%s)"
+DURATION="$((END_TS - START_TS))"
+
+if [ "$CMD_EXIT" -eq 0 ]; then
+  TITLE="✅ done"
+  PRIORITY="3"
+else
+  TITLE="❌ fail($CMD_EXIT)"
+  PRIORITY="4"
+fi
+
+CMD_STR="$(printf '%q ' "$@" | sed 's/[[:space:]]*$//')"
+MESSAGE="${CMD_STR} (${DURATION}s)"
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+NOTIFIER="$SCRIPT_DIR/../tools/notify/ntfy.mjs"
+
+if ! node "$NOTIFIER" --title "$TITLE" --priority "$PRIORITY" --message "$MESSAGE" >/dev/null; then
+  echo "[run-notify] warn notification failed" >&2
+fi
+
+exit "$CMD_EXIT"

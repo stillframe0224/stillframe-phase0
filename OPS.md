@@ -318,6 +318,8 @@ Only use if autotag workflow fails. Version must match `manifest.json`.
 
 **Installation**: See `tools/chrome-extension/save-to-shinen/INSTALL.md`
 
+**Desktop push notify (ntfy)**: Set `NTFY_TOPIC` (and optionally `NTFY_SERVER`, auth) in local env, subscribe the same topic on Pixel with sound enabled, then run commands via `scripts/run-notify <command...>` for done/fail push notifications (`done=priority 3`, `fail=priority 4`). For RWL automation, set `RWL_NOTIFY=1` and call `node tools/notify/rwl-status-hook.mjs [status.json path]` when status updates (`critical=4`, `warning/done/complete=3`); it notifies once per `task_id+status`.
+
 ### Extension Release: Failure Modes & Mitigations
 
 #### Top 10 Failure Modes
