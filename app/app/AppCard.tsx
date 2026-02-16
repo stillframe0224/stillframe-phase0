@@ -557,6 +557,17 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
           }
         }
 
+        // 400: Bad request (validation errors)
+        if (status === 400) {
+          if (errorData?.error === "cardId required") {
+            throw new Error("AI request invalid (cardId required)");
+          }
+          // Other 400 errors: extract message or use generic
+          const msg = errorData?.error?.message || errorData?.error || `Bad request (HTTP 400)`;
+          const errorMsg = typeof msg === 'string' ? msg : `Bad request (HTTP 400)`;
+          throw new Error(errorMsg);
+        }
+
         // 404: Check if endpoint missing (HTML response) vs card not found (JSON)
         if (status === 404) {
           if (errorData?.error?.code === "CARD_NOT_FOUND" || errorData?.error === "Card not found") {
@@ -606,8 +617,8 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
       // Show success briefly
       setTimeout(() => setAiAnalyzing(false), 1500);
     } catch (error: any) {
-      // Always show error, even if message is missing
-      const errorMsg = error?.message || "AI analysis failed (unknown error)";
+      // Always show error, even if message is missing (trim to catch empty strings)
+      const errorMsg = error?.message?.trim() || "AI analysis failed (unknown error)";
       setAiError(errorMsg);
       setAiAnalyzing(false);
       // Persist error for 5 seconds (was 3s) to ensure visibility
