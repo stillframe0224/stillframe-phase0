@@ -2,7 +2,28 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-NOTIFIER="$SCRIPT_DIR/../tools/notify/ntfy.mjs"
+REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+NOTIFIER="$REPO_ROOT/tools/notify/ntfy.mjs"
+
+cd "$REPO_ROOT"
+
+# Auto-load local notify env if present.
+if [ -f ".env.local" ]; then
+  set -a
+  # shellcheck disable=SC1091
+  source ".env.local"
+  set +a
+fi
+
+if [ -z "${NTFY_SERVER:-}" ]; then
+  NTFY_SERVER="https://ntfy.sh"
+fi
+export NTFY_SERVER
+
+if [ -z "${NTFY_TOPIC:-}" ]; then
+  echo "[FATAL] NTFY_TOPIC is required. Set it in .env.local or env." >&2
+  exit 64
+fi
 
 START_TS="$(date +%s)"
 PREVIEW=""
