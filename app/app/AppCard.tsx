@@ -543,11 +543,17 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
 
       if (!response.ok) {
         const error = await response.json();
+
+        // Check if endpoint itself is missing (404 without CARD_NOT_FOUND error code)
+        if (response.status === 404 && !error.error?.code) {
+          throw new Error("AI endpoint unavailable (404) - check deployment");
+        }
+
         // Never auto-delete card on API errors - show error message instead
         // User can manually delete if needed
         const errorMsg = error.error?.code === "CARD_NOT_FOUND" || error.error === "Card not found"
           ? "Card not found - may have been deleted"
-          : error.error?.message || error.error || "AI analysis failed";
+          : error.error?.message || error.error || `AI analysis failed (HTTP ${response.status})`;
         throw new Error(errorMsg);
       }
 
