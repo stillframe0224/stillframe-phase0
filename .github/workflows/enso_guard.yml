@@ -1,11 +1,6 @@
 name: enso.png Guard
 
 on:
-  pull_request:
-    paths:
-      - 'public/enso.png'
-      - 'public/enso.png.sha256'
-      - 'scripts/enso_verify.sh'
   push:
     branches:
       - main
@@ -13,6 +8,14 @@ on:
       - 'public/enso.png'
       - 'public/enso.png.sha256'
       - 'scripts/enso_verify.sh'
+      - '.github/workflows/enso_guard.yml'
+  pull_request:
+    paths:
+      - 'public/enso.png'
+      - 'public/enso.png.sha256'
+      - 'scripts/enso_verify.sh'
+      - '.github/workflows/enso_guard.yml'
+  workflow_dispatch:
 
 jobs:
   verify-enso:
