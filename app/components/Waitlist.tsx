@@ -105,9 +105,10 @@ export default function Waitlist({
         />
         <PrimaryButton
           data-testid="cta-waitlist"
+          aria-label={loading ? c.submitting[lang] : c.cta[lang]}
           type="submit"
           disabled={loading}
-          className="rounded-full px-6 py-3 text-sm whitespace-nowrap"
+          className="rounded-full px-6 py-3 text-sm whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#D9A441]"
           style={{ cursor: loading ? "wait" : undefined }}
         >
           {loading ? c.submitting[lang] : c.cta[lang]}

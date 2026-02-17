@@ -148,6 +148,8 @@ export default function Home() {
         <a
           href="#demo"
           onClick={() => track("hero_cta_click")}
+          aria-label={copy.hero.cta[lang]}
+          className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#D9A441] rounded-full"
           style={{ textDecoration: "none" }}
         >
           <PrimaryButton className="rounded-full px-7 py-3 text-sm">

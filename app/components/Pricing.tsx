@@ -87,6 +87,8 @@ export default function Pricing({ lang, gumroadUrl }: PricingProps) {
         rel="noopener noreferrer"
         onClick={() => track("checkout_start")}
         data-testid="cta-pricing"
+        aria-label={c.cta[lang]}
+        className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#D9A441] rounded-full"
         style={{ textDecoration: "none" }}
       >
         <PrimaryButton data-testid="cta-pricing" className="rounded-full px-8 py-3 text-sm">
