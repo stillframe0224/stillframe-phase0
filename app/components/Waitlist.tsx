@@ -25,9 +25,10 @@ export default function Waitlist({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email) return;
+    const normalizedEmail = email.trim().toLowerCase();
+    if (!normalizedEmail) return;
 
-    track("waitlist_submit", { email });
+    track("waitlist_submit", { email: normalizedEmail });
     setLoading(true);
     setErrorMessage(null);
 
@@ -36,12 +37,12 @@ export default function Waitlist({
         const res = await fetch(postUrl, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email }),
+          body: JSON.stringify({ email: normalizedEmail }),
         });
 
         if (!res.ok) throw new Error(`waitlist_submit_failed_${res.status}`);
       } else if (fallbackEmail) {
-        window.location.href = `mailto:${fallbackEmail}?subject=SHINEN Waitlist&body=Please add ${email} to the waitlist.`;
+        window.location.href = `mailto:${fallbackEmail}?subject=SHINEN Waitlist&body=Please add ${normalizedEmail} to the waitlist.`;
       } else {
         throw new Error("waitlist_destination_missing");
       }
@@ -49,7 +50,7 @@ export default function Waitlist({
       setSubmitted(true);
     } catch {
       setErrorMessage(c.error[lang]);
-      track("waitlist_submit_failed", { email });
+      track("waitlist_submit_failed", { email: normalizedEmail });
     } finally {
       setLoading(false);
     }
@@ -92,6 +93,10 @@ export default function Waitlist({
             setEmail(e.target.value);
             if (errorMessage) setErrorMessage(null);
           }}
+          autoComplete="email"
+          inputMode="email"
+          autoCapitalize="none"
+          autoCorrect="off"
           style={{
             flex: 1,
             padding: "12px 18px",
