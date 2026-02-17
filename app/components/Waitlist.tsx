@@ -20,6 +20,7 @@ export default function Waitlist({
   const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const c = copy.waitlist;
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -28,23 +29,30 @@ export default function Waitlist({
 
     track("waitlist_submit", { email });
     setLoading(true);
+    setErrorMessage(null);
 
-    if (postUrl) {
-      try {
-        await fetch(postUrl, {
+    try {
+      if (postUrl) {
+        const res = await fetch(postUrl, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email }),
         });
-      } catch {
-        // fallback silently
-      }
-    } else if (fallbackEmail) {
-      window.location.href = `mailto:${fallbackEmail}?subject=SHINEN Waitlist&body=Please add ${email} to the waitlist.`;
-    }
 
-    setLoading(false);
-    setSubmitted(true);
+        if (!res.ok) throw new Error(`waitlist_submit_failed_${res.status}`);
+      } else if (fallbackEmail) {
+        window.location.href = `mailto:${fallbackEmail}?subject=SHINEN Waitlist&body=Please add ${email} to the waitlist.`;
+      } else {
+        throw new Error("waitlist_destination_missing");
+      }
+
+      setSubmitted(true);
+    } catch {
+      setErrorMessage(c.error[lang]);
+      track("waitlist_submit_failed", { email });
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (submitted) {
@@ -67,40 +75,56 @@ export default function Waitlist({
   }
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      style={{
-        display: "flex",
-        gap: 10,
-        maxWidth: 440,
-        margin: "0 auto",
-      }}
-    >
-      <input
-        type="email"
-        required
-        placeholder={c.placeholder[lang]}
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
+    <div style={{ maxWidth: 440, margin: "0 auto" }}>
+      <form
+        onSubmit={handleSubmit}
         style={{
-          flex: 1,
-          padding: "12px 18px",
-          borderRadius: 999,
-          border: "1px solid #ddd",
-          fontSize: 15,
-          fontFamily: "var(--font-dm)",
-          outline: "none",
-          background: "#fff",
+          display: "flex",
+          gap: 10,
         }}
-      />
-      <PrimaryButton
-        type="submit"
-        disabled={loading}
-        className="rounded-full px-6 py-3 text-sm whitespace-nowrap"
-        style={{ cursor: loading ? "wait" : undefined }}
       >
-        {c.cta[lang]}
-      </PrimaryButton>
-    </form>
+        <input
+          type="email"
+          required
+          placeholder={c.placeholder[lang]}
+          value={email}
+          onChange={(e) => {
+            setEmail(e.target.value);
+            if (errorMessage) setErrorMessage(null);
+          }}
+          style={{
+            flex: 1,
+            padding: "12px 18px",
+            borderRadius: 999,
+            border: "1px solid #ddd",
+            fontSize: 15,
+            fontFamily: "var(--font-dm)",
+            outline: "none",
+            background: "#fff",
+          }}
+        />
+        <PrimaryButton
+          type="submit"
+          disabled={loading}
+          className="rounded-full px-6 py-3 text-sm whitespace-nowrap"
+          style={{ cursor: loading ? "wait" : undefined }}
+        >
+          {loading ? c.submitting[lang] : c.cta[lang]}
+        </PrimaryButton>
+      </form>
+      {errorMessage && (
+        <p
+          style={{
+            marginTop: 10,
+            fontSize: 13,
+            color: "#b42318",
+            fontFamily: "var(--font-dm)",
+            textAlign: "center",
+          }}
+        >
+          {errorMessage}
+        </p>
+      )}
+    </div>
   );
 }

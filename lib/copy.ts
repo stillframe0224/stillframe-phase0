@@ -85,9 +85,14 @@ const copy = {
     h2: { en: "Stay in the loop", ja: "最新情報を受け取る" },
     placeholder: { en: "you@email.com", ja: "you@email.com" },
     cta: { en: "Notify me", ja: "通知を受け取る" },
+    submitting: { en: "Sending...", ja: "送信中..." },
     success: {
       en: "You're in. We'll be in touch.",
       ja: "登録完了。ご連絡します。",
+    },
+    error: {
+      en: "Could not submit. Please try again.",
+      ja: "送信できませんでした。もう一度お試しください。",
     },
   },
   footer: {
