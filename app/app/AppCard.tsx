@@ -109,6 +109,34 @@ const svgFallbacks: Record<string, React.ReactNode> = {
   ),
 };
 
+const CHIP_BASE_STYLE: React.CSSProperties = {
+  fontSize: 10,
+  fontWeight: 600,
+  padding: "2px 8px",
+  borderRadius: 999,
+  borderWidth: 1,
+  borderStyle: "solid",
+  fontFamily: "var(--font-dm)",
+  textTransform: "uppercase",
+  letterSpacing: "0.06em",
+  lineHeight: 1,
+  whiteSpace: "nowrap",
+};
+
+const CHIP_TYPE_STYLE = (accent: string, border: string): React.CSSProperties => ({
+  ...CHIP_BASE_STYLE,
+  color: accent,
+  background: `${border}33`,
+  borderColor: "transparent",
+});
+
+const CHIP_ACTION_NEUTRAL_STYLE: React.CSSProperties = {
+  ...CHIP_BASE_STYLE,
+  color: "#404040",
+  background: "#fff",
+  borderColor: "#d4d4d4",
+};
+
 interface AppCardProps {
   card: Card;
   index: number;
@@ -1145,16 +1173,7 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
               }}
               onMouseLeave={() => setShowMemoPreview(false)}
               style={{
-                fontSize: 10,
-                fontWeight: 600,
-                color: ct.accent,
-                background: `${ct.border}33`,
-                padding: "2px 8px",
-                borderRadius: 999,
-                border: "none",
-                fontFamily: "var(--font-dm)",
-                textTransform: "uppercase",
-                letterSpacing: "0.06em",
+                ...CHIP_TYPE_STYLE(ct.accent, ct.border),
                 cursor: card.notes !== undefined ? "pointer" : "default",
               }}
               onKeyDown={(e) => {
@@ -1284,17 +1303,8 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
                     setShowFileSelect(!showFileSelect);
                   }}
                   style={{
-                    fontSize: 10,
-                    fontWeight: 600,
-                    color: ct.accent,
-                    background: `${ct.border}33`,
-                    padding: "2px 8px",
-                    borderRadius: 999,
-                    border: "none",
+                    ...CHIP_ACTION_NEUTRAL_STYLE,
                     cursor: "pointer",
-                    fontFamily: "var(--font-dm)",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.06em",
                     display: "inline-flex",
                     alignItems: "center",
                     gap: 3,
