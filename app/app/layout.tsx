@@ -13,7 +13,7 @@ export default function AppLayout({
     <>
       <script
         dangerouslySetInnerHTML={{
-          __html: `window.__SUPABASE_CONFIG__=${JSON.stringify({ url: supabaseUrl, key: supabaseAnonKey })};window.__E2E_ALLOWED__=${JSON.stringify(e2eAllowed)}&&(location.hostname==="localhost"||location.hostname==="127.0.0.1")`,
+          __html: `window.__SUPABASE_CONFIG__=${JSON.stringify({ url: supabaseUrl, key: supabaseAnonKey })};Object.defineProperty(window,"__E2E_ALLOWED__",{value:${JSON.stringify(e2eAllowed)}&&(location.hostname==="localhost"||location.hostname==="127.0.0.1"),writable:false,configurable:false})`,
         }}
       />
       {children}

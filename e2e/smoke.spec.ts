@@ -100,3 +100,17 @@ test("memo dialog keyboard a11y: autofocus, trap, esc, focus restore", async ({ 
   await expect(dialog).toBeHidden();
   await expect(memoChip).toBeFocused();
 });
+
+test("__E2E_ALLOWED__ is readonly and cannot be overridden from DevTools", async ({ page }) => {
+  await page.goto("/app?e2e=1", { waitUntil: "networkidle" });
+
+  const result = await page.evaluate(() => {
+    const before = (window as any).__E2E_ALLOWED__;
+    try { (window as any).__E2E_ALLOWED__ = false; } catch {}
+    const after = (window as any).__E2E_ALLOWED__;
+    return { before, after, unchanged: before === after };
+  });
+
+  expect(result.before).toBe(true);
+  expect(result.unchanged).toBe(true);
+});
