@@ -17,5 +17,13 @@
       "Bash(curl *)",
       "Bash(wget *)"
     ]
+  },
+  "mcpServers": {
+    "subframe": {
+      "url": "https://mcp.subframe.com/mcp"
+    },
+    "subframe-docs": {
+      "url": "https://docs.subframe.com/mcp"
+    }
   }
 }

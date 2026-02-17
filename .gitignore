@@ -51,3 +51,7 @@ reports/triad/ship_evidence_*.md
 
 # --- local triad reports ---
 reports/triad/*.md
+
+# --- Subframe auth state (keep sync.json) ---
+.subframe/*
+!.subframe/sync.json
