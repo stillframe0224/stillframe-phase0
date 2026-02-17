@@ -86,38 +86,40 @@ export default function AppHeader({
   );
 
   const rightSlot = (
-    <>
+    <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
       {/* Anchor nav links */}
-      <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-        {navLinks.map((link) => (
-          <TopbarWithRightNav.NavItem key={link.href}>
-            <a
-              href={link.href}
-              style={{
-                textDecoration: "none",
-                color: "inherit",
-                fontSize: 14,
-              }}
-            >
-              {link.label}
-            </a>
-          </TopbarWithRightNav.NavItem>
-        ))}
-      </div>
+      {navLinks.map((link) => (
+        <TopbarWithRightNav.NavItem key={link.href}>
+          <a
+            href={link.href}
+            style={{
+              textDecoration: "none",
+              color: "inherit",
+              fontSize: 14,
+            }}
+          >
+            {link.label}
+          </a>
+        </TopbarWithRightNav.NavItem>
+      ))}
 
       {/* Language toggle */}
       <LangToggle lang={lang} onToggle={onToggle} />
 
       {/* CTA */}
-      <a href={ctaHref} style={{ textDecoration: "none" }}>
+      <a href={ctaHref} style={{ textDecoration: "none", flexShrink: 0 }}>
         <PrimaryButton>{ctaLabel}</PrimaryButton>
       </a>
-    </>
+    </div>
   );
 
   return (
-    <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 8px" }}>
-      <TopbarWithRightNav leftSlot={leftSlot} rightSlot={rightSlot} />
+    <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 8px", overflow: "visible" }}>
+      <TopbarWithRightNav
+        leftSlot={leftSlot}
+        rightSlot={rightSlot}
+        className="px-0"
+      />
     </div>
   );
 }
