@@ -1,0 +1,131 @@
+あなたは SHINEN Phase0 プロジェクトの自律エージェントです。
+作業ディレクトリ: /Users/array0224/stillframe-phase0
+
+## Step 0: ガードチェック（必ず最初に実行）
+
+1. ops/GOALS.md を読む
+2. ops/GUARDS.md を読む
+3. .rwl/status.json を読む
+   - failure_count >= max_failures なら → 以下を出力して **即停止**:
+     ```
+     [STOPPED] failure_count={N} >= max_failures={M}
+     直近の失敗: .rwl/logs/events.jsonl を確認してください。
+     再開するには: .rwl/status.json の failure_count を 0 に手動リセット
+     ```
+
+## Step 1: 今夜のタスク選定（1件、≤ 2時間）
+
+以下の優先順位でタスクを1件選ぶ:
+
+1. ops/GOALS.md の「MVP/改善」領域から、**2時間以内で完結する小さな改善**
+2. reports/market_pulse/ の最新レポートを参照し、スコア上位の痛みポイントがLP/UXに反映できるか確認
+3. issues/auto_generated/ の最新Issue草案から実装可能なものを1件選ぶ
+
+**選定基準**:
+- 2時間以内（120分）で完結すること
+- ユーザーが直接触れる部分（LP, UX, エラー表示等）への改善が優先
+- ops/GUARDS.md の禁止事項に違反しない
+
+## Step 2: タスクをQueueに登録
+
+.rwl/Queue/<id>.json を作成:
+idの形式: YYYYMMDD-HHMMSS-<slug>（例: 20260217-230000-lp-cta-copy）
+
+```json
+{
+  "id": "<id>",
+  "goal": "<タスクの目的1行>",
+  "est_minutes": <見積もり分（≤120）>,
+  "dod": [
+    "npm run build 通過",
+    "reports/triad/<id>.md 作成",
+    "READMEに実行手順追記（新機能の場合）",
+    "PR作成"
+  ],
+  "evidence_paths": ["reports/triad/<id>.md"],
+  "created_at": "<ISO8601>",
+  "status": "queue"
+}
+```
+
+## Step 3: タスクを実行
+
+ops/GUARDS.md を厳守して実行する。
+
+### 3a. Queue → Current へ移動
+
+### 3b. コードの変更
+
+1. **ブランチ作成**: `git checkout -b claude/<slug>`（main直push禁止）
+2. 変更するファイルを必ず Read してから Edit/Write
+3. 新機能・新スクリプトがあれば README に実行手順を追記
+4. `npm run build` を実行
+   - ❌ 失敗: events.jsonl に記録 → failure_count++ → 中断
+   - failure_count >= max_failures → 全停止
+5. ✅ 成功: git add → commit → push → PR作成
+
+### 3c. 証拠ファイルの作成
+
+reports/triad/<task_id>.md を作成:
+```markdown
+# Task: <goal>
+**ID**: <id>
+**Date**: <YYYY-MM-DD HH:MM JST>
+**Est**: <N>min / **Actual**: <M>min
+**Session**: nightly
+
+## 変更ファイル
+- <path>: <変更内容>
+
+## ビルド結果
+exit code: 0（成功）
+
+## PR
+<PR URL>
+
+## READMEへの追記
+<追記した内容のサマリ、または "なし">
+
+## 動作確認
+<確認方法と結果>
+
+## Market Pulse 関連性
+<参照したレポートのスコア・痛みポイント、または "なし">
+```
+
+### 3d. DONE.json と events.jsonl を更新
+
+.rwl/DONE.json に追記:
+```json
+{
+  "id": "<id>",
+  "goal": "<goal>",
+  "completed_at": "<ISO8601>",
+  "session": "nightly",
+  "pr_url": "<url or null>",
+  "evidence": "reports/triad/<id>.md"
+}
+```
+
+.rwl/logs/events.jsonl に追記:
+```json
+{"ts":"<ISO8601>","type":"task_done","session":"nightly","task_id":"<id>","result":"success","pr_url":"<url>"}
+```
+
+### 3e. Current → Done へ移動
+
+## Step 4: .rwl/status.json を更新
+
+## Step 5: 最終サマリを出力
+
+```
+=== Nightly Run 完了 ===
+タスク: <goal>
+failure_count: <X>/<max>
+
+結果: <success|failed>
+PR: <url または "なし">
+証拠: reports/triad/<id>.md
+
+Market Pulse 参照: <参照したレポート or "なし">
+```

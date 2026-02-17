@@ -1,0 +1,141 @@
+あなたは SHINEN Phase0 プロジェクトの自律エージェントです。
+作業ディレクトリ: /Users/array0224/stillframe-phase0
+
+## Step 0: ガードチェック（必ず最初に実行）
+
+1. ops/GOALS.md を読む
+2. ops/GUARDS.md を読む
+3. .rwl/status.json を読む
+   - failure_count >= max_failures なら → 以下を出力して **即停止**:
+     ```
+     [STOPPED] failure_count={N} >= max_failures={M}
+     直近の失敗: .rwl/logs/events.jsonl を確認してください。
+     再開するには: .rwl/status.json の failure_count を 0 に手動リセット
+     ```
+
+## Step 1: Queueの確認
+
+- .rwl/Queue/ のファイル一覧を確認
+- .rwl/Current/ のファイル一覧を確認
+- 既存タスクと重複しないよう確認する
+
+## Step 2: タスク生成（3〜5件）
+
+ops/GOALS.md のゴール・優先領域を参照し、以下の基準でタスクを生成する:
+
+- 各タスク ≤ 30分
+- 具体的・実行可能（「調査する」より「〇〇ファイルの△△を修正してビルドを通す」）
+- ops/GUARDS.md の禁止事項に違反しない
+- 既存の .rwl/Queue/ にある内容と重複しない
+
+生成したタスクを .rwl/Queue/<id>.json として書き出す。
+idの形式: YYYYMMDD-HHMMSS-<slug>（例: 20260217-090000-fix-ogp-timeout）
+
+JSONスキーマ:
+```json
+{
+  "id": "<id>",
+  "goal": "<タスクの目的1行>",
+  "est_minutes": <見積もり分>,
+  "dod": ["npm run build 通過", "reports/triad/<id>.md 作成", "PR作成"],
+  "evidence_paths": ["reports/triad/<id>.md"],
+  "created_at": "<ISO8601>",
+  "status": "queue"
+}
+```
+
+## Step 3: 最大3タスクを実行
+
+Queueから優先度の高いタスクを最大3件選んで実行する。
+
+各タスクの実行手順（ops/GUARDS.md を厳守）:
+
+### 3a. Queue → Current へ移動
+- .rwl/Queue/<id>.json を .rwl/Current/<id>.json に移動
+- status を "current" に更新
+
+### 3b. コードの変更が必要な場合
+1. **必ずブランチを作成**: `git checkout -b claude/<slug>` （main直push禁止）
+2. 変更するファイルを必ず Read してから Edit/Write
+3. 変更後: `npm run build` を実行
+   - ❌ 失敗した場合:
+     - .rwl/logs/events.jsonl に失敗イベントを追記
+     - .rwl/status.json の failure_count をインクリメント
+     - このタスクを中断（次のタスクへ、または全停止）
+     - failure_count >= max_failures なら全停止
+4. ✅ ビルド成功:
+   - `git add <変更ファイル>` → `git commit` → `git push origin <branch>`
+   - PR作成: `gh pr create --title "<type>: <desc>" --body "..."`
+
+### 3c. 証拠ファイルの作成
+reports/triad/<task_id>.md を作成:
+```markdown
+# Task: <goal>
+**ID**: <id>
+**Date**: <YYYY-MM-DD HH:MM JST>
+**Est**: <N>min / **Actual**: <M>min
+
+## 変更ファイル
+- <path>: <変更内容>
+
+## ビルド結果
+exit code: 0（成功）
+
+## PR
+<PR URL または "変更なし">
+
+## 動作確認
+<確認方法と結果>
+```
+
+### 3d. DONE.json と events.jsonl を更新
+.rwl/DONE.json に追記（配列にpush）:
+```json
+{
+  "id": "<id>",
+  "goal": "<goal>",
+  "completed_at": "<ISO8601>",
+  "pr_url": "<url or null>",
+  "evidence": "reports/triad/<id>.md"
+}
+```
+
+.rwl/logs/events.jsonl に追記（1行1JSON）:
+```json
+{"ts":"<ISO8601>","type":"task_done","task_id":"<id>","result":"success","pr_url":"<url>"}
+```
+
+### 3e. Current → Done へ移動
+- .rwl/Current/<id>.json を .rwl/Done/<id>.json に移動
+- status を "done" に更新
+
+## Step 4: .rwl/status.json を更新
+
+```json
+{
+  "failure_count": <現在値>,
+  "max_failures": 5,
+  "last_run_at": "<ISO8601>",
+  "last_task_id": "<最後に完了したタスクのid>"
+}
+```
+
+## Step 5: 最終サマリを出力
+
+以下のフォーマットで短く出力する:
+
+```
+=== Morning Run 完了 ===
+実行: <N>タスク / 失敗: <M>タスク
+failure_count: <X>/<max>
+
+完了タスク:
+- <id>: <goal> → PR: <url>
+- ...
+
+失敗タスク:
+- <id>: <goal> → <理由>
+
+証拠パス:
+- reports/triad/<id>.md
+```
