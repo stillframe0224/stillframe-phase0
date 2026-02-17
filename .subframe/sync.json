@@ -1,0 +1,5 @@
+{
+  "directory": "./ui/subframe",
+  "importAlias": "@/ui/subframe/*",
+  "projectId": "__SET_YOUR_SUBFRAME_PROJECT_ID__"
+}
