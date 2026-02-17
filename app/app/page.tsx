@@ -121,6 +121,7 @@ export default function AppPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const e2eMode =
+    process.env.NEXT_PUBLIC_E2E === "1" &&
     typeof window !== "undefined" &&
     new URLSearchParams(window.location.search).get("e2e") === "1";
 
