@@ -1,0 +1,16 @@
+{
+  "id": "20260217-230139-waitlist-submit-error-ui",
+  "goal": "Waitlist送信失敗時に成功扱いしないようにし、明示的なエラー表示を追加する",
+  "est_minutes": 25,
+  "dod": [
+    "npm run build 通過",
+    "/Users/array0224/stillframe-phase0/reports/triad/20260217-230139-waitlist-submit-error-ui.md 作成",
+    "READMEに実行手順追記（新機能の場合）",
+    "PR作成"
+  ],
+  "evidence_paths": [
+    "/Users/array0224/stillframe-phase0/reports/triad/20260217-230139-waitlist-submit-error-ui.md"
+  ],
+  "created_at": "2026-02-17T14:01:39Z",
+  "status": "queue"
+}

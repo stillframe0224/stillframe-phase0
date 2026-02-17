@@ -1,1 +1,10 @@
-[]
+[
+  {
+    "id": "20260217-230139-waitlist-submit-error-ui",
+    "goal": "Waitlist送信失敗時に成功扱いしないようにし、明示的なエラー表示を追加する",
+    "completed_at": "2026-02-17T14:03:30Z",
+    "session": "nightly",
+    "pr_url": "https://github.com/array0224-cloud/stillframe-phase0/pull/10",
+    "evidence": "/Users/array0224/stillframe-phase0/reports/triad/20260217-230139-waitlist-submit-error-ui.md"
+  }
+]
