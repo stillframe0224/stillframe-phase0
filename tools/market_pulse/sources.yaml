@@ -1,0 +1,193 @@
+# Market Pulse — RSS/Atom Sources
+# 認証不要・公開フィードのみ。APIキー不要。
+# category: hn=HackerNews, ph=ProductHunt, reddit=Reddit, blog=個人/企業ブログ
+
+sources:
+  # --- Hacker News ---
+  - id: hn_ask
+    name: "Hacker News: Ask HN"
+    url: "https://hnrss.org/ask"
+    category: hn
+    tags: [pain, demand, community]
+    weight: 1.2
+
+  - id: hn_show
+    name: "Hacker News: Show HN"
+    url: "https://hnrss.org/show"
+    category: hn
+    tags: [product, launch, demo]
+    weight: 1.0
+
+  - id: hn_newest
+    name: "Hacker News: Newest"
+    url: "https://hnrss.org/newest"
+    category: hn
+    tags: [general, tech]
+    weight: 0.8
+
+  - id: hn_frontpage
+    name: "Hacker News: Front Page"
+    url: "https://hnrss.org/frontpage"
+    category: hn
+    tags: [trending, tech]
+    weight: 1.1
+
+  # --- Product Hunt ---
+  - id: ph_daily
+    name: "Product Hunt: Daily"
+    url: "https://www.producthunt.com/feed"
+    category: ph
+    tags: [product, launch, startup]
+    weight: 1.3
+
+  # --- Reddit (公開JSON RSS) ---
+  - id: reddit_entrepreneur
+    name: "Reddit: r/Entrepreneur"
+    url: "https://www.reddit.com/r/entrepreneur/.rss"
+    category: reddit
+    tags: [pain, business, startup]
+    weight: 1.2
+
+  - id: reddit_sideproject
+    name: "Reddit: r/SideProject"
+    url: "https://www.reddit.com/r/SideProject/.rss"
+    category: reddit
+    tags: [product, indie, launch]
+    weight: 1.0
+
+  - id: reddit_startups
+    name: "Reddit: r/startups"
+    url: "https://www.reddit.com/r/startups/.rss"
+    category: reddit
+    tags: [startup, pain, demand]
+    weight: 1.1
+
+  - id: reddit_nocode
+    name: "Reddit: r/nocode"
+    url: "https://www.reddit.com/r/nocode/.rss"
+    category: reddit
+    tags: [nocode, tools, pain]
+    weight: 1.0
+
+  - id: reddit_pkmfull
+    name: "Reddit: r/PKM"
+    url: "https://www.reddit.com/r/PKM/.rss"
+    category: reddit
+    tags: [productivity, knowledge, tools]
+    weight: 0.9
+
+  - id: reddit_productivity
+    name: "Reddit: r/productivity"
+    url: "https://www.reddit.com/r/productivity/.rss"
+    category: reddit
+    tags: [productivity, tools, habit]
+    weight: 0.9
+
+  - id: reddit_indiehackers_like
+    name: "Reddit: r/webdev"
+    url: "https://www.reddit.com/r/webdev/.rss"
+    category: reddit
+    tags: [webdev, tool, pain]
+    weight: 0.8
+
+  # --- Indie Hackers (公開RSS) ---
+  - id: indiehackers_posts
+    name: "Indie Hackers: Posts"
+    url: "https://www.indiehackers.com/feed.xml"
+    category: blog
+    tags: [indie, revenue, pain, startup]
+    weight: 1.3
+
+  # --- Dev.to ---
+  - id: devto_top
+    name: "Dev.to: Top"
+    url: "https://dev.to/feed"
+    category: blog
+    tags: [dev, tools, pain]
+    weight: 0.8
+
+  # --- Lobste.rs ---
+  - id: lobsters
+    name: "Lobste.rs"
+    url: "https://lobste.rs/rss"
+    category: blog
+    tags: [tech, tools, community]
+    weight: 0.9
+
+  # --- Changelog / Podcast feeds ---
+  - id: changelog_news
+    name: "Changelog News"
+    url: "https://changelog.com/news/feed"
+    category: blog
+    tags: [oss, tools, trend]
+    weight: 0.8
+
+  # --- TechCrunch Startups ---
+  - id: techcrunch_startups
+    name: "TechCrunch: Startups"
+    url: "https://techcrunch.com/category/startups/feed/"
+    category: blog
+    tags: [startup, funding, trend]
+    weight: 1.0
+
+# スコアリングに使うキーワード定義（score.ts が参照）
+pain_keywords:
+  - "frustrated"
+  - "annoying"
+  - "pain"
+  - "broken"
+  - "wish"
+  - "can't"
+  - "impossible"
+  - "hate"
+  - "stuck"
+  - "failing"
+  - "problem"
+  - "issue"
+  - "bug"
+  - "slow"
+  - "tedious"
+  - "manual"
+  - "hard to"
+  - "difficult"
+  - "ugh"
+  - "nightmare"
+  - "help"
+  - "need"
+  - "struggling"
+  - "複雑"
+  - "困った"
+  - "面倒"
+  - "つらい"
+
+demand_keywords:
+  - "would pay"
+  - "willing to pay"
+  - "pay for"
+  - "subscription"
+  - "pricing"
+  - "how much"
+  - "buy"
+  - "purchase"
+  - "looking for"
+  - "recommend"
+  - "alternative"
+  - "better than"
+  - "does anyone"
+  - "is there a tool"
+  - "is there an app"
+  - "need a solution"
+  - "waiting for"
+  - "want this"
+
+urgency_keywords:
+  - "urgent"
+  - "asap"
+  - "immediately"
+  - "deadline"
+  - "today"
+  - "right now"
+  - "critical"
+  - "emergency"
+  - "blocking"
+  - "blocked"

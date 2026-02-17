@@ -10,7 +10,10 @@
     "lint": "next lint",
     "notify:smoke": "node scripts/notify_smoke.mjs",
     "codex:run": "bash scripts/codex-run-notify",
-    "subframe:sync": "npx @subframe/cli@latest sync"
+    "subframe:sync": "npx @subframe/cli@latest sync",
+    "market:pulse": "node tools/market_pulse/dist/cli.js",
+    "market:pulse:dev": "tsx tools/market_pulse/src/cli.ts",
+    "market:pulse:build": "tsc -p tools/market_pulse/tsconfig.json"
   },
   "keywords": [],
   "author": "",
@@ -29,11 +32,15 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.18",
+    "@types/js-yaml": "^4.0.9",
     "@types/node": "^25.2.3",
     "@types/react": "^19.2.14",
     "eslint": "^10.0.0",
+    "js-yaml": "^4.1.0",
     "postcss": "^8.5.6",
+    "rss-parser": "^3.13.0",
     "tailwindcss": "^4.1.18",
+    "tsx": "^4.19.2",
     "typescript": "5.9.3"
   }
 }
