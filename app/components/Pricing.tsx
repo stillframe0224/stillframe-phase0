@@ -12,6 +12,7 @@ interface PricingProps {
 
 export default function Pricing({ lang, gumroadUrl }: PricingProps) {
   const c = copy.pricing;
+  const hasCheckoutUrl = Boolean(gumroadUrl && gumroadUrl !== "#");
 
   return (
     <section
@@ -81,20 +82,34 @@ export default function Pricing({ lang, gumroadUrl }: PricingProps) {
           </li>
         ))}
       </ul>
-      <a
-        href={gumroadUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        onClick={() => track("checkout_start")}
-        data-testid="cta-pricing"
-        aria-label={c.cta[lang]}
-        className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#D9A441] rounded-full"
-        style={{ textDecoration: "none" }}
-      >
-        <PrimaryButton data-testid="cta-pricing" className="rounded-full px-8 py-3 text-sm">
+      {hasCheckoutUrl ? (
+        <a
+          href={gumroadUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={() => track("checkout_start")}
+          data-testid="cta-pricing"
+          aria-label={c.cta[lang]}
+          className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#D9A441] rounded-full"
+          style={{ textDecoration: "none" }}
+        >
+          <PrimaryButton data-testid="cta-pricing" className="rounded-full px-8 py-3 text-sm">
+            {c.cta[lang]}
+          </PrimaryButton>
+        </a>
+      ) : (
+        <PrimaryButton
+          data-testid="cta-pricing"
+          type="button"
+          onClick={() => track("checkout_unavailable")}
+          aria-label={`${c.cta[lang]} (unavailable)`}
+          className="rounded-full px-8 py-3 text-sm"
+          disabled
+          title="Checkout URL is not configured"
+        >
           {c.cta[lang]}
         </PrimaryButton>
-      </a>
+      )}
     </section>
   );
 }
