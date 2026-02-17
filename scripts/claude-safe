@@ -1,0 +1,88 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT="/Users/array0224/stillframe-phase0"
+cd "$ROOT"
+
+source "$ROOT/scripts/_local_sound.sh" || true
+
+pick_claude_bin() {
+  if [ -n "${CLAUDE_BIN:-}" ] && command -v "$CLAUDE_BIN" >/dev/null 2>&1; then
+    printf '%s' "$CLAUDE_BIN"
+    return 0
+  fi
+
+  local candidates=("claude" "claude-code" "claudecode")
+  local c
+  for c in "${candidates[@]}"; do
+    if command -v "$c" >/dev/null 2>&1; then
+      printf '%s' "$c"
+      return 0
+    fi
+  done
+
+  return 1
+}
+
+contains_arg() {
+  local needle="$1"
+  shift
+  local x
+  for x in "$@"; do
+    if [ "$x" = "$needle" ]; then
+      return 0
+    fi
+  done
+  return 1
+}
+
+BIN="$(pick_claude_bin || true)"
+if [ -z "$BIN" ]; then
+  local_sound_attention || true
+  echo "[claude-safe] ClaudeCode binary not found (CLAUDE_BIN/claude/claude-code/claudecode)" >&2
+  exit 127
+fi
+
+RUN_ARGS=("$@")
+if ! contains_arg "--dangerously-skip-permissions" "${RUN_ARGS[@]:-}"; then
+  if "$BIN" --help 2>&1 | grep -q -- '--dangerously-skip-permissions'; then
+    RUN_ARGS=("--dangerously-skip-permissions" "${RUN_ARGS[@]}")
+  fi
+fi
+
+run_log="$(mktemp /tmp/claude-safe.log.XXXXXX)"
+watcher_pid=""
+
+start_attention_watcher() {
+  (
+    source "$ROOT/scripts/_local_sound.sh" || true
+    seen=0
+    while IFS= read -r line; do
+      if [ "$seen" -eq 0 ] && printf '%s\n' "$line" | grep -Eiq 'permission|approve|approval|yes/no|実行しますか|許可'; then
+        local_sound_attention || true
+        seen=1
+      fi
+    done < <(tail -n 0 -F "$run_log" 2>/dev/null)
+  ) &
+  echo "$!"
+}
+
+watcher_pid="$(start_attention_watcher)"
+
+set +e
+"$BIN" "${RUN_ARGS[@]}" 2>&1 | tee -a "$run_log"
+cmd_rc=${PIPESTATUS[0]}
+set -e
+
+if [ -n "$watcher_pid" ]; then
+  kill "$watcher_pid" >/dev/null 2>&1 || true
+fi
+rm -f "$run_log" >/dev/null 2>&1 || true
+
+if [ "$cmd_rc" -eq 0 ]; then
+  local_sound_success || true
+else
+  local_sound_failure || true
+fi
+
+exit "$cmd_rc"

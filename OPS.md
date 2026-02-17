@@ -336,6 +336,12 @@ bash -lc 'tmp=$(mktemp -d); printf "#!/usr/bin/env bash\nexit 7\n" > "$tmp/codex
 ## 8. Codex: Project-Local State & Stream Resilience
 
 **Entry Point**: `scripts/codex-safe` (only way to invoke `codex exec`)
+**ClaudeCode Entry Point**: `scripts/claude-safe` (only way to invoke ClaudeCode CLI)
+
+ClaudeCode must be executed via `scripts/claude-safe` only.
+Codex must be executed via `scripts/codex-safe` only.
+Set `IMAC_SOUND=0` to disable local iMac sound alerts for both wrappers.
+
 
 401対策: `scripts/codex-safe` は認証を自動復旧します（`~/.codex/auth.json` 移植 → `OPENAI_API_KEY` 無人ログイン → device-auth）。device-auth が必要な場合は Pixel に `🔐 Codex login required`（Priority 4）を送信します。
 codex-safe は iMac でローカル音を鳴らします（Pixel不要）。無効化は `IMAC_SOUND=0`。
