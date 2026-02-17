@@ -11,6 +11,7 @@ import AppHeader from "@/ui/components/AppHeader";
 import Pricing from "@/app/components/Pricing";
 import Waitlist from "@/app/components/Waitlist";
 import TrackEvent from "@/app/components/TrackEvent";
+import { PrimaryButton, Card } from "@/ui/components/ui";
 
 const GUMROAD_URL = process.env.NEXT_PUBLIC_GUMROAD_PRODUCT_URL || "#";
 const WAITLIST_POST_URL = process.env.NEXT_PUBLIC_WAITLIST_POST_URL || "";
@@ -147,21 +148,11 @@ export default function Home() {
         <a
           href="#demo"
           onClick={() => track("hero_cta_click")}
-          style={{
-            display: "inline-block",
-            padding: "12px 28px",
-            borderRadius: 999,
-            background: "#2a2a2a",
-            color: "#fff",
-            fontSize: 14,
-            fontWeight: 500,
-            textDecoration: "none",
-            transition: "background 0.2s",
-          }}
-          onMouseEnter={(e) => (e.currentTarget.style.background = "#444")}
-          onMouseLeave={(e) => (e.currentTarget.style.background = "#2a2a2a")}
+          style={{ textDecoration: "none" }}
         >
-          {copy.hero.cta[lang]}
+          <PrimaryButton className="rounded-full px-7 py-3 text-sm">
+            {copy.hero.cta[lang]}
+          </PrimaryButton>
         </a>
       </section>
 
@@ -400,50 +391,33 @@ export default function Home() {
           style={{
             display: "grid",
             gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-            gap: 32,
+            gap: 24,
           }}
         >
           {copy.howImages.cols.map((col, i) => (
-            <div key={i}>
-              <div
-                style={{
-                  width: 48,
-                  height: 48,
-                  borderRadius: 12,
-                  background: ["#FFF8F0", "#EEF2FF", "#F0FFF4"][i],
-                  border: `1px solid ${
-                    ["#F5C882", "#A0B8F5", "#7EDBA0"][i]
-                  }`,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  margin: "0 auto 16px",
-                  fontSize: 20,
-                }}
-              >
-                {["🔗", "📷", "✨"][i]}
-              </div>
-              <h3
-                style={{
-                  fontSize: 16,
-                  fontWeight: 600,
-                  color: "#2a2a2a",
-                  marginBottom: 8,
-                  fontFamily: "var(--font-dm)",
-                }}
-              >
-                {col.title[lang]}
-              </h3>
-              <p
-                style={{
-                  fontSize: 14,
-                  color: "#777",
-                  lineHeight: 1.6,
-                }}
-              >
-                {col.desc[lang]}
-              </p>
-            </div>
+            <Card
+              key={i}
+              image={
+                <div
+                  style={{
+                    width: 48,
+                    height: 48,
+                    borderRadius: 12,
+                    background: ["#FFF8F0", "#EEF2FF", "#F0FFF4"][i],
+                    border: `1px solid ${["#F5C882", "#A0B8F5", "#7EDBA0"][i]}`,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: 20,
+                  }}
+                >
+                  {["🔗", "📷", "✨"][i]}
+                </div>
+              }
+              title={col.title[lang]}
+              body={col.desc[lang]}
+              className="text-left"
+            />
           ))}
         </div>
       </section>
