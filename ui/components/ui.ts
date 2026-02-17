@@ -8,4 +8,5 @@ export { PrimaryButton } from "@/ui/subframe/components/PrimaryButton";
 export { SecondaryButton } from "@/ui/subframe/components/SecondaryButton";
 export { Card } from "@/ui/subframe/components/Card";
 export { IconButton } from "@/ui/subframe/components/IconButton";
+export { TopbarWithRightNav } from "@/ui/subframe/components/TopbarWithRightNav";
 // 必要に応じて追加
