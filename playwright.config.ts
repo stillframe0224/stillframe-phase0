@@ -22,12 +22,12 @@ export default defineConfig({
   },
   webServer: {
     command: isCI
-      ? `npm run build && npm run start -- --hostname 127.0.0.1 --port ${PORT}`
+      ? `npm run start -- --hostname 127.0.0.1 --port ${PORT}`
       : `npm run dev -- --hostname 127.0.0.1 --port ${PORT}`,
     url: baseURL,
     reuseExistingServer: !isCI,
     timeout: 120_000,
-    env: { ...process.env, NEXT_PUBLIC_E2E: "1" },
+    env: { ...process.env, E2E: "1" },
   },
   projects: [
     {

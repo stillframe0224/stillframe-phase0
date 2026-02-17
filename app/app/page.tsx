@@ -121,8 +121,8 @@ export default function AppPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const e2eMode =
-    process.env.NEXT_PUBLIC_E2E === "1" &&
     typeof window !== "undefined" &&
+    (window as any).__E2E_ALLOWED__ === true &&
     new URLSearchParams(window.location.search).get("e2e") === "1";
 
   const [cards, setCards] = useState<Card[]>([]);
