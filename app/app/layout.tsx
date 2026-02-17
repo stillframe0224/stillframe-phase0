@@ -13,7 +13,7 @@ export default function AppLayout({
     <>
       <script
         dangerouslySetInnerHTML={{
-          __html: `window.__SUPABASE_CONFIG__=${JSON.stringify({ url: supabaseUrl, key: supabaseAnonKey })};window.__E2E_ALLOWED__=${JSON.stringify(e2eAllowed)}`,
+          __html: `window.__SUPABASE_CONFIG__=${JSON.stringify({ url: supabaseUrl, key: supabaseAnonKey })};window.__E2E_ALLOWED__=${JSON.stringify(e2eAllowed)}&&(location.hostname==="localhost"||location.hostname==="127.0.0.1")`,
         }}
       />
       {children}
