@@ -1,0 +1,42 @@
+#!/bin/bash
+set -euo pipefail
+
+ROOT="/Users/array0224/stillframe-phase0"
+cd "$ROOT"
+
+if [ $# -lt 1 ]; then
+  echo "Usage: scripts/codex-fixspec \"problem description...\"" >&2
+  exit 64
+fi
+
+ID="$(date +%Y%m%d-%H%M%S)"
+OUT="reports/triad/${ID}-fixspec.md"
+PROBLEM="$*"
+
+mkdir -p reports/triad
+
+scripts/codex-safe "$(cat <<EOF
+Output ONLY FixSpec markdown with these sections in order:
+GOAL
+NON-GOALS
+FILES TO TOUCH(max10)
+STEPS(numbered)
+TESTS(commands)
+COMMIT MSG
+
+Task context:
+- Problem: ${PROBLEM}
+- Save the FixSpec content to: ${OUT}
+- Do not modify any other files
+- Do not run commands
+- After writing the file, stop
+EOF
+)"
+
+if test -s "$OUT"; then
+  echo "$OUT"
+  exit 0
+fi
+
+echo "ERROR: FixSpec was not created or is empty: $OUT" >&2
+exit 1

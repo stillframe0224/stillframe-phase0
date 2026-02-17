@@ -1,0 +1,15 @@
+#!/bin/bash
+set -euo pipefail
+
+ROOT="/Users/array0224/stillframe-phase0"
+cd "$ROOT"
+
+if [ $# -lt 1 ]; then
+  echo "Usage: scripts/triad \"problem description...\"" >&2
+  exit 64
+fi
+
+spec="$(scripts/codex-fixspec "$*")"
+
+IMAC_SOUND=1 scripts/claude-safe "次のFixSpecを実装して完走: ${spec}
+要件: 最小差分 / npm run build / git commit+push / 失敗時は理由を出して停止"

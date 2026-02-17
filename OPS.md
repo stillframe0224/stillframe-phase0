@@ -343,6 +343,7 @@ ClaudeCode must be executed via `scripts/claude-safe` only.
 Codex must be executed via `scripts/codex-safe` only.
 Shipping must be executed via `scripts/ship-main` only.
 Subframe sync is run via `scripts/ship-subframe`.
+FixSpec→実装の入口は `scripts/triad` のみ。
 Set `IMAC_SOUND=0` to disable local iMac sound alerts for both wrappers.
 
 
