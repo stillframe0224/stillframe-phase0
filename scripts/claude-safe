@@ -1,10 +1,22 @@
-#!/usr/bin/env bash
+#!/bin/bash
 set -euo pipefail
 
 ROOT="/Users/array0224/stillframe-phase0"
 cd "$ROOT"
 
 source "$ROOT/scripts/_local_sound.sh" || true
+
+usage() {
+  printf '%s\n' \
+    "Usage: scripts/claude-safe [claude args...]" \
+    "" \
+    "Wrapper for ClaudeCode CLI with local iMac sound notifications." \
+    "- success: Glass x1" \
+    "- failure: Basso x2" \
+    "- attention: Submarine x3" \
+    "" \
+    "Set IMAC_SOUND=0 to disable local sounds."
+}
 
 pick_claude_bin() {
   if [ -n "${CLAUDE_BIN:-}" ] && command -v "$CLAUDE_BIN" >/dev/null 2>&1; then
@@ -36,6 +48,15 @@ contains_arg() {
   return 1
 }
 
+if [ $# -gt 0 ]; then
+  case "$1" in
+    -h|--help|help)
+      usage
+      exit 0
+      ;;
+  esac
+fi
+
 BIN="$(pick_claude_bin || true)"
 if [ -z "$BIN" ]; then
   local_sound_attention || true
@@ -44,12 +65,6 @@ if [ -z "$BIN" ]; then
 fi
 
 RUN_ARGS=("$@")
-if ! contains_arg "--dangerously-skip-permissions" "${RUN_ARGS[@]:-}"; then
-  if "$BIN" --help 2>&1 | grep -q -- '--dangerously-skip-permissions'; then
-    RUN_ARGS=("--dangerously-skip-permissions" "${RUN_ARGS[@]}")
-  fi
-fi
-
 run_log="$(mktemp /tmp/claude-safe.log.XXXXXX)"
 watcher_pid=""
 
@@ -67,16 +82,52 @@ start_attention_watcher() {
   echo "$!"
 }
 
-watcher_pid="$(start_attention_watcher)"
+stop_attention_watcher() {
+  if [ -n "$watcher_pid" ]; then
+    kill "$watcher_pid" >/dev/null 2>&1 || true
+    watcher_pid=""
+  fi
+}
 
-set +e
-"$BIN" "${RUN_ARGS[@]}" 2>&1 | tee -a "$run_log"
-cmd_rc=${PIPESTATUS[0]}
-set -e
+run_once() {
+  : > "$run_log"
+  watcher_pid="$(start_attention_watcher)"
 
-if [ -n "$watcher_pid" ]; then
-  kill "$watcher_pid" >/dev/null 2>&1 || true
+  set +e
+  "$BIN" "$@" 2>&1 | tee -a "$run_log"
+  local rc=${PIPESTATUS[0]}
+  set -e
+
+  stop_attention_watcher
+  return "$rc"
+}
+
+has_unknown_option_error() {
+  grep -Eiq 'unknown option|unrecognized option|invalid option' "$run_log"
+}
+
+first_try_args=("${RUN_ARGS[@]}")
+if ! contains_arg "--dangerously-skip-permissions" "${RUN_ARGS[@]:-}"; then
+  first_try_args=("--dangerously-skip-permissions" "${RUN_ARGS[@]}")
 fi
+
+cmd_rc=0
+if run_once "${first_try_args[@]}"; then
+  cmd_rc=0
+else
+  cmd_rc=$?
+fi
+
+if ! contains_arg "--dangerously-skip-permissions" "${RUN_ARGS[@]:-}" && has_unknown_option_error; then
+  echo "[claude-safe] --dangerously-skip-permissions not supported; retrying without it." >&2
+  if run_once "${RUN_ARGS[@]}"; then
+    cmd_rc=0
+  else
+    cmd_rc=$?
+  fi
+fi
+
+stop_attention_watcher
 rm -f "$run_log" >/dev/null 2>&1 || true
 
 if [ "$cmd_rc" -eq 0 ]; then

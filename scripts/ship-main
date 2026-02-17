@@ -1,0 +1,54 @@
+#!/bin/bash
+set -euo pipefail
+
+ROOT="/Users/array0224/stillframe-phase0"
+cd "$ROOT"
+
+source "$ROOT/scripts/_local_sound.sh" || true
+
+if [ -n "$(git status --porcelain)" ]; then
+  local_sound_attention || true
+  echo "[ship-main] Working tree is dirty. Commit or stash changes first." >&2
+  exit 2
+fi
+
+branch="$(git rev-parse --abbrev-ref HEAD)"
+if [ "$branch" != "main" ]; then
+  local_sound_attention || true
+  echo "[ship-main] Current branch is '$branch'. Switch to 'main' first." >&2
+  exit 2
+fi
+
+set +e
+git push origin HEAD:main
+push_rc=$?
+set -e
+if [ "$push_rc" -ne 0 ]; then
+  local_sound_failure || true
+  exit "$push_rc"
+fi
+
+set +e
+if [ -f package-lock.json ] || [ -f npm-shrinkwrap.json ]; then
+  npm ci
+else
+  npm install
+fi
+install_rc=$?
+set -e
+if [ "$install_rc" -ne 0 ]; then
+  local_sound_failure || true
+  exit "$install_rc"
+fi
+
+set +e
+npm run build
+build_rc=$?
+set -e
+if [ "$build_rc" -eq 0 ]; then
+  local_sound_success || true
+else
+  local_sound_failure || true
+fi
+
+exit "$build_rc"
