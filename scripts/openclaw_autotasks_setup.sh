@@ -79,7 +79,7 @@ smoke_test() {
   info "スモークテスト: 2分後にモーニングプロンプトを1回実行..."
   openclaw cron add \
     --name "market-pulse-smoke-$(date +%s)" \
-    --at "+2m" \
+    --at "2m" \
     --message "$(cat "$MORNING_PROMPT")" \
     --session isolated \
     --delete-after-run \
