@@ -42,12 +42,14 @@ function stripHtml(html: string): string {
 }
 
 function extractExcerpt(item: Parser.Item & { contentEncoded?: string }): string {
+  // rss-parser の Item 型には description がないため any 経由でアクセス
+  const anyItem = item as Record<string, unknown>;
   const raw =
-    item.contentEncoded ||
+    (anyItem["contentEncoded"] as string | undefined) ||
     item.content ||
     item.contentSnippet ||
     item.summary ||
-    item.description ||
+    (anyItem["description"] as string | undefined) ||
     "";
   return stripHtml(raw).slice(0, 500);
 }
@@ -88,8 +90,12 @@ export async function fetchSource(
 
     const items: NormalizedItem[] = rawItems.map((item) => {
       const url = item.link || item.guid || "";
+      const anyItem = item as Record<string, unknown>;
       const summaryRaw =
-        item.contentSnippet || item.summary || item.description || "";
+        item.contentSnippet ||
+        item.summary ||
+        (anyItem["description"] as string | undefined) ||
+        "";
       const excerpt = extractExcerpt(item as Parser.Item & { contentEncoded?: string });
 
       return {
