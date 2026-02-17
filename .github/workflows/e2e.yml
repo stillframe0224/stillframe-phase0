@@ -5,8 +5,21 @@ on:
     branches: [main]
   pull_request:
 
+# ──────────────────────────────────────────────────────
+# Job topology (all required):
+#
+#   build ──► guard ──► smoke
+#
+#   build : produces the production artifact (no E2E env)
+#   guard : security invariant — bypass must be CLOSED
+#   smoke : functional E2E — bypass must be OPEN (E2E=1)
+#
+# guard runs BEFORE smoke so a broken seal always fails fast.
+# ──────────────────────────────────────────────────────
+
 jobs:
-  playwright:
+  # ── 1. Build ───────────────────────────────────────
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -21,23 +34,93 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Build app (no E2E env — production artifact)
+        run: npm run build
+
+      - name: Cache build output
+        uses: actions/cache/save@v4
+        with:
+          path: .next
+          key: next-build-${{ github.sha }}
+
+  # ── 2. Guard (security invariant) ──────────────────
+  # REQUIRED: ?e2e=1 bypass must be CLOSED without E2E env.
+  # If this job fails, smoke is never reached.
+  guard:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Restore build output
+        uses: actions/cache/restore@v4
+        with:
+          path: .next
+          key: next-build-${{ github.sha }}
+
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
 
-      - name: Build app
-        run: npm run build
-
-      - name: Guard e2e bypass is OFF without env
+      - name: SECURITY INVARIANT — e2e bypass is OFF without env
+        # Failure here means the 4-layer seal is broken. Block all merges.
         run: npm run test:e2e:guard
 
-      - name: Run E2E tests
-        run: npm run test:e2e:ci
-
-      - name: Upload Playwright report
+      - name: Upload guard report
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-report
+          name: guard-report-${{ github.sha }}
+          path: |
+            playwright-report
+            test-results
+          retention-days: 14
+          if-no-files-found: ignore
+
+  # ── 3. Smoke (functional E2E) ───────────────────────
+  # Runs only after guard passes — uses E2E=1 to open bypass.
+  smoke:
+    needs: guard
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Restore build output
+        uses: actions/cache/restore@v4
+        with:
+          path: .next
+          key: next-build-${{ github.sha }}
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Run E2E smoke tests
+        run: npm run test:e2e:ci
+
+      - name: Upload smoke report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-report-${{ github.sha }}
           path: |
             playwright-report
             test-results
