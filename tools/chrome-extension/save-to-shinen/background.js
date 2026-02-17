@@ -3,6 +3,8 @@
 const OFFSCREEN_AUDIO_PATH = 'offscreen_audio.html';
 let creatingOffscreenDocument = null;
 const BADGE_CLEAR_MS = 1000;
+const NOTIFY_CLEAR_MS = 2000;
+const NOTIFY_ICON = 'icon128.png';
 
 function flashBadge(kind, tabId) {
   const text = kind === 'fail' ? '!' : '•';
@@ -21,6 +23,33 @@ function flashBadge(kind, tabId) {
     }, BADGE_CLEAR_MS);
   } catch (_error) {
     // Ignore badge failures so beep flow is unaffected.
+  }
+}
+
+function notify(kind) {
+  try {
+    const id = `sf_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+    chrome.notifications.create(
+      id,
+      {
+        type: 'basic',
+        iconUrl: NOTIFY_ICON,
+        title: kind === 'fail' ? 'SHINEN: fail' : 'SHINEN: done',
+        message: kind === 'fail' ? 'beep event (fail)' : 'beep event (done)',
+        silent: false,
+      },
+      () => {}
+    );
+
+    setTimeout(() => {
+      try {
+        chrome.notifications.clear(id, () => {});
+      } catch (_error) {
+        // Ignore notification clear failures.
+      }
+    }, NOTIFY_CLEAR_MS);
+  } catch (_error) {
+    // Ignore notification failures so beep flow is unaffected.
   }
 }
 
@@ -84,6 +113,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     try {
       const kind = msg.kind === 'fail' ? 'fail' : 'success';
       flashBadge(kind, sender && sender.tab ? sender.tab.id : undefined);
+      notify(kind);
       await setupOffscreenDocument();
       await chrome.runtime.sendMessage({
         target: 'offscreen',
