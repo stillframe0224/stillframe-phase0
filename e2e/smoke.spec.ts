@@ -63,3 +63,40 @@ test("memo opens and persists after reload", async ({ page }) => {
   }, firstCardId);
   expect(localMemo).toBe(memo);
 });
+
+test("memo dialog keyboard a11y: autofocus, trap, esc, focus restore", async ({ page }) => {
+  await page.goto("/app?e2e=1");
+
+  const firstCard = page.getByTestId("card-item").first();
+  const memoChip = firstCard.getByTestId("chip-memo");
+
+  await memoChip.click();
+
+  // dialog semantics
+  const dialog = page.getByRole("dialog");
+  await expect(dialog).toBeVisible();
+  await expect(dialog).toHaveAttribute("aria-modal", "true");
+
+  // autofocus to textarea
+  const textarea = page.getByTestId("memo-textarea");
+  await expect(textarea).toBeFocused();
+
+  // focus trap: Tab cycles within dialog
+  for (let i = 0; i < 8; i++) {
+    await page.keyboard.press("Tab");
+    const inDialog = await dialog.evaluate((el) => el.contains(document.activeElement));
+    expect(inDialog).toBeTruthy();
+  }
+
+  // reverse tab also stays inside
+  for (let i = 0; i < 8; i++) {
+    await page.keyboard.press("Shift+Tab");
+    const inDialog = await dialog.evaluate((el) => el.contains(document.activeElement));
+    expect(inDialog).toBeTruthy();
+  }
+
+  // ESC closes dialog and focus restores to trigger chip
+  await page.keyboard.press("Escape");
+  await expect(dialog).toBeHidden();
+  await expect(memoChip).toBeFocused();
+});
