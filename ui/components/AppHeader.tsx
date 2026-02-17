@@ -70,14 +70,28 @@ export default function AppHeader({
           flexShrink: 0,
         }}
       >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/enso.png"
-          width={20}
-          height={20}
-          alt="enso"
-          style={{ display: "block" }}
-        />
+        <span
+          style={{
+            display: "inline-flex",
+            width: 32,
+            height: 32,
+            alignItems: "center",
+            justifyContent: "center",
+            borderRadius: 9999,
+            background: "#fff",
+            border: "1px solid #e5e5e5",
+            boxShadow: "0 1px 2px rgba(0, 0, 0, 0.06)",
+          }}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/enso.png"
+            width={20}
+            height={20}
+            alt="enso"
+            style={{ display: "block" }}
+          />
+        </span>
         <span
           style={{
             fontFamily: "var(--font-serif)",
