@@ -24,7 +24,8 @@ import { renderReport, renderIssueDraft } from "./render.js";
 import type { NormalizedItem, ScoredItem } from "./types.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const REPO_ROOT = join(__dirname, "..", "..", "..", "..");
+// dist/cli.js → ../.. → tools/market_pulse → ../.. → repo root (3 levels up from dist/)
+const REPO_ROOT = join(__dirname, "..", "..", "..");
 
 // ---- CLI arg parsing ----
 function parseArgs(): { date: string; limit: number; dryRun: boolean } {
