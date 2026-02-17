@@ -60,3 +60,8 @@ reports/triad/*.md
 .subframe/*
 !.subframe/sync.json
 scripts/_selective_stash.py
+
+# Playwright
+playwright-report/
+test-results/
+.blob-report/
