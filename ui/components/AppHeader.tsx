@@ -12,6 +12,7 @@
  */
 
 import React from "react";
+import { PrimaryButton } from "@/ui/components/ui";
 import LangToggle from "@/app/components/LangToggle";
 import type { Lang } from "@/lib/copy";
 
@@ -137,29 +138,9 @@ export default function AppHeader({
         {/* Language toggle */}
         <LangToggle lang={lang} onToggle={onToggle} />
 
-        {/* CTA */}
-        <a
-          href={ctaHref}
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            justifyContent: "center",
-            marginLeft: 4,
-            padding: "6px 14px",
-            borderRadius: 6,
-            background: "#2a2a2a",
-            color: "#fff",
-            fontSize: 13,
-            fontWeight: 600,
-            fontFamily: "var(--font-dm)",
-            textDecoration: "none",
-            whiteSpace: "nowrap",
-            transition: "background 0.15s",
-          }}
-          onMouseEnter={(e) => (e.currentTarget.style.background = "#444")}
-          onMouseLeave={(e) => (e.currentTarget.style.background = "#2a2a2a")}
-        >
-          {ctaLabel}
+        {/* CTA — Subframe PrimaryButton (brand-primary from tailwind.config.cjs) */}
+        <a href={ctaHref} style={{ textDecoration: "none", marginLeft: 4 }}>
+          <PrimaryButton>{ctaLabel}</PrimaryButton>
         </a>
       </div>
     </nav>
