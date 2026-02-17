@@ -337,9 +337,11 @@ bash -lc 'tmp=$(mktemp -d); printf "#!/usr/bin/env bash\nexit 7\n" > "$tmp/codex
 
 **Entry Point**: `scripts/codex-safe` (only way to invoke `codex exec`)
 **ClaudeCode Entry Point**: `scripts/claude-safe` (only way to invoke ClaudeCode CLI)
+**Ship Entry Point**: `scripts/ship-main` (only way to run push + install + build)
 
 ClaudeCode must be executed via `scripts/claude-safe` only.
 Codex must be executed via `scripts/codex-safe` only.
+Shipping must be executed via `scripts/ship-main` only.
 Set `IMAC_SOUND=0` to disable local iMac sound alerts for both wrappers.
 
 
