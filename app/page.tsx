@@ -7,6 +7,7 @@ import { cardTypes } from "@/lib/cardTypes";
 import { track } from "@/lib/track";
 import ThoughtCard from "@/app/components/ThoughtCard";
 import LangToggle from "@/app/components/LangToggle";
+import AppHeader from "@/ui/components/AppHeader";
 import Pricing from "@/app/components/Pricing";
 import Waitlist from "@/app/components/Waitlist";
 import TrackEvent from "@/app/components/TrackEvent";
@@ -107,47 +108,7 @@ export default function Home() {
       }}
     >
       {/* Nav */}
-      <nav
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          padding: "20px 32px",
-          maxWidth: 1100,
-          margin: "0 auto",
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <img
-            src="/enso.png"
-            width={20}
-            height={20}
-            alt="enso"
-            style={{ display: "block" }}
-          />
-          <span
-            style={{
-              fontFamily: "var(--font-serif)",
-              fontSize: 22,
-              fontWeight: 600,
-              color: "#2a2a2a",
-              letterSpacing: "-0.01em",
-            }}
-          >
-            SHINEN
-          </span>
-          <span
-            style={{
-              fontFamily: "var(--font-dm)",
-              fontSize: 12,
-              color: "#bbb",
-            }}
-          >
-            {copy.nav.byline[lang]}
-          </span>
-        </div>
-        <LangToggle lang={lang} onToggle={toggleLang} />
-      </nav>
+      <AppHeader lang={lang} onToggle={toggleLang} byline={copy.nav.byline[lang]} />
 
       {/* Hero */}
       <section
