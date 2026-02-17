@@ -2221,9 +2221,8 @@ export default function AppPage() {
               <div
                 style={{
                   display: "grid",
-                  gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
-                  gap: 16,
-                  justifyItems: filteredCards.length < 5 ? "center" : "stretch",
+                  gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))",
+                  gap: 12,
                 }}
               >
                 {filteredCards.map((card, i) => (
