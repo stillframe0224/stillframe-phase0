@@ -99,3 +99,58 @@ if status.json の failure_count >= max_failures:
   "status": "queue"
 }
 ```
+
+---
+
+## E2Eバイパス セキュリティ不変条件（Invariants）
+
+これらの条件は **将来のコード変更でも絶対に崩してはならない**。
+CIの `guard` ジョブが自動的に検出する。
+
+### 4層封印アーキテクチャ
+
+```
+Layer 1 (Build-time) : E2E env var は build時にのみ注入 → 本番buildにはE2Eを渡さない
+Layer 2 (Runtime)    : __E2E_ALLOWED__ = E2E && (hostname === "localhost" || "127.0.0.1")
+Layer 3 (Seal)       : Object.defineProperty writable:false, configurable:false → DevTools上書き不可
+Layer 4 (Client)     : e2eMode = __E2E_ALLOWED__ === true && ?e2e=1 → 両条件ANDが必須
+```
+
+### 不変条件一覧
+
+| ID | 条件 | CIテスト |
+|----|------|---------|
+| I-1 | `E2E` env var 未設定 → `__E2E_ALLOWED__` は `false` | `guard-e2e-off.spec.ts` |
+| I-2 | `__E2E_ALLOWED__` が `false` → モックカード非表示 | `guard-e2e-off.spec.ts` |
+| I-3 | ホスト名は厳密一致のみ（`localhost` or `127.0.0.1`）。サブドメインや部分一致は不可 | `guard-e2e-off.spec.ts` |
+| I-4 | バイパス試行時に `console.warn` を発行（封印は維持） | `guard-e2e-off.spec.ts` |
+| I-5 | `__E2E_ALLOWED__` は `false` 時も sealed（再代入・再定義不可） | `guard-e2e-off.spec.ts` |
+| I-6 | `__E2E_ALLOWED__` が `true` 時も sealed（DevToolsで `false` に戻せない） | `smoke.spec.ts` |
+
+### 意図した例外（ゼロ）
+
+本番環境でE2Eバイパスを開ける手段は**存在しない**。
+
+- Vercel Production に `E2E=1` を設定してもホスト条件（localhost限定）で封印
+- `?e2e=1` を本番URLに付けても同上
+- DevToolsで `__E2E_ALLOWED__ = true` と打っても `writable:false` で無効
+- `Object.defineProperty` で書き換えても `configurable:false` で `TypeError`
+
+### CI job順序（変更禁止）
+
+```
+build → guard → smoke
+```
+
+`guard` が `smoke` の前提条件（`needs: guard`）。
+この順序を変えると「封印が壊れたまま smoke が通過する」状態になるため禁止。
+
+### 将来の変更を行う場合のチェックリスト
+
+変更後、以下を全て満たすこと:
+
+- [ ] `npm run test:e2e:guard` がローカルで通る
+- [ ] `npm run test:e2e:ci` がローカルで通る
+- [ ] `layout.tsx` の `__E2E_ALLOWED__` の `writable:false, configurable:false` が維持されている
+- [ ] ホスト判定が厳密等価（`===`）のまま
+- [ ] Vercel Production の env vars に `E2E` が**含まれていない**（定期監査）
