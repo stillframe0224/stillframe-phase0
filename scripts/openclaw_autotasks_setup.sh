@@ -79,7 +79,7 @@ smoke_test() {
   info "スモークテスト: 2分後にモーニングプロンプトを1回実行..."
   openclaw cron add \
     --name "market-pulse-smoke-$(date +%s)" \
-    --at "+2m" \
+    --at "2m" \
     --message "$(cat "$MORNING_PROMPT")" \
     --session isolated \
     --delete-after-run \
@@ -108,6 +108,7 @@ register_cron() {
       --tz "$TZ_IANA" \
       --message "$(cat "$MORNING_PROMPT")" \
       --session isolated \
+      --no-deliver \
       --timeout-seconds 1800 \
       --description "SHINEN Phase0: morning goal-driven task runner (max 3 tasks, 30min each)"
     info "Morning cron 登録完了 ✓"
@@ -125,6 +126,7 @@ register_cron() {
       --tz "$TZ_IANA" \
       --message "$(cat "$NIGHTLY_PROMPT")" \
       --session isolated \
+      --no-deliver \
       --timeout-seconds 7200 \
       --description "SHINEN Phase0: nightly MVP improvement runner (1 task, max 2h)"
     info "Nightly cron 登録完了 ✓"
@@ -147,7 +149,8 @@ update_prompts() {
   local morning_id
   morning_id=$(echo "$cron_list" | python3 -c "
 import sys,json
-jobs=json.load(sys.stdin)
+data=json.load(sys.stdin)
+jobs=data.get('jobs', data) if isinstance(data, dict) else data
 for j in jobs:
     if j.get('name','')=='shinen-morning-autotasks':
         print(j['id'])
@@ -155,7 +158,7 @@ for j in jobs:
 " 2>/dev/null || echo "")
 
   if [ -n "$morning_id" ]; then
-    openclaw cron edit "$morning_id" --message "$(cat "$MORNING_PROMPT")"
+    openclaw cron edit "$morning_id" --message "$(cat "$MORNING_PROMPT")" --no-deliver
     info "Morning prompt updated: $morning_id"
   else
     warn "shinen-morning-autotasks が見つかりません。register を先に実行してください。"
@@ -165,7 +168,8 @@ for j in jobs:
   local nightly_id
   nightly_id=$(echo "$cron_list" | python3 -c "
 import sys,json
-jobs=json.load(sys.stdin)
+data=json.load(sys.stdin)
+jobs=data.get('jobs', data) if isinstance(data, dict) else data
 for j in jobs:
     if j.get('name','')=='shinen-nightly-autotasks':
         print(j['id'])
@@ -173,7 +177,7 @@ for j in jobs:
 " 2>/dev/null || echo "")
 
   if [ -n "$nightly_id" ]; then
-    openclaw cron edit "$nightly_id" --message "$(cat "$NIGHTLY_PROMPT")"
+    openclaw cron edit "$nightly_id" --message "$(cat "$NIGHTLY_PROMPT")" --no-deliver
     info "Nightly prompt updated: $nightly_id"
   else
     warn "shinen-nightly-autotasks が見つかりません。register を先に実行してください。"
