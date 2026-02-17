@@ -55,3 +55,4 @@ reports/triad/*.md
 # --- Subframe auth state (keep sync.json) ---
 .subframe/*
 !.subframe/sync.json
+scripts/_selective_stash.py
