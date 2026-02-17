@@ -4,6 +4,7 @@ import { useState } from "react";
 import copy from "@/lib/copy";
 import type { Lang } from "@/lib/copy";
 import { track } from "@/lib/track";
+import { PrimaryButton } from "@/ui/components/ui";
 
 interface WaitlistProps {
   lang: Lang;
@@ -92,27 +93,14 @@ export default function Waitlist({
           background: "#fff",
         }}
       />
-      <button
+      <PrimaryButton
         type="submit"
         disabled={loading}
-        style={{
-          padding: "12px 24px",
-          borderRadius: 999,
-          border: "none",
-          background: "#2a2a2a",
-          color: "#fff",
-          fontSize: 14,
-          fontWeight: 500,
-          fontFamily: "var(--font-dm)",
-          cursor: loading ? "wait" : "pointer",
-          transition: "background 0.2s",
-          whiteSpace: "nowrap",
-        }}
-        onMouseEnter={(e) => (e.currentTarget.style.background = "#444")}
-        onMouseLeave={(e) => (e.currentTarget.style.background = "#2a2a2a")}
+        className="rounded-full px-6 py-3 text-sm whitespace-nowrap"
+        style={{ cursor: loading ? "wait" : undefined }}
       >
         {c.cta[lang]}
-      </button>
+      </PrimaryButton>
     </form>
   );
 }

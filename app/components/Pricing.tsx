@@ -3,6 +3,7 @@
 import copy from "@/lib/copy";
 import type { Lang } from "@/lib/copy";
 import { track } from "@/lib/track";
+import { PrimaryButton } from "@/ui/components/ui";
 
 interface PricingProps {
   lang: Lang;
@@ -85,22 +86,11 @@ export default function Pricing({ lang, gumroadUrl }: PricingProps) {
         target="_blank"
         rel="noopener noreferrer"
         onClick={() => track("checkout_start")}
-        style={{
-          display: "inline-block",
-          background: "#2a2a2a",
-          color: "#fff",
-          fontFamily: "var(--font-dm)",
-          fontSize: 15,
-          fontWeight: 500,
-          padding: "12px 32px",
-          borderRadius: 999,
-          textDecoration: "none",
-          transition: "background 0.2s",
-        }}
-        onMouseEnter={(e) => (e.currentTarget.style.background = "#444")}
-        onMouseLeave={(e) => (e.currentTarget.style.background = "#2a2a2a")}
+        style={{ textDecoration: "none" }}
       >
-        {c.cta[lang]}
+        <PrimaryButton className="rounded-full px-8 py-3 text-sm">
+          {c.cta[lang]}
+        </PrimaryButton>
       </a>
     </section>
   );
