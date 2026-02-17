@@ -48,6 +48,23 @@ git commit -m "chore: update enso.png and sha256 baseline"
 
 ---
 
+## CI Guard (GitHub Actions)
+
+`public/enso.png` or `public/enso.png.sha256` が変更されると `.github/workflows/enso_guard.yml` が自動実行。
+
+チェック内容:
+1. ファイル存在
+2. PNG signature (`89504e47...`)
+3. sha256 が SSOT (`public/enso.png.sha256`) と一致
+4. ファイルサイズ > 10KB (切り詰め防止)
+
+手動で同じチェックを実行:
+```bash
+bash scripts/enso_verify.sh
+```
+
+---
+
 ## hooks 修繕メモ
 
 `.claude/hooks/block_unsafe.py` と `notify.py` はClaude Code worktreeで

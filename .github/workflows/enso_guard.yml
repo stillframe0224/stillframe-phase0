@@ -1,0 +1,25 @@
+name: enso.png Guard
+
+on:
+  pull_request:
+    paths:
+      - 'public/enso.png'
+      - 'public/enso.png.sha256'
+      - 'scripts/enso_verify.sh'
+  push:
+    branches:
+      - main
+    paths:
+      - 'public/enso.png'
+      - 'public/enso.png.sha256'
+      - 'scripts/enso_verify.sh'
+
+jobs:
+  verify-enso:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Verify enso.png integrity
+        run: bash scripts/enso_verify.sh
