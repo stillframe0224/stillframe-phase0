@@ -10,6 +10,7 @@
     "lint": "next lint",
     "test:e2e": "playwright test",
     "test:e2e:ci": "CI=1 playwright test",
+    "test:e2e:guard": "playwright test --config playwright.guard.config.ts",
     "notify:smoke": "node scripts/notify_smoke.mjs",
     "codex:run": "bash scripts/codex-run-notify",
     "subframe:sync": "npx @subframe/cli@latest sync",

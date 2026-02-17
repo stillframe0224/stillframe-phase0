@@ -6,6 +6,7 @@ const isCI = !!process.env.CI;
 
 export default defineConfig({
   testDir: "./e2e",
+  testIgnore: "guard-*.spec.ts",
   timeout: 30_000,
   expect: {
     timeout: 5_000,
