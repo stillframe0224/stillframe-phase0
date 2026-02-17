@@ -13,7 +13,7 @@ export default function AppLayout({
     <>
       <script
         dangerouslySetInnerHTML={{
-          __html: `window.__SUPABASE_CONFIG__=${JSON.stringify({ url: supabaseUrl, key: supabaseAnonKey })};Object.defineProperty(window,"__E2E_ALLOWED__",{value:${JSON.stringify(e2eAllowed)}&&(location.hostname==="localhost"||location.hostname==="127.0.0.1"),writable:false,configurable:false})`,
+          __html: `window.__SUPABASE_CONFIG__=${JSON.stringify({ url: supabaseUrl, key: supabaseAnonKey })};(function(){var _a=${JSON.stringify(e2eAllowed)};var _h=location.hostname;var _ok=_a&&(_h==="localhost"||_h==="127.0.0.1");Object.defineProperty(window,"__E2E_ALLOWED__",{value:_ok,writable:false,configurable:false});if(!_ok&&new URLSearchParams(location.search).get("e2e")==="1"){console.warn("[shinen] e2e bypass attempted on non-localhost host: "+_h+" — request ignored");}})()`,
         }}
       />
       {children}
