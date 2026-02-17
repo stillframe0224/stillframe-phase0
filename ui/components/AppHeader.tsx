@@ -156,6 +156,8 @@ export default function AppHeader({
         <a
           href={ctaHref}
           data-testid="cta-early-access"
+          aria-label={ctaLabel}
+          className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#D9A441] rounded-full"
           style={{ textDecoration: "none", marginLeft: 4 }}
         >
           <PrimaryButton data-testid="cta-early-access">{ctaLabel}</PrimaryButton>
