@@ -1189,34 +1189,25 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
                     setShowFileSelect(!showFileSelect);
                   }}
                   style={{
-                    height: 28,
-                    padding: "0 10px",
-                    fontSize: 11,
-                    fontWeight: 500,
-                    color: "#555",
-                    background: "#fff",
-                    border: "1px solid #d0d0d0",
-                    borderRadius: 14,
+                    fontSize: 10,
+                    fontWeight: 600,
+                    color: ct.accent,
+                    background: `${ct.border}33`,
+                    padding: "2px 8px",
+                    borderRadius: 999,
+                    border: "none",
                     cursor: "pointer",
                     fontFamily: "var(--font-dm)",
-                    display: "flex",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.06em",
+                    display: "inline-flex",
                     alignItems: "center",
-                    gap: 4,
-                    transition: "all 0.15s",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = "#f8f8f8";
-                    e.currentTarget.style.borderColor = "#999";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = "#fff";
-                    e.currentTarget.style.borderColor = "#d0d0d0";
+                    gap: 3,
                   }}
                   title="Move to file"
                   aria-label="Move to file"
                 >
-                  {/* Inline folder icon SVG */}
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
                   </svg>
                   <span>File</span>
