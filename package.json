@@ -13,7 +13,8 @@
     "subframe:sync": "npx @subframe/cli@latest sync",
     "market:pulse": "node tools/market_pulse/dist/cli.js",
     "market:pulse:dev": "tsx tools/market_pulse/src/cli.ts",
-    "market:pulse:build": "tsc -p tools/market_pulse/tsconfig.json"
+    "market:pulse:build": "tsc -p tools/market_pulse/tsconfig.json",
+    "slack:runner": "tsx scripts/slack_runner.ts"
   },
   "keywords": [],
   "author": "",
@@ -28,7 +29,8 @@
     "@supabase/supabase-js": "^2.95.3",
     "next": "^16.1.6",
     "react": "^19.2.4",
-    "react-dom": "^19.2.4"
+    "react-dom": "^19.2.4",
+    "@slack/bolt": "^4.1.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.18",

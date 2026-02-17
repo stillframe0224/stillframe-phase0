@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.stillframe.shinen-runner</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>/Users/array0224/stillframe-phase0/scripts/shinen_runner_start.sh</string>
+  </array>
+
+  <key>WorkingDirectory</key>
+  <string>/Users/array0224/stillframe-phase0</string>
+
+  <key>RunAtLoad</key>
+  <true/>
+
+  <key>KeepAlive</key>
+  <true/>
+
+  <key>StandardOutPath</key>
+  <string>/Users/array0224/Library/Logs/stillframe/shinen-runner.out.log</string>
+
+  <key>StandardErrorPath</key>
+  <string>/Users/array0224/Library/Logs/stillframe/shinen-runner.err.log</string>
+
+  <key>ThrottleInterval</key>
+  <integer>5</integer>
+</dict>
+</plist>
