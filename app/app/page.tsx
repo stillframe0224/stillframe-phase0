@@ -81,9 +81,48 @@ function dedupeCards(cards: Card[]): Card[] {
   });
 }
 
+function buildE2EMockCards(): Card[] {
+  const now = Date.now();
+  const types = ["memo", "idea", "quote", "task", "fragment", "dream"];
+  return types.map((cardType, index) => {
+    const createdAt = new Date(now - index * 60_000).toISOString();
+    return {
+      id: `e2e-card-${index + 1}`,
+      user_id: "e2e-user",
+      text: `E2E mock card ${index + 1}`,
+      card_type: cardType,
+      image_url: null,
+      image_source: null,
+      client_request_id: null,
+      pinned: false,
+      notes: null,
+      source_url: null,
+      site_name: null,
+      preview_image_url: null,
+      media_kind: null,
+      media_path: null,
+      media_thumb_path: null,
+      media_mime: null,
+      media_size: null,
+      sort_key: null,
+      file_id: null,
+      ai_summary: null,
+      ai_tags: null,
+      ai_action: null,
+      ai_model: null,
+      ai_updated_at: null,
+      created_at: createdAt,
+      updated_at: createdAt,
+    };
+  });
+}
+
 export default function AppPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const e2eMode =
+    typeof window !== "undefined" &&
+    new URLSearchParams(window.location.search).get("e2e") === "1";
 
   const [cards, setCards] = useState<Card[]>([]);
   const [files, setFiles] = useState<FileRecord[]>([]);
@@ -132,7 +171,7 @@ export default function AppPage() {
   const filterInitializedRef = useRef(false);
   const initialQueryRef = useRef<URLSearchParams | null>(null);
   const bmConsumedRef = useRef(false);
-  const configured = isSupabaseConfigured();
+  const configured = isSupabaseConfigured() || e2eMode;
 
   // Capture initial query params synchronously during render (before any effects)
   if (typeof window !== "undefined" && initialQueryRef.current === null) {
@@ -146,6 +185,13 @@ export default function AppPage() {
 
   // Load user and cards
   useEffect(() => {
+    if (e2eMode) {
+      setUser({ id: "e2e-user", email: "e2e@example.com" });
+      setCards(buildE2EMockCards());
+      setFiles([]);
+      setLoading(false);
+      return;
+    }
     if (!configured) {
       setLoading(false);
       return;
@@ -184,7 +230,7 @@ export default function AppPage() {
       setLoading(false);
     }
     init();
-  }, [configured]);
+  }, [configured, e2eMode]);
 
   // Prefill from query: /app?url=...&title=... (skip when auto=1, auto-save handles that)
   useEffect(() => {
@@ -412,10 +458,11 @@ export default function AppPage() {
     if (mediaFilter !== "all") params.set("m", mediaFilter);
     if (sortOrder !== "newest") params.set("sort", sortOrder);
     if (showPinnedOnly) params.set("p", "1");
+    if (e2eMode) params.set("e2e", "1");
     const query = params.toString();
     const newUrl = query ? `/app?${query}` : "/app";
     router.replace(newUrl, { scroll: false });
-  }, [searchQuery, domainFilter, fileFilter, mediaFilter, sortOrder, showPinnedOnly, router]);
+  }, [searchQuery, domainFilter, fileFilter, mediaFilter, sortOrder, showPinnedOnly, router, e2eMode]);
 
   // Extract unique domains from cards
   const domains = useMemo(() => {
@@ -2172,6 +2219,7 @@ export default function AppPage() {
 
       {/* Cards Grid */}
       <div
+        data-testid="card-grid"
         style={{
           maxWidth: 1600,
           margin: "32px auto 0",
@@ -2226,7 +2274,7 @@ export default function AppPage() {
                 }}
               >
                 {filteredCards.map((card, i) => (
-                  <div key={card.id} id={`card-${card.id}`}>
+                  <div key={card.id} id={`card-${card.id}`} data-testid="card-item" data-card-id={card.id}>
                     <AppCard card={card} index={i} onDelete={deleteCard} onPinToggle={handlePinToggle} onFileAssign={assignCardToFile} onUpdate={handleCardUpdate} files={files} isDraggable={true} isBulkMode={isBulkMode} isSelected={selectedCardIds.has(card.id)} onToggleSelect={toggleCardSelection} />
                   </div>
                 ))}
@@ -2243,7 +2291,7 @@ export default function AppPage() {
             }}
           >
             {filteredCards.map((card, i) => (
-              <div key={card.id} id={`card-${card.id}`}>
+              <div key={card.id} id={`card-${card.id}`} data-testid="card-item" data-card-id={card.id}>
                 <AppCard card={card} index={i} onDelete={deleteCard} onPinToggle={handlePinToggle} onFileAssign={assignCardToFile} onUpdate={handleCardUpdate} files={files} isDraggable={false} isBulkMode={isBulkMode} isSelected={selectedCardIds.has(card.id)} onToggleSelect={toggleCardSelection} />
               </div>
             ))}

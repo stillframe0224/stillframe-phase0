@@ -104,6 +104,7 @@ export default function Waitlist({
           }}
         />
         <PrimaryButton
+          data-testid="cta-waitlist"
           type="submit"
           disabled={loading}
           className="rounded-full px-6 py-3 text-sm whitespace-nowrap"

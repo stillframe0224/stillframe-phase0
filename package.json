@@ -8,6 +8,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "test:e2e": "playwright test",
+    "test:e2e:ci": "CI=1 playwright test",
     "notify:smoke": "node scripts/notify_smoke.mjs",
     "codex:run": "bash scripts/codex-run-notify",
     "subframe:sync": "npx @subframe/cli@latest sync",
@@ -24,15 +26,16 @@
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
+    "@slack/bolt": "^4.1.0",
     "@subframe/core": "^1.154.0",
     "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.95.3",
     "next": "^16.1.6",
     "react": "^19.2.4",
-    "react-dom": "^19.2.4",
-    "@slack/bolt": "^4.1.0"
+    "react-dom": "^19.2.4"
   },
   "devDependencies": {
+    "@playwright/test": "^1.58.2",
     "@tailwindcss/postcss": "^4.1.18",
     "@types/js-yaml": "^4.0.9",
     "@types/node": "^25.2.3",

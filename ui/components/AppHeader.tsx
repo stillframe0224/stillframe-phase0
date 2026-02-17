@@ -153,8 +153,12 @@ export default function AppHeader({
         <LangToggle lang={lang} onToggle={onToggle} />
 
         {/* CTA — Subframe PrimaryButton (brand-primary from tailwind.config.cjs) */}
-        <a href={ctaHref} style={{ textDecoration: "none", marginLeft: 4 }}>
-          <PrimaryButton>{ctaLabel}</PrimaryButton>
+        <a
+          href={ctaHref}
+          data-testid="cta-early-access"
+          style={{ textDecoration: "none", marginLeft: 4 }}
+        >
+          <PrimaryButton data-testid="cta-early-access">{ctaLabel}</PrimaryButton>
         </a>
       </div>
     </nav>

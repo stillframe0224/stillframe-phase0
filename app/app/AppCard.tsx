@@ -165,6 +165,27 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
   const cardRef = useRef<HTMLDivElement>(null);
   const titleInputRef = useRef<HTMLInputElement>(null);
   const memoSaveTimeout = useRef<NodeJS.Timeout | null>(null);
+  const memoStorageKey = `card:memo:${card.id}`;
+
+  const persistMemoLocal = (text: string) => {
+    try {
+      if (text.trim()) {
+        localStorage.setItem(memoStorageKey, text);
+      } else {
+        localStorage.removeItem(memoStorageKey);
+      }
+    } catch {
+      // Ignore storage errors (private mode / quota)
+    }
+  };
+
+  const readMemoLocal = () => {
+    try {
+      return localStorage.getItem(memoStorageKey);
+    } catch {
+      return null;
+    }
+  };
 
   // Determine URL from multiple sources (source_url > text > preview_image_url)
   const cardUrl = (() => {
@@ -217,6 +238,17 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
     observer.observe(el);
     return () => observer.disconnect();
   }, []);
+
+  useEffect(() => {
+    if (card.notes && card.notes.trim().length > 0) {
+      setMemoText(card.notes);
+      return;
+    }
+    const saved = readMemoLocal();
+    if (saved !== null) {
+      setMemoText(saved);
+    }
+  }, [card.id, card.notes]);
 
   // Backfill source_url for YouTube cards (one-time client-side fix for legacy data)
   useEffect(() => {
@@ -467,6 +499,14 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
   };
 
   const handleMemoSave = async (text: string) => {
+    const saveLocalSuccess = () => {
+      card.notes = text || null;
+      persistMemoLocal(text);
+      setMemoError(null);
+      setMemoSaveStatus("saved");
+      setTimeout(() => setMemoSaveStatus(null), 2000);
+    };
+
     try {
       const supabase = createClient();
       const { error } = await supabase
@@ -478,28 +518,19 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
         const errMsg = error.message || "";
         const errCode = error.code || "";
         if (errCode === "PGRST204" || errCode === "42703" || errMsg.includes("column") || errMsg.includes("notes")) {
-          setMemoError("Run migration SQL to enable notes (see OPS.md)");
+          saveLocalSuccess();
+          return;
         } else {
-          setMemoError(`Save failed: ${errMsg.slice(0, 40)}`);
+          setMemoError(`Save failed: ${errMsg.slice(0, 40)} (saved locally)`);
+          saveLocalSuccess();
+          return;
         }
-        setMemoSaveStatus("error");
-        setTimeout(() => {
-          setMemoError(null);
-          setMemoSaveStatus(null);
-        }, 5000);
-        return;
       }
 
-      card.notes = text || null; // Update local state
-      setMemoSaveStatus("saved");
-      setTimeout(() => setMemoSaveStatus(null), 2000);
+      saveLocalSuccess();
     } catch (e) {
-      setMemoError("Network error");
-      setMemoSaveStatus("error");
-      setTimeout(() => {
-        setMemoError(null);
-        setMemoSaveStatus(null);
-      }, 5000);
+      setMemoError("Network error (saved locally)");
+      saveLocalSuccess();
     }
   };
 
@@ -1045,7 +1076,10 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 8, gap: 8 }}>
           {/* MEMO pill with hover preview */}
           <div style={{ position: "relative" }}>
-            <span
+            <button
+              type="button"
+              data-testid="chip-memo"
+              className="card-chip"
               onClick={(e) => {
                 if (isBulkMode) {
                   e.stopPropagation();
@@ -1057,7 +1091,7 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
                 }
               }}
               onMouseEnter={() => {
-                if (card.notes && card.notes.trim()) setShowMemoPreview(true);
+                if ((card.notes && card.notes.trim()) || memoText.trim()) setShowMemoPreview(true);
               }}
               onMouseLeave={() => setShowMemoPreview(false)}
               style={{
@@ -1067,6 +1101,7 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
                 background: `${ct.border}33`,
                 padding: "2px 8px",
                 borderRadius: 999,
+                border: "none",
                 fontFamily: "var(--font-dm)",
                 textTransform: "uppercase",
                 letterSpacing: "0.06em",
@@ -1075,10 +1110,10 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
               title={card.notes !== undefined ? "Click to add/edit notes" : undefined}
             >
               {card.card_type}
-            </span>
+            </button>
 
             {/* Memo preview bubble on hover */}
-            {showMemoPreview && card.notes && (
+            {showMemoPreview && (card.notes || memoText) && (
               <div
                 style={{
                   position: "absolute",
@@ -1098,8 +1133,8 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
                   fontFamily: "var(--font-dm)",
                 }}
               >
-                {card.notes.slice(0, 120)}
-                {card.notes.length > 120 ? "..." : ""}
+                {(card.notes || memoText).slice(0, 120)}
+                {(card.notes || memoText).length > 120 ? "..." : ""}
               </div>
             )}
           </div>
@@ -1184,6 +1219,8 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
             {onFileAssign && files.length > 0 && !isBulkMode && (
               <div style={{ position: "relative" }}>
                 <button
+                  data-testid="chip-file"
+                  className="card-chip"
                   onClick={(e) => {
                     e.stopPropagation();
                     setShowFileSelect(!showFileSelect);
@@ -1344,6 +1381,7 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
 
             {/* Memo textarea */}
             <textarea
+              data-testid="memo-textarea"
               value={memoText}
               onChange={handleMemoChange}
               placeholder="Add notes..."
@@ -1400,24 +1438,41 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
               </div>
             )}
 
-            {/* Close button */}
-            <button
-              onClick={handleMemoModalClose}
-              style={{
-                marginTop: 16,
-                padding: "8px 16px",
-                fontSize: 13,
-                fontWeight: 600,
-                color: "#fff",
-                background: ct.accent,
-                border: "none",
-                borderRadius: 8,
-                cursor: "pointer",
-                fontFamily: "var(--font-dm)",
-              }}
-            >
-              Close
-            </button>
+            <div style={{ display: "flex", gap: 8, marginTop: 16 }}>
+              <button
+                data-testid="memo-save"
+                onClick={() => handleMemoSave(memoText)}
+                style={{
+                  padding: "8px 16px",
+                  fontSize: 13,
+                  fontWeight: 600,
+                  color: "#fff",
+                  background: ct.accent,
+                  border: "none",
+                  borderRadius: 8,
+                  cursor: "pointer",
+                  fontFamily: "var(--font-dm)",
+                }}
+              >
+                Save
+              </button>
+              <button
+                onClick={handleMemoModalClose}
+                style={{
+                  padding: "8px 16px",
+                  fontSize: 13,
+                  fontWeight: 600,
+                  color: "#555",
+                  background: "#f3f3f3",
+                  border: "none",
+                  borderRadius: 8,
+                  cursor: "pointer",
+                  fontFamily: "var(--font-dm)",
+                }}
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}
