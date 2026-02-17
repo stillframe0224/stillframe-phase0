@@ -1303,19 +1303,13 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
                     setShowFileSelect(!showFileSelect);
                   }}
                   style={{
-                    ...CHIP_ACTION_NEUTRAL_STYLE,
+                    ...CHIP_TYPE_STYLE(ct.accent, ct.border),
                     cursor: "pointer",
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 3,
                   }}
                   title="Move to file"
                   aria-label="Move to file"
                 >
-                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
-                  </svg>
-                  <span>File</span>
+                  FILE
                 </button>
 
                 {showFileSelect && (
