@@ -344,6 +344,7 @@ Codex must be executed via `scripts/codex-safe` only.
 Shipping must be executed via `scripts/ship-main` only.
 Subframe sync is run via `scripts/ship-subframe`.
 FixSpec→実装の入口は `scripts/triad` のみ。
+Slack Runnerの入口は `scripts/install_slack_runner.sh`。DMコマンド: `status` / `run ship-main` / `run ship-subframe` / `run codex <prompt...>` / `run claude <args...>`。
 Set `IMAC_SOUND=0` to disable local iMac sound alerts for both wrappers.
 
 
