@@ -22,12 +22,14 @@ has_disallowed_dirty() {
     status="${line:0:2}"
     path="${line:3}"
 
-    if [ "$path" = ".subframe/sync.json" ] && { [ "$status" = " M" ] || [ "$status" = "M " ]; }; then
-      continue
-    fi
-
     case "$path" in
+      .subframe/sync.json|package.json|package-lock.json)
+        continue
+        ;;
       ui/subframe/*)
+        continue
+        ;;
+      ui/components/*)
         continue
         ;;
     esac
@@ -40,7 +42,7 @@ has_disallowed_dirty() {
 
 if has_disallowed_dirty; then
   local_sound_attention || true
-  echo "[ship-subframe] Disallowed dirty files detected. Allowed only: M .subframe/sync.json and ui/subframe/**" >&2
+  echo "[ship-subframe] Disallowed dirty files detected. Allowed only: .subframe/sync.json, ui/subframe/**, ui/components/**, package.json, package-lock.json" >&2
   exit 2
 fi
 
@@ -55,7 +57,15 @@ fi
 
 npm run build
 
-git add .subframe/sync.json ui/subframe/
+git add .subframe/sync.json ui/subframe/ ui/components/ package.json package-lock.json
+
+if git diff --cached --quiet; then
+  echo "NOTHING_TO_COMMIT"
+  completed=1
+  local_sound_success || true
+  exit 0
+fi
+
 git commit -m "chore: set subframe projectId and sync components"
 git push origin HEAD:main
 
