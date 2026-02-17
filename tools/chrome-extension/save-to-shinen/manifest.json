@@ -22,7 +22,8 @@
       ],
       "run_at": "document_idle",
       "js": [
-        "content/beep_on_complete.js"
+        "content/beep_on_complete.js",
+        "content/notify_approval_modal.js"
       ]
     }
   ],

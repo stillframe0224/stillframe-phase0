@@ -151,6 +151,7 @@ For issues or feature requests, contact SHINEN support.
 After reloading the extension, beep normally works without first click/keypress via offscreen playback. If offscreen is unavailable, fallback playback requires one initial click/keypress due to autoplay policy.
 When a beep event fires, the extension icon badge flashes for 1 second (`•` on success, `!` on fail).
 If beeps are not audible, a Chrome notification is also shown so notification sound can alert you (requires Chrome/macOS notifications enabled).
+When an approval-waiting modal appears (Yes/No prompt), the extension sends a Chrome notification so you can notice it with notification sound.
 
 ### Quick Test
 

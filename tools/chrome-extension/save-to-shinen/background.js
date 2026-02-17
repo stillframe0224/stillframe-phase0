@@ -29,13 +29,19 @@ function flashBadge(kind, tabId) {
 function notify(kind) {
   try {
     const id = `sf_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+    const isFail = kind === 'fail';
+    const isApproval = kind === 'approval';
     chrome.notifications.create(
       id,
       {
         type: 'basic',
         iconUrl: NOTIFY_ICON,
-        title: kind === 'fail' ? 'SHINEN: fail' : 'SHINEN: done',
-        message: kind === 'fail' ? 'beep event (fail)' : 'beep event (done)',
+        title: isApproval ? 'SHINEN: action required' : isFail ? 'SHINEN: fail' : 'SHINEN: done',
+        message: isApproval
+          ? 'Approval prompt is waiting (Yes/No).'
+          : isFail
+            ? 'beep event (fail)'
+            : 'beep event (done)',
         silent: false,
       },
       () => {}
@@ -105,7 +111,20 @@ async function setupOffscreenDocument() {
 }
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
-  if (!msg || msg.type !== 'SF_BEEP' || msg.from !== 'content') {
+  if (!msg || !msg.type) {
+    return;
+  }
+
+  if (msg.type === 'SF_ALERT' && msg.kind === 'approval') {
+    try {
+      notify('approval');
+    } catch (_error) {
+      // Ignore alert notification failures.
+    }
+    return;
+  }
+
+  if (msg.type !== 'SF_BEEP' || msg.from !== 'content') {
     return;
   }
 
