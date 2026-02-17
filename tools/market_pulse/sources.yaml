@@ -122,13 +122,49 @@ sources:
     tags: [oss, tools, trend]
     weight: 0.8
 
-  # --- TechCrunch Startups ---
+  # --- TechCrunch AI ---
   - id: techcrunch_startups
-    name: "TechCrunch: Startups"
-    url: "https://techcrunch.com/category/startups/feed/"
+    name: "TechCrunch AI"
+    url: "https://techcrunch.com/category/artificial-intelligence/feed/"
     category: blog
-    tags: [startup, funding, trend]
+    tags: [llm, ai-agent, startup, trend]
     weight: 1.0
+
+  # --- High-signal AI/Dev newsletters ---
+  - id: latent-space
+    name: "Latent Space"
+    url: "https://www.latent.space/feed"
+    category: blog
+    tags: [llm, ai-agent, frontier-tech]
+    weight: 1.2
+
+  - id: interconnects
+    name: "Interconnects (Nathan Lambert)"
+    url: "https://www.interconnects.ai/feed"
+    category: blog
+    tags: [llm, frontier-tech]
+    weight: 1.1
+
+  - id: tldr-ai
+    name: "TLDR AI"
+    url: "https://tldr.tech/api/rss/ai"
+    category: blog
+    tags: [llm, ai-agent]
+    weight: 1.1
+
+  - id: google-research-rss
+    name: "Google Research Blog"
+    url: "https://research.google/blog/rss/"
+    category: blog
+    tags: [llm, frontier-tech]
+    weight: 1.0
+
+  - id: pragmatic-engineer
+    name: "The Pragmatic Engineer"
+    url: "https://newsletter.pragmaticengineer.com/feed"
+    category: blog
+    tags: [devtools, frontier-tech]
+    weight: 0.9
 
 # スコアリングに使うキーワード定義（score.ts が参照）
 pain_keywords:
