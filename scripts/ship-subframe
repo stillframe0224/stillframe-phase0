@@ -1,0 +1,63 @@
+#!/bin/bash
+set -euo pipefail
+
+ROOT="/Users/array0224/stillframe-phase0"
+cd "$ROOT"
+
+source "$ROOT/scripts/_local_sound.sh" || true
+
+completed=0
+on_exit() {
+  local rc=$?
+  if [ "$rc" -ne 0 ] || [ "$completed" -ne 1 ]; then
+    local_sound_failure || true
+  fi
+}
+trap on_exit EXIT
+
+has_disallowed_dirty() {
+  local line status path
+  while IFS= read -r line; do
+    [ -z "$line" ] && continue
+    status="${line:0:2}"
+    path="${line:3}"
+
+    if [ "$path" = ".subframe/sync.json" ] && { [ "$status" = " M" ] || [ "$status" = "M " ]; }; then
+      continue
+    fi
+
+    case "$path" in
+      ui/subframe/*)
+        continue
+        ;;
+    esac
+
+    return 0
+  done < <(git status --porcelain)
+
+  return 1
+}
+
+if has_disallowed_dirty; then
+  local_sound_attention || true
+  echo "[ship-subframe] Disallowed dirty files detected. Allowed only: M .subframe/sync.json and ui/subframe/**" >&2
+  exit 2
+fi
+
+local_sound_attention || true
+npm run subframe:sync
+
+file_count="$(find ui/subframe -type f 2>/dev/null | wc -l | tr -d '[:space:]')"
+if [ "${file_count:-0}" -le 0 ]; then
+  echo "[ship-subframe] ui/subframe is empty after sync." >&2
+  exit 1
+fi
+
+npm run build
+
+git add .subframe/sync.json ui/subframe/
+git commit -m "chore: set subframe projectId and sync components"
+git push origin HEAD:main
+
+completed=1
+local_sound_success || true

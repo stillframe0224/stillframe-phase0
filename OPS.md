@@ -342,6 +342,7 @@ bash -lc 'tmp=$(mktemp -d); printf "#!/usr/bin/env bash\nexit 7\n" > "$tmp/codex
 ClaudeCode must be executed via `scripts/claude-safe` only.
 Codex must be executed via `scripts/codex-safe` only.
 Shipping must be executed via `scripts/ship-main` only.
+Subframe sync is run via `scripts/ship-subframe`.
 Set `IMAC_SOUND=0` to disable local iMac sound alerts for both wrappers.
 
 
