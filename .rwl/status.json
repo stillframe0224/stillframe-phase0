@@ -1,7 +1,7 @@
 {
-  "phase": "phase0",
-  "status": "done",
-  "failure_count": 1,
-  "last_step": "build_pages",
-  "updated_at": "2026-02-13T05:26:00.000Z"
+  "failure_count": 0,
+  "max_failures": 5,
+  "last_run_at": null,
+  "last_task_id": null,
+  "note": "failure_count >= max_failures で自律タスクを停止。手動リセット: failure_count を 0 に戻す"
 }
