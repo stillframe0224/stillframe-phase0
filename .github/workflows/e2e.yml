@@ -27,6 +27,9 @@ jobs:
       - name: Build app
         run: npm run build
 
+      - name: Guard e2e bypass is OFF without env
+        run: npm run test:e2e:guard
+
       - name: Run E2E tests
         run: npm run test:e2e:ci
 
