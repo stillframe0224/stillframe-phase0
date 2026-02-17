@@ -1,8 +1,8 @@
 "use client";
 /**
  * AppHeader — LP ヘッダー
- * SubframeのTopbarWithRightNavをベースに、
- * 左にensoロゴ＋ブランド名、右にアンカーリンク＋LangToggle＋CTAを配置。
+ * SubframeのPrimaryButtonとNavItemスタイルを流用しつつ、
+ * レイアウトは直接制御（TopbarWithRightNavのw-fullがmaxWidthと競合するため）。
  *
  * Props:
  *   lang       — 現在の言語 ("en" | "ja")
@@ -12,7 +12,7 @@
  */
 
 import React from "react";
-import { TopbarWithRightNav, PrimaryButton } from "@/ui/components/ui";
+import { PrimaryButton } from "@/ui/components/ui";
 import LangToggle from "@/app/components/LangToggle";
 import type { Lang } from "@/lib/copy";
 
@@ -47,79 +47,102 @@ export default function AppHeader({
   const navLinks = lang === "ja" ? NAV_LINKS_JA : NAV_LINKS_EN;
   const ctaLabel = lang === "ja" ? "早期アクセスを取得" : "Get Early Access";
 
-  const leftSlot = (
-    <a
-      href="/"
-      style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: 8 }}
+  return (
+    <nav
+      style={{
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        maxWidth: 1100,
+        margin: "0 auto",
+        padding: "16px 24px",
+        gap: 16,
+      }}
     >
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src="/enso.png"
-        width={20}
-        height={20}
-        alt="enso"
-        style={{ display: "block" }}
-      />
-      <span
+      {/* Left: logo + brand */}
+      <a
+        href="/"
         style={{
-          fontFamily: "var(--font-serif)",
-          fontSize: 22,
-          fontWeight: 600,
-          color: "#2a2a2a",
-          letterSpacing: "-0.01em",
+          textDecoration: "none",
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+          flexShrink: 0,
         }}
       >
-        SHINEN
-      </span>
-      {byline && (
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/enso.png"
+          width={20}
+          height={20}
+          alt="enso"
+          style={{ display: "block" }}
+        />
         <span
           style={{
-            fontFamily: "var(--font-dm)",
-            fontSize: 12,
-            color: "#bbb",
+            fontFamily: "var(--font-serif)",
+            fontSize: 22,
+            fontWeight: 600,
+            color: "#2a2a2a",
+            letterSpacing: "-0.01em",
           }}
         >
-          {byline}
+          SHINEN
         </span>
-      )}
-    </a>
-  );
+        {byline && (
+          <span
+            style={{
+              fontFamily: "var(--font-dm)",
+              fontSize: 12,
+              color: "#bbb",
+            }}
+          >
+            {byline}
+          </span>
+        )}
+      </a>
 
-  const rightSlot = (
-    <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
-      {/* Anchor nav links */}
-      {navLinks.map((link) => (
-        <TopbarWithRightNav.NavItem key={link.href}>
+      {/* Right: nav links + lang toggle + CTA */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 4,
+          flexShrink: 0,
+        }}
+      >
+        {/* Anchor nav links — Subframe NavItem style */}
+        {navLinks.map((link) => (
           <a
+            key={link.href}
             href={link.href}
             style={{
               textDecoration: "none",
-              color: "inherit",
+              display: "flex",
+              alignItems: "center",
+              padding: "4px 8px",
+              borderRadius: 6,
               fontSize: 14,
+              color: "#777",
+              fontFamily: "var(--font-dm)",
+              transition: "color 0.15s",
+              whiteSpace: "nowrap",
             }}
+            onMouseEnter={(e) => (e.currentTarget.style.color = "#2a2a2a")}
+            onMouseLeave={(e) => (e.currentTarget.style.color = "#777")}
           >
             {link.label}
           </a>
-        </TopbarWithRightNav.NavItem>
-      ))}
+        ))}
 
-      {/* Language toggle */}
-      <LangToggle lang={lang} onToggle={onToggle} />
+        {/* Language toggle */}
+        <LangToggle lang={lang} onToggle={onToggle} />
 
-      {/* CTA */}
-      <a href={ctaHref} style={{ textDecoration: "none", flexShrink: 0 }}>
-        <PrimaryButton>{ctaLabel}</PrimaryButton>
-      </a>
-    </div>
-  );
-
-  return (
-    <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 8px", overflow: "visible" }}>
-      <TopbarWithRightNav
-        leftSlot={leftSlot}
-        rightSlot={rightSlot}
-        className="px-0"
-      />
-    </div>
+        {/* CTA — Subframe PrimaryButton */}
+        <a href={ctaHref} style={{ textDecoration: "none", marginLeft: 4 }}>
+          <PrimaryButton>{ctaLabel}</PrimaryButton>
+        </a>
+      </div>
+    </nav>
   );
 }
