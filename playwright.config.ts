@@ -26,6 +26,7 @@ export default defineConfig({
     url: baseURL,
     reuseExistingServer: !isCI,
     timeout: 120_000,
+    env: { ...process.env, NEXT_PUBLIC_E2E: "1" },
   },
   projects: [
     {
