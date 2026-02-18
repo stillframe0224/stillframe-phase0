@@ -1,0 +1,68 @@
+name: ui-smoke
+
+# /app UI acceptance smoke — runs after every push/PR.
+# Uses E2E=1 build + ?e2e=1 mock cards (no real auth / service role key needed).
+#
+# Required secrets (set once in repo Settings → Secrets → Actions):
+#   NEXT_PUBLIC_SUPABASE_URL   — Supabase project URL
+#   NEXT_PUBLIC_SUPABASE_ANON_KEY — Supabase anon key
+#
+# These are needed at build time (next.config.ts injects them) but no real DB
+# calls are made in E2E mock mode.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  ui-smoke:
+    name: ui-smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Build (E2E=1 — activates mock mode at localhost)
+        env:
+          E2E: "1"
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+        run: npm run build
+
+      - name: Start server (background)
+        env:
+          E2E: "1"
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+        run: npm start -- --port 3000 &
+
+      - name: Wait for server + run UI smoke
+        env:
+          E2E: "1"
+          BASE_URL: http://localhost:3000
+          CI: "1"
+        run: node scripts/app_ui_smoke.mjs
+
+      - name: Upload smoke results on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-smoke-failure-${{ github.sha }}
+          path: |
+            .auth/
+          retention-days: 7
+          if-no-files-found: ignore
