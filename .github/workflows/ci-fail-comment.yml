@@ -1,0 +1,99 @@
+name: CI Fail Summary
+
+on:
+  workflow_run:
+    workflows:
+      - "e2e"
+      - "deploy-smoke"
+      - "stage3"
+      - "ui-smoke"
+    types: [completed]
+
+permissions:
+  actions: read
+  checks: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  comment-on-failure:
+    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Post/Update failure summary on PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const run = context.payload.workflow_run;
+
+            // 1) PRが紐づいていなければ何もしない（push/schedule等）
+            const prs = run.pull_requests || [];
+            if (prs.length === 0) {
+              core.info("No pull request attached to this workflow_run. Skipping.");
+              return;
+            }
+            const prNumber = prs[0].number;
+
+            // 2) 失敗job一覧
+            const jobsResp = await github.rest.actions.listJobsForWorkflowRun({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: run.id,
+              per_page: 100,
+            });
+
+            const failed = jobsResp.data.jobs.filter(j => j.conclusion === "failure");
+            if (failed.length === 0) {
+              core.info("No failed jobs found although workflow_run is failure. Skipping.");
+              return;
+            }
+
+            // 3) Markdown本文（marker付き）
+            const marker = "<!-- CI_FAIL_SUMMARY -->";
+            const workflowName = run.name;
+            let body = `${marker}\n`;
+            body += `## ❌ CI Failed: \`${workflowName}\`\n\n`;
+            body += `| Check | Status | Log |\n|---|---|---|\n`;
+            for (const job of failed) {
+              body += `| \`${job.name}\` | ❌ FAILED | [View Log](${job.html_url}) |\n`;
+            }
+            body += `\n**Run:** [${workflowName} #${run.run_number}](${run.html_url})\n`;
+            body += `**Branch:** \`${run.head_branch}\`\n`;
+            body += `**Commit:** \`${String(run.head_sha).slice(0, 7)}\`\n\n`;
+
+            body += `<details><summary>Codex診断用（そのまま貼れる）</summary>\n\n`;
+            body += "```\n";
+            body += `FAILED_WORKFLOW: ${workflowName}\n`;
+            body += "FAILED_CHECKS:\n";
+            for (const job of failed) body += `  - ${job.name} -> ${job.html_url}\n`;
+            body += `BRANCH: ${run.head_branch}\n`;
+            body += `COMMIT: ${run.head_sha}\n`;
+            body += "```\n";
+            body += `</details>\n`;
+
+            // 4) upsert（同一PRにコメント増殖させない）
+            const comments = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              per_page: 100,
+            });
+
+            const mine = comments.data.find(c => typeof c.body === "string" && c.body.includes(marker));
+            if (mine) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: mine.id,
+                body,
+              });
+              core.info(`Updated CI failure summary comment on PR #${prNumber}`);
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                body,
+              });
+              core.info(`Posted CI failure summary comment on PR #${prNumber}`);
+            }
