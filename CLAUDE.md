@@ -33,16 +33,16 @@ Next.js 16 (Turbopack) + Supabase + Tailwind CSS. Deployed on Vercel.
 1. **Modify** — Edit source files
 2. **Build** — `npm run build` (must pass with zero errors)
 3. **Push** — `git add <files> && git commit && git push origin main`
-   - Remote is SSH: `git@github.com:array0224-cloud/stillframe-phase0.git`
+   - Remote is SSH: `git@github.com:stillframe0224/stillframe-phase0.git`
    - Push should complete without interactive auth prompts
 4. **Wait for deploy** — `sleep 70` then check:
-   - `gh api repos/array0224-cloud/stillframe-phase0/commits/<sha>/status`
+   - `gh api repos/stillframe0224/stillframe-phase0/commits/<sha>/status`
 5. **Verify** — `WebFetch` the deployed URL to confirm behavior
 6. **If error** — Diagnose, fix, and restart from step 1
 
 ## Git conventions
-- Remote: SSH (`git@github.com:array0224-cloud/stillframe-phase0.git`)
-- Author: `array0224-cloud <array0224-cloud@users.noreply.github.com>`
+- Remote: SSH (`git@github.com:stillframe0224/stillframe-phase0.git`)
+- Author: `array0224-cloud <array0224-cloud@users.noreply.github.com>` (personal account, Org: stillframe0224)
 - Commit style: `type: short description` (feat/fix/chore/refactor)
 - Always include `Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>`
 
