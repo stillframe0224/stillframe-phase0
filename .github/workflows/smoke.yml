@@ -17,9 +17,12 @@ jobs:
 
       # ── /api/version sha pin ───────────────────────────────────────────────
       # Verify the production deployment serves a sha that matches this commit.
+      # Only runs on push to main (not on PRs — production URL still serves the
+      # previous main sha while the PR branch is not yet merged).
       # Retries with exponential backoff to tolerate Vercel cold-start / propagation delay.
       # No jq dependency — uses Node.js for JSON parsing.
       - name: Version sha pin (production must match commit sha)
+        if: github.event_name == 'push'
         env:
           EXPECTED_SHORT: ${{ github.sha && format('{0}', github.sha) }}
         run: |
