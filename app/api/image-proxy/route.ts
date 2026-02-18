@@ -27,22 +27,22 @@ async function safeFetchImage(urlStr: string): Promise<Response> {
       if (!(await dnsCheck(hop.hostname))) throw new Error("blocked");
       const igCdn = isInstagramCdnHost(hop.hostname);
 
-      // Only inject browser-like headers for IG CDN hosts.
-      // Non-IG hosts get no custom UA/Accept (minimal fingerprint).
-      const headers: Record<string, string> = igCdn
-        ? {
-            "User-Agent": BROWSER_UA,
-            Accept: "image/avif,image/webp,image/apng,image/*,*/*;q=0.8",
-            "Accept-Language": "en-US,en;q=0.9,ja;q=0.8",
-            Referer: "https://www.instagram.com/",
-          }
-        : {};
-
-      const res = await fetch(currentUrl, {
-        headers,
+      const fetchInit: RequestInit = {
         redirect: "manual",
         signal: controller.signal,
-      });
+      };
+      // Only inject browser-like headers for IG CDN hosts.
+      // Non-IG hosts omit the headers option entirely.
+      if (igCdn) {
+        fetchInit.headers = {
+          "User-Agent": BROWSER_UA,
+          Accept: "image/avif,image/webp,image/apng,image/*,*/*;q=0.8",
+          "Accept-Language": "en-US,en;q=0.9,ja;q=0.8",
+          Referer: "https://www.instagram.com/",
+        };
+      }
+
+      const res = await fetch(currentUrl, fetchInit);
 
       if (res.status >= 300 && res.status < 400) {
         const location = res.headers.get("location");
