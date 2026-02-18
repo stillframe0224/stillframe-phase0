@@ -286,6 +286,7 @@ async function main() {
       skip("memo snippet shows saved text", "GOTO_FAILED");
       skip("search matches memo text", "GOTO_FAILED");
       skip("has memo filter narrows cards", "GOTO_FAILED");
+      skip("has memo filter: no /auth/login redirect", "GOTO_FAILED");
       skip("memo backup: export JSON download", "GOTO_FAILED");
       skip("memo backup: clear removes snippets", "GOTO_FAILED");
       skip("memo backup: import restores snippets", "GOTO_FAILED");
@@ -321,6 +322,7 @@ async function main() {
         skip("memo snippet shows saved text", "AUTH_REQUIRED");
         skip("search matches memo text", "AUTH_REQUIRED");
         skip("has memo filter narrows cards", "AUTH_REQUIRED");
+        skip("has memo filter: no /auth/login redirect", "AUTH_REQUIRED");
         skip("memo backup: export JSON download", "AUTH_REQUIRED");
         skip("memo backup: clear removes snippets", "AUTH_REQUIRED");
         skip("memo backup: import restores snippets", "AUTH_REQUIRED");
@@ -449,6 +451,17 @@ async function main() {
           } else {
             fail("has memo filter narrows cards", `all=${allCount} memoOnly=${memoOnlyCount}`);
           }
+
+          // Regression: toggling has-memo must NOT navigate to /auth/login
+          {
+            const urlAfterHmToggle = new URL(page.url()).pathname;
+            if (urlAfterHmToggle.startsWith("/auth/login")) {
+              fail("has memo filter: no /auth/login redirect", `redirected to ${urlAfterHmToggle}`);
+            } else {
+              pass("has memo filter: no /auth/login redirect", `stayed on ${urlAfterHmToggle}`);
+            }
+          }
+
           await hasMemoToggle.click();
           await page.waitForTimeout(300);
         } catch (e) {
