@@ -71,3 +71,7 @@ curl -s -o /dev/null -w '%{http_code}' 'https://<deploy-host>/api/image-proxy?ur
 ## Status
 
 **CLOSED** — All Codex CHANGES resolved. Hardening merged to main.
+
+## Related
+
+- Pipeline index: `reports/triad/INDEX_ig_preview_pipeline.md`
