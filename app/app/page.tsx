@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { createClient, isSupabaseConfigured, getConfigStatus } from "@/lib/supabase/client";
 import { STORAGE_BUCKETS } from "@/lib/supabase/constants";
 import { cardTypes, getCardType } from "@/lib/cardTypes";
+import { generateKeyBetween } from "@/lib/sortKey";
 import { extractFirstHttpUrl } from "@/lib/urlUtils";
 import type { Card, File as FileRecord } from "@/lib/supabase/types";
 import AppCard from "./AppCard";
@@ -26,49 +27,7 @@ import {
 } from "@dnd-kit/sortable";
 
 const URL_REGEX = /https?:\/\/[^\s]+/;
-const BASE62 = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-const BASE62_MID = BASE62[Math.floor(BASE62.length / 2)];
 const MANUAL_ORDER_SCHEMA = "v2";
-
-function base62Index(ch: string): number {
-  const idx = BASE62.indexOf(ch);
-  return idx === -1 ? BASE62.indexOf("U") : idx;
-}
-
-function keyBefore(boundary: string): string {
-  for (let i = 0; i < boundary.length; i++) {
-    const idx = base62Index(boundary[i]);
-    if (idx > 0) {
-      return `${boundary.slice(0, i)}${BASE62[Math.floor((idx - 1) / 2)]}`;
-    }
-  }
-  // Boundary is already very low; prepend a stable prefix.
-  return `${BASE62[0]}${BASE62_MID}`;
-}
-
-function keyAfter(boundary: string): string {
-  return `${boundary}${BASE62_MID}`;
-}
-
-export function generateKeyBetween(a: string | null, b: string | null): string {
-  if (!a && !b) return BASE62_MID;
-  if (!a) return keyBefore(b!);
-  if (!b) return keyAfter(a);
-
-  if (a >= b) return keyAfter(a);
-
-  let i = 0;
-  while (i < a.length || i < b.length) {
-    const aDigit = i < a.length ? base62Index(a[i]) : 0;
-    const bDigit = i < b.length ? base62Index(b[i]) : BASE62.length - 1;
-    if (bDigit - aDigit > 1) {
-      const mid = Math.floor((aDigit + bDigit) / 2);
-      return `${a.slice(0, i)}${BASE62[mid]}`;
-    }
-    i += 1;
-  }
-  return keyAfter(a);
-}
 
 function getManualOrderKey(userId: string): string {
   return `stillframe.manualOrder.${MANUAL_ORDER_SCHEMA}:${userId}`;
