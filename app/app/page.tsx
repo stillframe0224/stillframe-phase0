@@ -2197,6 +2197,7 @@ function AppPageInner() {
 
             {/* Sort order */}
             <select
+              data-testid="sort-dropdown"
               value={sortOrder}
               onChange={(e) => setSortOrder(e.target.value as "newest" | "oldest" | "custom")}
               style={{
@@ -2311,6 +2312,7 @@ function AppPageInner() {
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
             <SortableContext items={filteredCards.map((c) => c.id)} strategy={verticalListSortingStrategy}>
               <div
+                data-testid="cards-grid"
                 style={{
                   display: "grid",
                   gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
@@ -2327,6 +2329,7 @@ function AppPageInner() {
           </DndContext>
         ) : (
           <div
+            data-testid="cards-grid"
             style={{
               display: "grid",
               gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
@@ -2345,6 +2348,7 @@ function AppPageInner() {
 
       {/* Build stamp (subtle, always visible for screenshot verification) */}
       <div
+        data-testid="build-stamp"
         style={{
           position: "fixed",
           bottom: 8,
