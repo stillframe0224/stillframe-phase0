@@ -147,6 +147,49 @@ jobs:
             exit 1
           fi
 
+      # ── Check 4: IG preview success rate (7d) ────────────────────────────
+      - name: Check IG preview success rate (7d)
+        id: ig_preview
+        run: |
+          METRICS_URL="${PROD_URL}/api/metrics/preview?window=7d"
+          echo "GET $METRICS_URL"
+          RESP=$(curl -s -o /tmp/ig_body.txt -w "%{http_code}" --max-time 10 "$METRICS_URL" 2>/dev/null || echo "000")
+          BODY=$(cat /tmp/ig_body.txt 2>/dev/null || echo "")
+          echo "HTTP=$RESP body=$BODY"
+
+          IG_TOTAL=0
+          IG_RATE="null"
+          IG_OK=true   # default: pass (skip if no data)
+
+          if [ "$RESP" = "200" ]; then
+            IG_TOTAL=$(node -e "try{const d=JSON.parse(process.argv[1]);process.stdout.write(String(d.instagram?.total??0))}catch{process.stdout.write('0')}" -- "$BODY" 2>/dev/null || echo "0")
+            IG_RATE=$(node -e "try{const d=JSON.parse(process.argv[1]);const r=d.instagram?.success_rate;process.stdout.write(r==null?'null':String(r))}catch{process.stdout.write('null')}" -- "$BODY" 2>/dev/null || echo "null")
+
+            # Fail only if total >= 5 AND success_rate < 0.10
+            if [ "$IG_TOTAL" -ge 5 ] 2>/dev/null; then
+              BELOW=$(node -e "const r=parseFloat(process.argv[1]);process.stdout.write((!isNaN(r)&&r<0.10)?'true':'false')" -- "$IG_RATE" 2>/dev/null || echo "false")
+              if [ "$BELOW" = "true" ]; then
+                IG_OK=false
+                echo "  FAIL IG success_rate=${IG_RATE} total=${IG_TOTAL} (< 10% threshold)"
+              else
+                echo "  PASS IG success_rate=${IG_RATE} total=${IG_TOTAL}"
+              fi
+            else
+              echo "  SKIP IG total=${IG_TOTAL} (< 5 samples, skipping threshold check)"
+            fi
+          else
+            echo "  WARN HTTP=$RESP — skipping IG rate check"
+          fi
+
+          echo "total=${IG_TOTAL}" >> "$GITHUB_OUTPUT"
+          echo "rate=${IG_RATE}"   >> "$GITHUB_OUTPUT"
+          echo "ok=${IG_OK}"       >> "$GITHUB_OUTPUT"
+
+          if [ "$IG_OK" != "true" ]; then
+            echo "FAIL: IG preview success rate critically low (${IG_RATE}, total=${IG_TOTAL})"
+            exit 1
+          fi
+
       # ── Step summary (always) ─────────────────────────────────────────────
       - name: Write step summary
         if: always()
@@ -157,6 +200,9 @@ jobs:
           SCHEMA_OK="${{ steps.schema_check.outputs.ok }}"
           NOTES_OK="${{ steps.schema_check.outputs.notes_ok }}"
           MEDIA_OK="${{ steps.schema_check.outputs.media_ok }}"
+          IG_OK="${{ steps.ig_preview.outputs.ok }}"
+          IG_RATE="${{ steps.ig_preview.outputs.rate }}"
+          IG_TOTAL="${{ steps.ig_preview.outputs.total }}"
           RUN_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
 
           {
@@ -181,6 +227,14 @@ jobs:
             else
               echo "| DB schema (notes + media_kind) | ❌ FAIL \`notes=${NOTES_OK}\` \`media_kind=${MEDIA_OK}\` |"
             fi
+            # IG preview rate
+            if [ "${{ steps.ig_preview.outcome }}" = "skipped" ]; then
+              echo "| IG preview rate (7d) | ⏭ SKIP |"
+            elif [ "$IG_OK" = "true" ]; then
+              echo "| IG preview rate (7d) | ✅ \`rate=${IG_RATE}\` \`n=${IG_TOTAL}\` |"
+            else
+              echo "| IG preview rate (7d) | ❌ FAIL \`rate=${IG_RATE}\` \`n=${IG_TOTAL}\` |"
+            fi
             echo ""
             echo "**Run:** [${GITHUB_RUN_ID}](${RUN_URL})"
           } >> "$GITHUB_STEP_SUMMARY"
@@ -191,6 +245,7 @@ jobs:
             echo "sha=${SHA}  vercelEnv=${VER_ENV}  version_ok=${VER_OK}"
             echo "link_preview_outcome=${{ steps.link_preview.outcome }}"
             echo "schema_ok=${SCHEMA_OK}  notes_ok=${NOTES_OK}  media_ok=${MEDIA_OK}"
+            echo "ig_preview_rate=${IG_RATE}  ig_preview_total=${IG_TOTAL}  ig_preview_ok=${IG_OK}"
             echo "run=${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
           } > "$REPORT_SUBDIR/summary.txt"
 
@@ -213,6 +268,9 @@ jobs:
           SHA: ${{ steps.version_check.outputs.sha }}
           VER_OK: ${{ steps.version_check.outputs.ok }}
           SCHEMA_OK: ${{ steps.schema_check.outputs.ok }}
+          IG_OK: ${{ steps.ig_preview.outputs.ok }}
+          IG_RATE: ${{ steps.ig_preview.outputs.rate }}
+          IG_TOTAL: ${{ steps.ig_preview.outputs.total }}
           TS: ${{ env.TS }}
           ARTIFACT_NAME: prod-sanity-failure-${{ env.TS }}
         with:
@@ -223,6 +281,9 @@ jobs:
             const sha           = process.env.SHA || "(unknown)";
             const verOk         = process.env.VER_OK === "true";
             const schemaOk      = process.env.SCHEMA_OK === "true";
+            const igOk          = process.env.IG_OK !== "false";
+            const igRate        = process.env.IG_RATE || "null";
+            const igTotal       = process.env.IG_TOTAL || "0";
             const ts            = process.env.TS;
             const artifactName  = process.env.ARTIFACT_NAME;
             const label         = "prod-sanity";
@@ -249,6 +310,8 @@ jobs:
             );
 
             // 3) Build issue body
+            const igRateNum = parseFloat(igRate);
+            const igRateStr = isNaN(igRateNum) ? igRate : `${Math.round(igRateNum * 100)}% (n=${igTotal})`;
             const body = [
               marker,
               `## \u274C Production health check failing`,
@@ -258,6 +321,7 @@ jobs:
               `| **Latest run** | [Actions run \u2197](${runUrl}) |`,
               `| **/api/version** | ${verOk ? "\u2705 OK" : "\u274C FAIL"} \`sha=${sha}\` |`,
               `| **DB schema** | ${schemaOk ? "\u2705 OK" : "\u274C FAIL (run \`node scripts/apply_schema.mjs\`)"} |`,
+              `| **IG preview rate (7d)** | ${igOk ? "\u2705 OK" : "\u274C FAIL"} \`${igRateStr}\` |`,
               `| **Timestamp** | \`${ts}\` |`,
               `| **Artifacts** | \`${artifactName}\` _(Actions \u2192 Artifacts)_ |`,
               ``,
