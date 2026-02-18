@@ -1318,6 +1318,7 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
             {isDraggable && !isBulkMode && (
               <button
                 type="button"
+                data-testid="drag-handle"
                 aria-label="Drag card"
                 title="Drag to reorder"
                 onClick={(e) => e.stopPropagation()}
@@ -1525,6 +1526,7 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
             ref={memoModalRef}
             role="dialog"
             aria-modal="true"
+            data-testid="memo-modal"
             aria-labelledby={memoDialogTitleId}
             aria-describedby={memoDialogDescId}
             style={{
