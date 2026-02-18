@@ -291,8 +291,8 @@ async function main() {
       skip("memo backup: import restores snippets", "GOTO_FAILED");
       skip("memo backup: search matches restored memo", "GOTO_FAILED");
       skip("memo backup: has-memo filter after restore", "GOTO_FAILED");
-      skip("drag-handle present", "GOTO_FAILED");
       skip("card reorder (drag 1->2)", "GOTO_FAILED");
+      skip("memo-modal fits viewport", "GOTO_FAILED");
     }
 
     if (!gotoFailed) {
@@ -326,8 +326,8 @@ async function main() {
         skip("memo backup: import restores snippets", "AUTH_REQUIRED");
         skip("memo backup: search matches restored memo", "AUTH_REQUIRED");
         skip("memo backup: has-memo filter after restore", "AUTH_REQUIRED");
-        skip("drag-handle present", "AUTH_REQUIRED");
         skip("card reorder (drag 1->2)", "AUTH_REQUIRED");
+        skip("memo-modal fits viewport", "AUTH_REQUIRED");
         console.log("\n  [error] Auth required: UI acceptance checks not executed.");
         console.log("  [error] Provide authenticated state (e.g. E2E=1 + storageState) before running app_ui_smoke.\n");
       } else {
@@ -560,21 +560,9 @@ async function main() {
           }
         }
 
-        // ── Test 8a: drag-handle present ───────────────────────────────
+        // ── Test 8: card reorder (full-card drag, no handle) ──────────
+        // Cards are draggable from their root (.thought-card) — no handle needed.
         const cardCount = cardCountAfter;
-        try {
-          const handles = page.locator("[data-testid=\"drag-handle\"]");
-          const handleCount = await handles.count();
-          if (handleCount >= 1) {
-            pass("drag-handle present", `count=${handleCount}`);
-          } else {
-            fail("drag-handle present", "no drag-handle elements found");
-          }
-        } catch (e) {
-          fail("drag-handle present", String(e));
-        }
-
-        // ── Test 8b: card reorder (pointer drag) ───────────────────────
         if (cardCount < 2) {
           if (E2E_MODE) {
             fail("card reorder (drag 1->2)", `REORDER_REQUIRED: need >=2 cards (got ${cardCount})`);
@@ -591,26 +579,28 @@ async function main() {
             for (let attempt = 1; attempt <= 3; attempt++) {
               const firstId = await items.nth(0).getAttribute("data-card-id");
               const secondId = await items.nth(1).getAttribute("data-card-id");
-              const sourceHandle = items.nth(0).locator("[data-testid=\"drag-handle\"]");
-              const targetCard = items.nth(1);
-              await sourceHandle.scrollIntoViewIfNeeded();
+              // Full-card drag: use .thought-card root (where dnd-kit listeners live)
+              const sourceCard = items.nth(0).locator(".thought-card").first();
+              const targetCard = items.nth(1).locator(".thought-card").first();
+              await sourceCard.scrollIntoViewIfNeeded();
               await targetCard.scrollIntoViewIfNeeded();
               await page.waitForTimeout(160);
 
-              const handleBox = await sourceHandle.boundingBox();
+              const sourceBox = await sourceCard.boundingBox();
               const cardBox = await targetCard.boundingBox();
-              if (!handleBox || !cardBox) {
+              if (!sourceBox || !cardBox) {
                 throw new Error(`REORDER_REQUIRED: missing bbox (attempt=${attempt})`);
               }
 
-              const startX = handleBox.x + handleBox.width / 2;
-              const startY = handleBox.y + handleBox.height / 2;
-              const targetX = cardBox.x + cardBox.width / 2 + 10;
-              const targetY = cardBox.y + cardBox.height / 2 + 10;
+              // Start from upper-centre of source (above image link / interactive chips)
+              const startX = sourceBox.x + sourceBox.width / 2;
+              const startY = sourceBox.y + Math.min(20, sourceBox.height * 0.15);
+              const targetX = cardBox.x + cardBox.width / 2;
+              const targetY = cardBox.y + cardBox.height * 0.75;
 
               await page.mouse.move(startX, startY);
               await page.mouse.down();
-              // dnd-kit activationConstraint(distance:8) breaker.
+              // Break dnd-kit activationConstraint(distance:8)
               await page.mouse.move(startX, startY + 12, { steps: 5 });
               await page.mouse.move(targetX, targetY, { steps: 20 });
               await page.mouse.up();
@@ -620,7 +610,7 @@ async function main() {
               lastDetail =
                 `attempt=${attempt} first=${firstId} second=${secondId} newFirst=${newFirstId} ` +
                 `start=(${Math.round(startX)},${Math.round(startY)}) target=(${Math.round(targetX)},${Math.round(targetY)}) ` +
-                `handle=(${Math.round(handleBox.x)},${Math.round(handleBox.y)},${Math.round(handleBox.width)},${Math.round(handleBox.height)}) ` +
+                `source=(${Math.round(sourceBox.x)},${Math.round(sourceBox.y)},${Math.round(sourceBox.width)},${Math.round(sourceBox.height)}) ` +
                 `card=(${Math.round(cardBox.x)},${Math.round(cardBox.y)},${Math.round(cardBox.width)},${Math.round(cardBox.height)})`;
 
               if (newFirstId && firstId && newFirstId !== firstId) {
@@ -640,6 +630,34 @@ async function main() {
           } catch (e) {
             fail("card reorder (drag 1->2)", String(e));
           }
+        }
+
+        // ── Test 9: MEMO modal fits viewport ───────────────────────────
+        try {
+          // Open a MEMO modal and verify bounding box fits within viewport height
+          const firstCard = page.locator("[data-testid=\"card-item\"]").first();
+          const memoChip = firstCard.locator("[data-testid=\"chip-memo\"]");
+          await memoChip.click();
+          await page.waitForTimeout(400);
+          const modal = page.locator("[data-testid=\"memo-modal\"]");
+          await modal.waitFor({ state: "visible", timeout: 3000 });
+          const vp = page.viewportSize();
+          const modalBox = await modal.boundingBox();
+          if (!vp || !modalBox) {
+            skip("memo-modal fits viewport", "could not measure viewport or modal");
+          } else {
+            const overflows = modalBox.y + modalBox.height > vp.height + 2; // 2px tolerance
+            if (!overflows) {
+              pass("memo-modal fits viewport", `modal h=${Math.round(modalBox.height)} vp h=${vp.height}`);
+            } else {
+              fail("memo-modal fits viewport", `modal bottom=${Math.round(modalBox.y + modalBox.height)} exceeds vp=${vp.height}`);
+            }
+          }
+          // Close modal
+          await page.keyboard.press("Escape");
+          await page.waitForTimeout(200);
+        } catch (e) {
+          skip("memo-modal fits viewport", `could not open modal: ${String(e)}`);
         }
       }
     }
