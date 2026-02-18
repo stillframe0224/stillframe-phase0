@@ -1,6 +1,7 @@
 "use client";
 
 import { getCardType } from "@/lib/cardTypes";
+import type React from "react";
 
 interface ThoughtCardProps {
   text: string;

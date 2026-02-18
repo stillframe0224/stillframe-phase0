@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import type React from "react";
 import copy from "@/lib/copy";
 import type { Lang } from "@/lib/copy";
 import { track } from "@/lib/track";

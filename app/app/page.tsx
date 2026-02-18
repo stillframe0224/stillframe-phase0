@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback, useMemo, Suspense } from "react";
+import type React from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient, isSupabaseConfigured, getConfigStatus } from "@/lib/supabase/client";
 import { STORAGE_BUCKETS } from "@/lib/supabase/constants";

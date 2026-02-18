@@ -2,6 +2,7 @@
 // /app/page.tsx is "use client" (pure CSR). Forcing SSR on this layout causes
 // 503 on /app?sort=custom&_rsc=1 RSC requests when the Vercel function times out.
 // The inline script below runs client-side and does not need SSR.
+import type React from "react";
 
 export default function AppLayout({
   children,

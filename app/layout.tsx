@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import type React from "react";
 import { Source_Serif_4, Noto_Serif_JP, DM_Sans } from "next/font/google";
 import "./globals.css";
 
