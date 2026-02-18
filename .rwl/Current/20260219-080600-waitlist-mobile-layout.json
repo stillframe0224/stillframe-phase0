@@ -1,0 +1,15 @@
+{
+  "id": "20260219-080600-waitlist-mobile-layout",
+  "goal": "Waitlistフォームをモバイルで縦積み表示にしてCTA押下率の低下を防ぐ",
+  "est_minutes": 15,
+  "dod": [
+    "npm run build 通過",
+    "reports/triad/<id>.md 作成",
+    "PR作成"
+  ],
+  "evidence_paths": [
+    "/Users/array0224/stillframe-phase0/reports/triad/20260219-080600-waitlist-mobile-layout.md"
+  ],
+  "created_at": "2026-02-19T08:06:00+09:00",
+  "status": "current"
+}
