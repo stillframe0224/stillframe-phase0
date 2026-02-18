@@ -91,6 +91,8 @@ function dedupeCards(cards: Card[]): Card[] {
 function buildE2EMockCards(): Card[] {
   const now = Date.now();
   const types = ["memo", "idea", "quote", "task", "fragment", "dream"];
+  // Pre-assign sequential sort_keys so custom-sort reorder works in E2E smoke tests.
+  const sortKeys = ["P", "Q", "R", "S", "T", "U"];
   return types.map((cardType, index) => {
     const createdAt = new Date(now - index * 60_000).toISOString();
     return {
@@ -111,7 +113,7 @@ function buildE2EMockCards(): Card[] {
       media_thumb_path: null,
       media_mime: null,
       media_size: null,
-      sort_key: null,
+      sort_key: sortKeys[index],
       file_id: null,
       ai_summary: null,
       ai_tags: null,
@@ -180,6 +182,7 @@ function AppPageInner() {
   const initialQueryRef = useRef<URLSearchParams | null>(null);
   const bmConsumedRef = useRef(false);
   const cardsRef = useRef<Card[]>([]);
+  const filteredCardsRef = useRef<Card[]>([]);
   const configured = isSupabaseConfigured() || e2eMode;
 
   // Capture initial query params synchronously during render (before any effects)
@@ -195,6 +198,29 @@ function AppPageInner() {
   useEffect(() => {
     cardsRef.current = cards;
   }, [cards]);
+
+  // E2E: expose window.__e2eMoveCard(fromIdx, toIdx) for smoke test reorder verification.
+  // Uses the same generateKeyBetween logic as handleDragEnd so sortOrder=custom works.
+  useEffect(() => {
+    if (!e2eMode) return;
+    (window as any).__e2eMoveCard = (fromIdx: number, toIdx: number) => {
+      const current = filteredCardsRef.current;
+      if (!current || current.length < 2) return false;
+      const reordered = arrayMove(current, fromIdx, toIdx);
+      const movedCard = reordered[toIdx];
+      const beforeCard = toIdx > 0 ? reordered[toIdx - 1] : null;
+      const afterCard = toIdx < reordered.length - 1 ? reordered[toIdx + 1] : null;
+      const newSortKey = generateKeyBetween(
+        beforeCard?.sort_key || null,
+        afterCard?.sort_key || null
+      );
+      setCards((prev) =>
+        prev.map((c) => (c.id === movedCard.id ? { ...c, sort_key: newSortKey } : c))
+      );
+      return true;
+    };
+    return () => { delete (window as any).__e2eMoveCard; };
+  }, [e2eMode]);
 
   // Load user and cards
   useEffect(() => {
@@ -672,6 +698,7 @@ function AppPageInner() {
       return sortOrder === "newest" ? bTime - aTime : aTime - bTime;
     });
 
+    filteredCardsRef.current = result;
     return result;
   }, [cards, searchQuery, domainFilter, fileFilter, mediaFilter, sortOrder, showPinnedOnly]);
 
@@ -1140,6 +1167,14 @@ function AppPageInner() {
         afterCard?.sort_key || null
       );
 
+      // E2E mock mode: mock cards have no real DB rows — skip DB write, keep optimistic state.
+      if (e2eMode) {
+        setCards((prev) =>
+          prev.map((c) => (c.id === movedCard.id ? { ...c, sort_key: newSortKey } : c))
+        );
+        return;
+      }
+
       // Update in DB
       const supabase = createClient();
       const { error } = await supabase
@@ -1161,7 +1196,7 @@ function AppPageInner() {
         );
       }
     },
-    [filteredCards, configured, persistManualOrder, readManualOrder]
+    [filteredCards, configured, persistManualOrder, readManualOrder, e2eMode]
   );
 
   // Handle file drop
@@ -2336,9 +2371,12 @@ function AppPageInner() {
           <SortableContext items={filteredCards.map((c) => c.id)} strategy={verticalListSortingStrategy}>
             <div
               data-testid="cards-grid"
+              {...(e2eMode ? { "data-e2e-layout": "1col" } : {})}
               style={{
                 display: "grid",
-                gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
+                gridTemplateColumns: e2eMode
+                  ? "1fr"
+                  : "repeat(auto-fill, minmax(220px, 1fr))",
                 gap: 8,
               }}
             >

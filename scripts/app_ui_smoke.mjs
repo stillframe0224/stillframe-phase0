@@ -282,49 +282,72 @@ async function main() {
         fail("drag-handle present", String(e));
       }
 
-      // ── Test 7b: card reorder (drag 1→2) ─────────────────────────────────
-      if (cardCount >= 2) {
+      // ── Test 7b: card reorder (pointer drag) ─────────────────────────────
+      if (cardCount < 2) {
+        if (E2E_MODE) {
+          fail("card reorder (drag 1→2)", `REORDER_REQUIRED: need >=2 cards (got ${cardCount})`);
+        } else {
+          skip("card reorder (drag 1→2)", `only ${cardCount} card(s) — need ≥2`);
+        }
+      } else {
         try {
+          await page.setViewportSize({ width: 1280, height: 800 });
           const items = page.locator('[data-testid="card-item"]');
-          const firstId = await items.nth(0).getAttribute("data-card-id");
+          let reordered = false;
+          let lastDetail = "";
 
-          const handle1 = items.nth(0).locator('[data-testid="drag-handle"]');
-          const handle2 = items.nth(1).locator('[data-testid="drag-handle"]');
-          const box1 = await handle1.boundingBox();
-          const box2 = await handle2.boundingBox();
+          for (let attempt = 1; attempt <= 3; attempt++) {
+            const firstId = await items.nth(0).getAttribute("data-card-id");
+            const secondId = await items.nth(1).getAttribute("data-card-id");
+            const sourceHandle = items.nth(0).locator('[data-testid="drag-handle"]');
+            const targetCard = items.nth(1);
+            await sourceHandle.scrollIntoViewIfNeeded();
+            await targetCard.scrollIntoViewIfNeeded();
+            await page.waitForTimeout(160);
 
-          if (!box1 || !box2) {
-            skip("card reorder (drag 1→2)", "could not get bounding boxes for drag handles");
-          } else {
-            await page.mouse.move(box1.x + box1.width / 2, box1.y + box1.height / 2);
-            await page.mouse.down();
-            const steps = 12;
-            const dx = (box2.x - box1.x) / steps;
-            const dy = (box2.y - box1.y + box2.height) / steps;
-            for (let i = 1; i <= steps; i++) {
-              await page.mouse.move(
-                box1.x + box1.width / 2 + dx * i,
-                box1.y + box1.height / 2 + dy * i,
-                { steps: 1 }
-              );
-              await page.waitForTimeout(25);
+            const handleBox = await sourceHandle.boundingBox();
+            const cardBox = await targetCard.boundingBox();
+            if (!handleBox || !cardBox) {
+              throw new Error(`REORDER_REQUIRED: missing bbox (attempt=${attempt})`);
             }
+
+            const startX = handleBox.x + handleBox.width / 2;
+            const startY = handleBox.y + handleBox.height / 2;
+            const targetX = cardBox.x + cardBox.width / 2 + 10;
+            const targetY = cardBox.y + cardBox.height / 2 + 10;
+
+            await page.mouse.move(startX, startY);
+            await page.mouse.down();
+            // dnd-kit activationConstraint(distance:8) breaker.
+            await page.mouse.move(startX, startY + 12, { steps: 5 });
+            await page.mouse.move(targetX, targetY, { steps: 20 });
             await page.mouse.up();
-            await page.waitForTimeout(1000);
+            await page.waitForTimeout(700);
 
             const newFirstId = await items.nth(0).getAttribute("data-card-id");
-            if (newFirstId !== firstId) {
-              pass("card reorder (drag 1→2)", `first card changed: ${firstId} → ${newFirstId}`);
+            lastDetail =
+              `attempt=${attempt} first=${firstId} second=${secondId} newFirst=${newFirstId} ` +
+              `start=(${Math.round(startX)},${Math.round(startY)}) target=(${Math.round(targetX)},${Math.round(targetY)}) ` +
+              `handle=(${Math.round(handleBox.x)},${Math.round(handleBox.y)},${Math.round(handleBox.width)},${Math.round(handleBox.height)}) ` +
+              `card=(${Math.round(cardBox.x)},${Math.round(cardBox.y)},${Math.round(cardBox.width)},${Math.round(cardBox.height)})`;
+
+            if (newFirstId && firstId && newFirstId !== firstId) {
+              reordered = true;
+              pass("card reorder (drag 1→2)", `${lastDetail} reordered=true`);
+              break;
+            }
+          }
+
+          if (!reordered) {
+            if (E2E_MODE) {
+              fail("card reorder (drag 1→2)", `REORDER_REQUIRED: no reorder after 3 attempts (${lastDetail})`);
             } else {
-              // Grid layout may make drag distance insufficient — SKIP, not FAIL
-              skip("card reorder (drag 1→2)", `DOM order unchanged after drag (id=${firstId}) — grid layout may require larger drag distance`);
+              skip("card reorder (drag 1→2)", `no reorder after retries (${lastDetail})`);
             }
           }
         } catch (e) {
           fail("card reorder (drag 1→2)", String(e));
         }
-      } else {
-        skip("card reorder (drag 1→2)", `only ${cardCount} card(s) — need ≥2`);
       }
     }
   } finally {
@@ -345,7 +368,7 @@ async function main() {
   console.log(`Finished: ${new Date().toISOString()}`);
 
   if (E2E_MODE) {
-    const allowSkipLabels = new Set(["card reorder (drag 1→2)"]);
+    const allowSkipLabels = new Set();
     const disallowedSkips = results.filter(
       (r) => r.status === "SKIP" && !allowSkipLabels.has(r.label)
     );
