@@ -12,32 +12,9 @@ const IG_RE =
 const MAX_REDIRECTS = 5;
 const FETCH_TIMEOUT = 4000;
 
-// Browser-like UA for services that filter bots
-const BROWSER_UA =
-  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36";
-
 function isInstagramHost(host: string): boolean {
   const h = host.toLowerCase();
-  return (
-    h === "instagram.com" ||
-    h.endsWith(".instagram.com") ||
-    h === "instagr.am" ||
-    h.endsWith(".instagr.am")
-  );
-}
-
-// Normalize scheme-less or mobile Instagram URLs before URL parsing.
-// Handles: instagram.com/p/xxx, //instagram.com/p/xxx, m.instagram.com/p/xxx
-function normalizeInstagramUrl(raw: string): string {
-  if (/^https?:\/\//i.test(raw)) {
-    // Already has scheme — normalize m. → www.
-    return raw.replace(/^(https?:\/\/)m\.instagram\.com\//i, "$1www.instagram.com/");
-  }
-  if (raw.startsWith("//")) return `https:${raw}`;
-  if (/^(?:(?:www|m)\.)?instagram\.com\//i.test(raw)) {
-    return `https://www.instagram.com/${raw.replace(/^(?:(?:www|m)\.)?instagram\.com\//i, "")}`;
-  }
-  return raw;
+  return h === "instagram.com" || h.endsWith(".instagram.com") || h === "instagr.am";
 }
 
 function parseRetryAfterMs(v: string | null): number | null {
@@ -54,12 +31,9 @@ function parseRetryAfterMs(v: string | null): number | null {
 
 function failureRetryAfterMs(status?: number, retryAfterHeader?: string | null): number {
   if (status === 429) {
-    // Respect Retry-After but cap at 10 min
-    const ra = parseRetryAfterMs(retryAfterHeader ?? null);
-    return ra != null ? Math.min(ra, 10 * 60 * 1000) : 5 * 60 * 1000;
+    return parseRetryAfterMs(retryAfterHeader ?? null) ?? 5 * 60 * 1000;
   }
   if (status === 403) return 10 * 60 * 1000;
-  // Other errors: 5 min (was 5 min — keep short to allow retries)
   return 5 * 60 * 1000;
 }
 
@@ -86,9 +60,10 @@ async function safeFetch(
 
       const res = await fetch(currentUrl, {
         headers: {
-          "User-Agent": BROWSER_UA,
-          Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-          "Accept-Language": "en-US,en;q=0.9,ja;q=0.8",
+          "User-Agent":
+            "Mozilla/5.0 (compatible; SHINEN-Bot/1.0; +https://shinen.app)",
+          Accept: "text/html,application/xhtml+xml",
+          "Accept-Language": "ja,en;q=0.8",
         },
         redirect: "manual",
         signal: controller.signal,
@@ -182,69 +157,18 @@ function extractJsonLdImage(html: string): string | null {
   return null;
 }
 
-// --- Instagram: consolidated oEmbed + jina fallback ---
-//
-// Strategy (in order):
-//   1) www.instagram.com/oembed/?omitscript=true  — public posts, no token, fastest
-//   2) r.jina.ai HTML mirror                       — markdown/image extraction
-//   3) return null image (short TTL so client can retry)
-//
-// Both requests use browser-like headers to maximise acceptance rate.
-
-async function fetchInstagramPreview(
-  canonicalUrl: string
-): Promise<{ image: string | null; title: string | null }> {
-  // 1) Instagram native oEmbed (omitscript=true: no embed JS loaded, faster response)
-  try {
-    const oembedUrl = `https://www.instagram.com/oembed/?url=${encodeURIComponent(
-      canonicalUrl
-    )}&omitscript=true`;
-    const oembedRes = await fetch(oembedUrl, {
-      headers: {
-        "User-Agent": BROWSER_UA,
-        Accept: "application/json,text/javascript,*/*;q=0.9",
-        "Accept-Language": "en-US,en;q=0.9,ja;q=0.8",
-        Referer: "https://www.instagram.com/",
-      },
-      signal: AbortSignal.timeout(4000),
-    });
-    if (oembedRes.ok) {
-      const data = await oembedRes.json() as Record<string, unknown>;
-      const thumb = typeof data.thumbnail_url === "string" ? data.thumbnail_url : null;
-      const title = typeof data.title === "string" ? data.title : null;
-      if (thumb) return { image: thumb, title };
-    }
-  } catch {
-    // fall through to jina
-  }
-
-  // 2) Jina.ai reader — returns JSON with images array
-  try {
-    const jinaUrl = `https://r.jina.ai/${encodeURIComponent(canonicalUrl)}`;
-    const jinaRes = await fetch(jinaUrl, {
-      headers: {
-        "User-Agent": BROWSER_UA,
-        Accept: "application/json",
-        "X-Return-Format": "json",
-      },
-      signal: AbortSignal.timeout(5000),
-    });
-    if (jinaRes.ok) {
-      const jinaData = await jinaRes.json() as Record<string, unknown>;
-      const data = jinaData?.data as Record<string, unknown> | undefined;
-      const images = data?.images as Array<{ src?: string }> | undefined;
-      const firstImg = images?.[0]?.src ?? null;
-      const title = typeof data?.title === "string" ? data.title : null;
-      if (firstImg) return { image: firstImg, title };
-    }
-  } catch {
-    // both failed
-  }
-
-  return { image: null, title: null };
-}
-
 // --- Route handler ---
+
+// Normalize scheme-less or malformed Instagram URLs before URL parsing.
+// e.g. "instagram.com/p/xxx" → "https://www.instagram.com/p/xxx"
+function normalizeInstagramUrl(raw: string): string {
+  if (/^https?:\/\//i.test(raw)) return raw;
+  if (raw.startsWith("//")) return `https:${raw}`;
+  if (/^(?:www\.)?instagram\.com\//i.test(raw)) {
+    return `https://www.${raw.replace(/^www\./i, "")}`;
+  }
+  return raw;
+}
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -255,7 +179,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "url required" }, { status: 400 });
   }
 
-  // Normalize before parsing — handles scheme-less, m.instagram.com, etc.
+  // Normalize before parsing (handles scheme-less Instagram URLs)
   const url = normalizeInstagramUrl(rawUrl);
 
   let parsed: URL;
@@ -283,26 +207,126 @@ export async function GET(request: Request) {
     );
   }
 
-  // Instagram — consolidated path (IG_RE match OR isInstagramHost)
-  // Handles /p/, /reel/, /tv/ paths from any Instagram hostname variant.
+  // Instagram shortcut — oEmbed priority (omitscript=true: no embed JS, faster response)
   const igMatch = url.match(IG_RE);
-  if (igMatch || isInstagramHost(parsed.hostname)) {
-    const { image, title } = await fetchInstagramPreview(url);
-    if (image) {
-      return NextResponse.json(
-        { image, favicon: "https://www.instagram.com/favicon.ico", title },
-        { headers: { "Cache-Control": "public, max-age=3600" } }
-      );
+  if (igMatch) {
+    try {
+      const oembedUrl = `https://www.instagram.com/oembed/?url=${encodeURIComponent(url)}&omitscript=true`;
+      const oembedRes = await fetch(oembedUrl, {
+        headers: {
+          "User-Agent": "Mozilla/5.0 (compatible; SHINEN-Bot/1.0; +https://shinen.app)",
+          "Accept-Language": "ja,en;q=0.8",
+        },
+        signal: AbortSignal.timeout(3000),
+      });
+      if (oembedRes.ok) {
+        const data = await oembedRes.json();
+        if (data?.thumbnail_url) {
+          return NextResponse.json(
+            {
+              image: data.thumbnail_url,
+              favicon: "https://www.instagram.com/favicon.ico",
+              title: data.title ?? null,
+            },
+            { headers: { "Cache-Control": "public, max-age=3600" } }
+          );
+        }
+      }
+    } catch {
+      // oembed failed → fall through to jina fallback
     }
-    // Negative cache: short TTL so the client can retry after a cool-down
-    // (403 from IG is transient — don't lock out for 10 min)
+
+    // Jina.ai reader fallback — returns markdown with embedded image URLs
+    try {
+      const jinaUrl = `https://r.jina.ai/${encodeURIComponent(url)}`;
+      const jinaRes = await fetch(jinaUrl, {
+        headers: {
+          "User-Agent": "Mozilla/5.0 (compatible; SHINEN-Bot/1.0)",
+          Accept: "application/json",
+          "X-Return-Format": "json",
+        },
+        signal: AbortSignal.timeout(5000),
+      });
+      if (jinaRes.ok) {
+        const jinaData = await jinaRes.json();
+        // Jina JSON response has images array: [{src, alt}]
+        const firstImg = jinaData?.data?.images?.[0]?.src ?? null;
+        if (firstImg) {
+          return NextResponse.json(
+            {
+              image: firstImg,
+              favicon: "https://www.instagram.com/favicon.ico",
+              title: jinaData?.data?.title ?? null,
+            },
+            { headers: { "Cache-Control": "public, max-age=3600" } }
+          );
+        }
+      }
+    } catch {
+      // jina also failed → return null image
+    }
+
     return NextResponse.json(
       { image: null, favicon: "https://www.instagram.com/favicon.ico", title: null },
-      { headers: { "Cache-Control": "public, max-age=300" } }
+      { headers: { "Cache-Control": "public, max-age=600" } }
     );
   }
 
   try {
+    if (isInstagramHost(parsed.hostname)) {
+      // 1) Instagram oEmbed
+      try {
+        const oembedUrl = `https://www.instagram.com/oembed/?url=${encodeURIComponent(url)}`;
+        const oembedRes = await fetch(oembedUrl, {
+          headers: {
+            "User-Agent":
+              "Mozilla/5.0 (compatible; SHINEN-Bot/1.0; +https://shinen.app)",
+            Accept: "application/json",
+          },
+          signal: AbortSignal.timeout(FETCH_TIMEOUT),
+        });
+        if (oembedRes.ok) {
+          const data = await oembedRes.json();
+          const image = resolveUrl(data?.thumbnail_url ?? null, parsed.origin);
+          if (image) {
+            return NextResponse.json(
+              { image, favicon: "https://www.instagram.com/favicon.ico", title: data?.title ?? null },
+              { headers: { "Cache-Control": "public, max-age=3600" } }
+            );
+          }
+        }
+      } catch {
+        // Fallback to next strategy
+      }
+
+      // 2) r.jina.ai HTML mirror
+      try {
+        const jinaUrl = `https://r.jina.ai/http://${url.replace(/^https?:\/\//i, "")}`;
+        const jinaRes = await fetch(jinaUrl, {
+          headers: {
+            "User-Agent":
+              "Mozilla/5.0 (compatible; SHINEN-Bot/1.0; +https://shinen.app)",
+            Accept: "text/html,application/xhtml+xml",
+          },
+          signal: AbortSignal.timeout(FETCH_TIMEOUT),
+        });
+        if (jinaRes.ok) {
+          const jinaHtml = await jinaRes.text();
+          const ogImage = extractMeta(jinaHtml, "og:image");
+          const twImage = extractMeta(jinaHtml, "twitter:image");
+          const image = resolveUrl(ogImage ?? twImage, parsed.origin);
+          if (image) {
+            return NextResponse.json(
+              { image, favicon: "https://www.instagram.com/favicon.ico", title: extractMeta(jinaHtml, "og:title") },
+              { headers: { "Cache-Control": "public, max-age=3600" } }
+            );
+          }
+        }
+      } catch {
+        // Fallback to direct HTML strategy
+      }
+    }
+
     const { res, finalUrl } = await safeFetch(url);
 
     if (!res.ok) {

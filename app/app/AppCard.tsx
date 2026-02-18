@@ -999,6 +999,8 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
       }}
       className="thought-card"
       onClick={handleCardClick}
+      {...(isDraggable && !isBulkMode ? listeners : {})}
+      {...(isDraggable && !isBulkMode ? attributes : {})}
       style={{
         width: 210,
         minWidth: 210,
@@ -1006,7 +1008,7 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
         border: `1.5px solid ${isSelected ? "#4F6ED9" : ct.border}`,
         background: isSelected ? "#EEF2FF" : ct.bg,
         overflow: "hidden",
-        cursor: isBulkMode ? "pointer" : (isDraggable ? "grab" : "default"),
+        cursor: isBulkMode ? "pointer" : (isDragging ? "grabbing" : isDraggable ? "grab" : "default"),
         position: "relative",
         animationName: "cardPop",
         animationDuration: "0.45s",
@@ -1113,6 +1115,8 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
       {/* Pin button */}
       {card.pinned !== null && !isBulkMode && (
         <button
+          data-no-dnd="true"
+          onPointerDownCapture={(e) => e.stopPropagation()}
           onClick={(e) => {
             e.stopPropagation();
             handlePinToggle();
@@ -1145,6 +1149,8 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
       {/* Delete button */}
       {showDelete && !isBulkMode && (
         <button
+          data-no-dnd="true"
+          onPointerDownCapture={(e) => e.stopPropagation()}
           onClick={(e) => {
             e.stopPropagation();
             onDelete(card.id);
@@ -1313,9 +1319,11 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
             <button
               type="button"
               data-testid="chip-memo"
+              data-no-dnd="true"
               className="card-chip"
               ref={memoTriggerRef}
               aria-label={`Open memo for ${displayTitle}`}
+              onPointerDownCapture={(e) => e.stopPropagation()}
               onClick={(e) => {
                 if (isBulkMode) {
                   e.stopPropagation();
@@ -1371,35 +1379,7 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
           </div>
 
           <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 10 }}>
-            {isDraggable && !isBulkMode && (
-              <button
-                type="button"
-                data-testid="drag-handle"
-                aria-label="Drag card"
-                title="Drag to reorder"
-                onClick={(e) => e.stopPropagation()}
-                style={{
-                  width: 18,
-                  height: 18,
-                  border: "1px solid #d9d9d9",
-                  borderRadius: 6,
-                  background: "#fff",
-                  color: "#888",
-                  fontSize: 11,
-                  lineHeight: 1,
-                  cursor: "grab",
-                  display: "inline-flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-                {...attributes}
-                {...listeners}
-              >
-                ⋮⋮
-              </button>
-            )}
-
-            {/* Created date - always visible */}
+            {/* Created date - always visible, year included */}
             <span
               style={{
                 fontSize: 9,
@@ -1480,9 +1460,11 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
               <div style={{ position: "relative" }}>
                 <button
                   data-testid="chip-file"
+                  data-no-dnd="true"
                   className="card-chip"
                   aria-haspopup="menu"
                   aria-expanded={showFileSelect}
+                  onPointerDownCapture={(e) => e.stopPropagation()}
                   onClick={(e) => {
                     e.stopPropagation();
                     setShowFileSelect(!showFileSelect);
