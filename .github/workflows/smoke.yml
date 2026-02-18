@@ -1,0 +1,15 @@
+name: smoke
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Smoke (HTTP 200)
+        run: bash scripts/smoke.sh
