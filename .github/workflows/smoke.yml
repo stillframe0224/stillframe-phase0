@@ -11,5 +11,102 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - name: Smoke (HTTP 200)
         run: bash scripts/smoke.sh
+
+      # ── /api/version sha pin ───────────────────────────────────────────────
+      # Verify the production deployment serves a sha that matches this commit.
+      # Only runs on push to main (not on PRs — production URL still serves the
+      # previous main sha while the PR branch is not yet merged).
+      # Retries with exponential backoff to tolerate Vercel cold-start / propagation delay.
+      # No jq dependency — uses Node.js for JSON parsing.
+      - name: Version sha pin (production must match commit sha)
+        if: github.event_name == 'push'
+        env:
+          EXPECTED_SHORT: ${{ github.sha && format('{0}', github.sha) }}
+        run: |
+          EXPECTED_SHORT="${GITHUB_SHA:0:7}"
+          VERSION_URL="https://stillframe-phase0.vercel.app/api/version"
+          echo "Verifying /api/version sha pin..."
+          echo "  GITHUB_SHA:     $GITHUB_SHA"
+          echo "  expected short: $EXPECTED_SHORT"
+          echo "  url:            $VERSION_URL"
+
+          MAX=10
+          DELAY=0.5
+          ACTUAL_SHA=""
+          ACTUAL_ENV=""
+
+          for attempt in $(seq 1 $MAX); do
+            echo ""
+            echo "[attempt $attempt/$MAX] GET $VERSION_URL"
+
+            RESPONSE=$(curl -s -w "\n__STATUS__%{http_code}" \
+              --max-time 15 \
+              --header "Cache-Control: no-cache" \
+              "$VERSION_URL" 2>/dev/null) || RESPONSE=""
+
+            HTTP_CODE=$(printf '%s' "$RESPONSE" | grep -o '__STATUS__[0-9]*' | sed 's/__STATUS__//' || echo "0")
+            BODY=$(printf '%s' "$RESPONSE" | sed 's/__STATUS__[0-9]*$//')
+
+            echo "  HTTP $HTTP_CODE"
+
+            if [ "$HTTP_CODE" != "200" ]; then
+              echo "  non-200 — retry in ${DELAY}s"
+              sleep "$DELAY"
+              DELAY=$(node -e "console.log(Math.min(parseFloat('$DELAY')*2,8))")
+              continue
+            fi
+
+            # Parse sha + vercelEnv with node (no jq needed)
+            READ=$(node -e "
+              try {
+                const j = JSON.parse(process.argv[1]);
+                process.stdout.write((j.sha||'') + '\t' + (j.vercelEnv||''));
+              } catch(e) { process.stdout.write('\t'); }
+            " "$BODY" 2>/dev/null) || READ=""
+
+            ACTUAL_SHA=$(printf '%s' "$READ" | cut -f1)
+            ACTUAL_ENV=$(printf '%s' "$READ" | cut -f2)
+            echo "  sha=$ACTUAL_SHA  vercelEnv=$ACTUAL_ENV"
+
+            if [ -z "$ACTUAL_SHA" ] || [ "$ACTUAL_SHA" = "unknown" ]; then
+              echo "  sha empty/unknown — retry in ${DELAY}s"
+              sleep "$DELAY"
+              DELAY=$(node -e "console.log(Math.min(parseFloat('$DELAY')*2,8))")
+              ACTUAL_SHA=""
+              continue
+            fi
+
+            # Accept if production sha starts with expected 7-char prefix
+            if printf '%s' "$ACTUAL_SHA" | grep -q "^${EXPECTED_SHORT}"; then
+              echo "  sha match confirmed"
+              break
+            else
+              echo "  sha mismatch (got=$ACTUAL_SHA expected_prefix=$EXPECTED_SHORT) — retry in ${DELAY}s"
+              sleep "$DELAY"
+              DELAY=$(node -e "console.log(Math.min(parseFloat('$DELAY')*2,8))")
+              ACTUAL_SHA=""
+            fi
+          done
+
+          echo ""
+          # ── Final verdict ────────────────────────────────────────────────
+          if [ -z "$ACTUAL_SHA" ] || ! printf '%s' "$ACTUAL_SHA" | grep -q "^${EXPECTED_SHORT}"; then
+            echo "FAIL  version sha pin"
+            echo "  expected prefix: $EXPECTED_SHORT  (GITHUB_SHA=$GITHUB_SHA)"
+            echo "  got:             ${ACTUAL_SHA:-<empty_or_unresolved>}"
+            echo "  hint: Vercel may not have finished deploying this commit."
+            echo "        Check https://vercel.com/dashboard for deploy status."
+            exit 1
+          fi
+
+          if [ "$ACTUAL_ENV" != "production" ]; then
+            echo "FAIL  vercelEnv mismatch"
+            echo "  expected: production"
+            echo "  got:      ${ACTUAL_ENV:-<empty>}"
+            exit 1
+          fi
+
+          echo "PASS  version sha=$ACTUAL_SHA  vercelEnv=$ACTUAL_ENV"
