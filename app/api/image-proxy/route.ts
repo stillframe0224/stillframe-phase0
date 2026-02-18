@@ -6,7 +6,6 @@ export const dynamic = "force-dynamic";
 const MAX_REDIRECTS = 5;
 const FETCH_TIMEOUT = 6000; // slightly longer for IG CDN
 const MAX_SIZE = 5 * 1024 * 1024; // 5 MB
-
 const BROWSER_UA =
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36";
 
@@ -16,10 +15,7 @@ function isInstagramCdnHost(hostname: string): boolean {
   return h.endsWith(".cdninstagram.com") || h.endsWith(".fbcdn.net");
 }
 
-async function safeFetchImage(
-  urlStr: string,
-  referer?: string
-): Promise<Response> {
+async function safeFetchImage(urlStr: string): Promise<Response> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
 
@@ -29,23 +25,18 @@ async function safeFetchImage(
       const hop = new URL(currentUrl);
       if (!validateUrl(hop)) throw new Error("blocked");
       if (!(await dnsCheck(hop.hostname))) throw new Error("blocked");
-
       const igCdn = isInstagramCdnHost(hop.hostname);
 
-      const headers: Record<string, string> = {
-        "User-Agent": BROWSER_UA,
-        Accept: igCdn
-          ? "image/avif,image/webp,image/apng,image/*,*/*;q=0.8"
-          : "image/*,*/*;q=0.8",
-        "Accept-Language": igCdn ? "en-US,en;q=0.9,ja;q=0.8" : "en",
-      };
-      // For IG CDN: always set Instagram as Referer (required by CDN to serve images).
-      // For other hosts: use the caller-supplied referer if valid.
-      if (igCdn) {
-        headers["Referer"] = "https://www.instagram.com/";
-      } else if (referer) {
-        headers["Referer"] = referer;
-      }
+      // Only inject browser-like headers for IG CDN hosts.
+      // Non-IG hosts get no custom UA/Accept (minimal fingerprint).
+      const headers: Record<string, string> = igCdn
+        ? {
+            "User-Agent": BROWSER_UA,
+            Accept: "image/avif,image/webp,image/apng,image/*,*/*;q=0.8",
+            "Accept-Language": "en-US,en;q=0.9,ja;q=0.8",
+            Referer: "https://www.instagram.com/",
+          }
+        : {};
 
       const res = await fetch(currentUrl, {
         headers,
@@ -56,7 +47,10 @@ async function safeFetchImage(
       if (res.status >= 300 && res.status < 400) {
         const location = res.headers.get("location");
         if (!location) throw new Error("bad_redirect");
-        currentUrl = new URL(location, currentUrl).href;
+        const next = new URL(location, currentUrl);
+        // Redirect must also be https (prevent downgrade to http)
+        if (next.protocol !== "https:") throw new Error("blocked");
+        currentUrl = next.href;
         continue;
       }
 
@@ -71,7 +65,6 @@ async function safeFetchImage(
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const url = searchParams.get("url");
-  const ref = searchParams.get("ref");
 
   if (!url) {
     return NextResponse.json({ error: "url required" }, { status: 400 });
@@ -84,23 +77,17 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "invalid url" }, { status: 400 });
   }
 
+  // Proxy only accepts https — reject http/data/file/javascript/etc.
+  if (parsed.protocol !== "https:") {
+    return NextResponse.json({ error: "https_only" }, { status: 400 });
+  }
+
   if (!validateUrl(parsed)) {
     return NextResponse.json({ error: "blocked_url" }, { status: 400 });
   }
 
-  // Validate ref — only allow http/https as Referer
-  let referer: string | undefined;
-  if (ref) {
-    try {
-      const refUrl = new URL(ref);
-      if (["http:", "https:"].includes(refUrl.protocol)) referer = ref;
-    } catch {
-      /* invalid ref, ignore */
-    }
-  }
-
   try {
-    const res = await safeFetchImage(url, referer);
+    const res = await safeFetchImage(url);
 
     if (!res.ok) return new Response(null, { status: 502 });
 
