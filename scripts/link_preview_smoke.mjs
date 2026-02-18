@@ -236,6 +236,23 @@ async function main() {
     assert("image-proxy rejects missing url", false, `fetch error: ${e.message}`);
   }
 
+  // 7) image-proxy does NOT SSRF-block IG CDN domains (*.cdninstagram.com / *.fbcdn.net)
+  // These are public CDN hosts — proxy should pass SSRF guard (may return 502 if no real image,
+  // but must NOT return 400 blocked_url).
+  try {
+    const igCdnUrl = "https://scontent.cdninstagram.com/test.jpg";
+    const res = await fetchWithRetry(
+      `${BASE}/api/image-proxy?url=${encodeURIComponent(igCdnUrl)}`
+    );
+    // 400 blocked_url = SSRF block (wrong). 502 = CDN returned error (expected for fake path).
+    const notBlocked = res.status !== 400;
+    assert("image-proxy allows IG CDN host (not SSRF blocked)",
+      notBlocked,
+      `status=${res.status} (expect 502 or 200, not 400)`);
+  } catch (e) {
+    assert("image-proxy allows IG CDN host (not SSRF blocked)", false, `fetch error: ${e.message}`);
+  }
+
   // Summary
   const passed = results.filter((r) => r.pass).length;
   console.log(`\n=== RESULT: ${failed ? "FAIL" : "PASS"} (${passed}/${results.length}) ===`);

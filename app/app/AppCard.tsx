@@ -514,13 +514,14 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
     previewState.source === "proxy" &&
     displayImage === previewImageUrl;
 
-  // Instagram CDN images must NOT go through the proxy (CORS / referrer restrictions).
-  // Render them directly with referrerPolicy="no-referrer".
+  // Instagram CDN images are routed through image-proxy with IG-specific headers
+  // (Referer: https://www.instagram.com/, browser UA) to bypass CDN referrer restrictions.
   const isIgCdnImage = isInstagramCdnUrl(displayImage);
 
-  // When proxied, route through same-origin image proxy (bypasses hotlink 403s)
+  // When proxied, route through same-origin image proxy (bypasses hotlink 403s).
+  // IG CDN images: proxy without ref — server auto-detects IG CDN host and adds IG headers.
   const imgSrc = isIgCdnImage
-    ? displayImage          // Instagram: direct URL, no proxy
+    ? `/api/image-proxy?url=${encodeURIComponent(displayImage!)}`
     : isProxied
     ? `/api/image-proxy?url=${encodeURIComponent(previewImageUrl!)}${cardUrl ? `&ref=${encodeURIComponent(cardUrl)}` : ""}`
     : displayImage;
