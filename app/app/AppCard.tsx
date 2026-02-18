@@ -9,8 +9,26 @@ import type { Card, File as FileRecord } from "@/lib/supabase/types";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
-// Module-level preview cache: url -> image (null = confirmed no image)
-const previewCache = new Map<string, string | null>();
+type PreviewCacheEntry = {
+  status: "ok" | "fail";
+  value: string | null;
+  ts: number;
+  retryAfterMs: number;
+};
+
+type PreviewSource = "direct" | "proxy";
+type PreviewState = {
+  source: PreviewSource;
+  triedDirect: boolean;
+  triedProxy: boolean;
+  failed: boolean;
+  lastErrorAt?: number;
+};
+
+const MAX_PREVIEW_ATTEMPTS = 2;
+
+// Module-level preview cache with retry timing for negative results.
+const previewCache = new Map<string, PreviewCacheEntry>();
 
 // Debug mode: ?debug=1 in URL or localStorage SHINEN_DEBUG_PREVIEW=1
 let _debugChecked = false;
@@ -174,7 +192,12 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
   const [showDelete, setShowDelete] = useState(false);
   const [previewImg, setPreviewImg] = useState<string | null>(null);
   const [isVisible, setIsVisible] = useState(false);
-  const [proxiedUrl, setProxiedUrl] = useState<string | null>(null);
+  const [previewState, setPreviewState] = useState<PreviewState>({
+    source: "direct",
+    triedDirect: false,
+    triedProxy: false,
+    failed: false,
+  });
   const [isPinned, setIsPinned] = useState(card.pinned ?? false);
   const [pinError, setPinError] = useState(false);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
@@ -197,6 +220,7 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
   const memoTextareaRef = useRef<HTMLTextAreaElement>(null);
   const memoTriggerRef = useRef<HTMLButtonElement>(null);
   const memoLastFocusRef = useRef<HTMLElement | null>(null);
+  const previewAttemptCountRef = useRef(0);
   const memoStorageKey = `card:memo:${card.id}`;
   const memoDialogTitleId = `memo-dialog-title-${card.id}`;
   const memoDialogDescId = `memo-dialog-desc-${card.id}`;
@@ -254,7 +278,12 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
     card.preview_image_url.includes("youtube.com/img/desktop/yt_") ||
     card.preview_image_url.includes("youtube.com/yts/img/")
   );
-  const hasPreviewImageUrl = !!(card.preview_image_url && !realImgFailed && !isYouTubeLogo);
+  const hasPreviewImageUrl = !!(
+    card.preview_image_url &&
+    !realImgFailed &&
+    !isYouTubeLogo &&
+    !previewState.failed
+  );
 
   // IntersectionObserver — fetch preview only when card is near viewport
   useEffect(() => {
@@ -283,6 +312,17 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
       setMemoText(saved);
     }
   }, [card.id, card.notes]);
+
+  useEffect(() => {
+    setPreviewState({
+      source: "direct",
+      triedDirect: false,
+      triedProxy: false,
+      failed: false,
+    });
+    previewAttemptCountRef.current = 0;
+    setPreviewFailed(false);
+  }, [card.id, card.preview_image_url]);
 
   useEffect(() => {
     if (!showMemoModal) return;
@@ -344,10 +384,19 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
 
     // Check in-memory cache (covers both "has image" and "no image" results)
     const cached = previewCache.get(cardUrl);
-    if (cached !== undefined) {
-      dbg("cache_hit", { url: cardUrl, hasImage: !!cached });
-      setPreviewImg(cached);
-      return;
+    if (cached) {
+      const age = Date.now() - cached.ts;
+      if (cached.status === "ok") {
+        dbg("cache_hit", { url: cardUrl, hasImage: !!cached.value });
+        setPreviewImg(cached.value);
+        return;
+      }
+      if (age < cached.retryAfterMs) {
+        dbg("cache_skip_retry", { url: cardUrl, retryAfterMs: cached.retryAfterMs, age });
+        setPreviewImg(null);
+        return;
+      }
+      previewCache.delete(cardUrl);
     }
 
     // Fetch from link-preview API
@@ -357,17 +406,38 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
     fetch(`/api/link-preview?url=${encodeURIComponent(cardUrl)}${debugParam}`, {
       signal: controller.signal,
     })
-      .then((r) => {
+      .then(async (r) => {
         dbg("fetch", { url: cardUrl, status: r.status, ms: Math.round(performance.now() - t0) });
-        return r.ok ? r.json() : null;
+        if (!r.ok) {
+          return { image: null, retryAfterMs: 5 * 60 * 1000 };
+        }
+        const data = await r.json();
+        return data;
       })
       .then((data) => {
         const image = data?.image ?? null;
-        previewCache.set(cardUrl, image);
+        const retryAfterMs = typeof data?.retryAfterMs === "number"
+          ? data.retryAfterMs
+          : image
+          ? 24 * 60 * 60 * 1000
+          : 5 * 60 * 1000;
+        previewCache.set(cardUrl, {
+          status: image ? "ok" : "fail",
+          value: image,
+          ts: Date.now(),
+          retryAfterMs,
+        });
         dbg("source", { url: cardUrl, source: image ? "api" : "none" });
         if (!controller.signal.aborted) setPreviewImg(image);
       })
-      .catch(() => {});
+      .catch(() => {
+        previewCache.set(cardUrl, {
+          status: "fail",
+          value: null,
+          ts: Date.now(),
+          retryAfterMs: 5 * 60 * 1000,
+        });
+      });
     return () => controller.abort();
   }, [card.id, cardUrl, hasMediaThumb, hasPreviewImageUrl, hasRealImage, isVisible, ytQualityIndex]);
 
@@ -397,23 +467,28 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
     ? getYouTubeThumbnail(cardUrl, ["hq", "mq", "default"][ytQualityIndex] as "hq" | "mq" | "default")
     : null;
 
+  const previewImageUrl = hasPreviewImageUrl ? card.preview_image_url! : null;
+
   const displayImage = hasMediaThumb
     ? getMediaThumbUrl()!
     : youtubeComputedThumb // YouTube: use computed thumbnail (override preview_image_url)
     ? youtubeComputedThumb
-    : hasPreviewImageUrl
-    ? card.preview_image_url!
+    : previewImageUrl
+    ? previewImageUrl
     : hasRealImage
     ? card.image_url!
     : previewFailed
     ? null
     : previewImg;
   const showImage = !!displayImage;
-  const isProxied = !!proxiedUrl && proxiedUrl === displayImage;
+  const isProxied =
+    !!previewImageUrl &&
+    previewState.source === "proxy" &&
+    displayImage === previewImageUrl;
 
   // When proxied, route through same-origin image proxy (bypasses hotlink 403s)
   const imgSrc = isProxied
-    ? `/api/image-proxy?url=${encodeURIComponent(displayImage!)}${cardUrl ? `&ref=${encodeURIComponent(cardUrl)}` : ""}`
+    ? `/api/image-proxy?url=${encodeURIComponent(previewImageUrl!)}${cardUrl ? `&ref=${encodeURIComponent(cardUrl)}` : ""}`
     : displayImage;
 
   const debugSource = !cardUrl
@@ -785,14 +860,40 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
               }
             }
 
-            if (displayImage && proxiedUrl !== displayImage) {
-              // First failure on this image: retry via proxy
-              dbg("img_proxy", { url: displayImage });
-              setProxiedUrl(displayImage);
+            if (previewImageUrl && !previewState.failed) {
+              setPreviewState((prev) => {
+                const nextAttempts = previewAttemptCountRef.current + 1;
+                previewAttemptCountRef.current = nextAttempts;
+                if (nextAttempts >= MAX_PREVIEW_ATTEMPTS) {
+                  dbg("img_preview_stop", { url: previewImageUrl, attempts: nextAttempts });
+                  return {
+                    ...prev,
+                    triedDirect: true,
+                    triedProxy: true,
+                    failed: true,
+                    lastErrorAt: Date.now(),
+                  };
+                }
+                if (prev.source === "direct" && !prev.triedProxy) {
+                  dbg("img_proxy", { url: previewImageUrl });
+                  return {
+                    ...prev,
+                    source: "proxy",
+                    triedDirect: true,
+                    triedProxy: true,
+                    lastErrorAt: Date.now(),
+                  };
+                }
+                return {
+                  ...prev,
+                  triedDirect: true,
+                  triedProxy: true,
+                  failed: true,
+                  lastErrorAt: Date.now(),
+                };
+              });
               return;
             }
-            // Proxy also failed — fall through to next source
-            setProxiedUrl(null);
             if (hasRealImage) {
               dbg("img_error", { type: "saved", url: card.image_url });
               setRealImgFailed(true);
@@ -877,7 +978,6 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
         animationDelay: `${index * 0.04}s`,
         ...dragStyle,
       }}
-      {...(isDraggable && !isBulkMode ? { ...attributes, ...listeners } : {})}
       onMouseEnter={(e) => {
         if (!isDragging && !isBulkMode) {
           e.currentTarget.style.transform = dragStyle.transform || "translateY(-4px)";
@@ -1215,6 +1315,33 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
           </div>
 
           <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 10 }}>
+            {isDraggable && !isBulkMode && (
+              <button
+                type="button"
+                aria-label="Drag card"
+                title="Drag to reorder"
+                onClick={(e) => e.stopPropagation()}
+                style={{
+                  width: 18,
+                  height: 18,
+                  border: "1px solid #d9d9d9",
+                  borderRadius: 6,
+                  background: "#fff",
+                  color: "#888",
+                  fontSize: 11,
+                  lineHeight: 1,
+                  cursor: "grab",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+                {...attributes}
+                {...listeners}
+              >
+                ⋮⋮
+              </button>
+            )}
+
             {/* Created date - always visible */}
             <span
               style={{

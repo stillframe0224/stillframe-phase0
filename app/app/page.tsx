@@ -26,6 +26,53 @@ import {
 } from "@dnd-kit/sortable";
 
 const URL_REGEX = /https?:\/\/[^\s]+/;
+const BASE62 = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+const BASE62_MID = BASE62[Math.floor(BASE62.length / 2)];
+const MANUAL_ORDER_SCHEMA = "v2";
+
+function base62Index(ch: string): number {
+  const idx = BASE62.indexOf(ch);
+  return idx === -1 ? BASE62.indexOf("U") : idx;
+}
+
+function keyBefore(boundary: string): string {
+  for (let i = 0; i < boundary.length; i++) {
+    const idx = base62Index(boundary[i]);
+    if (idx > 0) {
+      return `${boundary.slice(0, i)}${BASE62[Math.floor((idx - 1) / 2)]}`;
+    }
+  }
+  // Boundary is already very low; prepend a stable prefix.
+  return `${BASE62[0]}${BASE62_MID}`;
+}
+
+function keyAfter(boundary: string): string {
+  return `${boundary}${BASE62_MID}`;
+}
+
+export function generateKeyBetween(a: string | null, b: string | null): string {
+  if (!a && !b) return BASE62_MID;
+  if (!a) return keyBefore(b!);
+  if (!b) return keyAfter(a);
+
+  if (a >= b) return keyAfter(a);
+
+  let i = 0;
+  while (i < a.length || i < b.length) {
+    const aDigit = i < a.length ? base62Index(a[i]) : 0;
+    const bDigit = i < b.length ? base62Index(b[i]) : BASE62.length - 1;
+    if (bDigit - aDigit > 1) {
+      const mid = Math.floor((aDigit + bDigit) / 2);
+      return `${a.slice(0, i)}${BASE62[mid]}`;
+    }
+    i += 1;
+  }
+  return keyAfter(a);
+}
+
+function getManualOrderKey(userId: string): string {
+  return `stillframe.manualOrder.${MANUAL_ORDER_SCHEMA}:${userId}`;
+}
 
 /**
  * Normalize external URLs from bookmarklet or user input
@@ -172,6 +219,7 @@ export default function AppPage() {
   const filterInitializedRef = useRef(false);
   const initialQueryRef = useRef<URLSearchParams | null>(null);
   const bmConsumedRef = useRef(false);
+  const cardsRef = useRef<Card[]>([]);
   const configured = isSupabaseConfigured() || e2eMode;
 
   // Capture initial query params synchronously during render (before any effects)
@@ -183,6 +231,10 @@ export default function AppPage() {
   const hasBmParams = !bmConsumedRef.current &&
     initialQueryRef.current?.has("auto") === true &&
     initialQueryRef.current?.has("url") === true;
+
+  useEffect(() => {
+    cardsRef.current = cards;
+  }, [cards]);
 
   // Load user and cards
   useEffect(() => {
@@ -978,29 +1030,6 @@ export default function AppPage() {
     setSelectedCardIds(new Set());
   }, []);
 
-  // Fractional indexing: generate sort_key between two values
-  const generateSortKey = (before: string | null, after: string | null): string => {
-    if (!before && !after) return "m"; // First item
-    if (!before) {
-      // Insert at beginning
-      const afterVal = after!.charCodeAt(0);
-      return String.fromCharCode(Math.max(97, afterVal - 1));
-    }
-    if (!after) {
-      // Insert at end
-      return before + "m";
-    }
-    // Insert between
-    if (before < after) {
-      const mid = String.fromCharCode(
-        Math.floor((before.charCodeAt(0) + after.charCodeAt(0)) / 2)
-      );
-      if (mid > before && mid < after) return mid;
-      return before + "m"; // Append if can't fit between
-    }
-    return before + "m";
-  };
-
   const sensors = useSensors(
     useSensor(PointerSensor, {
       // Require 8px movement before DnD activates, so click events on
@@ -1042,10 +1071,24 @@ export default function AppPage() {
   const persistManualOrder = useCallback((orderedIds: string[]) => {
     if (!user) return;
     try {
-      const key = `stillframe.manualOrder.v1:${user.id}`;
+      const key = getManualOrderKey(user.id);
       localStorage.setItem(key, JSON.stringify(orderedIds));
     } catch {
       // Ignore quota / private mode errors
+    }
+  }, [user]);
+
+  const readManualOrder = useCallback((): string[] => {
+    if (!user) return [];
+    try {
+      const primary = localStorage.getItem(getManualOrderKey(user.id));
+      const legacy = localStorage.getItem(`stillframe.manualOrder.v1:${user.id}`);
+      const raw = primary ?? legacy;
+      if (!raw) return [];
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
     }
   }, [user]);
 
@@ -1056,10 +1099,7 @@ export default function AppPage() {
     const allMissingSortKey = cards.length > 0 && cards.every((c) => !c.sort_key);
     if (!allMissingSortKey) return;
     try {
-      const key = `stillframe.manualOrder.v1:${user.id}`;
-      const raw = localStorage.getItem(key);
-      if (!raw) return;
-      const savedIds: string[] = JSON.parse(raw);
+      const savedIds = readManualOrder();
       if (!Array.isArray(savedIds) || savedIds.length === 0) return;
       // Apply saved order: assign synthetic sort_keys based on position
       setCards((prev) => {
@@ -1073,7 +1113,7 @@ export default function AppPage() {
     } catch {
       // Ignore parse / storage errors
     }
-  }, [user, sortOrder, loading]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [user, sortOrder, loading, readManualOrder]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleDragEnd = useCallback(
     async (event: DragEndEvent) => {
@@ -1083,6 +1123,8 @@ export default function AppPage() {
       const oldIndex = filteredCards.findIndex((c) => c.id === active.id);
       const newIndex = filteredCards.findIndex((c) => c.id === over.id);
       if (oldIndex === -1 || newIndex === -1) return;
+      const beforeCards = cardsRef.current;
+      const beforeManualOrder = readManualOrder();
 
       // Optimistic update
       const reordered = arrayMove(filteredCards, oldIndex, newIndex);
@@ -1104,7 +1146,7 @@ export default function AppPage() {
       const movedCard = filteredCards[oldIndex];
       const beforeCard = newIndex > 0 ? reordered[newIndex - 1] : null;
       const afterCard = newIndex < reordered.length - 1 ? reordered[newIndex + 1] : null;
-      const newSortKey = generateSortKey(
+      const newSortKey = generateKeyBetween(
         beforeCard?.sort_key || null,
         afterCard?.sort_key || null
       );
@@ -1118,8 +1160,11 @@ export default function AppPage() {
 
       if (error) {
         console.error("Drag reorder failed:", error);
-        // Revert optimistic update
-        setCards((prev) => prev);
+        // Revert optimistic state + local manual order snapshot.
+        setCards(() => beforeCards);
+        persistManualOrder(beforeManualOrder);
+        setErrorBanner("Reorder save failed. Restored previous order.");
+        setTimeout(() => setErrorBanner(null), 3000);
       } else {
         // Update local state with new sort_key
         setCards((prev) =>
@@ -1127,7 +1172,7 @@ export default function AppPage() {
         );
       }
     },
-    [filteredCards, configured, persistManualOrder]
+    [filteredCards, configured, persistManualOrder, readManualOrder]
   );
 
   // Handle file drop
