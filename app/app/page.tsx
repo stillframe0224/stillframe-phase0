@@ -1051,22 +1051,29 @@ export default function AppPage() {
     }
   }, [user]);
 
-  // Restore manual order from localStorage when sort_keys are absent (custom sort mode)
+  // Restore manual order from localStorage when switching to custom sort mode.
+  // Applied whenever sortOrder becomes "custom" and localStorage has a saved order.
+  // If DB sort_keys already exist they remain; localStorage acts as fallback for
+  // cards that have no sort_key yet (newly added, unfiled, etc.).
   useEffect(() => {
     if (!user || sortOrder !== "custom" || loading) return;
-    // Only apply if ALL visible cards lack sort_key (first-time custom sort session)
-    const allMissingSortKey = cards.length > 0 && cards.every((c) => !c.sort_key);
-    if (!allMissingSortKey) return;
     try {
       const savedIds = readManualOrder();
       if (!Array.isArray(savedIds) || savedIds.length === 0) return;
-      // Apply saved order: assign synthetic sort_keys based on position
       setCards((prev) => {
+        // Build position map from saved order
         const posMap = new Map(savedIds.map((id, i) => [id, i]));
         return [...prev].sort((a, b) => {
-          const ai = posMap.get(a.id) ?? Infinity;
-          const bi = posMap.get(b.id) ?? Infinity;
-          return ai - bi;
+          // Cards with DB sort_key: sort by sort_key (already ordered by DB)
+          if (a.sort_key && b.sort_key) return a.sort_key.localeCompare(b.sort_key);
+          // Cards without sort_key: use localStorage position
+          if (!a.sort_key && !b.sort_key) {
+            const ai = posMap.get(a.id) ?? Infinity;
+            const bi = posMap.get(b.id) ?? Infinity;
+            return ai - bi;
+          }
+          // Mixed: DB-keyed cards come before unkeyed
+          return a.sort_key ? -1 : 1;
         });
       });
     } catch {
@@ -2299,27 +2306,15 @@ export default function AppPage() {
             No cards match your filters.
           </p>
         )}
-        {sortOrder === "custom" && (fileFilter === "all") && (
-          <p
-            style={{
-              textAlign: "center",
-              color: "#999",
-              fontSize: 13,
-              padding: "20px 0",
-              fontFamily: "var(--font-dm)",
-            }}
-          >
-            Select a file to enable drag reordering
-          </p>
-        )}
-        {sortOrder === "custom" && fileFilter !== "all" ? (
+        {sortOrder === "custom" ? (
+          // Custom sort: DnD always enabled regardless of file filter
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
             <SortableContext items={filteredCards.map((c) => c.id)} strategy={verticalListSortingStrategy}>
               <div
                 style={{
                   display: "grid",
-                  gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))",
-                  gap: 10,
+                  gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
+                  gap: 8,
                 }}
               >
                 {filteredCards.map((card, i) => (
@@ -2330,12 +2325,12 @@ export default function AppPage() {
               </div>
             </SortableContext>
           </DndContext>
-        ) : sortOrder !== "custom" ? (
+        ) : (
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
-              gap: 12,
+              gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+              gap: 8,
               justifyItems: filteredCards.length < 5 ? "center" : "stretch",
             }}
           >
@@ -2345,7 +2340,7 @@ export default function AppPage() {
               </div>
             ))}
           </div>
-        ) : null}
+        )}
       </div>
 
       {/* Build stamp (subtle, always visible for screenshot verification) */}
@@ -2362,7 +2357,7 @@ export default function AppPage() {
           userSelect: "none",
         }}
       >
-        build: {process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA?.slice(0, 7) || "unknown"}
+        build: {process.env.NEXT_PUBLIC_GIT_SHA || "dev"}
       </div>
     </div>
   );
