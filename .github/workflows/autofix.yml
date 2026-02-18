@@ -1,0 +1,149 @@
+name: AutoFix Loop (Codex)
+
+on:
+  workflow_run:
+    workflows: ["e2e", "deploy-smoke", "stage3", "ui-smoke"]
+    types: [completed]
+
+permissions:
+  actions: read
+  checks: read
+  contents: write
+  pull-requests: write
+  issues: write
+
+concurrency:
+  group: autofix-${{ github.event.workflow_run.head_branch }}
+  cancel-in-progress: false
+
+jobs:
+  autofix:
+    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Guard (PR only / same-repo only / loop:on label)
+        id: guard
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const run = context.payload.workflow_run;
+            const prs = run.pull_requests || [];
+            if (prs.length === 0) { core.setOutput("ok","false"); return; }
+
+            // public repo対策: fork PRは自動修正しない
+            if (run.head_repository?.full_name !== `${context.repo.owner}/${context.repo.repo}`) {
+              core.setOutput("ok","false"); return;
+            }
+
+            const prNumber = prs[0].number;
+            const pr = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: prNumber,
+            });
+
+            // "loop:on" ラベルが無いPRでは動かさない（暴走防止）
+            const labels = (pr.data.labels || []).map(l => l.name);
+            if (!labels.includes("loop:on")) {
+              core.info(`PR #${prNumber} does not have loop:on label. Skipping.`);
+              core.setOutput("ok","false");
+              return;
+            }
+
+            core.setOutput("ok","true");
+            core.setOutput("pr", String(prNumber));
+            core.setOutput("branch", run.head_branch);
+
+      - uses: actions/checkout@v4
+        if: steps.guard.outputs.ok == 'true'
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          fetch-depth: 0
+
+      - name: Get failed jobs (for prompt)
+        if: steps.guard.outputs.ok == 'true'
+        id: jobs
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const run = context.payload.workflow_run;
+            const jobs = await github.rest.actions.listJobsForWorkflowRun({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: run.id,
+              per_page: 100,
+            });
+            const failed = jobs.data.jobs.filter(j => j.conclusion === "failure");
+            core.setOutput("failed_json", JSON.stringify(failed.map(j => ({name:j.name,url:j.html_url}))));
+
+      - name: Run Codex AutoFix
+        if: steps.guard.outputs.ok == 'true'
+        uses: openai/codex-action@v1
+        with:
+          openai-api-key: ${{ secrets.OPENAI_API_KEY }}
+          safety-strategy: drop-sudo
+          sandbox: workspace-write
+          prompt: |
+            You are an automated fixer. Goal: make CI green for this PR with the smallest safe change.
+            Constraints:
+            - Touch only what is necessary.
+            - Do not change workflows unless the failure is in the workflow itself.
+            - Preserve the E2E bypass seal invariants.
+
+            Context:
+            - Failed workflow: ${{ github.event.workflow_run.name }}
+            - Failed jobs: ${{ steps.jobs.outputs.failed_json }}
+            - Branch: ${{ steps.guard.outputs.branch }}
+
+            Task:
+            1) Inspect repo and identify why the failed jobs failed.
+            2) Apply minimal patch to fix.
+            3) Do not add new features.
+
+      - name: Commit & push back to PR branch (if changes)
+        if: steps.guard.outputs.ok == 'true'
+        run: |
+          if [ -z "$(git status --porcelain)" ]; then
+            echo "No changes from Codex. Exiting."
+            exit 0
+          fi
+          git config user.name "stillframe-bot"
+          git config user.email "stillframe-bot@users.noreply.github.com"
+          git checkout -B "${{ steps.guard.outputs.branch }}"
+          git add -A
+          git commit -m "autofix: make CI green"
+          git push origin "HEAD:${{ steps.guard.outputs.branch }}"
+
+      - name: Comment result (upsert)
+        if: steps.guard.outputs.ok == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prNumber = parseInt("${{ steps.guard.outputs.pr }}", 10);
+            const marker = "<!-- AUTOFIX_LOOP -->";
+            const hasChanges = "${{ steps.guard.outputs.ok }}" === "true";
+            const body = `${marker}\n` +
+              `### AutoFix Loop\n` +
+              `Pushed a fix commit to re-run CI.\n` +
+              `- **Branch:** \`${{ steps.guard.outputs.branch }}\`\n` +
+              `- **Trigger:** \`${{ github.event.workflow_run.name }}\` failed\n` +
+              `- **Time:** ${new Date().toISOString()}\n`;
+
+            const comments = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              per_page: 100,
+            });
+            const mine = comments.data.find(c => (c.body || "").includes(marker));
+            if (mine) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner, repo: context.repo.repo,
+                comment_id: mine.id, body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner, repo: context.repo.repo,
+                issue_number: prNumber, body,
+              });
+            }
