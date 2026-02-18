@@ -268,6 +268,24 @@ SELECT file_id, count(*) FROM cards GROUP BY file_id;
 
 After changing `NEXT_PUBLIC_*` env vars in Vercel, you must trigger a **manual redeploy** (Deployments tab > Redeploy) because these values are inlined at build time.
 
+### PR merge (safe CLI path)
+
+Use this when auto-merge is disabled in the repository. Do not use `--yes` (unsupported by `gh pr merge`) and do not depend on `--auto`.
+
+```bash
+# Wait required checks
+gh pr checks <PR_NUMBER> --watch
+
+# Merge manually (squash + delete branch)
+gh pr merge <PR_NUMBER> --squash --delete-branch
+```
+
+For repeatable operation with logs, run:
+
+```bash
+scripts/gh_pr_merge_safe.sh <PR_NUMBER>
+```
+
 ## 6. CI
 
 **Workflow**: `.github/workflows/oauth_smoke.yml`
