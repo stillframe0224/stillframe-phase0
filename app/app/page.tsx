@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient, isSupabaseConfigured, getConfigStatus } from "@/lib/supabase/client";
 import { STORAGE_BUCKETS } from "@/lib/supabase/constants";
@@ -123,7 +123,7 @@ function buildE2EMockCards(): Card[] {
   });
 }
 
-export default function AppPage() {
+function AppPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const e2eMode =
@@ -2360,5 +2360,14 @@ export default function AppPage() {
         build: {process.env.NEXT_PUBLIC_GIT_SHA || "dev"}
       </div>
     </div>
+  );
+}
+
+// Wrap in Suspense so useSearchParams() doesn't break static pre-rendering
+export default function AppPage() {
+  return (
+    <Suspense fallback={null}>
+      <AppPageInner />
+    </Suspense>
   );
 }

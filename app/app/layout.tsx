@@ -1,4 +1,7 @@
-export const dynamic = "force-dynamic";
+// Note: do NOT add `export const dynamic = "force-dynamic"` here.
+// /app/page.tsx is "use client" (pure CSR). Forcing SSR on this layout causes
+// 503 on /app?sort=custom&_rsc=1 RSC requests when the Vercel function times out.
+// The inline script below runs client-side and does not need SSR.
 
 export default function AppLayout({
   children,
