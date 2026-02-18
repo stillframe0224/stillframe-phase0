@@ -1,5 +1,8 @@
 "use client";
 
+// AUTOFIX_TEST: intentional build error — remove this line to fix
+const AUTOFIX_BREAK: number = "not_a_number";
+
 import { useState, useEffect, useRef, useCallback, useMemo, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient, isSupabaseConfigured, getConfigStatus } from "@/lib/supabase/client";
