@@ -523,7 +523,7 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
   const imgSrc = isIgCdnImage
     ? `/api/image-proxy?url=${encodeURIComponent(displayImage!)}`
     : isProxied
-    ? `/api/image-proxy?url=${encodeURIComponent(previewImageUrl!)}${cardUrl ? `&ref=${encodeURIComponent(cardUrl)}` : ""}`
+    ? `/api/image-proxy?url=${encodeURIComponent(previewImageUrl!)}`
     : displayImage;
 
   const debugSource = !cardUrl

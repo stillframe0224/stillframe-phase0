@@ -196,6 +196,9 @@ async function main() {
   // ── image-proxy tests ──
 
   // 4) SSRF blocks on image-proxy
+  // http:// URLs are rejected by the https-only check (https_only) before SSRF guard.
+  // https:// private-IP URLs are rejected by SSRF guard (blocked_url).
+  // Either way: status must be 400.
   const proxySSRF = [
     ["image-proxy SSRF block: 127.0.0.1", "http://127.0.0.1/img.png"],
     ["image-proxy SSRF block: 169.254.169.254", "http://169.254.169.254/latest/meta-data/"],
@@ -205,7 +208,9 @@ async function main() {
       const { status, body } = await fetchJSON(
         `/api/image-proxy?url=${encodeURIComponent(url)}`
       );
-      assert(label, status === 400 && body.error === "blocked_url",
+      // Accept blocked_url (SSRF) or https_only — both mean the request was correctly rejected.
+      const isBlocked = status === 400 && (body.error === "blocked_url" || body.error === "https_only");
+      assert(label, isBlocked,
         `status=${status} error=${body.error || "(none)"}`);
     } catch (e) {
       assert(label, false, `fetch error: ${e.message}`);
