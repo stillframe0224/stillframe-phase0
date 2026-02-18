@@ -1,4 +1,4 @@
-name: smoke
+name: deploy-smoke
 
 on:
   pull_request:
@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  smoke:
+  deploy-smoke:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
