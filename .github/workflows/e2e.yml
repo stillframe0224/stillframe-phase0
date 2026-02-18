@@ -8,18 +8,66 @@ on:
 # ──────────────────────────────────────────────────────
 # Job topology (all required):
 #
-#   build ──► guard ──► smoke
+#   audit ──► build ──► guard ──► smoke
 #
+#   audit : Vercel Production env check — E2E must be ABSENT
 #   build : produces the production artifact (no E2E env)
 #   guard : security invariant — bypass must be CLOSED
 #   smoke : functional E2E — bypass must be OPEN (E2E=1)
 #
-# guard runs BEFORE smoke so a broken seal always fails fast.
+#   audit runs first so a misconfigured Vercel env fails fast
+#   before any expensive build/test work begins.
 # ──────────────────────────────────────────────────────
 
 jobs:
+  # ── 0. Audit (Vercel Production env) ───────────────
+  # REQUIRED: E2E must NOT exist in Vercel Production.
+  # Uses VERCEL_TOKEN secret (repo secret, read-only scope).
+  # Saves env list as artifact for 14-day audit trail.
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Vercel CLI
+        run: npm install -g vercel@latest
+
+      - name: Write Vercel project link
+        # Hardcode project/org IDs — these are non-secret identifiers
+        run: |
+          mkdir -p .vercel
+          echo '{"projectId":"prj_12rtD9hr60VjCydSNgEIbBPoYQDR","orgId":"team_vGb7VufShL9hAAj9hGadrx0O"}' > .vercel/project.json
+
+      - name: Fetch Production env list
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          vercel env ls production --token "$VERCEL_TOKEN" \
+            | tee /tmp/vercel_env_production.txt
+
+      - name: SECURITY INVARIANT — E2E must be absent from Production
+        # If E2E appears in the output, the 4-layer seal is misconfigured.
+        # Fail immediately and block build/guard/smoke.
+        run: |
+          if grep -E '(^| )E2E( |$)' /tmp/vercel_env_production.txt; then
+            echo "FAIL: E2E is present in Vercel Production — seal is broken"
+            exit 1
+          fi
+          echo "OK: E2E is absent from Vercel Production"
+
+      - name: Upload env audit artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vercel-env-audit-${{ github.sha }}
+          path: /tmp/vercel_env_production.txt
+          retention-days: 14
+          if-no-files-found: error
+
   # ── 1. Build ───────────────────────────────────────
   build:
+    needs: audit
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
