@@ -138,8 +138,7 @@ async function main() {
     assert("YouTube Shorts 2Z4m4lnjxkY (hq not maxres)", false, `fetch error: ${e.message}`);
   }
 
-  // 2d) Instagram post — should return image via oEmbed or jina fallback (not null)
-  // Note: oEmbed without access_token may return 400 for private posts; we accept null gracefully.
+  // 2d) Instagram post — oEmbed+jina path; accept image or null (IG may block server fetches).
   try {
     const igUrl = "https://www.instagram.com/p/CUlRMQkM0Gi/";
     const { status, body } = await fetchJSON(
@@ -148,17 +147,35 @@ async function main() {
     // Accept 200 with either an image URL or null (IG may block server-side fetches)
     const isValidResponse = status === 200 && typeof body === "object";
     const hasImageOrNull = body.image === null || (typeof body.image === "string" && body.image.startsWith("https://"));
-    assert("Instagram shortcut returns 200 (image or null)",
+    assert("Instagram oEmbed returns 200 (image or null)",
       isValidResponse && hasImageOrNull,
       `status=${status} image=${body.image || "(null)"}`);
-    // If image is present, it must NOT be an HTML error page
+    // If image is present, it must be an https:// URL (not an HTML error page)
     if (body.image) {
-      assert("Instagram image is a URL not HTML",
+      assert("Instagram image is https:// URL",
         body.image.startsWith("https://"),
         `image=${body.image.slice(0, 60)}`);
     }
   } catch (e) {
-    assert("Instagram shortcut", false, `fetch error: ${e.message}`);
+    assert("Instagram oEmbed returns 200 (image or null)", false, `fetch error: ${e.message}`);
+  }
+
+  // 2e) Instagram scheme-less URL normalization — must not 400
+  // Verifies normalizeInstagramUrl() handles bare hostname before URL parsing.
+  // Only runs against localhost (where this branch's code is active).
+  if (BASE.includes("localhost") || BASE.includes("127.0.0.1")) {
+    try {
+      const schemelesIgUrl = "instagram.com/p/CUlRMQkM0Gi/";
+      const { status, body } = await fetchJSON(
+        `/api/link-preview?url=${encodeURIComponent(schemelesIgUrl)}`
+      );
+      const notBlocked = status === 200 && typeof body === "object" && !body.error;
+      assert("Instagram scheme-less URL normalized (no 400)",
+        notBlocked,
+        `status=${status} error=${body?.error || "(none)"}`);
+    } catch (e) {
+      assert("Instagram scheme-less URL normalized (no 400)", false, `fetch error: ${e.message}`);
+    }
   }
 
   // 3) Normal external fetch — should return image or favicon
