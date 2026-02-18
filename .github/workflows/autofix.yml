@@ -93,21 +93,47 @@ jobs:
           safety-strategy: drop-sudo
           sandbox: workspace-write
           prompt: |
-            You are an automated fixer. Goal: make CI green for this PR with the smallest safe change.
-            Constraints:
-            - Touch only what is necessary.
-            - Do not change workflows unless the failure is in the workflow itself.
-            - Preserve the E2E bypass seal invariants.
+            You are an automated CI fixer running inside GitHub Actions.
+            Your ONLY goal is: make CI green for this PR with the smallest safe change.
+            If you cannot confidently identify the root cause and verify a fix, STOP and make NO changes.
 
-            Context:
+            Inputs (do not ignore):
             - Failed workflow: ${{ github.event.workflow_run.name }}
-            - Failed jobs: ${{ steps.jobs.outputs.failed_json }}
+            - Failed jobs (name/url JSON): ${{ steps.jobs.outputs.failed_json }}
             - Branch: ${{ steps.guard.outputs.branch }}
 
-            Task:
-            1) Inspect repo and identify why the failed jobs failed.
-            2) Apply minimal patch to fix.
-            3) Do not add new features.
+            Non-negotiable constraints:
+            - Touch only what is necessary to fix the FIRST root-cause failure.
+            - Do NOT change workflows unless the failure is in a workflow file itself.
+            - Preserve the E2E bypass seal invariants (env/host/query/immutability). Never weaken them.
+            - No refactors, no formatting-only changes, no dependency bumps, no "cleanup".
+            - Max changed files: 2. Max changed lines: 25 (unless the root-cause requires more).
+            - Do NOT "fix" by removing/rewriting imports/types unless the compiler error explicitly points to them.
+
+            Procedure (follow exactly):
+            1) Locate the workflow file that corresponds to "Failed workflow":
+               - Search .github/workflows for a file whose `name:` matches the failed workflow name.
+            2) From the failed workflow file, find the steps/commands for the failed job(s).
+            3) Reproduce the failure locally in this runner by running the same command(s).
+               - Capture the FIRST real error message/stack trace line that explains the failure.
+               - Ignore secondary errors caused by the first failure.
+            4) Identify the root-cause file from that error message (prefer files mentioned by path).
+            5) Apply the minimal patch that fixes ONLY that root cause.
+               - If the failure is caused by an intentionally broken line (e.g. a test injection), revert that exact line.
+               - Prefer the smallest revert/one-line fix over "alternative approaches".
+            6) Re-run the reproduction command(s) to confirm the failure is gone.
+            7) If verification still fails OR the root cause is ambiguous:
+               - Make NO changes. Revert any edits. Exit with a clean working tree.
+               - Output a short note at the top of your response: "NEEDS_HUMAN: <one-line reason>".
+
+            Output requirements:
+            - First line must be either:
+              - "FIXED: <root cause in one line>" OR
+              - "NEEDS_HUMAN: <why you stopped>"
+            - Then list:
+              - Root-cause error (1–3 lines)
+              - Repro command(s)
+              - Files changed (if any)
 
       - name: Commit & push back to PR branch (if changes)
         if: steps.guard.outputs.ok == 'true'
