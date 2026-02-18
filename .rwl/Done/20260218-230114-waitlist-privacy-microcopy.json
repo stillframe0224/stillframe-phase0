@@ -1,0 +1,16 @@
+{
+  "id": "20260218-230114-waitlist-privacy-microcopy",
+  "goal": "Waitlistフォーム付近に安心感を高める補足文を追加し登録率改善の土台を作る",
+  "est_minutes": 25,
+  "dod": [
+    "npm run build 通過",
+    "/Users/array0224/stillframe-phase0/reports/triad/20260218-230114-waitlist-privacy-microcopy.md 作成",
+    "READMEに実行手順追記（新機能の場合）",
+    "PR作成"
+  ],
+  "evidence_paths": [
+    "/Users/array0224/stillframe-phase0/reports/triad/20260218-230114-waitlist-privacy-microcopy.md"
+  ],
+  "created_at": "2026-02-18T14:01:14Z",
+  "status": "queue"
+}

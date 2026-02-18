@@ -1,7 +1,7 @@
 {
   "failure_count": 0,
   "max_failures": 5,
-  "last_run_at": "2026-02-17T14:03:30Z",
-  "last_task_id": "20260217-230139-waitlist-submit-error-ui",
+  "last_run_at": "2026-02-18T14:02:45Z",
+  "last_task_id": "20260218-230114-waitlist-privacy-microcopy",
   "note": "failure_count >= max_failures で自律タスクを停止。手動リセット: failure_count を 0 に戻す"
 }
