@@ -66,6 +66,7 @@ jobs:
           name: ui-smoke-failure-${{ github.sha }}
           # Never upload storageState (.auth).
           path: |
+            reports/ui-smoke/**
             /tmp/stillframe_start.log
           retention-days: 7
           if-no-files-found: ignore
