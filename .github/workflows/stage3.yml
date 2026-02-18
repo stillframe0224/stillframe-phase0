@@ -1,0 +1,28 @@
+name: stage3
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize]
+
+jobs:
+  codex-review-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check PR body for Codex review sections
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          missing=()
+          for section in "Codex: RISKS" "Codex: TESTS" "Codex: EDGE"; do
+            if ! echo "$PR_BODY" | grep -q "$section"; then
+              missing+=("$section")
+            fi
+          done
+          if [ ${#missing[@]} -gt 0 ]; then
+            echo "::error::Missing Codex review sections: ${missing[*]}"
+            echo ""
+            echo "PR body must contain all three Codex review sections."
+            echo "Use the PR template and fill in RISKS/TESTS/EDGE."
+            exit 1
+          fi
+          echo "All Codex review sections found."
