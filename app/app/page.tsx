@@ -505,8 +505,10 @@ function AppPageInner() {
     if (e2eMode) params.set("e2e", "1");
     const query = params.toString();
     const newUrl = query ? `/app?${query}` : "/app";
-    router.replace(newUrl, { scroll: false });
-  }, [searchQuery, domainFilter, fileFilter, mediaFilter, showHasMemoOnly, sortOrder, showPinnedOnly, router, e2eMode]);
+    // Use history.replaceState to avoid Next.js router triggering _rsc re-fetch
+    // which can redirect to /auth/login when the session appears stale.
+    window.history.replaceState(null, "", newUrl);
+  }, [searchQuery, domainFilter, fileFilter, mediaFilter, showHasMemoOnly, sortOrder, showPinnedOnly, e2eMode]);
 
   // Extract unique domains from cards
   const domains = useMemo(() => {
@@ -1031,6 +1033,11 @@ function AppPageInner() {
   const toggleBulkMode = useCallback(() => {
     setIsBulkMode(prev => !prev);
     setSelectedCardIds(new Set());
+  }, []);
+
+  // ── Notes saved callback: update cards state so filteredCards recomputes ──
+  const handleNotesSaved = useCallback((cardId: string, notes: string | null) => {
+    setCards(prev => prev.map(c => c.id === cardId ? { ...c, notes } : c));
   }, []);
 
   // ── Memo Backup: Export / Import / Clear ────────────────────────────────
@@ -2567,7 +2574,7 @@ function AppPageInner() {
             >
               {filteredCards.map((card, i) => (
                 <div key={card.id} id={`card-${card.id}`} data-testid="card-item" data-card-id={card.id}>
-                  <AppCard card={card} index={i} onDelete={deleteCard} onPinToggle={handlePinToggle} onFileAssign={assignCardToFile} onUpdate={handleCardUpdate} files={files} isDraggable={!isBulkMode} isBulkMode={isBulkMode} isSelected={selectedCardIds.has(card.id)} onToggleSelect={toggleCardSelection} />
+                  <AppCard card={card} index={i} onDelete={deleteCard} onPinToggle={handlePinToggle} onFileAssign={assignCardToFile} onUpdate={handleCardUpdate} onNotesSaved={handleNotesSaved} files={files} isDraggable={!isBulkMode} isBulkMode={isBulkMode} isSelected={selectedCardIds.has(card.id)} onToggleSelect={toggleCardSelection} />
                 </div>
               ))}
             </div>
