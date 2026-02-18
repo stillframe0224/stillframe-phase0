@@ -6,5 +6,26 @@
     "session": "nightly",
     "pr_url": "https://github.com/array0224-cloud/stillframe-phase0/pull/10",
     "evidence": "/Users/array0224/stillframe-phase0/reports/triad/20260217-230139-waitlist-submit-error-ui.md"
+  },
+  {
+    "id": "20260218-080000-waitlist-email-normalize",
+    "goal": "Waitlist送信時にメールを正規化し二重送信を防止して登録成功率を上げる",
+    "completed_at": "2026-02-17T23:02:16Z",
+    "pr_url": "https://github.com/array0224-cloud/stillframe-phase0/pull/11",
+    "evidence": "/Users/array0224/stillframe-phase0/reports/triad/20260218-080000-waitlist-email-normalize.md"
+  },
+  {
+    "id": "20260218-080100-pricing-cta-fallback",
+    "goal": "Gumroad URL未設定時のPricing CTAを安全にフォールバックし無効クリックを減らす",
+    "completed_at": "2026-02-17T23:03:05Z",
+    "pr_url": "https://github.com/array0224-cloud/stillframe-phase0/pull/12",
+    "evidence": "/Users/array0224/stillframe-phase0/reports/triad/20260218-080100-pricing-cta-fallback.md"
+  },
+  {
+    "id": "20260218_ig_memo_reorder",
+    "goal": "Instagram preview (oembed+jina), MEMOクリック修正 (DnD distance), grid gap tighten, 手動並び替えlocalStorage永続化",
+    "completed_at": "2026-02-18T00:00:00Z",
+    "commit": "ecd4172",
+    "evidence": "/Users/array0224/stillframe-phase0/reports/triad/20260218_ig_memo_reorder.md"
   }
 ]
