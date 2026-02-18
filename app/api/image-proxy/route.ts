@@ -4,8 +4,17 @@ import { validateUrl, dnsCheck } from "@/lib/ssrf";
 export const dynamic = "force-dynamic";
 
 const MAX_REDIRECTS = 5;
-const FETCH_TIMEOUT = 5000;
+const FETCH_TIMEOUT = 6000; // slightly longer for IG CDN
 const MAX_SIZE = 5 * 1024 * 1024; // 5 MB
+
+const BROWSER_UA =
+  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36";
+
+/** Returns true for Instagram CDN hosts whose images require IG-style headers. */
+function isInstagramCdnHost(hostname: string): boolean {
+  const h = hostname.toLowerCase();
+  return h.endsWith(".cdninstagram.com") || h.endsWith(".fbcdn.net");
+}
 
 async function safeFetchImage(
   urlStr: string,
@@ -21,12 +30,22 @@ async function safeFetchImage(
       if (!validateUrl(hop)) throw new Error("blocked");
       if (!(await dnsCheck(hop.hostname))) throw new Error("blocked");
 
+      const igCdn = isInstagramCdnHost(hop.hostname);
+
       const headers: Record<string, string> = {
-        "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-        Accept: "image/*,*/*;q=0.8",
+        "User-Agent": BROWSER_UA,
+        Accept: igCdn
+          ? "image/avif,image/webp,image/apng,image/*,*/*;q=0.8"
+          : "image/*,*/*;q=0.8",
+        "Accept-Language": igCdn ? "en-US,en;q=0.9,ja;q=0.8" : "en",
       };
-      if (referer) headers["Referer"] = referer;
+      // For IG CDN: always set Instagram as Referer (required by CDN to serve images).
+      // For other hosts: use the caller-supplied referer if valid.
+      if (igCdn) {
+        headers["Referer"] = "https://www.instagram.com/";
+      } else if (referer) {
+        headers["Referer"] = referer;
+      }
 
       const res = await fetch(currentUrl, {
         headers,
