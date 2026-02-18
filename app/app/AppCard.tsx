@@ -1408,6 +1408,7 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
               title={new Date(card.created_at).toLocaleString()}
             >
               {new Intl.DateTimeFormat("ja-JP", {
+                year: "numeric",
                 month: "numeric",
                 day: "numeric",
                 hour: "2-digit",
@@ -1590,6 +1591,8 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
               padding: 20,
               maxWidth: 500,
               width: "100%",
+              maxHeight: "80vh",
+              overflowY: "auto",
               boxShadow: "0 20px 40px rgba(0,0,0,0.2)",
             }}
           >
@@ -1646,6 +1649,7 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
               style={{
                 width: "100%",
                 minHeight: 180,
+                maxHeight: "50vh",
                 padding: 12,
                 fontSize: 13,
                 lineHeight: 1.6,
@@ -1654,6 +1658,7 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
                 borderRadius: 8,
                 fontFamily: "inherit",
                 resize: "vertical",
+                overflowY: "auto",
                 outline: "none",
               }}
               onFocus={(e) => {
