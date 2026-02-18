@@ -11,5 +11,32 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Smoke (HTTP 200)
-        run: bash scripts/smoke.sh
+      - name: Resolve deploy target + expected sha
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXPECTED_FULL_SHA="$(node -e 'const e=require(process.env.GITHUB_EVENT_PATH); console.log((e.pull_request && e.pull_request.head && e.pull_request.head.sha) || process.env.GITHUB_SHA);')"
+          EXPECTED_SHORT_SHA="${EXPECTED_FULL_SHA:0:7}"
+
+          if [ "${GITHUB_EVENT_NAME}" = "pull_request" ]; then
+            HEAD_REF="$(node -e 'const e=require(process.env.GITHUB_EVENT_PATH); console.log((e.pull_request && e.pull_request.head && e.pull_request.head.ref) || "");')"
+            BRANCH_SLUG="$(node -e 'const s=(process.argv[1]||"").toLowerCase().replace(/[^a-z0-9-]/g,"-").replace(/-+/g,"-").replace(/^-|-$/g,""); process.stdout.write(s);' "$HEAD_REF")"
+            BASE_URL="https://stillframe-phase0-git-${BRANCH_SLUG}-stillframe0224.vercel.app"
+            EXPECTED_ENV="preview"
+          else
+            BASE_URL="https://stillframe-phase0.vercel.app"
+            EXPECTED_ENV="production"
+          fi
+
+          echo "EXPECTED_SHA=${EXPECTED_FULL_SHA}" >> "$GITHUB_ENV"
+          echo "EXPECTED_SHORT_SHA=${EXPECTED_SHORT_SHA}" >> "$GITHUB_ENV"
+          echo "BASE_URL=${BASE_URL}" >> "$GITHUB_ENV"
+          echo "EXPECTED_ENV=${EXPECTED_ENV}" >> "$GITHUB_ENV"
+          echo "deploy-smoke target=${BASE_URL} expected_short=${EXPECTED_SHORT_SHA} expected_env=${EXPECTED_ENV}"
+
+      - name: Smoke (sha pin with retry)
+        env:
+          EXPECTED_SHA: ${{ env.EXPECTED_SHA }}
+          EXPECTED_ENV: ${{ env.EXPECTED_ENV }}
+          MAX_ATTEMPTS: "10"
+        run: bash scripts/smoke.sh "${BASE_URL}"
