@@ -174,6 +174,7 @@ interface AppCardProps {
   onPinToggle?: (id: string, newPinned: boolean) => void;
   onFileAssign?: (cardId: string, fileId: string | null) => void;
   onUpdate?: (cardId: string) => void;
+  onNotesSaved?: (cardId: string, notes: string | null) => void;
   files?: FileRecord[];
   isDraggable?: boolean;
   isBulkMode?: boolean;
@@ -181,7 +182,7 @@ interface AppCardProps {
   onToggleSelect?: (cardId: string) => void;
 }
 
-export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssign, onUpdate, files = [], isDraggable = false, isBulkMode = false, isSelected = false, onToggleSelect }: AppCardProps) {
+export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssign, onUpdate, onNotesSaved, files = [], isDraggable = false, isBulkMode = false, isSelected = false, onToggleSelect }: AppCardProps) {
   const {
     attributes,
     listeners,
@@ -659,9 +660,11 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
   };
 
   const handleMemoSave = async (text: string) => {
+    const savedNotes = text || null;
     const saveLocalSuccess = () => {
-      card.notes = text || null;
+      card.notes = savedNotes;
       persistMemoLocal(text);
+      if (onNotesSaved) onNotesSaved(card.id, savedNotes);
       setMemoError(null);
       setMemoSaveStatus("saved");
       setTimeout(() => setMemoSaveStatus(null), 2000);
@@ -1322,10 +1325,8 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
                   e.stopPropagation();
                   return;
                 }
-                if (card.notes !== undefined) {
-                  e.stopPropagation();
-                  setShowMemoModal(true);
-                }
+                e.stopPropagation();
+                setShowMemoModal(true);
               }}
               onMouseEnter={() => {
                 if ((card.notes && card.notes.trim()) || memoText.trim()) setShowMemoPreview(true);
@@ -1333,7 +1334,7 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
               onMouseLeave={() => setShowMemoPreview(false)}
               style={{
                 ...CHIP_TYPE_STYLE(ct.accent, ct.border),
-                cursor: card.notes !== undefined ? "pointer" : "default",
+                cursor: "pointer",
               }}
               onKeyDown={(e) => {
                 if (e.key === "Escape" && showMemoModal) {
@@ -1341,7 +1342,7 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
                   handleMemoModalClose();
                 }
               }}
-              title={card.notes !== undefined ? "Click to add/edit notes" : undefined}
+              title="Click to add/edit notes"
             >
               {card.card_type}
             </button>
