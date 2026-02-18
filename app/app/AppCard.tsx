@@ -317,17 +317,12 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
   }, []);
 
   useEffect(() => {
-    if (card.notes && card.notes.trim().length > 0) {
-      setMemoText(card.notes);
-      return;
-    }
-    const saved = readMemoLocal();
-    if (saved !== null) {
-      setMemoText(saved);
-    } else {
-      // Neither DB notes nor local draft — ensure memoText is cleared
-      setMemoText("");
-    }
+    const localRaw = readMemoLocal();
+    const dbRaw = typeof card.notes === "string" ? card.notes : "";
+    const local = localRaw?.trim() ?? "";
+    const db = dbRaw.trim();
+    const resolved = local.length > 0 ? localRaw! : (db.length > 0 ? dbRaw : "");
+    setMemoText(resolved);
   }, [card.id, card.notes]);
 
   useEffect(() => {
