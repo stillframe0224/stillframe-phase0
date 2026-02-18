@@ -12,6 +12,37 @@ const IG_RE =
 const MAX_REDIRECTS = 5;
 const FETCH_TIMEOUT = 4000;
 
+function isInstagramHost(host: string): boolean {
+  const h = host.toLowerCase();
+  return h === "instagram.com" || h.endsWith(".instagram.com") || h === "instagr.am";
+}
+
+function parseRetryAfterMs(v: string | null): number | null {
+  if (!v) return null;
+  const num = Number(v);
+  if (Number.isFinite(num) && num > 0) return Math.floor(num * 1000);
+  const at = Date.parse(v);
+  if (!Number.isNaN(at)) {
+    const ms = at - Date.now();
+    return ms > 0 ? ms : null;
+  }
+  return null;
+}
+
+function failureRetryAfterMs(status?: number, retryAfterHeader?: string | null): number {
+  if (status === 429) {
+    return parseRetryAfterMs(retryAfterHeader ?? null) ?? 5 * 60 * 1000;
+  }
+  if (status === 403) return 10 * 60 * 1000;
+  return 5 * 60 * 1000;
+}
+
+function failureCacheHeader(status?: number, retryAfterHeader?: string | null): string {
+  return `public, max-age=${Math.floor(
+    failureRetryAfterMs(status, retryAfterHeader) / 1000
+  )}`;
+}
+
 // --- Redirect-safe fetch with per-hop validation ---
 
 async function safeFetch(
@@ -226,13 +257,68 @@ export async function GET(request: Request) {
   }
 
   try {
+    if (isInstagramHost(parsed.hostname)) {
+      // 1) Instagram oEmbed
+      try {
+        const oembedUrl = `https://www.instagram.com/oembed/?url=${encodeURIComponent(url)}`;
+        const oembedRes = await fetch(oembedUrl, {
+          headers: {
+            "User-Agent":
+              "Mozilla/5.0 (compatible; SHINEN-Bot/1.0; +https://shinen.app)",
+            Accept: "application/json",
+          },
+          signal: AbortSignal.timeout(FETCH_TIMEOUT),
+        });
+        if (oembedRes.ok) {
+          const data = await oembedRes.json();
+          const image = resolveUrl(data?.thumbnail_url ?? null, parsed.origin);
+          if (image) {
+            return NextResponse.json(
+              { image, favicon: "https://www.instagram.com/favicon.ico", title: data?.title ?? null },
+              { headers: { "Cache-Control": "public, max-age=3600" } }
+            );
+          }
+        }
+      } catch {
+        // Fallback to next strategy
+      }
+
+      // 2) r.jina.ai HTML mirror
+      try {
+        const jinaUrl = `https://r.jina.ai/http://${url.replace(/^https?:\/\//i, "")}`;
+        const jinaRes = await fetch(jinaUrl, {
+          headers: {
+            "User-Agent":
+              "Mozilla/5.0 (compatible; SHINEN-Bot/1.0; +https://shinen.app)",
+            Accept: "text/html,application/xhtml+xml",
+          },
+          signal: AbortSignal.timeout(FETCH_TIMEOUT),
+        });
+        if (jinaRes.ok) {
+          const jinaHtml = await jinaRes.text();
+          const ogImage = extractMeta(jinaHtml, "og:image");
+          const twImage = extractMeta(jinaHtml, "twitter:image");
+          const image = resolveUrl(ogImage ?? twImage, parsed.origin);
+          if (image) {
+            return NextResponse.json(
+              { image, favicon: "https://www.instagram.com/favicon.ico", title: extractMeta(jinaHtml, "og:title") },
+              { headers: { "Cache-Control": "public, max-age=3600" } }
+            );
+          }
+        }
+      } catch {
+        // Fallback to direct HTML strategy
+      }
+    }
+
     const { res, finalUrl } = await safeFetch(url);
 
     if (!res.ok) {
       if (debug) console.log(JSON.stringify({ event: "link_preview_upstream", url, status: res.status }));
+      const retryAfterMs = failureRetryAfterMs(res.status, res.headers.get("retry-after"));
       return NextResponse.json(
-        { image: null, favicon: `${parsed.origin}/favicon.ico`, title: null },
-        { headers: { "Cache-Control": "public, max-age=3600" } }
+        { image: null, favicon: `${parsed.origin}/favicon.ico`, title: null, retryAfterMs },
+        { headers: { "Cache-Control": failureCacheHeader(res.status, res.headers.get("retry-after")) } }
       );
     }
 
@@ -259,8 +345,8 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "blocked_url" }, { status: 400 });
     }
     return NextResponse.json(
-      { image: null, favicon: `${parsed.origin}/favicon.ico`, title: null },
-      { headers: { "Cache-Control": "public, max-age=3600" } }
+      { image: null, favicon: `${parsed.origin}/favicon.ico`, title: null, retryAfterMs: 5 * 60 * 1000 },
+      { headers: { "Cache-Control": "public, max-age=300" } }
     );
   }
 }
