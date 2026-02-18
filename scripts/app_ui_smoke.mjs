@@ -7,11 +7,11 @@
  *   Mode A — Unauthenticated (default)
  *     node scripts/app_ui_smoke.mjs
  *     BASE_URL=https://stillframe-phase0.vercel.app node scripts/app_ui_smoke.mjs
- *     → Test 1 (/api/version) runs. Tests 2-7 SKIP (auth redirect expected).
+ *     → Test 1 (/api/version) runs. Tests 2-8 SKIP (auth redirect expected).
  *
  *   Mode B — E2E mock (full suite)
  *     E2E=1 BASE_URL=http://localhost:3000 node scripts/app_ui_smoke.mjs
- *     → All 7 tests run using ?e2e=1 mock cards (no real auth needed).
+ *     → All 8 tests run using ?e2e=1 mock cards (no real auth needed).
  *     → Server must be built+started with E2E=1 (npm run build, npm start).
  *     → If .auth/storageState.json missing, auto-runs e2e_auth_storage_state.mjs first.
  *
@@ -22,7 +22,8 @@
  *  4) Switching to "Custom order (drag)" keeps cards visible (>=1 card)
  *  5) cards-grid computed gap equals 8px
  *  6) MEMO input is visible in list snippet + searchable + has-memo filter
- *  7) drag-handle elements present; reorder if >=2 cards (SKIP if <2, not FAIL)
+ *  7) Memo backup: export→clear→import→verify (E2E=1 only)
+ *  8) drag-handle elements present; reorder if >=2 cards (SKIP if <2, not FAIL)
  *
  * Exit code: 0 = all non-skipped tests PASS, 1 = any FAIL.
  *
@@ -36,7 +37,7 @@
  */
 
 import { chromium } from "@playwright/test";
-import { existsSync, mkdirSync, writeFileSync } from "fs";
+import { existsSync, mkdirSync, writeFileSync, readFileSync } from "fs";
 import { execFileSync } from "child_process";
 
 const BASE_URL = process.env.BASE_URL ?? "https://stillframe-phase0.vercel.app";
@@ -228,6 +229,7 @@ async function main() {
   const browser = await chromium.launch({ headless: true });
   const contextOpts = {
     viewport: { width: 1280, height: 800 },
+    acceptDownloads: true,
     ...(E2E_MODE && existsSync(STATE_PATH)
       ? { storageState: STATE_PATH }
       : {}),
@@ -284,6 +286,11 @@ async function main() {
       skip("memo snippet shows saved text", "GOTO_FAILED");
       skip("search matches memo text", "GOTO_FAILED");
       skip("has memo filter narrows cards", "GOTO_FAILED");
+      skip("memo backup: export JSON download", "GOTO_FAILED");
+      skip("memo backup: clear removes snippets", "GOTO_FAILED");
+      skip("memo backup: import restores snippets", "GOTO_FAILED");
+      skip("memo backup: search matches restored memo", "GOTO_FAILED");
+      skip("memo backup: has-memo filter after restore", "GOTO_FAILED");
       skip("drag-handle present", "GOTO_FAILED");
       skip("card reorder (drag 1->2)", "GOTO_FAILED");
     }
@@ -314,6 +321,11 @@ async function main() {
         skip("memo snippet shows saved text", "AUTH_REQUIRED");
         skip("search matches memo text", "AUTH_REQUIRED");
         skip("has memo filter narrows cards", "AUTH_REQUIRED");
+        skip("memo backup: export JSON download", "AUTH_REQUIRED");
+        skip("memo backup: clear removes snippets", "AUTH_REQUIRED");
+        skip("memo backup: import restores snippets", "AUTH_REQUIRED");
+        skip("memo backup: search matches restored memo", "AUTH_REQUIRED");
+        skip("memo backup: has-memo filter after restore", "AUTH_REQUIRED");
         skip("drag-handle present", "AUTH_REQUIRED");
         skip("card reorder (drag 1->2)", "AUTH_REQUIRED");
         console.log("\n  [error] Auth required: UI acceptance checks not executed.");
@@ -443,7 +455,112 @@ async function main() {
           fail("MEMO button opens memo-modal", String(e));
         }
 
-        // ── Test 7a: drag-handle present ───────────────────────────────
+        // ── Test 7: Memo backup (export → clear → import) ──────────────
+        // Only run in E2E mode (requires local server + mock cards with notes).
+        if (!E2E_MODE) {
+          skip("memo backup: export JSON download", "E2E_REQUIRED");
+          skip("memo backup: clear removes snippets", "E2E_REQUIRED");
+          skip("memo backup: import restores snippets", "E2E_REQUIRED");
+          skip("memo backup: search matches restored memo", "E2E_REQUIRED");
+          skip("memo backup: has-memo filter after restore", "E2E_REQUIRED");
+        } else {
+          try {
+            // ① Export: click memo-export, capture download, validate JSON
+            const exportBtn = page.locator("[data-testid=\"memo-export\"]");
+            await exportBtn.waitFor({ timeout: 5_000 });
+
+            const [download] = await Promise.all([
+              page.waitForEvent("download", { timeout: 10_000 }),
+              exportBtn.click(),
+            ]);
+            const downloadPath = await download.path();
+            if (!downloadPath) throw new Error("download.path() returned null");
+
+            const exportedJson = JSON.parse(readFileSync(downloadPath, "utf8"));
+            if (exportedJson.schema !== "stillframe-memos-v1") {
+              fail("memo backup: export JSON download", `bad schema: ${exportedJson.schema}`);
+            } else if (typeof exportedJson.notes !== "object") {
+              fail("memo backup: export JSON download", "notes field is not an object");
+            } else {
+              pass("memo backup: export JSON download", `schema=ok notes=${Object.keys(exportedJson.notes).length}`);
+            }
+
+            // ② Clear: click memo-clear, verify memo-snippet gone from first card
+            const clearBtn = page.locator("[data-testid=\"memo-clear\"]");
+            await clearBtn.waitFor({ timeout: 5_000 });
+            await clearBtn.click();
+            await page.waitForTimeout(1000);
+
+            const firstCardAfterClear = page.locator("[data-testid=\"card-item\"]").first();
+            const snippetAfterClear = firstCardAfterClear.locator("[data-testid=\"memo-snippet\"]");
+            const snippetVisibleAfterClear = await snippetAfterClear.isVisible().catch(() => false);
+            if (!snippetVisibleAfterClear) {
+              pass("memo backup: clear removes snippets", "memo-snippet no longer visible");
+            } else {
+              fail("memo backup: clear removes snippets", "memo-snippet still visible after clear");
+            }
+
+            // ③ Import: use setInputFiles on the hidden file input (state: "attached" since it's display:none)
+            const importInput = page.locator("[data-testid=\"memo-import-input\"]");
+            await importInput.waitFor({ state: "attached", timeout: 5_000 });
+            await importInput.setInputFiles(downloadPath);
+            await page.waitForTimeout(800);
+
+            // ④ Verify snippet restored on first card that had a note
+            const firstCardId = await page.locator("[data-testid=\"card-item\"]").first().getAttribute("data-card-id");
+            const hadNote = firstCardId && exportedJson.notes[firstCardId];
+            if (hadNote) {
+              const snippetAfterImport = page.locator("[data-testid=\"card-item\"]").first().locator("[data-testid=\"memo-snippet\"]");
+              await snippetAfterImport.waitFor({ timeout: 5_000 });
+              pass("memo backup: import restores snippets", "memo-snippet visible after import");
+            } else {
+              // No note on first card in export — check any card has snippet
+              const anySnippet = page.locator("[data-testid=\"memo-snippet\"]").first();
+              const anyVisible = await anySnippet.isVisible().catch(() => false);
+              if (anyVisible) {
+                pass("memo backup: import restores snippets", "memo-snippet visible on some card after import");
+              } else {
+                fail("memo backup: import restores snippets", "no memo-snippet visible after import");
+              }
+            }
+
+            // ⑤ Search matches restored memo keyword
+            const restoredMemoKeyword = Object.values(exportedJson.notes)[0];
+            if (restoredMemoKeyword && typeof restoredMemoKeyword === "string") {
+              const keyword = restoredMemoKeyword.split(" ")[0].slice(0, 20);
+              const searchInput2 = page.locator("[data-testid=\"search-input\"]");
+              await searchInput2.fill(keyword);
+              await page.waitForTimeout(500);
+              const searchCount2 = await page.locator("[data-testid=\"card-item\"]").count();
+              if (searchCount2 >= 1) {
+                pass("memo backup: search matches restored memo", `count=${searchCount2} keyword="${keyword}"`);
+              } else {
+                fail("memo backup: search matches restored memo", `count=0 keyword="${keyword}"`);
+              }
+              await searchInput2.fill("");
+              await page.waitForTimeout(300);
+            } else {
+              skip("memo backup: search matches restored memo", "no notes in export to search");
+            }
+
+            // ⑥ Has-memo filter shows at least 1 card
+            const hasMemoToggle2 = page.locator("[data-testid=\"filter-has-memo\"]");
+            await hasMemoToggle2.click();
+            await page.waitForTimeout(500);
+            const memoOnlyCount2 = await page.locator("[data-testid=\"card-item\"]").count();
+            if (memoOnlyCount2 >= 1) {
+              pass("memo backup: has-memo filter after restore", `count=${memoOnlyCount2}`);
+            } else {
+              fail("memo backup: has-memo filter after restore", "count=0 — no cards with memos after import");
+            }
+            await hasMemoToggle2.click();
+            await page.waitForTimeout(300);
+          } catch (e) {
+            fail("memo backup: unexpected error", String(e));
+          }
+        }
+
+        // ── Test 8a: drag-handle present ───────────────────────────────
         const cardCount = cardCountAfter;
         try {
           const handles = page.locator("[data-testid=\"drag-handle\"]");
@@ -457,7 +574,7 @@ async function main() {
           fail("drag-handle present", String(e));
         }
 
-        // ── Test 7b: card reorder (pointer drag) ───────────────────────
+        // ── Test 8b: card reorder (pointer drag) ───────────────────────
         if (cardCount < 2) {
           if (E2E_MODE) {
             fail("card reorder (drag 1->2)", `REORDER_REQUIRED: need >=2 cards (got ${cardCount})`);
