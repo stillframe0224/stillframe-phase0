@@ -111,6 +111,42 @@ jobs:
         run: |
           node scripts/link_preview_smoke.mjs 2>&1 | tee "$REPORT_SUBDIR/link_preview_smoke.log"
 
+      # ── Check 3: DB schema columns present ───────────────────────────────
+      - name: Check DB schema (notes + media_kind columns)
+        id: schema_check
+        run: |
+          SCHEMA_URL="${PROD_URL}/api/db-schema-check"
+          echo "GET $SCHEMA_URL"
+          RESP=$(curl -s -o /tmp/schema_body.txt -w "%{http_code}" --max-time 10 "$SCHEMA_URL" 2>/dev/null || echo "000")
+          BODY=$(cat /tmp/schema_body.txt 2>/dev/null || echo "")
+          echo "HTTP=$RESP body=$BODY"
+
+          NOTES_OK=false
+          MEDIA_OK=false
+          SCHEMA_OK=false
+
+          if [ "$RESP" = "200" ]; then
+            NOTES_OK=$(node -e "try{const d=JSON.parse(process.argv[1]);process.stdout.write(String(d.columns?.notes===true))}catch{process.stdout.write('false')}" -- "$BODY" 2>/dev/null || echo "false")
+            MEDIA_OK=$(node -e "try{const d=JSON.parse(process.argv[1]);process.stdout.write(String(d.columns?.media_kind===true))}catch{process.stdout.write('false')}" -- "$BODY" 2>/dev/null || echo "false")
+            if [ "$NOTES_OK" = "true" ] && [ "$MEDIA_OK" = "true" ]; then
+              SCHEMA_OK=true
+              echo "  PASS notes=${NOTES_OK} media_kind=${MEDIA_OK}"
+            else
+              echo "  FAIL notes=${NOTES_OK} media_kind=${MEDIA_OK}"
+            fi
+          else
+            echo "  FAIL HTTP=$RESP"
+          fi
+
+          echo "notes_ok=${NOTES_OK}" >> "$GITHUB_OUTPUT"
+          echo "media_ok=${MEDIA_OK}" >> "$GITHUB_OUTPUT"
+          echo "ok=${SCHEMA_OK}" >> "$GITHUB_OUTPUT"
+
+          if [ "$SCHEMA_OK" != "true" ]; then
+            echo "FAIL: DB schema check — missing columns. Run: node scripts/apply_schema.mjs"
+            exit 1
+          fi
+
       # ── Step summary (always) ─────────────────────────────────────────────
       - name: Write step summary
         if: always()
@@ -118,6 +154,9 @@ jobs:
           SHA="${{ steps.version_check.outputs.sha }}"
           VER_ENV="${{ steps.version_check.outputs.vercel_env }}"
           VER_OK="${{ steps.version_check.outputs.ok }}"
+          SCHEMA_OK="${{ steps.schema_check.outputs.ok }}"
+          NOTES_OK="${{ steps.schema_check.outputs.notes_ok }}"
+          MEDIA_OK="${{ steps.schema_check.outputs.media_ok }}"
           RUN_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
 
           {
@@ -136,6 +175,12 @@ jobs:
             else
               echo "| link preview smoke | ❌ FAIL |"
             fi
+            # schema check outcome
+            if [ "$SCHEMA_OK" = "true" ]; then
+              echo "| DB schema (notes + media_kind) | ✅ PASS |"
+            else
+              echo "| DB schema (notes + media_kind) | ❌ FAIL \`notes=${NOTES_OK}\` \`media_kind=${MEDIA_OK}\` |"
+            fi
             echo ""
             echo "**Run:** [${GITHUB_RUN_ID}](${RUN_URL})"
           } >> "$GITHUB_STEP_SUMMARY"
@@ -145,6 +190,7 @@ jobs:
             echo "prod-sanity $(date -u '+%Y-%m-%d %H:%M UTC')"
             echo "sha=${SHA}  vercelEnv=${VER_ENV}  version_ok=${VER_OK}"
             echo "link_preview_outcome=${{ steps.link_preview.outcome }}"
+            echo "schema_ok=${SCHEMA_OK}  notes_ok=${NOTES_OK}  media_ok=${MEDIA_OK}"
             echo "run=${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
           } > "$REPORT_SUBDIR/summary.txt"
 
@@ -166,6 +212,7 @@ jobs:
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           SHA: ${{ steps.version_check.outputs.sha }}
           VER_OK: ${{ steps.version_check.outputs.ok }}
+          SCHEMA_OK: ${{ steps.schema_check.outputs.ok }}
           TS: ${{ env.TS }}
           ARTIFACT_NAME: prod-sanity-failure-${{ env.TS }}
         with:
@@ -175,6 +222,7 @@ jobs:
             const runUrl        = process.env.RUN_URL;
             const sha           = process.env.SHA || "(unknown)";
             const verOk         = process.env.VER_OK === "true";
+            const schemaOk      = process.env.SCHEMA_OK === "true";
             const ts            = process.env.TS;
             const artifactName  = process.env.ARTIFACT_NAME;
             const label         = "prod-sanity";
@@ -209,6 +257,7 @@ jobs:
               `|---|---|`,
               `| **Latest run** | [Actions run \u2197](${runUrl}) |`,
               `| **/api/version** | ${verOk ? "\u2705 OK" : "\u274C FAIL"} \`sha=${sha}\` |`,
+              `| **DB schema** | ${schemaOk ? "\u2705 OK" : "\u274C FAIL (run \`node scripts/apply_schema.mjs\`)"} |`,
               `| **Timestamp** | \`${ts}\` |`,
               `| **Artifacts** | \`${artifactName}\` _(Actions \u2192 Artifacts)_ |`,
               ``,
