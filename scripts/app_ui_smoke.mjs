@@ -86,6 +86,11 @@ async function waitForServer(url, timeoutMs = 60_000) {
 }
 
 async function main() {
+  if (process.env.CI && process.env.E2E !== "1") {
+    console.error("E2E_REQUIRED_IN_CI: set E2E=1 for ui smoke in CI");
+    process.exit(1);
+  }
+
   console.log(`\n=== app_ui_smoke ===`);
   console.log(`BASE_URL: ${BASE_URL}`);
   console.log(`Mode: ${E2E_MODE ? "E2E mock (E2E=1)" : "unauthenticated"}`);
@@ -338,6 +343,19 @@ async function main() {
   }
   console.log(`\nTotal: ${passCnt} PASS / ${failCnt} FAIL / ${skipCnt} SKIP`);
   console.log(`Finished: ${new Date().toISOString()}`);
+
+  if (E2E_MODE) {
+    const allowSkipLabels = new Set(["card reorder (drag 1→2)"]);
+    const disallowedSkips = results.filter(
+      (r) => r.status === "SKIP" && !allowSkipLabels.has(r.label)
+    );
+    if (disallowedSkips.length > 0) {
+      for (const s of disallowedSkips) {
+        console.error(`[FAIL] disallowed skip in E2E mode: ${s.label} — ${s.detail ?? ""}`);
+      }
+      failed = true;
+    }
+  }
 
   if (failed) process.exit(1);
 }
