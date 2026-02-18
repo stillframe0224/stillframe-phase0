@@ -1,0 +1,267 @@
+name: prod-sanity
+
+# Scheduled production health check.
+# Runs daily at 03:30 UTC and on demand.
+# On failure: uploads artifacts + upserts a GitHub Issue (no comment spam).
+# On recovery: posts recovery comment + closes the open issue.
+# Success-only runs are silent.
+
+on:
+  schedule:
+    - cron: "30 3 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: prod-sanity
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  prod-sanity:
+    name: prod-sanity
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    env:
+      PROD_URL: https://stillframe-phase0.vercel.app
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Create timestamped report directory
+        run: |
+          TS=$(date -u +%Y%m%dT%H%M%SZ)
+          echo "TS=$TS" >> "$GITHUB_ENV"
+          REPORT_SUBDIR="reports/prod-sanity/$TS"
+          mkdir -p "$REPORT_SUBDIR"
+          echo "REPORT_SUBDIR=$REPORT_SUBDIR" >> "$GITHUB_ENV"
+
+      # ── Check 1: /api/version (up to 10 retries, exponential backoff) ────
+      - name: Check /api/version
+        id: version_check
+        run: |
+          VERSION_URL="${PROD_URL}/api/version"
+          MAX=10
+          DELAY=3
+          SHA=""
+          VERCEL_ENV=""
+          OK=false
+          LAST_HTTP="000"
+
+          for i in $(seq 1 $MAX); do
+            echo "[attempt $i/$MAX] GET $VERSION_URL"
+            RESP=$(curl -s -o /tmp/version_body.txt -w "%{http_code}" --max-time 10 "$VERSION_URL" 2>/tmp/curl_err.txt || echo "000")
+            LAST_HTTP=$RESP
+
+            if [ "$RESP" = "200" ]; then
+              BODY=$(cat /tmp/version_body.txt)
+              SHA=$(node -e "try{const d=JSON.parse(process.argv[1]);process.stdout.write(d.sha||'')}catch{}" -- "$BODY" 2>/dev/null || echo "")
+              VERCEL_ENV=$(node -e "try{const d=JSON.parse(process.argv[1]);process.stdout.write(d.vercelEnv||'')}catch{}" -- "$BODY" 2>/dev/null || echo "")
+
+              if [ -n "$SHA" ] && [ "$SHA" != "unknown" ] && [ "$VERCEL_ENV" = "production" ]; then
+                OK=true
+                echo "  PASS sha=$SHA vercelEnv=$VERCEL_ENV"
+                break
+              else
+                echo "  FAIL sha='$SHA' vercelEnv='$VERCEL_ENV' (unexpected values)"
+              fi
+            else
+              ERR=$(cat /tmp/curl_err.txt 2>/dev/null | head -1 || echo "")
+              echo "  FAIL HTTP=$RESP $ERR"
+            fi
+
+            if [ $i -lt $MAX ]; then
+              echo "  Retrying in ${DELAY}s..."
+              sleep $DELAY
+              DELAY=$(( DELAY * 2 < 60 ? DELAY * 2 : 60 ))
+            fi
+          done
+
+          # Write artifact regardless of outcome
+          cat > "$REPORT_SUBDIR/api_version.json" << _EOF
+          {
+            "url": "${VERSION_URL}",
+            "ok": ${OK},
+            "sha": "${SHA}",
+            "vercelEnv": "${VERCEL_ENV}",
+            "lastHttp": "${LAST_HTTP}",
+            "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          }
+          _EOF
+
+          echo "sha=${SHA}" >> "$GITHUB_OUTPUT"
+          echo "vercel_env=${VERCEL_ENV}" >> "$GITHUB_OUTPUT"
+          echo "ok=${OK}" >> "$GITHUB_OUTPUT"
+
+          if [ "$OK" != "true" ]; then
+            echo "FAIL: /api/version check did not pass after $MAX attempts"
+            exit 1
+          fi
+
+      # ── Check 2: link preview smoke (uses built-in fetch — no npm ci needed)
+      - name: Run link preview smoke
+        id: link_preview
+        run: |
+          node scripts/link_preview_smoke.mjs 2>&1 | tee "$REPORT_SUBDIR/link_preview_smoke.log"
+
+      # ── Step summary (always) ─────────────────────────────────────────────
+      - name: Write step summary
+        if: always()
+        run: |
+          SHA="${{ steps.version_check.outputs.sha }}"
+          VER_ENV="${{ steps.version_check.outputs.vercel_env }}"
+          VER_OK="${{ steps.version_check.outputs.ok }}"
+          RUN_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+
+          {
+            echo "## prod-sanity — $(date -u '+%Y-%m-%d %H:%M UTC')"
+            echo ""
+            echo "| Check | Result |"
+            echo "|---|---|"
+            if [ "$VER_OK" = "true" ]; then
+              echo "| \`/api/version\` | ✅ \`sha=${SHA}\` \`vercelEnv=${VER_ENV}\` |"
+            else
+              echo "| \`/api/version\` | ❌ FAIL |"
+            fi
+            # link_preview step outcome
+            if [ "${{ steps.link_preview.outcome }}" = "success" ]; then
+              echo "| link preview smoke | ✅ PASS |"
+            else
+              echo "| link preview smoke | ❌ FAIL |"
+            fi
+            echo ""
+            echo "**Run:** [${GITHUB_RUN_ID}](${RUN_URL})"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          # summary.txt artifact
+          {
+            echo "prod-sanity $(date -u '+%Y-%m-%d %H:%M UTC')"
+            echo "sha=${SHA}  vercelEnv=${VER_ENV}  version_ok=${VER_OK}"
+            echo "link_preview_outcome=${{ steps.link_preview.outcome }}"
+            echo "run=${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          } > "$REPORT_SUBDIR/summary.txt"
+
+      # ── Upload artifacts on failure ───────────────────────────────────────
+      - name: Upload sanity artifacts on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: prod-sanity-failure-${{ env.TS }}
+          path: ${{ env.REPORT_SUBDIR }}/
+          retention-days: 7
+          if-no-files-found: ignore
+
+      # ── Issue upsert on failure (schedule / workflow_dispatch only) ───────
+      - name: Upsert failure Issue
+        if: failure() && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
+        uses: actions/github-script@v7
+        env:
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          SHA: ${{ steps.version_check.outputs.sha }}
+          VER_OK: ${{ steps.version_check.outputs.ok }}
+          TS: ${{ env.TS }}
+          ARTIFACT_NAME: prod-sanity-failure-${{ env.TS }}
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo  = context.repo.repo;
+            const runUrl        = process.env.RUN_URL;
+            const sha           = process.env.SHA || "(unknown)";
+            const verOk         = process.env.VER_OK === "true";
+            const ts            = process.env.TS;
+            const artifactName  = process.env.ARTIFACT_NAME;
+            const label         = "prod-sanity";
+            const marker        = "<!-- PROD_SANITY_ISSUE -->";
+            const issueTitle    = "[prod-sanity] Production health check failing";
+
+            // 1) Ensure label exists
+            try {
+              await github.rest.issues.getLabel({ owner, repo, name: label });
+            } catch {
+              await github.rest.issues.createLabel({
+                owner, repo, name: label, color: "d93f0b",
+                description: "Automated production sanity check failure",
+              });
+              core.info(`Created label '${label}'`);
+            }
+
+            // 2) Find open prod-sanity issue (marker-based)
+            const search = await github.rest.issues.listForRepo({
+              owner, repo, state: "open", labels: label, per_page: 10,
+            });
+            const existing = search.data.find(
+              (i) => typeof i.body === "string" && i.body.includes(marker)
+            );
+
+            // 3) Build issue body
+            const body = [
+              marker,
+              `## \u274C Production health check failing`,
+              ``,
+              `| Field | Value |`,
+              `|---|---|`,
+              `| **Latest run** | [Actions run \u2197](${runUrl}) |`,
+              `| **/api/version** | ${verOk ? "\u2705 OK" : "\u274C FAIL"} \`sha=${sha}\` |`,
+              `| **Timestamp** | \`${ts}\` |`,
+              `| **Artifacts** | \`${artifactName}\` _(Actions \u2192 Artifacts)_ |`,
+              ``,
+              `> Auto-updated on each failing run. Receives a \u2705 recovery comment when passing again.`,
+            ].join("\n");
+
+            if (existing) {
+              await github.rest.issues.update({ owner, repo, issue_number: existing.number, body });
+              await github.rest.issues.createComment({
+                owner, repo, issue_number: existing.number,
+                body: `\u274C Still failing \u2014 [run](${runUrl}) | sha=\`${sha}\` | \`${ts}\``,
+              });
+              core.info(`Updated prod-sanity issue #${existing.number}`);
+            } else {
+              const created = await github.rest.issues.create({
+                owner, repo, title: issueTitle, body, labels: [label],
+              });
+              core.info(`Created prod-sanity issue #${created.data.number}`);
+            }
+
+      # ── Recovery comment + close on success ──────────────────────────────
+      - name: Post recovery comment if issue is open
+        if: success() && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
+        uses: actions/github-script@v7
+        env:
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          SHA: ${{ steps.version_check.outputs.sha }}
+        with:
+          script: |
+            const owner  = context.repo.owner;
+            const repo   = context.repo.repo;
+            const label  = "prod-sanity";
+            const marker = "<!-- PROD_SANITY_ISSUE -->";
+            const runUrl = process.env.RUN_URL;
+            const sha    = process.env.SHA || "(unknown)";
+
+            const search = await github.rest.issues.listForRepo({
+              owner, repo, state: "open", labels: label, per_page: 10,
+            });
+            const existing = search.data.find(
+              (i) => typeof i.body === "string" && i.body.includes(marker)
+            );
+
+            if (!existing) {
+              core.info("No open prod-sanity issue — production is healthy.");
+              return;
+            }
+
+            await github.rest.issues.createComment({
+              owner, repo, issue_number: existing.number,
+              body: `\u2705 **Recovered** \u2014 [run](${runUrl}) | sha=\`${sha}\` | production is healthy again.`,
+            });
+            await github.rest.issues.update({
+              owner, repo, issue_number: existing.number, state: "closed",
+            });
+            core.info(`Closed prod-sanity issue #${existing.number} (recovered)`);
