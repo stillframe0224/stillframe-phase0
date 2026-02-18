@@ -282,6 +282,7 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
     ? card.text.split("\n").slice(1).join("\n").trim()
     : card.text.split("\n").slice(1).join("\n").trim();
   const hasBodyText = bodyText.length > 0;
+  const memoSnippet = (memoText || card.notes || "").trim();
 
   // Image priority: media_thumb_path > preview_image_url > image_url > link-preview chain
   const hasMediaThumb = !!(card.media_thumb_path && !realImgFailed);
@@ -1244,6 +1245,27 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
             }}
           >
             {siteName}
+          </div>
+        )}
+
+        {memoSnippet && (
+          <div
+            data-testid="memo-snippet"
+            style={{
+              fontSize: 10,
+              color: "#8a8a8a",
+              marginTop: 4,
+              lineHeight: 1.45,
+              fontFamily: "var(--font-dm)",
+              display: "-webkit-box",
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: "vertical",
+              overflow: "hidden",
+              wordBreak: "break-word",
+            }}
+            title={memoSnippet}
+          >
+            {memoSnippet}
           </div>
         )}
 

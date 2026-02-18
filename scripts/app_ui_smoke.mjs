@@ -21,7 +21,7 @@
  *  3) build-stamp sha matches /api/version sha
  *  4) Switching to "Custom order (drag)" keeps cards visible (>=1 card)
  *  5) cards-grid computed gap equals 8px
- *  6) MEMO chip click opens memo-modal on the first card
+ *  6) MEMO input is visible in list snippet + searchable + has-memo filter
  *  7) drag-handle elements present; reorder if >=2 cards (SKIP if <2, not FAIL)
  *
  * Exit code: 0 = all non-skipped tests PASS, 1 = any FAIL.
@@ -281,6 +281,9 @@ async function main() {
       skip("sort dropdown switches to custom without losing cards", "GOTO_FAILED");
       skip("cards-grid computed gap is 8px", "GOTO_FAILED");
       skip("MEMO button opens memo-modal", "GOTO_FAILED");
+      skip("memo snippet shows saved text", "GOTO_FAILED");
+      skip("search matches memo text", "GOTO_FAILED");
+      skip("has memo filter narrows cards", "GOTO_FAILED");
       skip("drag-handle present", "GOTO_FAILED");
       skip("card reorder (drag 1->2)", "GOTO_FAILED");
     }
@@ -308,6 +311,9 @@ async function main() {
         skip("sort dropdown switches to custom without losing cards", "AUTH_REQUIRED");
         skip("cards-grid computed gap is 8px", "AUTH_REQUIRED");
         skip("MEMO button opens memo-modal", "AUTH_REQUIRED");
+        skip("memo snippet shows saved text", "AUTH_REQUIRED");
+        skip("search matches memo text", "AUTH_REQUIRED");
+        skip("has memo filter narrows cards", "AUTH_REQUIRED");
         skip("drag-handle present", "AUTH_REQUIRED");
         skip("card reorder (drag 1->2)", "AUTH_REQUIRED");
         console.log("\n  [error] Auth required: UI acceptance checks not executed.");
@@ -383,6 +389,7 @@ async function main() {
 
         // ── Test 6: MEMO button opens memo-modal ───────────────────────
         try {
+          const memoKeyword = `smoke-memo-${Date.now().toString().slice(-6)}`;
           const firstCard = page.locator("[data-testid=\"card-item\"]").first();
           await firstCard.waitFor({ timeout: 5_000 });
           const memoBtn = firstCard.locator("[data-testid=\"chip-memo\"]");
@@ -391,7 +398,46 @@ async function main() {
           const modal = page.locator("[data-testid=\"memo-modal\"]");
           await modal.waitFor({ timeout: 5_000 });
           pass("MEMO button opens memo-modal", "modal visible after click");
+
+          const memoTextarea = page.locator("[data-testid=\"memo-textarea\"]");
+          await memoTextarea.fill(`${memoKeyword} useful`);
+          await page.locator("[data-testid=\"memo-save\"]").click();
+          await page.waitForTimeout(500);
           await page.keyboard.press("Escape");
+          await page.waitForTimeout(500);
+
+          const memoSnippet = firstCard.locator("[data-testid=\"memo-snippet\"]");
+          await memoSnippet.waitFor({ timeout: 5_000 });
+          const memoSnippetText = ((await memoSnippet.textContent()) || "").toLowerCase();
+          if (memoSnippetText.includes(memoKeyword)) {
+            pass("memo snippet shows saved text", `snippet includes "${memoKeyword}"`);
+          } else {
+            fail("memo snippet shows saved text", `snippet does not include "${memoKeyword}"`);
+          }
+
+          const searchInput = page.locator("[data-testid=\"search-input\"]");
+          await searchInput.fill(memoKeyword);
+          await page.waitForTimeout(500);
+          const searchCount = await page.locator("[data-testid=\"card-item\"]").count();
+          if (searchCount >= 1) {
+            pass("search matches memo text", `count=${searchCount}`);
+          } else {
+            fail("search matches memo text", "count=0");
+          }
+
+          await searchInput.fill("");
+          await page.waitForTimeout(300);
+          const allCount = await page.locator("[data-testid=\"card-item\"]").count();
+          const hasMemoToggle = page.locator("[data-testid=\"filter-has-memo\"]");
+          await hasMemoToggle.click();
+          await page.waitForTimeout(500);
+          const memoOnlyCount = await page.locator("[data-testid=\"card-item\"]").count();
+          if (memoOnlyCount >= 1 && (allCount <= 1 || memoOnlyCount < allCount)) {
+            pass("has memo filter narrows cards", `all=${allCount} memoOnly=${memoOnlyCount}`);
+          } else {
+            fail("has memo filter narrows cards", `all=${allCount} memoOnly=${memoOnlyCount}`);
+          }
+          await hasMemoToggle.click();
           await page.waitForTimeout(300);
         } catch (e) {
           fail("MEMO button opens memo-modal", String(e));

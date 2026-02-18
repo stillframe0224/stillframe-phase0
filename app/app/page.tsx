@@ -151,6 +151,7 @@ function AppPageInner() {
   const [domainFilter, setDomainFilter] = useState("all");
   const [fileFilter, setFileFilter] = useState<string>("all");
   const [mediaFilter, setMediaFilter] = useState<"all" | "link" | "image" | "video">("all");
+  const [showHasMemoOnly, setShowHasMemoOnly] = useState(false);
   const [sortOrder, setSortOrder] = useState<"newest" | "oldest" | "custom">("newest");
   const [showPinnedOnly, setShowPinnedOnly] = useState(false);
   const [showNewFileInput, setShowNewFileInput] = useState(false);
@@ -475,11 +476,13 @@ function AppPageInner() {
     const q = searchParams.get("q") || "";
     const d = searchParams.get("d") || "all";
     const f = searchParams.get("f") || "all";
+    const hm = searchParams.get("hm") === "1";
     const s = searchParams.get("sort") || "newest";
     const p = searchParams.get("p") === "1";
     setSearchQuery(q);
     setDomainFilter(d);
     setFileFilter(f);
+    setShowHasMemoOnly(hm);
     setSortOrder(s === "oldest" ? "oldest" : s === "custom" ? "custom" : "newest");
     setShowPinnedOnly(p);
   }, [searchParams]);
@@ -495,13 +498,14 @@ function AppPageInner() {
     if (domainFilter !== "all") params.set("d", domainFilter);
     if (fileFilter !== "all") params.set("f", fileFilter);
     if (mediaFilter !== "all") params.set("m", mediaFilter);
+    if (showHasMemoOnly) params.set("hm", "1");
     if (sortOrder !== "newest") params.set("sort", sortOrder);
     if (showPinnedOnly) params.set("p", "1");
     if (e2eMode) params.set("e2e", "1");
     const query = params.toString();
     const newUrl = query ? `/app?${query}` : "/app";
     router.replace(newUrl, { scroll: false });
-  }, [searchQuery, domainFilter, fileFilter, mediaFilter, sortOrder, showPinnedOnly, router, e2eMode]);
+  }, [searchQuery, domainFilter, fileFilter, mediaFilter, showHasMemoOnly, sortOrder, showPinnedOnly, router, e2eMode]);
 
   // Extract unique domains from cards
   const domains = useMemo(() => {
@@ -531,6 +535,7 @@ function AppPageInner() {
       const url = extractFirstHttpUrl(card.text) || "";
       const title = (card.title || "").toLowerCase();
       const siteName = (card.site_name || "").toLowerCase();
+      const notes = (card.notes || "").toLowerCase();
       const aiSummary = (card.ai_summary || "").toLowerCase();
       const aiTags = (card.ai_tags || []).join(" ").toLowerCase();
       const matches =
@@ -538,10 +543,13 @@ function AppPageInner() {
         url.toLowerCase().includes(q) ||
         title.includes(q) ||
         siteName.includes(q) ||
+        notes.includes(q) ||
         aiSummary.includes(q) ||
         aiTags.includes(q);
       if (!matches) return true;
     }
+
+    if (showHasMemoOnly && !(card.notes && card.notes.trim().length > 0)) return true;
 
     // Domain filter
     if (domainFilter !== "all") {
@@ -565,7 +573,7 @@ function AppPageInner() {
     if (mediaFilter === "video" && card.media_kind !== "video") return true;
 
     return false;
-  }, [showPinnedOnly, searchQuery, domainFilter, fileFilter, mediaFilter]);
+  }, [showPinnedOnly, searchQuery, domainFilter, fileFilter, mediaFilter, showHasMemoOnly]);
 
   // Reveal a saved card by clearing filters that hide it
   const revealSavedCard = useCallback((card: { id: string; file_id?: string | null; pinned?: boolean }) => {
@@ -573,6 +581,7 @@ function AppPageInner() {
     setDomainFilter("all");
     setShowPinnedOnly(false);
     setMediaFilter("all");
+    setShowHasMemoOnly(false);
 
     // Set file filter to show the card
     if (card.file_id) {
@@ -620,6 +629,7 @@ function AppPageInner() {
         const url = extractFirstHttpUrl(card.text) || "";
         const title = (card.title || "").toLowerCase();
         const siteName = (card.site_name || "").toLowerCase();
+        const notes = (card.notes || "").toLowerCase();
         const aiSummary = (card.ai_summary || "").toLowerCase();
         const aiTags = (card.ai_tags || []).join(" ").toLowerCase();
         return (
@@ -627,6 +637,7 @@ function AppPageInner() {
           url.toLowerCase().includes(q) ||
           title.includes(q) ||
           siteName.includes(q) ||
+          notes.includes(q) ||
           aiSummary.includes(q) ||
           aiTags.includes(q)
         );
@@ -671,6 +682,10 @@ function AppPageInner() {
       });
     }
 
+    if (showHasMemoOnly) {
+      result = result.filter((card) => card.notes && card.notes.trim().length > 0);
+    }
+
     // Sort: pinned cards first, then by sort mode
     result.sort((a, b) => {
       // Pinned cards always come first
@@ -700,7 +715,7 @@ function AppPageInner() {
 
     filteredCardsRef.current = result;
     return result;
-  }, [cards, searchQuery, domainFilter, fileFilter, mediaFilter, sortOrder, showPinnedOnly]);
+  }, [cards, searchQuery, domainFilter, fileFilter, mediaFilter, showHasMemoOnly, sortOrder, showPinnedOnly]);
 
   const handleLogout = async () => {
     if (!configured) return;
@@ -2091,6 +2106,7 @@ function AppPageInner() {
           >
             {/* Search input */}
             <input
+              data-testid="search-input"
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -2296,6 +2312,25 @@ function AppPageInner() {
               {showPinnedOnly ? "⭐" : "☆"} Pinned only
             </button>
 
+            <button
+              data-testid="filter-has-memo"
+              onClick={() => setShowHasMemoOnly(!showHasMemoOnly)}
+              style={{
+                padding: "8px 12px",
+                border: showHasMemoOnly ? "1.5px solid #7C8D5B" : "1px solid #e0e0e0",
+                borderRadius: 8,
+                fontSize: 13,
+                fontFamily: "var(--font-dm)",
+                outline: "none",
+                background: showHasMemoOnly ? "#F4F8EE" : "#fff",
+                cursor: "pointer",
+                fontWeight: showHasMemoOnly ? 600 : 400,
+                color: showHasMemoOnly ? "#5B6D3C" : "#555",
+              }}
+            >
+              {showHasMemoOnly ? "✓" : "○"} Has memo
+            </button>
+
             {/* Bulk select toggle */}
             <button
               onClick={toggleBulkMode}
@@ -2316,7 +2351,7 @@ function AppPageInner() {
             </button>
 
             {/* Results count */}
-            {(searchQuery || domainFilter !== "all" || mediaFilter !== "all" || showPinnedOnly) && (
+            {(searchQuery || domainFilter !== "all" || mediaFilter !== "all" || showPinnedOnly || showHasMemoOnly) && (
               <span
                 style={{
                   fontSize: 12,
