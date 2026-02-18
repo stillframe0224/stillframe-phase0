@@ -155,28 +155,28 @@ async function main() {
 
     // ── Auth / E2E guard check ────────────────────────────────────────────
     const currentUrl = page.url();
-    const isAuthRedirect = currentUrl.includes("/auth/login");
+    const currentPathname = new URL(currentUrl).pathname;
+    const isAuthRedirect = currentPathname.startsWith("/auth/login");
+    const hasLoginMarker = await page
+      .locator("text=Sign in to save your thoughts")
+      .first()
+      .isVisible()
+      .catch(() => false);
 
-    if (isAuthRedirect && !E2E_MODE) {
-      // Expected in unauthenticated mode — skip UI tests gracefully
-      skip("/app loads and build-stamp is visible", "not authenticated — redirected to /auth/login");
-      skip("build-stamp sha matches /api/version sha", "not authenticated — redirected to /auth/login");
-      skip("sort dropdown switches to custom without losing cards", "not authenticated — redirected to /auth/login");
-      skip("cards-grid computed gap is 8px", "not authenticated — redirected to /auth/login");
-      skip("MEMO button opens memo-modal", "not authenticated — redirected to /auth/login");
-      skip("drag-handle present", "not authenticated — redirected to /auth/login");
-      skip("card reorder (drag 1→2)", "not authenticated — redirected to /auth/login");
-      console.log("\n  [info] Auth redirect — interactive tests skipped (expected for unauthenticated smoke).");
-      console.log("  [info] Run with E2E=1 BASE_URL=http://localhost:3000 for full suite.\n");
-    } else if (isAuthRedirect && E2E_MODE) {
-      // Unexpected in E2E mode — server may not be built with E2E=1
-      fail("/app loads and build-stamp is visible", "redirected to /auth/login in E2E mode — server must be built with E2E=1");
-      fail("build-stamp sha matches /api/version sha", "prerequisite failed");
-      skip("sort dropdown switches to custom without losing cards", "auth redirect in E2E mode");
-      skip("cards-grid computed gap is 8px", "auth redirect in E2E mode");
-      skip("MEMO button opens memo-modal", "auth redirect in E2E mode");
-      skip("drag-handle present", "auth redirect in E2E mode");
-      skip("card reorder (drag 1→2)", "auth redirect in E2E mode");
+    if (isAuthRedirect || hasLoginMarker) {
+      fail(
+        "authenticated /app required for UI smoke",
+        `AUTH_REQUIRED: reached login screen (path=${currentPathname})`
+      );
+      fail("/app loads and build-stamp is visible", "AUTH_REQUIRED");
+      fail("build-stamp sha matches /api/version sha", "AUTH_REQUIRED");
+      skip("sort dropdown switches to custom without losing cards", "AUTH_REQUIRED");
+      skip("cards-grid computed gap is 8px", "AUTH_REQUIRED");
+      skip("MEMO button opens memo-modal", "AUTH_REQUIRED");
+      skip("drag-handle present", "AUTH_REQUIRED");
+      skip("card reorder (drag 1→2)", "AUTH_REQUIRED");
+      console.log("\n  [error] Auth required: UI acceptance checks not executed.");
+      console.log("  [error] Provide authenticated state (e.g. E2E=1 + storageState) before running app_ui_smoke.\n");
     } else {
       // ── Test 2: build-stamp visible ─────────────────────────────────────
       let stampText = null;
