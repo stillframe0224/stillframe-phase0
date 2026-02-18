@@ -323,6 +323,9 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
     const saved = readMemoLocal();
     if (saved !== null) {
       setMemoText(saved);
+    } else {
+      // Neither DB notes nor local draft — ensure memoText is cleared
+      setMemoText("");
     }
   }, [card.id, card.notes]);
 

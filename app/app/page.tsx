@@ -174,6 +174,7 @@ function AppPageInner() {
 
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const memoImportInputRef = useRef<HTMLInputElement>(null);
   const addHubRef = useRef<HTMLDivElement>(null);
   const savingRef = useRef(false);
   const prefillAppliedRef = useRef(false);
@@ -1030,6 +1031,83 @@ function AppPageInner() {
   const toggleBulkMode = useCallback(() => {
     setIsBulkMode(prev => !prev);
     setSelectedCardIds(new Set());
+  }, []);
+
+  // ── Memo Backup: Export / Import / Clear ────────────────────────────────
+  const handleMemoExport = useCallback(() => {
+    const userId = user?.id ?? "anon";
+    const notes: Record<string, string> = {};
+    for (const card of cards) {
+      if (card.notes && card.notes.trim()) {
+        notes[card.id] = card.notes;
+      }
+    }
+    const shortSha = (process.env.NEXT_PUBLIC_GIT_SHA ?? "dev").slice(0, 7);
+    const yyyymmdd = new Date().toISOString().slice(0, 10).replace(/-/g, "");
+    const payload = {
+      schema: "stillframe-memos-v1",
+      exportedAt: new Date().toISOString(),
+      userId,
+      notes,
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `stillframe-memos-v1-${shortSha}-${yyyymmdd}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [cards, user]);
+
+  const handleMemoImport = useCallback((file: File) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const text = e.target?.result as string;
+        const data = JSON.parse(text);
+        if (data.schema !== "stillframe-memos-v1" || typeof data.notes !== "object") {
+          setBanner(null);
+          setErrorBanner("Import failed: invalid schema. Expected stillframe-memos-v1.");
+          return;
+        }
+        const incoming: Record<string, string> = data.notes;
+        // Update cards state (import wins — overwrites existing, adds missing)
+        setCards(prev => prev.map(card => {
+          if (card.id in incoming) {
+            const newNotes = incoming[card.id] || null;
+            // Persist to localStorage (per-card key used by AppCard)
+            try {
+              if (newNotes) {
+                localStorage.setItem(`card:memo:${card.id}`, newNotes);
+              } else {
+                localStorage.removeItem(`card:memo:${card.id}`);
+              }
+            } catch { /* ignore */ }
+            return { ...card, notes: newNotes };
+          }
+          return card;
+        }));
+        const importCount = Object.keys(incoming).length;
+        setBanner(`Imported ${importCount} memo(s).`);
+        setTimeout(() => setBanner(null), 3000);
+      } catch {
+        setErrorBanner("Import failed: could not parse JSON.");
+      }
+    };
+    reader.readAsText(file);
+  }, []);
+
+  const handleMemoClear = useCallback(() => {
+    // Clear all notes from cards state and localStorage
+    setCards(prev => prev.map(card => {
+      if (card.notes) {
+        try { localStorage.removeItem(`card:memo:${card.id}`); } catch { /* ignore */ }
+        return { ...card, notes: null };
+      }
+      return card;
+    }));
+    setBanner("All memos cleared.");
+    setTimeout(() => setBanner(null), 3000);
   }, []);
 
   const sensors = useSensors(
@@ -2330,6 +2408,78 @@ function AppPageInner() {
             >
               {showHasMemoOnly ? "✓" : "○"} Has memo
             </button>
+
+            {/* Memo Backup: Export / Import / Clear */}
+            <button
+              data-testid="memo-export"
+              onClick={handleMemoExport}
+              style={{
+                padding: "8px 12px",
+                border: "1px solid #e0e0e0",
+                borderRadius: 8,
+                fontSize: 13,
+                fontFamily: "var(--font-dm)",
+                outline: "none",
+                background: "#fff",
+                cursor: "pointer",
+                color: "#555",
+              }}
+              title="Export memos as JSON"
+            >
+              ↑ Export memos
+            </button>
+
+            <button
+              data-testid="memo-import"
+              onClick={() => memoImportInputRef.current?.click()}
+              style={{
+                padding: "8px 12px",
+                border: "1px solid #e0e0e0",
+                borderRadius: 8,
+                fontSize: 13,
+                fontFamily: "var(--font-dm)",
+                outline: "none",
+                background: "#fff",
+                cursor: "pointer",
+                color: "#555",
+              }}
+              title="Import memos from JSON"
+            >
+              ↓ Import memos
+            </button>
+
+            <button
+              data-testid="memo-clear"
+              onClick={handleMemoClear}
+              style={{
+                padding: "8px 12px",
+                border: "1px solid #e0e0e0",
+                borderRadius: 8,
+                fontSize: 13,
+                fontFamily: "var(--font-dm)",
+                outline: "none",
+                background: "#fff",
+                cursor: "pointer",
+                color: "#888",
+              }}
+              title="Clear all memos"
+            >
+              ✕ Clear memos
+            </button>
+
+            {/* Hidden file input for memo import */}
+            <input
+              data-testid="memo-import-input"
+              ref={memoImportInputRef}
+              type="file"
+              accept=".json,application/json"
+              style={{ display: "none" }}
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) handleMemoImport(file);
+                e.target.value = "";
+              }}
+            />
 
             {/* Bulk select toggle */}
             <button
