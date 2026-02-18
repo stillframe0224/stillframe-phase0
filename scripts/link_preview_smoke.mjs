@@ -11,8 +11,58 @@ function assert(label, condition, detail = "") {
   console.log(`[${pass ? "PASS" : "FAIL"}] ${label}${detail ? ` — ${detail}` : ""}`);
 }
 
+// Exponential-backoff retry for network errors and 5xx/429 responses.
+// Retry targets: ECONNRESET, ETIMEDOUT, "fetch failed", 5xx, 429.
+// Max 3 attempts: delays 250ms → 750ms → 1500ms.
+// Respects Retry-After header for 429.
+async function fetchWithRetry(url, options = {}, maxAttempts = 3) {
+  const DELAYS = [250, 750, 1500];
+  let lastError;
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    if (attempt > 0) {
+      const delay = DELAYS[attempt - 1] ?? 1500;
+      console.log(`  [retry] attempt ${attempt + 1}/${maxAttempts} after ${delay}ms`);
+      await new Promise((r) => setTimeout(r, delay));
+    }
+    try {
+      const res = await fetch(url, { ...options, signal: AbortSignal.timeout(15000) });
+      // 429: respect Retry-After, then retry
+      if (res.status === 429 && attempt < maxAttempts - 1) {
+        const retryAfterRaw = res.headers.get("retry-after");
+        const retryAfterMs = retryAfterRaw
+          ? Number.isFinite(Number(retryAfterRaw))
+            ? Math.min(Number(retryAfterRaw) * 1000, 5000)
+            : 1500
+          : 1500;
+        console.log(`  [retry] 429 received, waiting ${retryAfterMs}ms`);
+        await new Promise((r) => setTimeout(r, retryAfterMs));
+        lastError = new Error(`HTTP 429`);
+        continue;
+      }
+      // 5xx: retry
+      if (res.status >= 500 && attempt < maxAttempts - 1) {
+        lastError = new Error(`HTTP ${res.status}`);
+        continue;
+      }
+      return res;
+    } catch (e) {
+      lastError = e;
+      // Only retry on network-level errors
+      const msg = e?.message ?? "";
+      const isNetworkErr =
+        msg.includes("fetch failed") ||
+        msg.includes("ECONNRESET") ||
+        msg.includes("ETIMEDOUT") ||
+        msg.includes("network") ||
+        e?.name === "TimeoutError";
+      if (!isNetworkErr || attempt >= maxAttempts - 1) throw e;
+    }
+  }
+  throw lastError ?? new Error("max retries exceeded");
+}
+
 async function fetchJSON(path) {
-  const res = await fetch(`${BASE}${path}`);
+  const res = await fetchWithRetry(`${BASE}${path}`);
   const body = await res.json();
   return { status: res.status, body };
 }
@@ -148,7 +198,7 @@ async function main() {
   // 5) image-proxy returns a valid image
   try {
     const imgUrl = "https://github.githubassets.com/favicons/favicon.svg";
-    const res = await fetch(
+    const res = await fetchWithRetry(
       `${BASE}/api/image-proxy?url=${encodeURIComponent(imgUrl)}`
     );
     const ct = res.headers.get("content-type") || "";
