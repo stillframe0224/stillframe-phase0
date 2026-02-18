@@ -1002,7 +1002,11 @@ export default function AppPage() {
   };
 
   const sensors = useSensors(
-    useSensor(PointerSensor),
+    useSensor(PointerSensor, {
+      // Require 8px movement before DnD activates, so click events on
+      // MEMO / FILE chips still fire normally even in draggable mode.
+      activationConstraint: { distance: 8 },
+    }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
@@ -1034,6 +1038,43 @@ export default function AppPage() {
     }
   }, [configured]);
 
+  // Persist manual card order to localStorage (key per userId, covers all files)
+  const persistManualOrder = useCallback((orderedIds: string[]) => {
+    if (!user) return;
+    try {
+      const key = `stillframe.manualOrder.v1:${user.id}`;
+      localStorage.setItem(key, JSON.stringify(orderedIds));
+    } catch {
+      // Ignore quota / private mode errors
+    }
+  }, [user]);
+
+  // Restore manual order from localStorage when sort_keys are absent (custom sort mode)
+  useEffect(() => {
+    if (!user || sortOrder !== "custom" || loading) return;
+    // Only apply if ALL visible cards lack sort_key (first-time custom sort session)
+    const allMissingSortKey = cards.length > 0 && cards.every((c) => !c.sort_key);
+    if (!allMissingSortKey) return;
+    try {
+      const key = `stillframe.manualOrder.v1:${user.id}`;
+      const raw = localStorage.getItem(key);
+      if (!raw) return;
+      const savedIds: string[] = JSON.parse(raw);
+      if (!Array.isArray(savedIds) || savedIds.length === 0) return;
+      // Apply saved order: assign synthetic sort_keys based on position
+      setCards((prev) => {
+        const posMap = new Map(savedIds.map((id, i) => [id, i]));
+        return [...prev].sort((a, b) => {
+          const ai = posMap.get(a.id) ?? Infinity;
+          const bi = posMap.get(b.id) ?? Infinity;
+          return ai - bi;
+        });
+      });
+    } catch {
+      // Ignore parse / storage errors
+    }
+  }, [user, sortOrder, loading]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const handleDragEnd = useCallback(
     async (event: DragEndEvent) => {
       const { active, over } = event;
@@ -1055,6 +1096,9 @@ export default function AppPage() {
         const sortedFiltered = reorderedIds.map((id) => filtered.find((c) => c.id === id)!);
         return [...sortedFiltered, ...nonFiltered];
       });
+
+      // Persist order to localStorage immediately (resilient to DB errors)
+      persistManualOrder(reordered.map((c) => c.id));
 
       // Compute new sort_key
       const movedCard = filteredCards[oldIndex];
@@ -1083,7 +1127,7 @@ export default function AppPage() {
         );
       }
     },
-    [filteredCards, configured]
+    [filteredCards, configured, persistManualOrder]
   );
 
   // Handle file drop
@@ -2271,7 +2315,7 @@ export default function AppPage() {
                 style={{
                   display: "grid",
                   gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))",
-                  gap: 12,
+                  gap: 10,
                 }}
               >
                 {filteredCards.map((card, i) => (
@@ -2287,7 +2331,7 @@ export default function AppPage() {
             style={{
               display: "grid",
               gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
-              gap: 16,
+              gap: 12,
               justifyItems: filteredCards.length < 5 ? "center" : "stretch",
             }}
           >

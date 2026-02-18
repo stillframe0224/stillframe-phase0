@@ -6,6 +6,9 @@ export const dynamic = "force-dynamic";
 const YT_RE =
   /(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([\w-]{11})/;
 
+const IG_RE =
+  /(?:instagram\.com|instagr\.am)\/(?:p|reel|tv)\/([A-Za-z0-9_-]+)/;
+
 const MAX_REDIRECTS = 5;
 const FETCH_TIMEOUT = 4000;
 
@@ -156,6 +159,69 @@ export async function GET(request: Request) {
         title: null,
       },
       { headers: { "Cache-Control": "public, max-age=86400" } }
+    );
+  }
+
+  // Instagram shortcut — use oEmbed API (no login required for public posts)
+  const igMatch = url.match(IG_RE);
+  if (igMatch) {
+    try {
+      const oembedUrl = `https://graph.facebook.com/v19.0/instagram_oembed?url=${encodeURIComponent(url)}&fields=thumbnail_url,title`;
+      // oEmbed without access_token returns thumbnail_url for public posts
+      const oembedRes = await fetch(oembedUrl, {
+        headers: { "User-Agent": "Mozilla/5.0 (compatible; SHINEN-Bot/1.0)" },
+        signal: AbortSignal.timeout(3000),
+      });
+      if (oembedRes.ok) {
+        const data = await oembedRes.json();
+        if (data?.thumbnail_url) {
+          return NextResponse.json(
+            {
+              image: data.thumbnail_url,
+              favicon: "https://www.instagram.com/favicon.ico",
+              title: data.title ?? null,
+            },
+            { headers: { "Cache-Control": "public, max-age=3600" } }
+          );
+        }
+      }
+    } catch {
+      // oembed failed → fall through to jina fallback
+    }
+
+    // Jina.ai reader fallback — returns markdown with embedded image URLs
+    try {
+      const jinaUrl = `https://r.jina.ai/${encodeURIComponent(url)}`;
+      const jinaRes = await fetch(jinaUrl, {
+        headers: {
+          "User-Agent": "Mozilla/5.0 (compatible; SHINEN-Bot/1.0)",
+          Accept: "application/json",
+          "X-Return-Format": "json",
+        },
+        signal: AbortSignal.timeout(5000),
+      });
+      if (jinaRes.ok) {
+        const jinaData = await jinaRes.json();
+        // Jina JSON response has images array: [{src, alt}]
+        const firstImg = jinaData?.data?.images?.[0]?.src ?? null;
+        if (firstImg) {
+          return NextResponse.json(
+            {
+              image: firstImg,
+              favicon: "https://www.instagram.com/favicon.ico",
+              title: jinaData?.data?.title ?? null,
+            },
+            { headers: { "Cache-Control": "public, max-age=3600" } }
+          );
+        }
+      }
+    } catch {
+      // jina also failed → return null image
+    }
+
+    return NextResponse.json(
+      { image: null, favicon: "https://www.instagram.com/favicon.ico", title: null },
+      { headers: { "Cache-Control": "public, max-age=600" } }
     );
   }
 

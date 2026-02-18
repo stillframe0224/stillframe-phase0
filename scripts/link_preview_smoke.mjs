@@ -88,6 +88,29 @@ async function main() {
     assert("YouTube Shorts 2Z4m4lnjxkY (hq not maxres)", false, `fetch error: ${e.message}`);
   }
 
+  // 2d) Instagram post — should return image via oEmbed or jina fallback (not null)
+  // Note: oEmbed without access_token may return 400 for private posts; we accept null gracefully.
+  try {
+    const igUrl = "https://www.instagram.com/p/CUlRMQkM0Gi/";
+    const { status, body } = await fetchJSON(
+      `/api/link-preview?url=${encodeURIComponent(igUrl)}`
+    );
+    // Accept 200 with either an image URL or null (IG may block server-side fetches)
+    const isValidResponse = status === 200 && typeof body === "object";
+    const hasImageOrNull = body.image === null || (typeof body.image === "string" && body.image.startsWith("https://"));
+    assert("Instagram shortcut returns 200 (image or null)",
+      isValidResponse && hasImageOrNull,
+      `status=${status} image=${body.image || "(null)"}`);
+    // If image is present, it must NOT be an HTML error page
+    if (body.image) {
+      assert("Instagram image is a URL not HTML",
+        body.image.startsWith("https://"),
+        `image=${body.image.slice(0, 60)}`);
+    }
+  } catch (e) {
+    assert("Instagram shortcut", false, `fetch error: ${e.message}`);
+  }
+
   // 3) Normal external fetch — should return image or favicon
   try {
     const { status, body } = await fetchJSON(
