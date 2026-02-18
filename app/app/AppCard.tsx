@@ -30,6 +30,18 @@ const MAX_PREVIEW_ATTEMPTS = 2;
 // Module-level preview cache with retry timing for negative results.
 const previewCache = new Map<string, PreviewCacheEntry>();
 
+// Instagram CDN domains — images from these hosts should be rendered with <img>
+// (not Next/Image) to avoid remotePatterns restrictions on CDN subdomains.
+function isInstagramCdnUrl(url: string | null | undefined): boolean {
+  if (!url) return false;
+  try {
+    const h = new URL(url).hostname;
+    return h.endsWith(".cdninstagram.com") || h.endsWith(".fbcdn.net");
+  } catch {
+    return false;
+  }
+}
+
 // Debug mode: ?debug=1 in URL or localStorage SHINEN_DEBUG_PREVIEW=1
 let _debugChecked = false;
 let _debugOn = false;
@@ -428,7 +440,23 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
           retryAfterMs,
         });
         dbg("source", { url: cardUrl, source: image ? "api" : "none" });
-        if (!controller.signal.aborted) setPreviewImg(image);
+        if (!controller.signal.aborted) {
+          setPreviewImg(image);
+          // Persist Instagram thumbnail to preview_image_url so it survives page reload
+          if (image && isInstagramCdnUrl(image) && !card.preview_image_url) {
+            try {
+              import("@/lib/supabase/client").then(({ createClient }) => {
+                createClient()
+                  .from("cards")
+                  .update({ preview_image_url: image })
+                  .eq("id", card.id)
+                  .then(() => {});
+              });
+            } catch {
+              // Best-effort — ignore DB errors
+            }
+          }
+        }
       })
       .catch(() => {
         previewCache.set(cardUrl, {
@@ -486,8 +514,14 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
     previewState.source === "proxy" &&
     displayImage === previewImageUrl;
 
+  // Instagram CDN images must NOT go through the proxy (CORS / referrer restrictions).
+  // Render them directly with referrerPolicy="no-referrer".
+  const isIgCdnImage = isInstagramCdnUrl(displayImage);
+
   // When proxied, route through same-origin image proxy (bypasses hotlink 403s)
-  const imgSrc = isProxied
+  const imgSrc = isIgCdnImage
+    ? displayImage          // Instagram: direct URL, no proxy
+    : isProxied
     ? `/api/image-proxy?url=${encodeURIComponent(previewImageUrl!)}${cardUrl ? `&ref=${encodeURIComponent(cardUrl)}` : ""}`
     : displayImage;
 
@@ -837,7 +871,7 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
       ) : showImage ? (
         <img
           src={imgSrc!}
-          alt=""
+          alt={card.text ? card.text.slice(0, 80) : "Card image"}
           loading="lazy"
           referrerPolicy="no-referrer"
           onError={() => {

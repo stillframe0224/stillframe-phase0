@@ -18,6 +18,7 @@ import {
   useSensor,
   useSensors,
   DragEndEvent,
+  DragStartEvent,
 } from "@dnd-kit/core";
 import {
   arrayMove,
@@ -1081,6 +1082,28 @@ function AppPageInner() {
     }
   }, [user, sortOrder, loading, readManualOrder]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // When a drag starts in any sort mode, immediately switch to "custom" so the
+  // current display order becomes the drag baseline (no visual jump).
+  const handleDragStart = useCallback(
+    (_event: DragStartEvent) => {
+      if (sortOrder !== "custom") {
+        // Snapshot current filtered order into localStorage before switching
+        const currentIds = filteredCards.map((c) => c.id);
+        if (user) persistManualOrder(currentIds);
+        setSortOrder("custom");
+        router.replace(
+          (() => {
+            const p = new URLSearchParams(window.location.search);
+            p.set("sort", "custom");
+            return `${window.location.pathname}?${p.toString()}`;
+          })(),
+          { scroll: false }
+        );
+      }
+    },
+    [sortOrder, filteredCards, user, persistManualOrder, router]
+  );
+
   const handleDragEnd = useCallback(
     async (event: DragEndEvent) => {
       const { active, over } = event;
@@ -1729,7 +1752,7 @@ function AppPageInner() {
           {user?.avatar_url ? (
             <img
               src={user.avatar_url}
-              alt=""
+              alt="User avatar"
               style={{ width: 30, height: 30, borderRadius: "50%" }}
               referrerPolicy="no-referrer"
             />
@@ -2307,43 +2330,26 @@ function AppPageInner() {
             No cards match your filters.
           </p>
         )}
-        {sortOrder === "custom" ? (
-          // Custom sort: DnD always enabled regardless of file filter
-          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-            <SortableContext items={filteredCards.map((c) => c.id)} strategy={verticalListSortingStrategy}>
-              <div
-                data-testid="cards-grid"
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
-                  gap: 8,
-                }}
-              >
-                {filteredCards.map((card, i) => (
-                  <div key={card.id} id={`card-${card.id}`} data-testid="card-item" data-card-id={card.id}>
-                    <AppCard card={card} index={i} onDelete={deleteCard} onPinToggle={handlePinToggle} onFileAssign={assignCardToFile} onUpdate={handleCardUpdate} files={files} isDraggable={true} isBulkMode={isBulkMode} isSelected={selectedCardIds.has(card.id)} onToggleSelect={toggleCardSelection} />
-                  </div>
-                ))}
-              </div>
-            </SortableContext>
-          </DndContext>
-        ) : (
-          <div
-            data-testid="cards-grid"
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-              gap: 8,
-              justifyItems: filteredCards.length < 5 ? "center" : "stretch",
-            }}
-          >
-            {filteredCards.map((card, i) => (
-              <div key={card.id} id={`card-${card.id}`} data-testid="card-item" data-card-id={card.id}>
-                <AppCard card={card} index={i} onDelete={deleteCard} onPinToggle={handlePinToggle} onFileAssign={assignCardToFile} onUpdate={handleCardUpdate} files={files} isDraggable={false} isBulkMode={isBulkMode} isSelected={selectedCardIds.has(card.id)} onToggleSelect={toggleCardSelection} />
-              </div>
-            ))}
-          </div>
-        )}
+        {/* DnD always enabled — drag handle (⋮⋮) on every card.
+            Dragging in Newest/Oldest mode auto-switches to Custom via onDragStart. */}
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+          <SortableContext items={filteredCards.map((c) => c.id)} strategy={verticalListSortingStrategy}>
+            <div
+              data-testid="cards-grid"
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
+                gap: 8,
+              }}
+            >
+              {filteredCards.map((card, i) => (
+                <div key={card.id} id={`card-${card.id}`} data-testid="card-item" data-card-id={card.id}>
+                  <AppCard card={card} index={i} onDelete={deleteCard} onPinToggle={handlePinToggle} onFileAssign={assignCardToFile} onUpdate={handleCardUpdate} files={files} isDraggable={!isBulkMode} isBulkMode={isBulkMode} isSelected={selectedCardIds.has(card.id)} onToggleSelect={toggleCardSelection} />
+                </div>
+              ))}
+            </div>
+          </SortableContext>
+        </DndContext>
       </div>
 
       {/* Build stamp (subtle, always visible for screenshot verification) */}
