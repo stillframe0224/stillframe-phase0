@@ -22,7 +22,9 @@ jobs:
             echo "::error::Missing Codex review sections: ${missing[*]}"
             echo ""
             echo "PR body must contain all three Codex review sections."
-            echo "Use the PR template and fill in RISKS/TESTS/EDGE."
+            echo "Use the EXACT headings: '## Codex: RISKS', '## Codex: TESTS', '## Codex: EDGE'"
+            echo "Note: '## RISKS' (without 'Codex: ' prefix) will NOT pass."
+            echo "If using 'gh pr create --body', copy headings from .github/pull_request_template.md"
             exit 1
           fi
           echo "All Codex review sections found."
