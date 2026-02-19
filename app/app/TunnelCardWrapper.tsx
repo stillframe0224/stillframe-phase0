@@ -69,6 +69,34 @@ export default function TunnelCardWrapper({
   );
 
   useEffect(() => {
+    const finishDrag = (e: PointerEvent, commitPosition: boolean) => {
+      const ds = dragState.current;
+      if (!ds || ds.pointerId !== e.pointerId) return;
+
+      if (ds.isDragging) {
+        wrapperRef.current?.classList.remove("dragging");
+      }
+
+      if (commitPosition && ds.isDragging) {
+        const dx = e.clientX - ds.startX;
+        const dy = e.clientY - ds.startY;
+        const finalX = ds.startPosX + dx / stageScale;
+        const finalY = ds.startPosY + dy / stageScale;
+        onPositionChange(card.id, { x: finalX, y: finalY, z: position.z });
+      }
+
+      const el = wrapperRef.current;
+      if (el && el.hasPointerCapture(ds.pointerId)) {
+        try {
+          el.releasePointerCapture(ds.pointerId);
+        } catch {
+          // no-op
+        }
+      }
+
+      dragState.current = null;
+    };
+
     const handlePointerMove = (e: PointerEvent) => {
       const ds = dragState.current;
       if (!ds || ds.pointerId !== e.pointerId) return;
@@ -90,27 +118,16 @@ export default function TunnelCardWrapper({
       }
     };
 
-    const handlePointerUp = (e: PointerEvent) => {
-      const ds = dragState.current;
-      if (!ds || ds.pointerId !== e.pointerId) return;
-
-      if (ds.isDragging) {
-        const dx = e.clientX - ds.startX;
-        const dy = e.clientY - ds.startY;
-        const finalX = ds.startPosX + dx / stageScale;
-        const finalY = ds.startPosY + dy / stageScale;
-        wrapperRef.current?.classList.remove("dragging");
-        onPositionChange(card.id, { x: finalX, y: finalY, z: position.z });
-      }
-
-      dragState.current = null;
-    };
+    const handlePointerUp = (e: PointerEvent) => finishDrag(e, true);
+    const handlePointerCancel = (e: PointerEvent) => finishDrag(e, false);
 
     window.addEventListener("pointermove", handlePointerMove);
     window.addEventListener("pointerup", handlePointerUp);
+    window.addEventListener("pointercancel", handlePointerCancel);
     return () => {
       window.removeEventListener("pointermove", handlePointerMove);
       window.removeEventListener("pointerup", handlePointerUp);
+      window.removeEventListener("pointercancel", handlePointerCancel);
     };
   }, [card.id, position.z, stageScale, onPositionChange]);
 
