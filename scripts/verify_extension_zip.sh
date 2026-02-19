@@ -98,6 +98,34 @@ if (!m.background || !m.background.service_worker) {
 }
 ' "$MANIFEST_PATH"
 
+# Validate icon PNG signatures in the ZIP
+echo
+echo "Checking icon PNG signatures..."
+PNG_SIG="89504e470d0a1a0a"
+tmp_icons="$(mktemp -d)"
+cleanup_icons() { rm -rf "$tmp_icons"; }
+trap cleanup_icons EXIT
+
+icon_fail=0
+for icon in icon16.png icon32.png icon48.png icon128.png; do
+  if unzip -p "$ZIP_PATH" "$icon" >"$tmp_icons/$icon" 2>/dev/null; then
+    actual_sig="$(xxd -p -l 8 "$tmp_icons/$icon" 2>/dev/null | tr -d '\n')"
+    if [[ "$actual_sig" == "$PNG_SIG" ]]; then
+      echo "  OK $icon PNG signature valid"
+    else
+      echo "  ERROR $icon invalid PNG signature: $actual_sig" >&2
+      icon_fail=1
+    fi
+  else
+    echo "  ERROR $icon could not be extracted from ZIP" >&2
+    icon_fail=1
+  fi
+done
+
+if [[ "$icon_fail" -ne 0 ]]; then
+  fail "One or more icons failed PNG signature validation"
+fi
+
 size="$(du -h "$ZIP_PATH" | awk '{print $1}')"
 count="$(wc -l <"$tmp_list" | tr -d ' ')"
 

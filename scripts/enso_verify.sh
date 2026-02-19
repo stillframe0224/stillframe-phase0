@@ -60,10 +60,20 @@ if [[ "$size_bytes" -lt 10240 ]]; then
 fi
 echo "OK Size: ${size_bytes} bytes"
 
-# 5. Dimensions via sips (macOS only, soft check)
-if command -v sips &>/dev/null; then
-  dims="$(sips -g pixelWidth -g pixelHeight "$LOCAL_PNG" 2>/dev/null | grep -E 'pixel(Width|Height)' | awk '{print $2}' | tr '\n' 'x' | sed 's/x$//')"
-  echo "OK Dimensions: ${dims}px"
+# 5. Dimensions via Python3 (cross-platform)
+if command -v python3 &>/dev/null; then
+  dims="$(python3 -c "
+import struct, sys
+with open('$LOCAL_PNG', 'rb') as f:
+    f.seek(16)
+    w, h = struct.unpack('>II', f.read(8))
+print(f'{w}x{h}')
+" 2>/dev/null)"
+  if [[ -n "$dims" ]]; then
+    echo "OK Dimensions: ${dims}px"
+  else
+    echo "WARN Dimensions: could not read (non-standard PNG layout)"
+  fi
 fi
 
 echo ""
