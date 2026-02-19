@@ -427,7 +427,7 @@ export default function Home() {
       <DotDivider />
 
       {/* Pricing */}
-      <section style={{ padding: "0 24px" }}>
+      <section id="pricing" style={{ padding: "0 24px" }}>
         <Pricing lang={lang} gumroadUrl={GUMROAD_URL} />
       </section>
 
