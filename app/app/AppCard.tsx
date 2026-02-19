@@ -380,8 +380,8 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
     dbg("url", { cardId: card.id, url: cardUrl });
 
     // YouTube: ALWAYS derive thumbnail from videoId (override preview_image_url if present)
-    // Start with hq (always available) instead of maxres (sometimes 404)
-    const qualities: Array<"hq" | "mq" | "default"> = ["hq", "mq", "default"];
+    // Start with maxres (best quality), fallback through sd → hq → mq → default on 404
+    const qualities: Array<"maxres" | "sd" | "hq" | "mq" | "default"> = ["maxres", "sd", "hq", "mq", "default"];
     const ytThumb = getYouTubeThumbnail(cardUrl, qualities[ytQualityIndex]);
     if (ytThumb && !ytThumbFailed) {
       dbg("source", { url: cardUrl, source: "youtube", quality: qualities[ytQualityIndex] });
@@ -492,7 +492,7 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
   // BUT: For YouTube, ALWAYS use computed thumbnail (never trust preview_image_url)
   const isYouTubeUrl = cardUrl && getYouTubeThumbnail(cardUrl) !== null;
   const youtubeComputedThumb = isYouTubeUrl && !ytThumbFailed
-    ? getYouTubeThumbnail(cardUrl, ["hq", "mq", "default"][ytQualityIndex] as "hq" | "mq" | "default")
+    ? getYouTubeThumbnail(cardUrl, (["maxres", "sd", "hq", "mq", "default"] as const)[ytQualityIndex])
     : null;
 
   const previewImageUrl = hasPreviewImageUrl ? card.preview_image_url! : null;
@@ -878,9 +878,9 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
           loading="lazy"
           referrerPolicy="no-referrer"
           onError={() => {
-            // YouTube quality fallback: hq → mq → default (avoid maxres 404s)
+            // YouTube quality fallback: maxres → sd → hq → mq → default
             if (cardUrl && getYouTubeThumbnail(cardUrl)) {
-              const qualities: Array<"hq" | "mq" | "default"> = ["hq", "mq", "default"];
+              const qualities: Array<"maxres" | "sd" | "hq" | "mq" | "default"> = ["maxres", "sd", "hq", "mq", "default"];
               if (ytQualityIndex < qualities.length - 1) {
                 const nextIndex = ytQualityIndex + 1;
                 dbg("img_error", {
