@@ -199,7 +199,7 @@ export async function GET(request: Request) {
   if (ytMatch) {
     return NextResponse.json(
       {
-        image: `https://i.ytimg.com/vi/${ytMatch[1]}/hqdefault.jpg`,
+        image: `https://i.ytimg.com/vi/${ytMatch[1]}/maxresdefault.jpg`,
         favicon: "https://www.youtube.com/favicon.ico",
         title: null,
       },
@@ -207,36 +207,16 @@ export async function GET(request: Request) {
     );
   }
 
-  // Instagram shortcut — oEmbed priority (omitscript=true: no embed JS, faster response)
+  // Instagram shortcut — OG image primary (via Jina), oEmbed fallback
+  // OG images are full-resolution; oEmbed thumbnails are typically 150-320px
   const igMatch = url.match(IG_RE);
   if (igMatch) {
-    try {
-      const oembedUrl = `https://www.instagram.com/oembed/?url=${encodeURIComponent(url)}&omitscript=true`;
-      const oembedRes = await fetch(oembedUrl, {
-        headers: {
-          "User-Agent": "Mozilla/5.0 (compatible; SHINEN-Bot/1.0; +https://shinen.app)",
-          "Accept-Language": "ja,en;q=0.8",
-        },
-        signal: AbortSignal.timeout(3000),
-      });
-      if (oembedRes.ok) {
-        const data = await oembedRes.json();
-        if (data?.thumbnail_url) {
-          return NextResponse.json(
-            {
-              image: data.thumbnail_url,
-              favicon: "https://www.instagram.com/favicon.ico",
-              title: data.title ?? null,
-            },
-            { headers: { "Cache-Control": "public, max-age=3600" } }
-          );
-        }
-      }
-    } catch {
-      // oembed failed → fall through to jina fallback
-    }
+    let jinaImage: string | null = null;
+    let jinaTitle: string | null = null;
+    let oembedImage: string | null = null;
+    let oembedTitle: string | null = null;
 
-    // Jina.ai reader fallback — returns markdown with embedded image URLs
+    // 1) Jina.ai JSON → extract og:image or first image (full resolution)
     try {
       const jinaUrl = `https://r.jina.ai/${encodeURIComponent(url)}`;
       const jinaRes = await fetch(jinaUrl, {
@@ -249,21 +229,62 @@ export async function GET(request: Request) {
       });
       if (jinaRes.ok) {
         const jinaData = await jinaRes.json();
-        // Jina JSON response has images array: [{src, alt}]
-        const firstImg = jinaData?.data?.images?.[0]?.src ?? null;
-        if (firstImg) {
-          return NextResponse.json(
-            {
-              image: firstImg,
-              favicon: "https://www.instagram.com/favicon.ico",
-              title: jinaData?.data?.title ?? null,
-            },
-            { headers: { "Cache-Control": "public, max-age=3600" } }
-          );
-        }
+        jinaImage = jinaData?.data?.images?.[0]?.src ?? null;
+        jinaTitle = jinaData?.data?.title ?? null;
       }
     } catch {
-      // jina also failed → return null image
+      // jina failed → try oembed
+    }
+
+    // 2) oEmbed → thumbnail_url
+    try {
+      const oembedUrl = `https://www.instagram.com/oembed/?url=${encodeURIComponent(url)}&omitscript=true`;
+      const oembedRes = await fetch(oembedUrl, {
+        headers: {
+          "User-Agent": "Mozilla/5.0 (compatible; SHINEN-Bot/1.0; +https://shinen.app)",
+          "Accept-Language": "ja,en;q=0.8",
+        },
+        signal: AbortSignal.timeout(3000),
+      });
+      if (oembedRes.ok) {
+        const data = await oembedRes.json();
+        oembedImage = data?.thumbnail_url ?? null;
+        oembedTitle = data?.title ?? null;
+      }
+    } catch {
+      // oembed also failed
+    }
+
+    // 3) HEAD Content-Length heuristic: pick the larger image
+    let bestImage = jinaImage ?? oembedImage;
+    let bestTitle = jinaImage ? jinaTitle : oembedTitle;
+
+    if (jinaImage && oembedImage && jinaImage !== oembedImage) {
+      try {
+        const [jinaHead, oembedHead] = await Promise.all([
+          fetch(jinaImage, { method: "HEAD", signal: AbortSignal.timeout(2000) }).catch(() => null),
+          fetch(oembedImage, { method: "HEAD", signal: AbortSignal.timeout(2000) }).catch(() => null),
+        ]);
+        const jinaSize = Number(jinaHead?.headers.get("content-length") ?? 0);
+        const oembedSize = Number(oembedHead?.headers.get("content-length") ?? 0);
+        if (oembedSize > jinaSize && oembedSize > 0) {
+          bestImage = oembedImage;
+          bestTitle = oembedTitle;
+        }
+      } catch {
+        // HEAD failed → keep jina as default
+      }
+    }
+
+    if (bestImage) {
+      return NextResponse.json(
+        {
+          image: bestImage,
+          favicon: "https://www.instagram.com/favicon.ico",
+          title: bestTitle ?? null,
+        },
+        { headers: { "Cache-Control": "public, max-age=3600" } }
+      );
     }
 
     return NextResponse.json(
