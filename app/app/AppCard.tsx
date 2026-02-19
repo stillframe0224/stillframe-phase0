@@ -1516,7 +1516,7 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
 
       {/* Memo Drawer (Subframe/Radix — handles overlay, focus trap, Escape, scroll lock) */}
       <Drawer open={showMemoModal} onOpenChange={(open) => { if (!open) handleMemoModalClose(); }}>
-        <Drawer.Content className="w-[340px] max-w-[90vw] p-5" data-testid="memo-modal">
+        <Drawer.Content className="w-[340px] max-w-[90vw] p-5" data-testid="memo-modal" role="dialog" aria-modal="true">
           <div style={{ display: "flex", flexDirection: "column", height: "100%", minHeight: 0 }}>
             {/* Title */}
             <div
