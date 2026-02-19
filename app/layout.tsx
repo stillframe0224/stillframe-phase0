@@ -24,7 +24,7 @@ export const metadata: Metadata = {
   title: "SHINEN — Every thought gets a picture",
   description:
     "A thought capture tool where every card gets an image. Paste a URL, drop a photo, or let a gentle illustration fill the space.",
-  themeColor: "#18181b",
+  themeColor: "#fdfdfd",
 };
 
 export default function RootLayout({
