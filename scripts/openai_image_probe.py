@@ -201,7 +201,7 @@ def main():
                 f"- bytes: {len(local_bytes)}",
                 "",
                 "## Local Normalized",
-                f"- used_sips: NO (sharp-generated icons are pre-normalized)",
+                f"- used_legacy_normalize: NO (sharp-generated icons are pre-normalized)",
                 f"- png_signature_ok: {'YES' if norm_ok else 'NO'} ({norm_sig})",
                 f"- sha256: {sha256(norm_bytes)}",
                 f"- bytes: {len(norm_bytes)}",
