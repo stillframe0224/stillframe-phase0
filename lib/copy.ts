@@ -86,6 +86,10 @@ const copy = {
     placeholder: { en: "you@email.com", ja: "you@email.com" },
     cta: { en: "Notify me", ja: "通知を受け取る" },
     submitting: { en: "Sending...", ja: "送信中..." },
+    trust: {
+      en: "Just launch updates. No spam, no sharing.",
+      ja: "お知らせのみ。スパム配信・第三者共有はしません。",
+    },
     success: {
       en: "You're in. We'll be in touch.",
       ja: "登録完了。ご連絡します。",

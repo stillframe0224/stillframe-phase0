@@ -27,5 +27,13 @@
     "completed_at": "2026-02-18T00:00:00Z",
     "commit": "ecd4172",
     "evidence": "/Users/array0224/stillframe-phase0/reports/triad/20260218_ig_memo_reorder.md"
+  },
+  {
+    "id": "20260218-230114-waitlist-privacy-microcopy",
+    "goal": "Waitlistフォーム付近に安心感を高める補足文を追加し登録率改善の土台を作る",
+    "completed_at": "2026-02-18T14:02:45Z",
+    "session": "nightly",
+    "pr_url": "https://github.com/stillframe0224/stillframe-phase0/pull/43",
+    "evidence": "/Users/array0224/stillframe-phase0/reports/triad/20260218-230114-waitlist-privacy-microcopy.md"
   }
 ]
