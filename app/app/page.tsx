@@ -2354,27 +2354,6 @@ function AppPageInner() {
               </div>
             )}
 
-            {/* Sort order */}
-            <select
-              data-testid="sort-dropdown"
-              value={sortOrder}
-              onChange={(e) => setSortOrder(e.target.value as "newest" | "oldest" | "custom")}
-              style={{
-                padding: "8px 12px",
-                border: "1px solid #e0e0e0",
-                borderRadius: 8,
-                fontSize: 13,
-                fontFamily: "var(--font-dm)",
-                outline: "none",
-                background: "#fff",
-                cursor: "pointer",
-              }}
-            >
-              <option value="newest">Newest first</option>
-              <option value="oldest">Oldest first</option>
-              <option value="custom">Custom order (drag)</option>
-            </select>
-
             {/* Pinned filter toggle */}
             <button
               onClick={() => setShowPinnedOnly(!showPinnedOnly)}
