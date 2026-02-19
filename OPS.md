@@ -539,6 +539,29 @@ E2E=1 BASE_URL=http://localhost:3000 node scripts/visual_evidence.mjs
 
 Output: `reports/visual-evidence/<timestamp>/` with `index.md` metadata.
 
+## Chrome Extension Icon: Cache / Reflection Runbook
+
+### Verify generated icons
+
+```bash
+node scripts/generate-extension-icons.mjs
+# Confirm icon16/32/48/128.png in chrome-extension/ and tools/chrome-extension/save-to-shinen/
+```
+
+### Verify reflection in Chrome
+
+1. Open `chrome://extensions`, enable **Developer mode**
+2. Click **Reload** on the extension
+3. If still stale: toggle **Disable → Enable**, then close/reopen Chrome
+4. Last resort: Remove extension → Load unpacked again
+
+### Release validation
+
+```bash
+bash scripts/verify_extension_zip.sh
+bash scripts/audit_release_asset.sh <tag>
+```
+
 ## Related docs
 
 - [OPS/supabase-setup.md](OPS/supabase-setup.md) — Full Supabase setup: table DDL, RLS policies, Google OAuth config, Storage bucket, env vars
