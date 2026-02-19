@@ -1557,7 +1557,7 @@ function AppPageInner() {
           alignItems: "center",
           justifyContent: "center",
           fontFamily: "var(--font-dm)",
-          color: "#999",
+          color: "var(--sh-ink2)",
         }}
       >
         Loading...
@@ -1594,7 +1594,7 @@ function AppPageInner() {
             Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in
             your environment. See OPS/supabase-setup.md for instructions.
           </p>
-          <p style={{ fontSize: 12, color: "#bbb", marginTop: 12, fontFamily: "monospace" }}>
+          <p style={{ fontSize: 12, color: "var(--sh-ink2)", marginTop: 12, fontFamily: "monospace" }}>
             URL: {getConfigStatus().url ? "set" : "MISSING"} / KEY: {getConfigStatus().key ? "set" : "MISSING"}
           </p>
           <a
@@ -1639,7 +1639,7 @@ function AppPageInner() {
             fontSize: 13,
             fontFamily: "var(--font-dm)",
             zIndex: 100,
-            boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+            boxShadow: "var(--sh-shadow-sm)",
           }}
         >
           {banner}
@@ -1661,7 +1661,7 @@ function AppPageInner() {
             fontSize: 12,
             fontFamily: "var(--font-dm)",
             zIndex: 101,
-            boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
+            boxShadow: "var(--sh-shadow-sm)",
             maxWidth: "90vw",
             wordBreak: "break-word",
           }}
@@ -1685,7 +1685,7 @@ function AppPageInner() {
             fontSize: 13,
             fontFamily: "var(--font-dm)",
             zIndex: 102,
-            boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
+            boxShadow: "var(--sh-shadow-sm)",
             display: "flex",
             alignItems: "center",
             gap: 12,
@@ -1757,7 +1757,7 @@ function AppPageInner() {
             fontSize: 13,
             fontFamily: "var(--font-dm)",
             zIndex: 102,
-            boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
+            boxShadow: "var(--sh-shadow-sm)",
             display: "flex",
             alignItems: "center",
             gap: 12,
@@ -1809,7 +1809,7 @@ function AppPageInner() {
             borderRadius: 12,
             background: "#fff",
             border: "1.5px solid #4F6ED9",
-            boxShadow: "0 8px 24px rgba(0,0,0,0.15)",
+            boxShadow: "var(--sh-shadow-sm)",
             zIndex: 102,
             display: "flex",
             alignItems: "center",
@@ -1830,7 +1830,7 @@ function AppPageInner() {
             }}
             style={{
               padding: "6px 12px",
-              border: "1px solid #e0e0e0",
+              border: "1px solid var(--sh-line2)",
               borderRadius: 6,
               fontSize: 13,
               fontFamily: "var(--font-dm)",
@@ -1860,7 +1860,7 @@ function AppPageInner() {
           padding: "16px 24px",
           maxWidth: 1100,
           margin: "0 auto",
-          borderBottom: "1px solid #e8e5e0",
+          borderBottom: "1px solid var(--sh-line)",
         }}
       >
         <a
@@ -1918,7 +1918,7 @@ function AppPageInner() {
             href="/bookmarklet"
             style={{
               fontSize: 12,
-              color: "#bbb",
+              color: "var(--sh-ink2)",
               textDecoration: "none",
               fontFamily: "var(--font-dm)",
             }}
@@ -1929,7 +1929,7 @@ function AppPageInner() {
             onClick={handleLogout}
             style={{
               fontSize: 13,
-              color: "#999",
+              color: "var(--sh-ink2)",
               background: "none",
               border: "none",
               cursor: "pointer",
@@ -2004,7 +2004,7 @@ function AppPageInner() {
               flex: 1,
               position: "relative",
               borderRadius: 16,
-              border: `1.5px solid ${dragOver ? ct.accent : "#e8e5e0"}`,
+              border: `1.2px solid ${dragOver ? ct.accent : "var(--sh-line2)"}`,
               background: dragOver ? `${ct.bg}` : "#fff",
               transition: "border-color 0.2s, background 0.2s",
               overflow: "hidden",
@@ -2068,7 +2068,7 @@ function AppPageInner() {
                 height: 46,
                 borderRadius: "50%",
                 border: "none",
-                background: saving ? "#ddd" : ct.accent,
+                background: saving ? "var(--sh-line2)" : ct.accent,
                 color: "#fff",
                 fontSize: 22,
                 fontWeight: 300,
@@ -2091,9 +2091,9 @@ function AppPageInner() {
                   bottom: 56,
                   right: 0,
                   background: "#fff",
-                  border: "1.5px solid #e8e5e0",
+                  border: "1.2px solid var(--sh-line2)",
                   borderRadius: 12,
-                  boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                  boxShadow: "var(--sh-shadow-sm)",
                   overflow: "hidden",
                   minWidth: 140,
                   zIndex: 50,
@@ -2116,7 +2116,7 @@ function AppPageInner() {
                     cursor: "pointer",
                     transition: "background 0.15s",
                   }}
-                  onMouseEnter={(e) => (e.currentTarget.style.background = "#f9f9f9")}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = "var(--sh-line)")}
                   onMouseLeave={(e) => (e.currentTarget.style.background = "none")}
                 >
                   Text
@@ -2131,7 +2131,7 @@ function AppPageInner() {
                     padding: "12px 16px",
                     background: "none",
                     border: "none",
-                    borderTop: "1px solid #f0f0f0",
+                    borderTop: "1px solid var(--sh-line)",
                     textAlign: "left",
                     fontSize: 14,
                     fontFamily: "var(--font-dm)",
@@ -2139,7 +2139,7 @@ function AppPageInner() {
                     cursor: "pointer",
                     transition: "background 0.15s",
                   }}
-                  onMouseEnter={(e) => (e.currentTarget.style.background = "#f9f9f9")}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = "var(--sh-line)")}
                   onMouseLeave={(e) => (e.currentTarget.style.background = "none")}
                 >
                   Upload
@@ -2189,8 +2189,10 @@ function AppPageInner() {
               alignItems: "center",
               padding: "12px 16px",
               borderRadius: 12,
-              background: "#f9f9f9",
-              border: "1px solid #e8e5e0",
+              background: "var(--sh-glass)",
+              backdropFilter: "blur(12px)",
+              WebkitBackdropFilter: "blur(12px)",
+              border: "1px solid var(--sh-line)",
             }}
           >
             {/* Search input */}
@@ -2203,7 +2205,7 @@ function AppPageInner() {
               style={{
                 flex: "1 1 200px",
                 padding: "8px 12px",
-                border: "1px solid #e0e0e0",
+                border: "1px solid var(--sh-line2)",
                 borderRadius: 8,
                 fontSize: 13,
                 fontFamily: "var(--font-dm)",
@@ -2218,7 +2220,7 @@ function AppPageInner() {
               onChange={(e) => setDomainFilter(e.target.value)}
               style={{
                 padding: "8px 12px",
-                border: "1px solid #e0e0e0",
+                border: "1px solid var(--sh-line2)",
                 borderRadius: 8,
                 fontSize: 13,
                 fontFamily: "var(--font-dm)",
@@ -2241,7 +2243,7 @@ function AppPageInner() {
               onChange={(e) => setFileFilter(e.target.value)}
               style={{
                 padding: "8px 12px",
-                border: "1px solid #e0e0e0",
+                border: "1px solid var(--sh-line2)",
                 borderRadius: 8,
                 fontSize: 13,
                 fontFamily: "var(--font-dm)",
@@ -2265,7 +2267,7 @@ function AppPageInner() {
               onChange={(e) => setMediaFilter(e.target.value as "all" | "link" | "image" | "video")}
               style={{
                 padding: "8px 12px",
-                border: "1px solid #e0e0e0",
+                border: "1px solid var(--sh-line2)",
                 borderRadius: 8,
                 fontSize: 13,
                 fontFamily: "var(--font-dm)",
@@ -2286,7 +2288,7 @@ function AppPageInner() {
                 onClick={() => setShowNewFileInput(true)}
                 style={{
                   padding: "8px 12px",
-                  border: "1px solid #e0e0e0",
+                  border: "1px solid var(--sh-line2)",
                   borderRadius: 8,
                   fontSize: 13,
                   fontFamily: "var(--font-dm)",
@@ -2345,7 +2347,7 @@ function AppPageInner() {
                   }}
                   style={{
                     padding: "8px 12px",
-                    border: "1px solid #e0e0e0",
+                    border: "1px solid var(--sh-line2)",
                     borderRadius: 8,
                     fontSize: 13,
                     fontFamily: "var(--font-dm)",
@@ -2363,7 +2365,7 @@ function AppPageInner() {
               onClick={() => setShowPinnedOnly(!showPinnedOnly)}
               style={{
                 padding: "8px 12px",
-                border: showPinnedOnly ? "1.5px solid #F5C882" : "1px solid #e0e0e0",
+                border: showPinnedOnly ? "1.5px solid #F5C882" : "1px solid var(--sh-line2)",
                 borderRadius: 8,
                 fontSize: 13,
                 fontFamily: "var(--font-dm)",
@@ -2385,7 +2387,7 @@ function AppPageInner() {
               onClick={() => setShowHasMemoOnly(!showHasMemoOnly)}
               style={{
                 padding: "8px 12px",
-                border: showHasMemoOnly ? "1.5px solid #7C8D5B" : "1px solid #e0e0e0",
+                border: showHasMemoOnly ? "1.5px solid #7C8D5B" : "1px solid var(--sh-line2)",
                 borderRadius: 8,
                 fontSize: 13,
                 fontFamily: "var(--font-dm)",
@@ -2405,7 +2407,7 @@ function AppPageInner() {
               onClick={handleMemoExport}
               style={{
                 padding: "8px 12px",
-                border: "1px solid #e0e0e0",
+                border: "1px solid var(--sh-line2)",
                 borderRadius: 8,
                 fontSize: 13,
                 fontFamily: "var(--font-dm)",
@@ -2424,7 +2426,7 @@ function AppPageInner() {
               onClick={() => memoImportInputRef.current?.click()}
               style={{
                 padding: "8px 12px",
-                border: "1px solid #e0e0e0",
+                border: "1px solid var(--sh-line2)",
                 borderRadius: 8,
                 fontSize: 13,
                 fontFamily: "var(--font-dm)",
@@ -2443,7 +2445,7 @@ function AppPageInner() {
               onClick={handleMemoClear}
               style={{
                 padding: "8px 12px",
-                border: "1px solid #e0e0e0",
+                border: "1px solid var(--sh-line2)",
                 borderRadius: 8,
                 fontSize: 13,
                 fontFamily: "var(--font-dm)",
@@ -2476,7 +2478,7 @@ function AppPageInner() {
               onClick={toggleBulkMode}
               style={{
                 padding: "8px 12px",
-                border: isBulkMode ? "1.5px solid #4F6ED9" : "1px solid #e0e0e0",
+                border: isBulkMode ? "1.5px solid #4F6ED9" : "1px solid var(--sh-line2)",
                 borderRadius: 8,
                 fontSize: 13,
                 fontFamily: "var(--font-dm)",
@@ -2512,7 +2514,7 @@ function AppPageInner() {
         <p
           style={{
             textAlign: "center",
-            color: "#bbb",
+            color: "var(--sh-ink2)",
             fontSize: 14,
             padding: "60px 0",
           }}
@@ -2524,7 +2526,7 @@ function AppPageInner() {
         <p
           style={{
             textAlign: "center",
-            color: "#bbb",
+            color: "var(--sh-ink2)",
             fontSize: 14,
             padding: "60px 0",
           }}
@@ -2587,7 +2589,7 @@ function AppPageInner() {
           bottom: 8,
           right: 8,
           fontSize: 9,
-          color: "#999",
+          color: "var(--sh-ink2)",
           opacity: 0.5,
           fontFamily: "monospace",
           pointerEvents: "none",
