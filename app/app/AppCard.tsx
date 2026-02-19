@@ -976,8 +976,6 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
       }}
       className="thought-card"
       onClick={handleCardClick}
-      {...(isDraggable && !isBulkMode ? listeners : {})}
-      {...(isDraggable && !isBulkMode ? attributes : {})}
       style={{
         width: 210,
         minWidth: 210,
@@ -985,7 +983,7 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
         border: `1.5px solid ${isSelected ? "#4F6ED9" : ct.border}`,
         background: isSelected ? "#EEF2FF" : ct.bg,
         overflow: "hidden",
-        cursor: isBulkMode ? "pointer" : (isDragging ? "grabbing" : isDraggable ? "grab" : "default"),
+        cursor: isBulkMode ? "pointer" : "default",
         position: "relative",
         animationName: "cardPop",
         animationDuration: "0.45s",
@@ -1012,6 +1010,38 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
         }
       }}
     >
+      {/* DnD grip handle — visible on hover, handle-only drag */}
+      {isDraggable && !isBulkMode && (
+        <div
+          {...listeners}
+          {...attributes}
+          data-testid="drag-handle"
+          style={{
+            position: "absolute",
+            top: 6,
+            right: 6,
+            width: 24,
+            height: 24,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            cursor: isDragging ? "grabbing" : "grab",
+            opacity: isHovered || isDragging ? 0.7 : 0,
+            transition: "opacity 0.15s",
+            zIndex: 10,
+            borderRadius: 4,
+            background: "rgba(0,0,0,0.15)",
+            color: "#fff",
+            fontSize: 14,
+            lineHeight: 1,
+            touchAction: "none",
+          }}
+          aria-label="Drag to reorder"
+        >
+          ⠿
+        </div>
+      )}
+
       {/* Bulk mode checkbox */}
       {isBulkMode && (
         <div
