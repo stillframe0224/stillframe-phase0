@@ -216,24 +216,11 @@ export async function GET(request: Request) {
     let jinaTitle: string | null = null;
     let oembedImage: string | null = null;
     let oembedTitle: string | null = null;
-    const MAX_REMOTE_FETCH = 6;
-    const MIN_GOOD_BYTES = 10 * 1024;
-    let remoteFetchCount = 0;
-
-    const guardedFetch = async (input: RequestInfo | URL, init?: RequestInit) => {
-      if (remoteFetchCount >= MAX_REMOTE_FETCH) return null;
-      remoteFetchCount += 1;
-      try {
-        return await fetch(input, init);
-      } catch {
-        return null;
-      }
-    };
 
     // 1) Jina.ai JSON → extract og:image or first image (full resolution)
     try {
       const jinaUrl = `https://r.jina.ai/${encodeURIComponent(url)}`;
-      const jinaRes = await guardedFetch(jinaUrl, {
+      const jinaRes = await fetch(jinaUrl, {
         headers: {
           "User-Agent": "Mozilla/5.0 (compatible; SHINEN-Bot/1.0)",
           Accept: "application/json",
@@ -241,7 +228,7 @@ export async function GET(request: Request) {
         },
         signal: AbortSignal.timeout(5000),
       });
-      if (jinaRes?.ok) {
+      if (jinaRes.ok) {
         const jinaData = await jinaRes.json();
         jinaImage = jinaData?.data?.images?.[0]?.src ?? null;
         jinaTitle = jinaData?.data?.title ?? null;
@@ -253,14 +240,14 @@ export async function GET(request: Request) {
     // 2) oEmbed → thumbnail_url
     try {
       const oembedUrl = `https://www.instagram.com/oembed/?url=${encodeURIComponent(url)}&omitscript=true`;
-      const oembedRes = await guardedFetch(oembedUrl, {
+      const oembedRes = await fetch(oembedUrl, {
         headers: {
           "User-Agent": "Mozilla/5.0 (compatible; SHINEN-Bot/1.0; +https://shinen.app)",
           "Accept-Language": "ja,en;q=0.8",
         },
         signal: AbortSignal.timeout(3000),
       });
-      if (oembedRes?.ok) {
+      if (oembedRes.ok) {
         const data = await oembedRes.json();
         oembedImage = data?.thumbnail_url ?? null;
         oembedTitle = data?.title ?? null;
@@ -277,39 +264,18 @@ export async function GET(request: Request) {
 
     if (jinaImage && oembedImage && jinaImage !== oembedImage) {
       try {
-        const headMeta = async (targetUrl: string) => {
-          const res = await guardedFetch(targetUrl, {
-            method: "HEAD",
-            signal: AbortSignal.timeout(2000),
-          });
-          if (!res || res.status === 403 || res.status === 405 || !res.ok) {
-            return { kind: "unknown" as const, size: 0 };
-          }
-          const raw = res.headers.get("content-length");
-          const size = Number(raw ?? "");
-          if (!Number.isFinite(size) || size <= 0) {
-            return { kind: "unknown" as const, size: 0 };
-          }
-          if (size <= MIN_GOOD_BYTES) {
-            return { kind: "tiny" as const, size };
-          }
-          return { kind: "valid" as const, size };
-        };
-
-        const [jinaMeta, oembedMeta] = await Promise.all([
-          headMeta(jinaImage),
-          headMeta(oembedImage),
+        const headOrNull = (url: string) =>
+          fetch(url, { method: "HEAD", signal: AbortSignal.timeout(2000) })
+            .then((r) => (r.ok ? r : null))
+            .catch(() => null);
+        const [jinaHead, oembedHead] = await Promise.all([
+          headOrNull(jinaImage),
+          headOrNull(oembedImage),
         ]);
-
-        // Keep OG(primary) as default; only switch when oEmbed is clearly better.
-        if (jinaMeta.kind === "tiny" && oembedMeta.kind === "valid") {
-          bestImage = oembedImage;
-          bestTitle = oembedTitle;
-        } else if (
-          jinaMeta.kind === "valid" &&
-          oembedMeta.kind === "valid" &&
-          oembedMeta.size > jinaMeta.size
-        ) {
+        const jinaSize = Number(jinaHead?.headers.get("content-length") || 0);
+        const oembedSize = Number(oembedHead?.headers.get("content-length") || 0);
+        // Only switch to oEmbed if it's definitively larger (both have Content-Length)
+        if (oembedSize > jinaSize && oembedSize > 0 && jinaSize > 0) {
           bestImage = oembedImage;
           bestTitle = oembedTitle;
         }
