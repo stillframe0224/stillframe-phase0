@@ -8,6 +8,7 @@ import { extractFirstHttpUrl, getYouTubeThumbnail } from "@/lib/urlUtils";
 import type { Card, File as FileRecord } from "@/lib/supabase/types";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { Dialog } from "@/ui/subframe/components/Dialog";
 
 type PreviewCacheEntry = {
   status: "ok" | "fail";
@@ -229,14 +230,10 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
   const cardRef = useRef<HTMLDivElement>(null);
   const titleInputRef = useRef<HTMLInputElement>(null);
   const memoSaveTimeout = useRef<NodeJS.Timeout | null>(null);
-  const memoModalRef = useRef<HTMLDivElement>(null);
   const memoTextareaRef = useRef<HTMLTextAreaElement>(null);
   const memoTriggerRef = useRef<HTMLButtonElement>(null);
-  const memoLastFocusRef = useRef<HTMLElement | null>(null);
   const previewAttemptCountRef = useRef(0);
   const memoStorageKey = `card:memo:${card.id}`;
-  const memoDialogTitleId = `memo-dialog-title-${card.id}`;
-  const memoDialogDescId = `memo-dialog-desc-${card.id}`;
 
   const persistMemoLocal = (text: string) => {
     try {
@@ -336,17 +333,11 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
     setPreviewFailed(false);
   }, [card.id, card.preview_image_url]);
 
+  // Auto-focus textarea when memo dialog opens (Dialog handles scroll lock + focus trap)
   useEffect(() => {
     if (!showMemoModal) return;
-    memoLastFocusRef.current = document.activeElement as HTMLElement | null;
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
     const t = setTimeout(() => memoTextareaRef.current?.focus(), 0);
-    return () => {
-      clearTimeout(t);
-      document.body.style.overflow = prevOverflow;
-      memoLastFocusRef.current?.focus();
-    };
+    return () => clearTimeout(t);
   }, [showMemoModal]);
 
   // Backfill source_url for YouTube cards (one-time client-side fix for legacy data)
@@ -719,35 +710,6 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
     setShowMemoModal(false);
   };
 
-  const handleMemoDialogKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    if (e.key === "Escape") {
-      e.preventDefault();
-      e.stopPropagation();
-      handleMemoModalClose();
-      return;
-    }
-    if (e.key !== "Tab") return;
-    const root = memoModalRef.current;
-    if (!root) return;
-    const focusableEls = root.querySelectorAll<HTMLElement>(
-      "a[href],button:not([disabled]),textarea:not([disabled]),input:not([disabled]),select:not([disabled]),[tabindex]:not([tabindex='-1'])"
-    );
-    if (focusableEls.length === 0) {
-      e.preventDefault();
-      return;
-    }
-    const first = focusableEls[0];
-    const last = focusableEls[focusableEls.length - 1];
-    const active = document.activeElement as HTMLElement | null;
-    if (!e.shiftKey && active === last) {
-      e.preventDefault();
-      first.focus();
-    } else if (e.shiftKey && active === first) {
-      e.preventDefault();
-      last.focus();
-    }
-  };
-
   const handleAIAnalyze = async () => {
     setAiAnalyzing(true);
     setAiError(null);
@@ -999,8 +961,6 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
       }}
       className="thought-card"
       onClick={handleCardClick}
-      {...(isDraggable && !isBulkMode ? listeners : {})}
-      {...(isDraggable && !isBulkMode ? attributes : {})}
       style={{
         width: 210,
         minWidth: 210,
@@ -1008,7 +968,7 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
         border: `1.5px solid ${isSelected ? "#4F6ED9" : ct.border}`,
         background: isSelected ? "#EEF2FF" : ct.bg,
         overflow: "hidden",
-        cursor: isBulkMode ? "pointer" : (isDragging ? "grabbing" : isDraggable ? "grab" : "default"),
+        cursor: isBulkMode ? "pointer" : "default",
         position: "relative",
         animationName: "cardPop",
         animationDuration: "0.45s",
@@ -1035,6 +995,36 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
         }
       }}
     >
+      {/* DnD grip handle — visible on hover */}
+      {isDraggable && !isBulkMode && (
+        <div
+          {...listeners}
+          {...attributes}
+          style={{
+            position: "absolute",
+            top: 6,
+            right: 6,
+            width: 24,
+            height: 24,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            cursor: isDragging ? "grabbing" : "grab",
+            opacity: isHovered || isDragging ? 0.7 : 0,
+            transition: "opacity 0.15s",
+            zIndex: 10,
+            borderRadius: 4,
+            background: "rgba(0,0,0,0.15)",
+            color: "#fff",
+            fontSize: 14,
+            lineHeight: 1,
+          }}
+          aria-label="Drag to reorder"
+        >
+          ⠿
+        </div>
+      )}
+
       {/* Bulk mode checkbox */}
       {isBulkMode && (
         <div
@@ -1537,195 +1527,156 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
           </div>
         </div>
 
-        {isDebugPreview() && cardUrl && (
-          <div style={{ fontSize: 8, color: "#aaa", fontFamily: "monospace", marginTop: 2 }}>
-            preview: {debugSource}
-          </div>
-        )}
       </div>
 
-      {/* Memo Modal */}
-      {showMemoModal && (
-        <div
-          onClick={handleMemoModalClose}
-          onKeyDown={handleMemoDialogKeyDown}
-          style={{
-            position: "fixed",
-            inset: 0,
-            background: "rgba(0,0,0,0.4)",
-            zIndex: 999,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: 20,
-          }}
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            ref={memoModalRef}
-            role="dialog"
-            aria-modal="true"
-            data-testid="memo-modal"
-            aria-labelledby={memoDialogTitleId}
-            aria-describedby={memoDialogDescId}
-            style={{
-              background: "#fff",
-              borderRadius: 12,
-              padding: 20,
-              maxWidth: 500,
-              width: "100%",
-              maxHeight: "80vh",
-              overflowY: "auto",
-              boxShadow: "0 20px 40px rgba(0,0,0,0.2)",
-            }}
-          >
-            {/* Header */}
-            <div style={{ marginBottom: 12 }}>
-              <div
-                id={memoDialogTitleId}
-                style={{
-                  fontSize: 14,
-                  fontWeight: 600,
-                  color: "#2a2a2a",
-                  marginBottom: 4,
-                  wordBreak: "break-word",
-                }}
-              >
-                {displayTitle}
-              </div>
-              <div style={{ fontSize: 11, color: "#999", fontFamily: "var(--font-dm)" }}>
-                {new Date(card.created_at).toLocaleString()}
-              </div>
-              <div id={memoDialogDescId} style={{ fontSize: 11, color: "#999", fontFamily: "var(--font-dm)", marginTop: 4 }}>
-                Edit your memo. Press Escape to close.
-              </div>
-            </div>
-
-            {/* Open link */}
-            {cardUrl && (
-              <a
-                href={cardUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{
-                  display: "inline-block",
-                  fontSize: 11,
-                  color: ct.accent,
-                  textDecoration: "none",
-                  fontFamily: "var(--font-dm)",
-                  fontWeight: 600,
-                  marginBottom: 12,
-                }}
-              >
-                Open link &rsaquo;
-              </a>
-            )}
-
-            {/* Memo textarea */}
-            <textarea
-              data-testid="memo-textarea"
-              ref={memoTextareaRef}
-              aria-label="Memo text"
-              value={memoText}
-              onChange={handleMemoChange}
-              placeholder="Add notes..."
+      {/* Memo Dialog (Subframe/Radix — handles overlay, focus trap, Escape, scroll lock) */}
+      <Dialog open={showMemoModal} onOpenChange={(open) => { if (!open) handleMemoModalClose(); }}>
+        <Dialog.Content className="max-w-[500px] w-full p-5 rounded-xl" data-testid="memo-modal">
+          {/* Header */}
+          <div style={{ marginBottom: 12 }}>
+            <div
               style={{
-                width: "100%",
-                minHeight: 180,
-                maxHeight: "50vh",
-                padding: 12,
-                fontSize: 13,
-                lineHeight: 1.6,
+                fontSize: 14,
+                fontWeight: 600,
                 color: "#2a2a2a",
-                border: "1.5px solid #ddd",
-                borderRadius: 8,
-                fontFamily: "inherit",
-                resize: "vertical",
-                overflowY: "auto",
-                outline: "none",
+                marginBottom: 4,
+                wordBreak: "break-word",
               }}
-              onFocus={(e) => {
-                e.target.style.borderColor = ct.accent;
-              }}
-              onBlur={(e) => {
-                e.target.style.borderColor = "#ddd";
-              }}
-            />
-
-            {/* Save status */}
-            {memoSaveStatus === "saved" && (
-              <div
-                style={{
-                  fontSize: 11,
-                  color: "#2D8F50",
-                  marginTop: 8,
-                  fontFamily: "var(--font-dm)",
-                }}
-              >
-                ✓ Saved
-              </div>
-            )}
-
-            {/* Error message */}
-            {memoError && (
-              <div
-                style={{
-                  fontSize: 11,
-                  color: "#D93025",
-                  background: "#FEE",
-                  padding: "6px 10px",
-                  borderRadius: 6,
-                  marginTop: 8,
-                  fontFamily: "var(--font-dm)",
-                  lineHeight: 1.4,
-                }}
-              >
-                {memoError}
-              </div>
-            )}
-
-            <div style={{ display: "flex", gap: 8, marginTop: 16 }}>
-              <button
-                data-testid="memo-save"
-                aria-label="Save memo"
-                className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#2D8F50]"
-                onClick={() => handleMemoSave(memoText)}
-                style={{
-                  padding: "8px 16px",
-                  fontSize: 13,
-                  fontWeight: 600,
-                  color: "#fff",
-                  background: ct.accent,
-                  border: "none",
-                  borderRadius: 8,
-                  cursor: "pointer",
-                  fontFamily: "var(--font-dm)",
-                }}
-              >
-                Save
-              </button>
-              <button
-                aria-label="Close memo dialog"
-                className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#888888]"
-                onClick={handleMemoModalClose}
-                style={{
-                  padding: "8px 16px",
-                  fontSize: 13,
-                  fontWeight: 600,
-                  color: "#555",
-                  background: "#f3f3f3",
-                  border: "none",
-                  borderRadius: 8,
-                  cursor: "pointer",
-                  fontFamily: "var(--font-dm)",
-                }}
-              >
-                Close
-              </button>
+            >
+              {displayTitle}
+            </div>
+            <div style={{ fontSize: 11, color: "#999", fontFamily: "var(--font-dm)" }}>
+              {new Date(card.created_at).toLocaleString()}
+            </div>
+            <div style={{ fontSize: 11, color: "#999", fontFamily: "var(--font-dm)", marginTop: 4 }}>
+              Edit your memo. Press Escape to close.
             </div>
           </div>
-        </div>
-      )}
+
+          {/* Open link */}
+          {cardUrl && (
+            <a
+              href={cardUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: "inline-block",
+                fontSize: 11,
+                color: ct.accent,
+                textDecoration: "none",
+                fontFamily: "var(--font-dm)",
+                fontWeight: 600,
+                marginBottom: 12,
+              }}
+            >
+              Open link &rsaquo;
+            </a>
+          )}
+
+          {/* Memo textarea */}
+          <textarea
+            data-testid="memo-textarea"
+            ref={memoTextareaRef}
+            aria-label="Memo text"
+            value={memoText}
+            onChange={handleMemoChange}
+            placeholder="Add notes..."
+            style={{
+              width: "100%",
+              minHeight: 180,
+              maxHeight: "50vh",
+              padding: 12,
+              fontSize: 13,
+              lineHeight: 1.6,
+              color: "#2a2a2a",
+              border: "1.5px solid #ddd",
+              borderRadius: 8,
+              fontFamily: "inherit",
+              resize: "vertical",
+              overflowY: "auto",
+              outline: "none",
+            }}
+            onFocus={(e) => {
+              e.target.style.borderColor = ct.accent;
+            }}
+            onBlur={(e) => {
+              e.target.style.borderColor = "#ddd";
+            }}
+          />
+
+          {/* Save status */}
+          {memoSaveStatus === "saved" && (
+            <div
+              style={{
+                fontSize: 11,
+                color: "#2D8F50",
+                marginTop: 8,
+                fontFamily: "var(--font-dm)",
+              }}
+            >
+              ✓ Saved
+            </div>
+          )}
+
+          {/* Error message */}
+          {memoError && (
+            <div
+              style={{
+                fontSize: 11,
+                color: "#D93025",
+                background: "#FEE",
+                padding: "6px 10px",
+                borderRadius: 6,
+                marginTop: 8,
+                fontFamily: "var(--font-dm)",
+                lineHeight: 1.4,
+              }}
+            >
+              {memoError}
+            </div>
+          )}
+
+          <div style={{ display: "flex", gap: 8, marginTop: 16 }}>
+            <button
+              data-testid="memo-save"
+              aria-label="Save memo"
+              className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#2D8F50]"
+              onClick={() => handleMemoSave(memoText)}
+              style={{
+                padding: "8px 16px",
+                fontSize: 13,
+                fontWeight: 600,
+                color: "#fff",
+                background: ct.accent,
+                border: "none",
+                borderRadius: 8,
+                cursor: "pointer",
+                fontFamily: "var(--font-dm)",
+              }}
+            >
+              Save
+            </button>
+            <button
+              aria-label="Close memo dialog"
+              className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#888888]"
+              onClick={handleMemoModalClose}
+              style={{
+                padding: "8px 16px",
+                fontSize: 13,
+                fontWeight: 600,
+                color: "#555",
+                background: "#f3f3f3",
+                border: "none",
+                borderRadius: 8,
+                cursor: "pointer",
+                fontFamily: "var(--font-dm)",
+              }}
+            >
+              Close
+            </button>
+          </div>
+        </Dialog.Content>
+      </Dialog>
     </div>
   );
 }
