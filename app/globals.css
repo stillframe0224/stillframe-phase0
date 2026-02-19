@@ -13,12 +13,15 @@
   --sh-bg: #fdfdfd;
   --sh-ink: rgba(0,0,0,0.62);
   --sh-ink2: rgba(0,0,0,0.35);
+  --sh-ink-muted: rgba(0,0,0,0.35); /* alias for --sh-ink2 */
   --sh-line: rgba(0,0,0,0.08);
   --sh-line2: rgba(0,0,0,0.14);
+  --sh-grid-line: rgba(0,0,0,0.035);
   --sh-paper: rgba(255,255,255,0.82);
   --sh-paper2: rgba(255,255,255,0.95);
   --sh-shadow: 0 18px 42px -22px rgba(0,0,0,0.18);
   --sh-shadow-sm: 0 2px 8px -2px rgba(0,0,0,0.08);
+  --sh-shadow-quiet: 0 10px 30px rgba(20,20,20,0.08);
   --sh-radius: 14px;
   --sh-glass: rgba(255,255,255,0.72);
 }
