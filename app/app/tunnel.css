@@ -7,6 +7,7 @@
   width: 100vw;
   height: calc(100vh - 160px);
   background: #0a0a0a;
+  touch-action: pan-y;
 }
 
 .tunnel-grid-bg {
@@ -34,7 +35,7 @@
   transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   cursor: grab;
   z-index: 1;
-  touch-action: none;
+  touch-action: manipulation;
 }
 
 .tunnel-card:hover {
@@ -45,6 +46,7 @@
   transition: none;
   cursor: grabbing;
   z-index: 100;
+  touch-action: none;
 }
 
 .tunnel-card-inner {
