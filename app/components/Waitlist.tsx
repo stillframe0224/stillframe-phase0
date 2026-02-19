@@ -71,6 +71,24 @@ export default function Waitlist({
         >
           {c.success[lang]}
         </p>
+        <a
+          href="#pricing"
+          data-testid="waitlist-pricing-cta"
+          style={{
+            display: "inline-block",
+            marginTop: 16,
+            padding: "10px 24px",
+            borderRadius: 999,
+            background: "#2a2a2a",
+            color: "#fff",
+            fontSize: 14,
+            fontFamily: "var(--font-dm)",
+            fontWeight: 600,
+            textDecoration: "none",
+          }}
+        >
+          {lang === "ja" ? "料金を見る" : "View Pricing"}
+        </a>
       </div>
     );
   }
