@@ -35,5 +35,13 @@
     "session": "nightly",
     "pr_url": "https://github.com/stillframe0224/stillframe-phase0/pull/43",
     "evidence": "/Users/array0224/stillframe-phase0/reports/triad/20260218-230114-waitlist-privacy-microcopy.md"
+  },
+  {
+    "id": "20260219-230000-lp-no-manual-image-copy",
+    "goal": "LPコピーで『手動作業を減らせる』価値訴求を強化し、Waitlist登録動機を明確にする",
+    "completed_at": "2026-02-19T14:00:00Z",
+    "session": "nightly",
+    "pr_url": null,
+    "evidence": "/Users/array0224/stillframe-phase0/reports/triad/20260219-230000-lp-no-manual-image-copy.md"
   }
 ]
