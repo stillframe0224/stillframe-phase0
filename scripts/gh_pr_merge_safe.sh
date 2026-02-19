@@ -37,6 +37,31 @@ mkdir -p "$(dirname "$OUT")"
   echo ""
 } > "$OUT"
 
+# --- Ensure Codex section headers exist (stage3.yml requirement) ---
+BODY_TMP="$(mktemp)"
+trap 'rm -f "$BODY_TMP"' EXIT
+CURRENT_BODY="$(gh pr view "$PR" --json body -q '.body' 2>/dev/null || echo "")"
+printf '%s\n' "$CURRENT_BODY" > "$BODY_TMP"
+NEED=0
+for H in "Codex: RISKS" "Codex: TESTS" "Codex: EDGE"; do
+  if ! grep -qF "$H" "$BODY_TMP"; then NEED=1; fi
+done
+if [[ "$NEED" == "1" ]]; then
+  {
+    echo ""
+    echo "## Codex: RISKS"
+    echo "- (fill)"
+    echo ""
+    echo "## Codex: TESTS"
+    echo "- (fill)"
+    echo ""
+    echo "## Codex: EDGE"
+    echo "- (fill)"
+  } >> "$BODY_TMP"
+  gh pr edit "$PR" --body-file "$BODY_TMP" 2>&1 | tee -a "$OUT" || true
+  echo "NOTE: appended missing Codex headers to PR body" | tee -a "$OUT"
+fi
+
 IS_DRAFT="$(gh pr view "$PR" --json isDraft -q '.isDraft' 2>/dev/null || echo false)"
 if [[ "$IS_DRAFT" == "true" ]]; then
   echo "Action: gh pr ready $PR" | tee -a "$OUT"

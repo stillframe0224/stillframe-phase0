@@ -4,30 +4,18 @@
 ## Why
 -
 
-## How to test
-- [ ] smoke passes (required)
-- [ ] build passes (if applicable)
+## Verification
+- [ ] `npm run build` passes
+- [ ] smoke passes (if applicable)
 
-## Codex review (Stage 3)
-- [ ] Codex output pasted below (RISKS/TESTS/EDGE)
-
-<details>
-<summary>Codex: RISKS</summary>
-
+## Codex: RISKS
 -
 
-</details>
-
-<details>
-<summary>Codex: TESTS</summary>
-
+## Codex: TESTS
 -
 
-</details>
-
-<details>
-<summary>Codex: EDGE</summary>
-
+## Codex: EDGE
 -
 
-</details>
+## Rollback
+- Revert this PR

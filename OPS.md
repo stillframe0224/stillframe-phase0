@@ -286,6 +286,13 @@ For repeatable operation with logs, run:
 scripts/gh_pr_merge_safe.sh <PR_NUMBER>
 ```
 
+**PR body requirement** (`codex-review-check`): PR bodies must contain these exact strings (case-sensitive):
+- `Codex: RISKS`
+- `Codex: TESTS`
+- `Codex: EDGE`
+
+The safe merge runner auto-appends missing headings before running checks, but you should fill them meaningfully. The repo PR template (`.github/pull_request_template.md`) includes these by default.
+
 ## 6. CI
 
 **Workflow**: `.github/workflows/oauth_smoke.yml`
