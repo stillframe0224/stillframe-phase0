@@ -81,6 +81,7 @@ export default function Waitlist({
         style={{
           display: "flex",
           gap: 10,
+          flexWrap: "wrap",
         }}
       >
         <input
@@ -93,7 +94,8 @@ export default function Waitlist({
             if (errorMessage) setErrorMessage(null);
           }}
           style={{
-            flex: 1,
+            flex: "1 1 240px",
+            minWidth: 0,
             padding: "12px 18px",
             borderRadius: 999,
             border: "1px solid #ddd",
@@ -109,7 +111,10 @@ export default function Waitlist({
           type="submit"
           disabled={loading}
           className="rounded-full px-6 py-3 text-sm whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#D9A441]"
-          style={{ cursor: loading ? "wait" : undefined }}
+          style={{
+            cursor: loading ? "wait" : undefined,
+            flex: "1 0 auto",
+          }}
         >
           {loading ? c.submitting[lang] : c.cta[lang]}
         </PrimaryButton>
