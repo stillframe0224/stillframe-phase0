@@ -82,6 +82,21 @@ export default function Pricing({ lang, gumroadUrl }: PricingProps) {
           </li>
         ))}
       </ul>
+      <p
+        style={{
+          margin: "0 0 14px",
+          fontSize: 13,
+          color: "#8a5a00",
+          fontFamily: "var(--font-dm)",
+          background: "#fff4da",
+          border: "1px solid #f3dfb3",
+          borderRadius: 999,
+          padding: "6px 12px",
+          display: "inline-block",
+        }}
+      >
+        {c.urgency[lang]}
+      </p>
       {hasCheckoutUrl ? (
         <a
           href={gumroadUrl}
