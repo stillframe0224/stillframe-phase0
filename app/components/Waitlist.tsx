@@ -132,6 +132,17 @@ export default function Waitlist({
           {errorMessage}
         </p>
       )}
+      <p
+        style={{
+          marginTop: 12,
+          fontSize: 12,
+          color: "#8a8a8a",
+          fontFamily: "var(--font-dm)",
+          textAlign: "center",
+        }}
+      >
+        {c.trust[lang]}
+      </p>
     </div>
   );
 }
