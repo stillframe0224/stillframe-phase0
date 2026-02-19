@@ -11,6 +11,7 @@ const IG_RE =
 
 const MAX_REDIRECTS = 5;
 const FETCH_TIMEOUT = 4000;
+const MAX_EXTERNAL_FETCHES = 5; // Per-URL fetch limit (Jina + oEmbed + HEADs + safeFetch)
 
 function isInstagramHost(host: string): boolean {
   const h = host.toLowerCase();
@@ -256,18 +257,25 @@ export async function GET(request: Request) {
     }
 
     // 3) HEAD Content-Length heuristic: pick the larger image
+    // HEAD 405/403/timeout → ignore (don't reject), prefer Jina as default
+    // Missing Content-Length (e.g. chunked) → don't penalize, keep default
     let bestImage = jinaImage ?? oembedImage;
     let bestTitle = jinaImage ? jinaTitle : oembedTitle;
 
     if (jinaImage && oembedImage && jinaImage !== oembedImage) {
       try {
+        const headOrNull = (url: string) =>
+          fetch(url, { method: "HEAD", signal: AbortSignal.timeout(2000) })
+            .then((r) => (r.ok ? r : null))
+            .catch(() => null);
         const [jinaHead, oembedHead] = await Promise.all([
-          fetch(jinaImage, { method: "HEAD", signal: AbortSignal.timeout(2000) }).catch(() => null),
-          fetch(oembedImage, { method: "HEAD", signal: AbortSignal.timeout(2000) }).catch(() => null),
+          headOrNull(jinaImage),
+          headOrNull(oembedImage),
         ]);
-        const jinaSize = Number(jinaHead?.headers.get("content-length") ?? 0);
-        const oembedSize = Number(oembedHead?.headers.get("content-length") ?? 0);
-        if (oembedSize > jinaSize && oembedSize > 0) {
+        const jinaSize = Number(jinaHead?.headers.get("content-length") || 0);
+        const oembedSize = Number(oembedHead?.headers.get("content-length") || 0);
+        // Only switch to oEmbed if it's definitively larger (both have Content-Length)
+        if (oembedSize > jinaSize && oembedSize > 0 && jinaSize > 0) {
           bestImage = oembedImage;
           bestTitle = oembedTitle;
         }
