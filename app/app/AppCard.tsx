@@ -708,6 +708,8 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
       handleMemoSave(memoText);
     }
     setShowMemoModal(false);
+    // Restore focus to trigger chip (Drawer doesn't track our custom trigger)
+    setTimeout(() => memoTriggerRef.current?.focus(), 0);
   };
 
   const handleAIAnalyze = async () => {
