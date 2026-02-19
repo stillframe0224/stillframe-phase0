@@ -36,6 +36,7 @@ export default function TunnelCanvas({
     positions,
     camera,
     layout,
+    persistError,
     setCardPosition,
     setCamera,
     cycleLayout,
@@ -87,7 +88,7 @@ export default function TunnelCanvas({
       };
       e.preventDefault();
     },
-    [] // no camera dependency — reads from cameraRef at call time
+    [] // no camera dependency — reads from cameraRef
   );
 
   useEffect(() => {
@@ -134,7 +135,7 @@ export default function TunnelCanvas({
 
       e.preventDefault();
 
-      // Compute next zoom from ref (not stale state)
+      // Compute next zoom from current ref (not stale state)
       const newZoom = Math.max(
         ZOOM_MIN,
         Math.min(ZOOM_MAX, cameraRef.current.zoom - e.deltaY * ZOOM_STEP)
@@ -149,7 +150,7 @@ export default function TunnelCanvas({
         stageRef.current.style.transform = `translate(${next.x}px, ${next.y}px) scale(${next.zoom})`;
       }
 
-      // 3) Debounce the store commit — React re-renders only after scroll settles
+      // 3) Debounce the store commit so React re-renders only after scroll settles
       if (commitTimerRef.current !== null) {
         clearTimeout(commitTimerRef.current);
       }
@@ -186,40 +187,50 @@ export default function TunnelCanvas({
       onPointerDown={handleScenePointerDown}
       onWheel={handleSceneWheel}
     >
-          <div className="tunnel-grid-bg" />
+      <div className="tunnel-grid-bg" />
+      <div
+        ref={stageRef}
+        className="tunnel-stage"
+        style={{
+          transform: `translate(${camera.x}px, ${camera.y}px) scale(${camera.zoom})`,
+        }}
+      >
+        {cards.map((card, i) => {
+          const pos = positions[card.id] || { x: 100, y: 100, z: 0 };
+          return (
+            <TunnelCardWrapper
+              key={card.id}
+              card={card}
+              index={i}
+              position={pos}
+              onPositionChange={setCardPosition}
+              onDelete={onDelete}
+              onPinToggle={onPinToggle}
+              onFileAssign={onFileAssign}
+              onUpdate={onUpdate}
+              onNotesSaved={onNotesSaved}
+              files={files}
+              stageScale={camera.zoom}
+            />
+          );
+        })}
+      </div>
+      <div className="tunnel-hud">
+        <div className="tunnel-hud-layout">{layout}</div>
+        <div>A: layout / R: reset</div>
+        <div>Shift+drag: pan / Scroll: zoom</div>
+        <div>Scroll on card: depth</div>
+        {persistError && (
           <div
-            ref={stageRef}
-            className="tunnel-stage"
-            style={{
-              transform: `translate(${camera.x}px, ${camera.y}px) scale(${camera.zoom})`,
-            }}
+            data-testid="tunnel-persist-error"
+            style={{ marginTop: 6, color: "#f97316", fontWeight: 600 }}
           >
-            {cards.map((card, i) => {
-              const pos = positions[card.id] || { x: 100, y: 100, z: 0 };
-              return (
-                <TunnelCardWrapper
-                  key={card.id}
-                  card={card}
-                  index={i}
-                  position={pos}
-                  onPositionChange={setCardPosition}
-                  onDelete={onDelete}
-                  onPinToggle={onPinToggle}
-                  onFileAssign={onFileAssign}
-                  onUpdate={onUpdate}
-                  onNotesSaved={onNotesSaved}
-                  files={files}
-                  stageScale={camera.zoom}
-                />
-              );
-            })}
+            {persistError === "quota"
+              ? "⚠ Not saved (storage full)"
+              : "⚠ Not saved (data error)"}
           </div>
-          <div className="tunnel-hud">
-            <div className="tunnel-hud-layout">{layout}</div>
-            <div>A: layout / R: reset</div>
-            <div>Shift+drag: pan / Scroll: zoom</div>
-            <div>Scroll on card: depth</div>
-          </div>
+        )}
+      </div>
     </div>
   );
 }

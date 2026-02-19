@@ -22,6 +22,8 @@ export interface TunnelState {
   layout: TunnelLayout;
 }
 
+export type PersistError = "quota" | "corrupt" | null;
+
 const LAYOUT_ORDER: TunnelLayout[] = ["scatter", "grid", "circle"];
 
 function getStorageKey(userId: string): string {
@@ -99,23 +101,51 @@ function computeLayout(
   }
 }
 
-function loadState(userId: string): TunnelState | null {
+/**
+ * Load tunnel state from localStorage.
+ * Returns the parsed TunnelState on success, null if nothing saved,
+ * or { error: "corrupt" } if the stored data is malformed.
+ */
+function loadState(userId: string): TunnelState | { error: "corrupt" } | null {
   if (typeof window === "undefined") return null;
   try {
     const raw = localStorage.getItem(getStorageKey(userId));
     if (!raw) return null;
-    return JSON.parse(raw) as TunnelState;
+    const parsed = JSON.parse(raw) as TunnelState;
+    // Minimal schema validation — positions and camera must be objects
+    if (
+      typeof parsed !== "object" ||
+      parsed === null ||
+      typeof parsed.positions !== "object" ||
+      typeof parsed.camera !== "object"
+    ) {
+      return { error: "corrupt" };
+    }
+    return parsed;
   } catch {
-    return null;
+    return { error: "corrupt" };
   }
 }
 
-function saveState(userId: string, state: TunnelState): void {
-  if (typeof window === "undefined") return;
+/**
+ * Save tunnel state to localStorage.
+ * Returns null on success, "quota" if storage is full, "unknown" for other errors.
+ */
+function saveState(userId: string, state: TunnelState): "quota" | "unknown" | null {
+  if (typeof window === "undefined") return null;
   try {
     localStorage.setItem(getStorageKey(userId), JSON.stringify(state));
-  } catch {
-    // quota exceeded — silent
+    return null; // success
+  } catch (err) {
+    if (
+      err instanceof DOMException &&
+      (err.name === "QuotaExceededError" ||
+        err.name === "NS_ERROR_DOM_QUOTA_REACHED" ||
+        err.code === 22)
+    ) {
+      return "quota";
+    }
+    return "unknown";
   }
 }
 
@@ -123,14 +153,30 @@ export function useTunnelStore(userId: string, cardIds: string[]) {
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const stateRef = useRef<TunnelState | null>(null);
 
+  // Track last-warned error type so we console.warn only once per distinct error
+  const lastWarnedErrorRef = useRef<PersistError>(null);
+
+  const [persistError, setPersistError] = useState<PersistError>(null);
+
   const [state, setState] = useState<TunnelState>(() => {
-    const saved = loadState(userId);
+    const loaded = loadState(userId);
     const viewW = typeof window !== "undefined" ? window.innerWidth : 1200;
     const viewH = typeof window !== "undefined" ? window.innerHeight - 160 : 700;
 
-    if (saved) {
+    // Corrupt data: start fresh, error will be surfaced via useEffect
+    if (loaded !== null && "error" in loaded) {
+      const initial: TunnelState = {
+        positions: computeLayout("scatter", cardIds, viewW, viewH),
+        camera: { x: 0, y: 0, zoom: 1 },
+        layout: "scatter",
+      };
+      stateRef.current = initial;
+      return initial;
+    }
+
+    if (loaded) {
       // Ensure any new cards get positioned
-      const positions = { ...saved.positions };
+      const positions = { ...loaded.positions };
       let hasNew = false;
       cardIds.forEach((id) => {
         if (!positions[id]) {
@@ -138,7 +184,7 @@ export function useTunnelStore(userId: string, cardIds: string[]) {
           hasNew = true;
         }
       });
-      const result = hasNew ? { ...saved, positions } : saved;
+      const result = hasNew ? { ...loaded, positions } : loaded;
       stateRef.current = result;
       return result;
     }
@@ -151,6 +197,19 @@ export function useTunnelStore(userId: string, cardIds: string[]) {
     stateRef.current = initial;
     return initial;
   });
+
+  // Surface corrupt-load error after mount (useState initializer runs before effects)
+  useEffect(() => {
+    const loaded = loadState(userId);
+    if (loaded !== null && "error" in loaded) {
+      if (lastWarnedErrorRef.current !== "corrupt") {
+        console.warn("[tunnel] localStorage data is corrupt — starting fresh");
+        lastWarnedErrorRef.current = "corrupt";
+      }
+      setPersistError("corrupt");
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId]);
 
   // Keep ref in sync
   stateRef.current = state;
@@ -201,7 +260,25 @@ export function useTunnelStore(userId: string, cardIds: string[]) {
     (s: TunnelState) => {
       if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
       saveTimerRef.current = setTimeout(() => {
-        saveState(userId, s);
+        const err = saveState(userId, s);
+        if (err === "quota") {
+          if (lastWarnedErrorRef.current !== "quota") {
+            console.warn("[tunnel] localStorage quota exceeded — tunnel state not saved");
+            lastWarnedErrorRef.current = "quota";
+          }
+          setPersistError("quota");
+        } else if (err === "unknown") {
+          if (lastWarnedErrorRef.current !== "quota") {
+            console.warn("[tunnel] localStorage write failed — tunnel state not saved");
+          }
+          setPersistError("quota"); // surface as quota to user (same UX)
+        } else {
+          // Success — clear error
+          if (lastWarnedErrorRef.current !== null) {
+            lastWarnedErrorRef.current = null;
+          }
+          setPersistError(null);
+        }
       }, 300);
     },
     [userId]
@@ -261,6 +338,7 @@ export function useTunnelStore(userId: string, cardIds: string[]) {
     positions: state.positions,
     camera: state.camera,
     layout: state.layout,
+    persistError,
     setCardPosition,
     setCamera,
     cycleLayout,
