@@ -357,7 +357,7 @@ export default function Home() {
           style={{
             textAlign: "center",
             fontSize: 12,
-            color: "#bbb",
+            color: "var(--sh-ink2)",
             marginTop: 20,
             fontFamily: "var(--font-dm)",
           }}
@@ -485,7 +485,7 @@ export default function Home() {
             fontFamily:
               lang === "ja" ? "var(--font-serif-jp)" : "var(--font-serif)",
             fontSize: 14,
-            color: "#bbb",
+            color: "var(--sh-ink2)",
             fontStyle: "italic",
           }}
         >

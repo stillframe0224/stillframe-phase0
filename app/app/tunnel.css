@@ -1,4 +1,4 @@
-/* Tunnel Canvas — 3D floating card space */
+/* Tunnel Canvas — 3D floating card space (SHINEN white tone) */
 
 .tunnel-scene {
   perspective: 1200px;
@@ -6,7 +6,7 @@
   position: relative;
   width: 100vw;
   height: calc(100vh - 160px);
-  background: #0a0a0a;
+  background: var(--sh-bg, #fdfdfd);
   touch-action: pan-y;
 }
 
@@ -15,8 +15,8 @@
   inset: 0;
   pointer-events: none;
   background-image:
-    linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+    linear-gradient(var(--sh-line, rgba(0,0,0,0.08)) 1px, transparent 1px),
+    linear-gradient(90deg, var(--sh-line, rgba(0,0,0,0.08)) 1px, transparent 1px);
   background-size: 60px 60px;
   z-index: 0;
 }
@@ -69,17 +69,23 @@
   z-index: 200;
   pointer-events: none;
   user-select: none;
-  font-family: monospace;
-  font-size: 11px;
-  color: rgba(255,255,255,0.35);
+  font-family: var(--font-dm), monospace;
+  font-size: 10px;
+  color: var(--sh-ink2, rgba(0,0,0,0.35));
   line-height: 1.6;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: var(--sh-glass, rgba(255,255,255,0.72));
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--sh-line, rgba(0,0,0,0.08));
 }
 
 .tunnel-hud-layout {
-  font-size: 13px;
-  color: rgba(255,255,255,0.5);
+  font-size: 11px;
+  color: var(--sh-ink, rgba(0,0,0,0.62));
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  margin-bottom: 4px;
+  margin-bottom: 2px;
 }
