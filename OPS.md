@@ -524,6 +524,21 @@ bash scripts/audit_release_asset.sh "v$(node -p 'require("./tools/chrome-extensi
 gh run list --limit 10
 ```
 
+## Visual evidence capture
+
+Take UI screenshots as a regression baseline (gitignored, local only):
+
+```bash
+# Production (landing page only)
+node scripts/visual_evidence.mjs
+
+# Full UI with mock cards (E2E mode)
+E2E=1 npm run build && E2E=1 npm start &
+E2E=1 BASE_URL=http://localhost:3000 node scripts/visual_evidence.mjs
+```
+
+Output: `reports/visual-evidence/<timestamp>/` with `index.md` metadata.
+
 ## Related docs
 
 - [OPS/supabase-setup.md](OPS/supabase-setup.md) — Full Supabase setup: table DDL, RLS policies, Google OAuth config, Storage bucket, env vars
