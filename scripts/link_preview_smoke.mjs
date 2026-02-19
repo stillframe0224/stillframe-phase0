@@ -102,7 +102,7 @@ async function main() {
     assert("YouTube shortcut", false, `fetch error: ${e.message}`);
   }
 
-  // 2b) YouTube video NpDNSAPtGrw — must return i.ytimg.com thumbnail, NOT yt_1200.png logo
+  // 2b) YouTube video NpDNSAPtGrw — must return i.ytimg.com maxresdefault thumbnail, NOT yt_1200.png logo
   try {
     const ytUrl = "https://www.youtube.com/watch?v=NpDNSAPtGrw";
     const { status, body } = await fetchJSON(
@@ -111,16 +111,16 @@ async function main() {
     const isValidThumb =
       body.image &&
       body.image.includes("i.ytimg.com/vi/NpDNSAPtGrw") &&
-      body.image.includes("hqdefault.jpg") &&
+      body.image.includes("maxresdefault.jpg") &&
       !body.image.includes("yt_1200.png");
-    assert("YouTube NpDNSAPtGrw (no logo fallback)",
+    assert("YouTube NpDNSAPtGrw (maxres, no logo fallback)",
       status === 200 && isValidThumb,
       `status=${status} image=${body.image || "(null)"}`);
   } catch (e) {
-    assert("YouTube NpDNSAPtGrw (no logo fallback)", false, `fetch error: ${e.message}`);
+    assert("YouTube NpDNSAPtGrw (maxres, no logo fallback)", false, `fetch error: ${e.message}`);
   }
 
-  // 2c) YouTube Shorts 2Z4m4lnjxkY — must return hqdefault, NOT maxresdefault (which returns placeholder)
+  // 2c) YouTube Shorts 2Z4m4lnjxkY — API returns maxresdefault; client onError handles 404 fallback
   try {
     const ytUrl = "https://www.youtube.com/shorts/2Z4m4lnjxkY";
     const { status, body } = await fetchJSON(
@@ -129,13 +129,12 @@ async function main() {
     const isValidThumb =
       body.image &&
       body.image.includes("i.ytimg.com/vi/2Z4m4lnjxkY") &&
-      body.image.includes("hqdefault.jpg") &&
-      !body.image.includes("maxresdefault");
-    assert("YouTube Shorts 2Z4m4lnjxkY (hq not maxres)",
+      body.image.includes("maxresdefault.jpg");
+    assert("YouTube Shorts 2Z4m4lnjxkY (maxres from API)",
       status === 200 && isValidThumb,
       `status=${status} image=${body.image || "(null)"}`);
   } catch (e) {
-    assert("YouTube Shorts 2Z4m4lnjxkY (hq not maxres)", false, `fetch error: ${e.message}`);
+    assert("YouTube Shorts 2Z4m4lnjxkY (maxres from API)", false, `fetch error: ${e.message}`);
   }
 
   // 2d) Instagram post — oEmbed+jina path; accept image or null (IG may block server fetches).
