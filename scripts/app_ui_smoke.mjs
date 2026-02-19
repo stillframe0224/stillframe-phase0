@@ -19,11 +19,11 @@
  *  1) GET /api/version returns 200 with sha
  *  2) /app loads and build-stamp is visible
  *  3) build-stamp sha matches /api/version sha
- *  4) Switching to "Custom order (drag)" keeps cards visible (>=1 card)
+ *  4) drag-handle present; dragging triggers sort=custom URL param
  *  5) cards-grid computed gap equals 8px
  *  6) MEMO input is visible in list snippet + searchable + has-memo filter
  *  7) Memo backup: export→clear→import→verify (E2E=1 only)
- *  8) drag-handle elements present; reorder if >=2 cards (SKIP if <2, not FAIL)
+ *  8) card reorder via handle drag if >=2 cards (SKIP if <2, not FAIL)
  *
  * Exit code: 0 = all non-skipped tests PASS, 1 = any FAIL.
  *
@@ -280,7 +280,7 @@ async function main() {
       fail("/app page.goto failed", String(e));
       fail("/app loads and build-stamp is visible", "GOTO_FAILED");
       fail("build-stamp sha matches /api/version sha", "GOTO_FAILED");
-      skip("sort dropdown switches to custom without losing cards", "GOTO_FAILED");
+      skip("drag handle triggers sort=custom URL param", "GOTO_FAILED");
       skip("cards-grid computed gap is 8px", "GOTO_FAILED");
       skip("MEMO button opens memo-modal", "GOTO_FAILED");
       skip("memo snippet shows saved text", "GOTO_FAILED");
@@ -291,7 +291,7 @@ async function main() {
       skip("memo backup: import restores snippets", "GOTO_FAILED");
       skip("memo backup: search matches restored memo", "GOTO_FAILED");
       skip("memo backup: has-memo filter after restore", "GOTO_FAILED");
-      skip("card reorder (drag 1->2)", "GOTO_FAILED");
+      skip("card reorder (handle drag 1->2)", "GOTO_FAILED");
       skip("memo-modal fits viewport", "GOTO_FAILED");
     }
 
@@ -315,7 +315,7 @@ async function main() {
         );
         fail("/app loads and build-stamp is visible", "AUTH_REQUIRED");
         fail("build-stamp sha matches /api/version sha", "AUTH_REQUIRED");
-        skip("sort dropdown switches to custom without losing cards", "AUTH_REQUIRED");
+        skip("drag handle triggers sort=custom URL param", "AUTH_REQUIRED");
         skip("cards-grid computed gap is 8px", "AUTH_REQUIRED");
         skip("MEMO button opens memo-modal", "AUTH_REQUIRED");
         skip("memo snippet shows saved text", "AUTH_REQUIRED");
@@ -326,7 +326,7 @@ async function main() {
         skip("memo backup: import restores snippets", "AUTH_REQUIRED");
         skip("memo backup: search matches restored memo", "AUTH_REQUIRED");
         skip("memo backup: has-memo filter after restore", "AUTH_REQUIRED");
-        skip("card reorder (drag 1->2)", "AUTH_REQUIRED");
+        skip("card reorder (handle drag 1->2)", "AUTH_REQUIRED");
         skip("memo-modal fits viewport", "AUTH_REQUIRED");
         console.log("\n  [error] Auth required: UI acceptance checks not executed.");
         console.log("  [error] Provide authenticated state (e.g. E2E=1 + storageState) before running app_ui_smoke.\n");
@@ -365,23 +365,47 @@ async function main() {
         // Wait for cards to settle
         await page.waitForTimeout(1500);
 
-        // ── Test 4: custom sort keeps cards ────────────────────────────
-        let cardCountBefore = 0;
+        // ── Test 4: drag handle triggers sort=custom URL param ─────────
         let cardCountAfter = 0;
         try {
-          const sortDropdown = page.locator("[data-testid=\"sort-dropdown\"]");
-          await sortDropdown.waitFor({ timeout: 10_000 });
-          cardCountBefore = await page.locator("[data-testid=\"card-item\"]").count();
-          await sortDropdown.selectOption("custom");
-          await page.waitForTimeout(1000);
-          cardCountAfter = await page.locator("[data-testid=\"card-item\"]").count();
-          if (cardCountAfter >= 1) {
-            pass("sort dropdown switches to custom without losing cards", `before=${cardCountBefore} after=${cardCountAfter}`);
+          const cardCountBefore = await page.locator("[data-testid=\"card-item\"]").count();
+          const handles = page.locator("[data-testid=\"drag-handle\"]");
+          const handleCount = await handles.count();
+          if (handleCount < 1) {
+            fail("drag handle triggers sort=custom URL param", `no drag-handle elements found (cards=${cardCountBefore})`);
+            cardCountAfter = cardCountBefore;
+          } else if (cardCountBefore < 2) {
+            skip("drag handle triggers sort=custom URL param", `need >=2 cards for drag test (got ${cardCountBefore})`);
+            cardCountAfter = cardCountBefore;
           } else {
-            fail("sort dropdown switches to custom without losing cards", `cards dropped to 0 (before=${cardCountBefore})`);
+            // Hover first card to make handle visible (opacity transition)
+            const firstCard = page.locator("[data-testid=\"card-item\"]").first();
+            await firstCard.hover();
+            await page.waitForTimeout(200);
+            const handle = firstCard.locator("[data-testid=\"drag-handle\"]");
+            const handleBox = await handle.boundingBox();
+            if (!handleBox) throw new Error("drag-handle has no bounding box");
+
+            const startX = handleBox.x + handleBox.width / 2;
+            const startY = handleBox.y + handleBox.height / 2;
+            await page.mouse.move(startX, startY);
+            await page.mouse.down();
+            // Break dnd-kit activationConstraint (distance:8)
+            await page.mouse.move(startX, startY + 12, { steps: 5 });
+            await page.mouse.move(startX, startY + 50, { steps: 10 });
+            await page.mouse.up();
+            await page.waitForTimeout(700);
+
+            const sortParam = new URL(page.url()).searchParams.get("sort");
+            cardCountAfter = await page.locator("[data-testid=\"card-item\"]").count();
+            if (sortParam === "custom" && cardCountAfter >= 1) {
+              pass("drag handle triggers sort=custom URL param", `sort=${sortParam} cards=${cardCountAfter}`);
+            } else {
+              fail("drag handle triggers sort=custom URL param", `sort=${sortParam} cards=${cardCountAfter} (expected sort=custom, cards>=1)`);
+            }
           }
         } catch (e) {
-          fail("sort dropdown switches to custom without losing cards", String(e));
+          fail("drag handle triggers sort=custom URL param", String(e));
         }
 
         // ── Test 5: cards-grid gap is 8px ──────────────────────────────
@@ -560,14 +584,14 @@ async function main() {
           }
         }
 
-        // ── Test 8: card reorder (full-card drag, no handle) ──────────
-        // Cards are draggable from their root (.thought-card) — no handle needed.
-        const cardCount = cardCountAfter;
+        // ── Test 8: card reorder (handle drag) ──────────────────────
+        // Cards are draggable only from [data-testid="drag-handle"].
+        const cardCount = cardCountAfter || await page.locator("[data-testid=\"card-item\"]").count();
         if (cardCount < 2) {
           if (E2E_MODE) {
-            fail("card reorder (drag 1->2)", `REORDER_REQUIRED: need >=2 cards (got ${cardCount})`);
+            fail("card reorder (handle drag 1->2)", `REORDER_REQUIRED: need >=2 cards (got ${cardCount})`);
           } else {
-            skip("card reorder (drag 1->2)", `only ${cardCount} card(s) — need >=2`);
+            skip("card reorder (handle drag 1->2)", `only ${cardCount} card(s) — need >=2`);
           }
         } else {
           try {
@@ -579,22 +603,27 @@ async function main() {
             for (let attempt = 1; attempt <= 3; attempt++) {
               const firstId = await items.nth(0).getAttribute("data-card-id");
               const secondId = await items.nth(1).getAttribute("data-card-id");
-              // Full-card drag: use .thought-card root (where dnd-kit listeners live)
-              const sourceCard = items.nth(0).locator(".thought-card").first();
-              const targetCard = items.nth(1).locator(".thought-card").first();
-              await sourceCard.scrollIntoViewIfNeeded();
+
+              // Hover first card to reveal the drag handle (opacity transition)
+              await items.nth(0).hover();
+              await page.waitForTimeout(200);
+
+              // Handle drag: use [data-testid="drag-handle"] (where dnd-kit listeners live)
+              const sourceHandle = items.nth(0).locator("[data-testid=\"drag-handle\"]").first();
+              const targetCard = items.nth(1);
+              await sourceHandle.scrollIntoViewIfNeeded();
               await targetCard.scrollIntoViewIfNeeded();
               await page.waitForTimeout(160);
 
-              const sourceBox = await sourceCard.boundingBox();
+              const sourceBox = await sourceHandle.boundingBox();
               const cardBox = await targetCard.boundingBox();
               if (!sourceBox || !cardBox) {
                 throw new Error(`REORDER_REQUIRED: missing bbox (attempt=${attempt})`);
               }
 
-              // Start from upper-centre of source (above image link / interactive chips)
+              // Start from centre of handle
               const startX = sourceBox.x + sourceBox.width / 2;
-              const startY = sourceBox.y + Math.min(20, sourceBox.height * 0.15);
+              const startY = sourceBox.y + sourceBox.height / 2;
               const targetX = cardBox.x + cardBox.width / 2;
               const targetY = cardBox.y + cardBox.height * 0.75;
 
@@ -610,25 +639,25 @@ async function main() {
               lastDetail =
                 `attempt=${attempt} first=${firstId} second=${secondId} newFirst=${newFirstId} ` +
                 `start=(${Math.round(startX)},${Math.round(startY)}) target=(${Math.round(targetX)},${Math.round(targetY)}) ` +
-                `source=(${Math.round(sourceBox.x)},${Math.round(sourceBox.y)},${Math.round(sourceBox.width)},${Math.round(sourceBox.height)}) ` +
+                `handle=(${Math.round(sourceBox.x)},${Math.round(sourceBox.y)},${Math.round(sourceBox.width)},${Math.round(sourceBox.height)}) ` +
                 `card=(${Math.round(cardBox.x)},${Math.round(cardBox.y)},${Math.round(cardBox.width)},${Math.round(cardBox.height)})`;
 
               if (newFirstId && firstId && newFirstId !== firstId) {
                 reordered = true;
-                pass("card reorder (drag 1->2)", `${lastDetail} reordered=true`);
+                pass("card reorder (handle drag 1->2)", `${lastDetail} reordered=true`);
                 break;
               }
             }
 
             if (!reordered) {
               if (E2E_MODE) {
-                fail("card reorder (drag 1->2)", `REORDER_REQUIRED: no reorder after 3 attempts (${lastDetail})`);
+                fail("card reorder (handle drag 1->2)", `REORDER_REQUIRED: no reorder after 3 attempts (${lastDetail})`);
               } else {
-                skip("card reorder (drag 1->2)", `no reorder after retries (${lastDetail})`);
+                skip("card reorder (handle drag 1->2)", `no reorder after retries (${lastDetail})`);
               }
             }
           } catch (e) {
-            fail("card reorder (drag 1->2)", String(e));
+            fail("card reorder (handle drag 1->2)", String(e));
           }
         }
 
