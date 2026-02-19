@@ -8,6 +8,7 @@ import { extractFirstHttpUrl, getYouTubeThumbnail } from "@/lib/urlUtils";
 import type { Card, File as FileRecord } from "@/lib/supabase/types";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { Drawer } from "@/ui/subframe/components/Drawer";
 
 type PreviewCacheEntry = {
   status: "ok" | "fail";
@@ -229,14 +230,10 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
   const cardRef = useRef<HTMLDivElement>(null);
   const titleInputRef = useRef<HTMLInputElement>(null);
   const memoSaveTimeout = useRef<NodeJS.Timeout | null>(null);
-  const memoModalRef = useRef<HTMLDivElement>(null);
   const memoTextareaRef = useRef<HTMLTextAreaElement>(null);
   const memoTriggerRef = useRef<HTMLButtonElement>(null);
-  const memoLastFocusRef = useRef<HTMLElement | null>(null);
   const previewAttemptCountRef = useRef(0);
   const memoStorageKey = `card:memo:${card.id}`;
-  const memoDialogTitleId = `memo-dialog-title-${card.id}`;
-  const memoDialogDescId = `memo-dialog-desc-${card.id}`;
 
   const persistMemoLocal = (text: string) => {
     try {
@@ -336,17 +333,11 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
     setPreviewFailed(false);
   }, [card.id, card.preview_image_url]);
 
+  // Auto-focus textarea when memo drawer opens (Drawer handles scroll lock + focus trap)
   useEffect(() => {
     if (!showMemoModal) return;
-    memoLastFocusRef.current = document.activeElement as HTMLElement | null;
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    const t = setTimeout(() => memoTextareaRef.current?.focus(), 0);
-    return () => {
-      clearTimeout(t);
-      document.body.style.overflow = prevOverflow;
-      memoLastFocusRef.current?.focus();
-    };
+    const t = setTimeout(() => memoTextareaRef.current?.focus(), 50);
+    return () => clearTimeout(t);
   }, [showMemoModal]);
 
   // Backfill source_url for YouTube cards (one-time client-side fix for legacy data)
@@ -719,35 +710,6 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
     setShowMemoModal(false);
   };
 
-  const handleMemoDialogKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    if (e.key === "Escape") {
-      e.preventDefault();
-      e.stopPropagation();
-      handleMemoModalClose();
-      return;
-    }
-    if (e.key !== "Tab") return;
-    const root = memoModalRef.current;
-    if (!root) return;
-    const focusableEls = root.querySelectorAll<HTMLElement>(
-      "a[href],button:not([disabled]),textarea:not([disabled]),input:not([disabled]),select:not([disabled]),[tabindex]:not([tabindex='-1'])"
-    );
-    if (focusableEls.length === 0) {
-      e.preventDefault();
-      return;
-    }
-    const first = focusableEls[0];
-    const last = focusableEls[focusableEls.length - 1];
-    const active = document.activeElement as HTMLElement | null;
-    if (!e.shiftKey && active === last) {
-      e.preventDefault();
-      first.focus();
-    } else if (e.shiftKey && active === first) {
-      e.preventDefault();
-      last.focus();
-    }
-  };
-
   const handleAIAnalyze = async () => {
     setAiAnalyzing(true);
     setAiError(null);
@@ -964,22 +926,35 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
           </span>
         </>
       )}
-      {showImage && (
+      {/* Source badge: platform icon overlay on thumbnail */}
+      {showImage && cardUrl && (
         <span
           style={{
             position: "absolute",
             bottom: 6,
             right: 8,
-            fontSize: 9,
-            color: "#fff",
-            background: "rgba(0,0,0,0.3)",
-            padding: "1px 6px",
+            pointerEvents: "none",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            width: 20,
+            height: 20,
             borderRadius: 4,
-            fontFamily: "var(--font-dm)",
-            letterSpacing: "0.05em",
+            background: "rgba(0,0,0,0.35)",
           }}
         >
-          {isProxied ? "proxy" : hasRealImage ? card.image_source : "preview"}
+          {isYouTubeUrl ? (
+            <svg width="12" height="9" viewBox="0 0 24 17" fill="none">
+              <path d="M23.5 2.5C23.2 1.4 22.3.5 21.2.2 19.3 0 12 0 12 0S4.7 0 2.8.3C1.7.5.8 1.4.5 2.5.2 4.4 0 8.5 0 8.5s.2 4.1.5 6c.3 1.1 1.2 2 2.3 2.3C4.7 17 12 17 12 17s7.3 0 9.2-.3c1.1-.3 2-1.2 2.3-2.3.3-1.9.5-6 .5-6s-.2-4.1-.5-5.9z" fill="#fff"/>
+              <path d="M9.6 12.1l6.1-3.6-6.1-3.6v7.2z" fill="rgba(0,0,0,0.5)"/>
+            </svg>
+          ) : /instagram\.com|instagr\.am/i.test(cardUrl) ? (
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="#fff">
+              <path d="M12 2.2c2.7 0 3 0 4.1.1 1 0 1.5.2 1.9.4.5.2.8.4 1.1.7.3.3.5.7.7 1.1.1.4.3.9.4 1.9 0 1.1.1 1.4.1 4.1s0 3-.1 4.1c0 1-.2 1.5-.4 1.9-.2.5-.4.8-.7 1.1-.3.3-.7.5-1.1.7-.4.1-.9.3-1.9.4-1.1 0-1.4.1-4.1.1s-3 0-4.1-.1c-1 0-1.5-.2-1.9-.4-.5-.2-.8-.4-1.1-.7-.3-.3-.5-.7-.7-1.1-.1-.4-.3-.9-.4-1.9 0-1.1-.1-1.4-.1-4.1s0-3 .1-4.1c0-1 .2-1.5.4-1.9.2-.5.4-.8.7-1.1.3-.3.7-.5 1.1-.7.4-.1.9-.3 1.9-.4 1.1 0 1.4-.1 4.1-.1zM12 0C9.3 0 8.9 0 7.9.1c-1.1 0-1.8.2-2.5.5-.7.3-1.3.6-1.9 1.2C2.9 2.4 2.6 3 2.3 3.6c-.3.7-.5 1.4-.5 2.5C1.7 7.1 1.7 7.5 1.7 12s0 4.9.1 5.9c0 1.1.2 1.8.5 2.5.3.7.6 1.3 1.2 1.9.6.6 1.2.9 1.9 1.2.7.3 1.4.5 2.5.5 1 .1 1.4.1 5.9.1s4.9 0 5.9-.1c1.1 0 1.8-.2 2.5-.5.7-.3 1.3-.6 1.9-1.2.6-.6.9-1.2 1.2-1.9.3-.7.5-1.4.5-2.5.1-1 .1-1.4.1-5.9s0-4.9-.1-5.9c0-1.1-.2-1.8-.5-2.5-.3-.7-.6-1.3-1.2-1.9C21.6 1.3 21 1 20.4.7c-.7-.3-1.4-.5-2.5-.5C16.9 0 16.5 0 12 0z"/>
+              <path d="M12 5.8a6.2 6.2 0 100 12.4 6.2 6.2 0 000-12.4zm0 10.2a4 4 0 110-8 4 4 0 010 8z"/>
+              <circle cx="18.4" cy="5.6" r="1.4"/>
+            </svg>
+          ) : null}
         </span>
       )}
     </div>
@@ -1537,91 +1512,26 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
           </div>
         </div>
 
-        {isDebugPreview() && cardUrl && (
-          <div style={{ fontSize: 8, color: "#aaa", fontFamily: "monospace", marginTop: 2 }}>
-            preview: {debugSource}
-          </div>
-        )}
       </div>
 
-      {/* Memo Modal */}
-      {showMemoModal && (
-        <div
-          onClick={handleMemoModalClose}
-          onKeyDown={handleMemoDialogKeyDown}
-          style={{
-            position: "fixed",
-            inset: 0,
-            background: "rgba(0,0,0,0.4)",
-            zIndex: 999,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: 20,
-          }}
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            ref={memoModalRef}
-            role="dialog"
-            aria-modal="true"
-            data-testid="memo-modal"
-            aria-labelledby={memoDialogTitleId}
-            aria-describedby={memoDialogDescId}
-            style={{
-              background: "#fff",
-              borderRadius: 12,
-              padding: 20,
-              maxWidth: 500,
-              width: "100%",
-              maxHeight: "80vh",
-              overflowY: "auto",
-              boxShadow: "0 20px 40px rgba(0,0,0,0.2)",
-            }}
-          >
-            {/* Header */}
-            <div style={{ marginBottom: 12 }}>
-              <div
-                id={memoDialogTitleId}
-                style={{
-                  fontSize: 14,
-                  fontWeight: 600,
-                  color: "#2a2a2a",
-                  marginBottom: 4,
-                  wordBreak: "break-word",
-                }}
-              >
-                {displayTitle}
-              </div>
-              <div style={{ fontSize: 11, color: "#999", fontFamily: "var(--font-dm)" }}>
-                {new Date(card.created_at).toLocaleString()}
-              </div>
-              <div id={memoDialogDescId} style={{ fontSize: 11, color: "#999", fontFamily: "var(--font-dm)", marginTop: 4 }}>
-                Edit your memo. Press Escape to close.
-              </div>
+      {/* Memo Drawer (Subframe/Radix — handles overlay, focus trap, Escape, scroll lock) */}
+      <Drawer open={showMemoModal} onOpenChange={(open) => { if (!open) handleMemoModalClose(); }}>
+        <Drawer.Content className="w-[340px] max-w-[90vw] p-5" data-testid="memo-modal">
+          <div style={{ display: "flex", flexDirection: "column", height: "100%", minHeight: 0 }}>
+            {/* Title */}
+            <div
+              style={{
+                fontSize: 14,
+                fontWeight: 600,
+                color: "#2a2a2a",
+                marginBottom: 12,
+                wordBreak: "break-word",
+              }}
+            >
+              {displayTitle}
             </div>
 
-            {/* Open link */}
-            {cardUrl && (
-              <a
-                href={cardUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                style={{
-                  display: "inline-block",
-                  fontSize: 11,
-                  color: ct.accent,
-                  textDecoration: "none",
-                  fontFamily: "var(--font-dm)",
-                  fontWeight: 600,
-                  marginBottom: 12,
-                }}
-              >
-                Open link &rsaquo;
-              </a>
-            )}
-
-            {/* Memo textarea */}
+            {/* Memo textarea — fills available space */}
             <textarea
               data-testid="memo-textarea"
               ref={memoTextareaRef}
@@ -1631,8 +1541,8 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
               placeholder="Add notes..."
               style={{
                 width: "100%",
+                flex: 1,
                 minHeight: 180,
-                maxHeight: "50vh",
                 padding: 12,
                 fontSize: 13,
                 lineHeight: 1.6,
@@ -1654,14 +1564,7 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
 
             {/* Save status */}
             {memoSaveStatus === "saved" && (
-              <div
-                style={{
-                  fontSize: 11,
-                  color: "#2D8F50",
-                  marginTop: 8,
-                  fontFamily: "var(--font-dm)",
-                }}
-              >
+              <div style={{ fontSize: 11, color: "#2D8F50", marginTop: 8, fontFamily: "var(--font-dm)" }}>
                 ✓ Saved
               </div>
             )}
@@ -1684,7 +1587,8 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
               </div>
             )}
 
-            <div style={{ display: "flex", gap: 8, marginTop: 16 }}>
+            {/* Footer — sticky bottom */}
+            <div style={{ display: "flex", gap: 8, marginTop: 16, paddingBottom: "env(safe-area-inset-bottom, 0px)" }}>
               <button
                 data-testid="memo-save"
                 aria-label="Save memo"
@@ -1705,7 +1609,7 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
                 Save
               </button>
               <button
-                aria-label="Close memo dialog"
+                aria-label="Close memo drawer"
                 className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#888888]"
                 onClick={handleMemoModalClose}
                 style={{
@@ -1724,8 +1628,8 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
               </button>
             </div>
           </div>
-        </div>
-      )}
+        </Drawer.Content>
+      </Drawer>
     </div>
   );
 }
