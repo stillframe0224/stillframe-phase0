@@ -1,12 +1,12 @@
-/* Tunnel Canvas — 3D floating card space (SHINEN white tone) */
+/* Tunnel Canvas — 3D floating card space */
 
 .tunnel-scene {
-  perspective: 1200px;
+  perspective: 1300px;
   overflow: hidden;
   position: relative;
   width: 100vw;
-  height: calc(100vh - 160px);
-  background: var(--sh-bg, #fdfdfd);
+  height: calc(100vh - 36px);
+  background: var(--sh-paper);
   touch-action: pan-y;
 }
 
@@ -15,14 +15,15 @@
   inset: 0;
   pointer-events: none;
   background-image:
-    linear-gradient(var(--sh-line, rgba(0,0,0,0.08)) 1px, transparent 1px),
-    linear-gradient(90deg, var(--sh-line, rgba(0,0,0,0.08)) 1px, transparent 1px);
+    linear-gradient(var(--sh-grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--sh-grid-line) 1px, transparent 1px);
   background-size: 60px 60px;
   z-index: 0;
 }
 
 .tunnel-stage {
   transform-style: preserve-3d;
+  transform-origin: 50% 45%;
   position: absolute;
   inset: 0;
   z-index: 1;
@@ -64,28 +65,108 @@
 
 .tunnel-hud {
   position: absolute;
-  bottom: 12px;
+  top: 12px;
   left: 16px;
+  right: 16px;
   z-index: 200;
-  pointer-events: none;
+  pointer-events: auto;
   user-select: none;
-  font-family: var(--font-dm), monospace;
-  font-size: 10px;
-  color: var(--sh-ink2, rgba(0,0,0,0.35));
-  line-height: 1.6;
-  padding: 8px 12px;
-  border-radius: 10px;
-  background: var(--sh-glass, rgba(255,255,255,0.72));
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid var(--sh-line, rgba(0,0,0,0.08));
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: var(--sh-glass);
+  border: 1px solid var(--sh-line);
+  box-shadow: var(--sh-shadow-sm);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.tunnel-hud-left,
+.tunnel-hud-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tunnel-hud-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+  color: var(--sh-ink);
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  font-family: var(--font-dm), system-ui, sans-serif;
+}
+
+.tunnel-hud-brand img {
+  width: 14px;
+  height: 14px;
+}
+
+.tunnel-hud-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #d9a441;
+  box-shadow: 0 0 0 2px color-mix(in srgb, #d9a441 22%, transparent);
+}
+
+.tunnel-hud-count {
+  color: var(--sh-ink2);
+  font-family: var(--font-dm), system-ui, sans-serif;
+  font-size: 12px;
 }
 
 .tunnel-hud-layout {
   font-size: 11px;
-  color: var(--sh-ink, rgba(0,0,0,0.62));
+  color: var(--sh-ink-sub);
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
-  margin-bottom: 2px;
+  letter-spacing: 0.08em;
+  padding: 3px 8px;
+  border: 1px solid var(--sh-line);
+  border-radius: 999px;
+  background: #fff;
+}
+
+.tunnel-hud-btn {
+  border: 1px solid var(--sh-line2);
+  background: #fff;
+  color: var(--sh-ink);
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 12px;
+  cursor: pointer;
+  font-family: var(--font-dm), system-ui, sans-serif;
+}
+
+.tunnel-hud-error {
+  color: #c2410c;
+  font-weight: 600;
+  font-size: 11px;
+}
+
+.tunnel-tools-drawer {
+  position: absolute;
+  top: 54px;
+  right: 16px;
+  width: min(460px, calc(100vw - 32px));
+  max-height: calc(100vh - 82px);
+  overflow: auto;
+  z-index: 220;
+  border: 1px solid var(--sh-line2);
+  background: var(--sh-paper2);
+  border-radius: 14px;
+  box-shadow: var(--sh-shadow);
+  padding: 12px;
+}
+
+.tunnel-tools-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
 }

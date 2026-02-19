@@ -135,7 +135,9 @@ function AppPageInner() {
     typeof window !== "undefined" &&
     (window as any).__E2E_ALLOWED__ === true &&
     new URLSearchParams(window.location.search).get("e2e") === "1";
-  const viewMode = e2eMode ? "list" : (searchParams.get("view") || "tunnel");
+  const forceTunnelInE2E = e2eMode && searchParams.get("tunnel") === "1";
+  const viewMode = forceTunnelInE2E ? "tunnel" : e2eMode ? "list" : (searchParams.get("view") || "tunnel");
+  const isTunnelView = viewMode === "tunnel";
 
   const [cards, setCards] = useState<Card[]>([]);
   const [files, setFiles] = useState<FileRecord[]>([]);
@@ -506,13 +508,18 @@ function AppPageInner() {
     if (sortOrder !== "newest") params.set("sort", sortOrder);
     if (showPinnedOnly) params.set("p", "1");
     if (e2eMode) params.set("e2e", "1");
-    if (viewMode !== "tunnel") params.set("view", viewMode);
+    if (forceTunnelInE2E) {
+      params.set("view", "tunnel");
+      params.set("tunnel", "1");
+    } else if (viewMode !== "tunnel") {
+      params.set("view", viewMode);
+    }
     const query = params.toString();
     const newUrl = query ? `/app?${query}` : "/app";
     // Use history.replaceState to avoid Next.js router triggering _rsc re-fetch
     // which can redirect to /auth/login when the session appears stale.
     window.history.replaceState(null, "", newUrl);
-  }, [searchQuery, domainFilter, fileFilter, mediaFilter, showHasMemoOnly, sortOrder, showPinnedOnly, e2eMode, viewMode]);
+  }, [searchQuery, domainFilter, fileFilter, mediaFilter, showHasMemoOnly, sortOrder, showPinnedOnly, e2eMode, forceTunnelInE2E, viewMode]);
 
   // Extract unique domains from cards
   const domains = useMemo(() => {
@@ -1547,6 +1554,112 @@ function AppPageInner() {
   };
 
   const ct = getCardType(selectedType);
+  const tunnelToolsContent = (
+    <div style={{ display: "grid", gap: 10 }}>
+      <button
+        type="button"
+        onClick={() => {
+          const params = new URLSearchParams(window.location.search);
+          params.set("view", "list");
+          if (e2eMode) params.set("e2e", "1");
+          window.location.href = `/app?${params.toString()}`;
+        }}
+        style={{
+          padding: "9px 12px",
+          border: "1px solid var(--sh-line2)",
+          borderRadius: 10,
+          background: "#fff",
+          cursor: "pointer",
+          textAlign: "left",
+          fontSize: 13,
+          fontFamily: "var(--font-dm)",
+        }}
+      >
+        Open full tools in list view
+      </button>
+      <input
+        data-testid="tools-search-input"
+        type="text"
+        value={searchQuery}
+        onChange={(e) => setSearchQuery(e.target.value)}
+        placeholder="Search..."
+        style={{
+          padding: "8px 12px",
+          border: "1px solid var(--sh-line2)",
+          borderRadius: 8,
+          fontSize: 13,
+          fontFamily: "var(--font-dm)",
+          outline: "none",
+          background: "#fff",
+        }}
+      />
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+        <select
+          value={domainFilter}
+          onChange={(e) => setDomainFilter(e.target.value)}
+          style={{ padding: "8px 10px", border: "1px solid var(--sh-line2)", borderRadius: 8, background: "#fff" }}
+        >
+          <option value="all">All domains</option>
+          {domains.map((d) => (
+            <option key={d} value={d}>
+              {d}
+            </option>
+          ))}
+        </select>
+        <select
+          value={fileFilter}
+          onChange={(e) => setFileFilter(e.target.value)}
+          style={{ padding: "8px 10px", border: "1px solid var(--sh-line2)", borderRadius: 8, background: "#fff" }}
+        >
+          <option value="all">All files</option>
+          <option value="unfiled">Unfiled</option>
+          {files.map((f) => (
+            <option key={f.id} value={f.id}>
+              {f.name}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+        <button
+          type="button"
+          data-testid="memo-export"
+          onClick={handleMemoExport}
+          style={{ padding: "8px 10px", border: "1px solid var(--sh-line2)", borderRadius: 8, background: "#fff", cursor: "pointer", fontSize: 12 }}
+        >
+          Export memos
+        </button>
+        <button
+          type="button"
+          data-testid="memo-import"
+          onClick={() => memoImportInputRef.current?.click()}
+          style={{ padding: "8px 10px", border: "1px solid var(--sh-line2)", borderRadius: 8, background: "#fff", cursor: "pointer", fontSize: 12 }}
+        >
+          Import memos
+        </button>
+        <button
+          type="button"
+          data-testid="memo-clear"
+          onClick={handleMemoClear}
+          style={{ padding: "8px 10px", border: "1px solid var(--sh-line2)", borderRadius: 8, background: "#fff", cursor: "pointer", fontSize: 12 }}
+        >
+          Clear memos
+        </button>
+        <input
+          data-testid="memo-import-input"
+          ref={memoImportInputRef}
+          type="file"
+          accept=".json,application/json"
+          style={{ display: "none" }}
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (file) handleMemoImport(file);
+            e.target.value = "";
+          }}
+        />
+      </div>
+    </div>
+  );
 
   if (loading) {
     return (
@@ -1557,7 +1670,7 @@ function AppPageInner() {
           alignItems: "center",
           justifyContent: "center",
           fontFamily: "var(--font-dm)",
-          color: "var(--sh-ink2)",
+          color: "#999",
         }}
       >
         Loading...
@@ -1594,7 +1707,14 @@ function AppPageInner() {
             Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in
             your environment. See OPS/supabase-setup.md for instructions.
           </p>
-          <p style={{ fontSize: 12, color: "var(--sh-ink2)", marginTop: 12, fontFamily: "monospace" }}>
+          <p
+            style={{
+              fontSize: 12,
+              color: "var(--sh-ink-muted)",
+              marginTop: 12,
+              fontFamily: "monospace",
+            }}
+          >
             URL: {getConfigStatus().url ? "set" : "MISSING"} / KEY: {getConfigStatus().key ? "set" : "MISSING"}
           </p>
           <a
@@ -1639,7 +1759,7 @@ function AppPageInner() {
             fontSize: 13,
             fontFamily: "var(--font-dm)",
             zIndex: 100,
-            boxShadow: "var(--sh-shadow-sm)",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
           }}
         >
           {banner}
@@ -1661,7 +1781,7 @@ function AppPageInner() {
             fontSize: 12,
             fontFamily: "var(--font-dm)",
             zIndex: 101,
-            boxShadow: "var(--sh-shadow-sm)",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
             maxWidth: "90vw",
             wordBreak: "break-word",
           }}
@@ -1685,7 +1805,7 @@ function AppPageInner() {
             fontSize: 13,
             fontFamily: "var(--font-dm)",
             zIndex: 102,
-            boxShadow: "var(--sh-shadow-sm)",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
             display: "flex",
             alignItems: "center",
             gap: 12,
@@ -1757,7 +1877,7 @@ function AppPageInner() {
             fontSize: 13,
             fontFamily: "var(--font-dm)",
             zIndex: 102,
-            boxShadow: "var(--sh-shadow-sm)",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
             display: "flex",
             alignItems: "center",
             gap: 12,
@@ -1798,7 +1918,7 @@ function AppPageInner() {
       )}
 
       {/* Bulk action toolbar */}
-      {isBulkMode && selectedCardIds.size > 0 && (
+      {!isTunnelView && isBulkMode && selectedCardIds.size > 0 && (
         <div
           style={{
             position: "fixed",
@@ -1809,7 +1929,7 @@ function AppPageInner() {
             borderRadius: 12,
             background: "#fff",
             border: "1.5px solid #4F6ED9",
-            boxShadow: "var(--sh-shadow-sm)",
+            boxShadow: "0 8px 24px rgba(0,0,0,0.15)",
             zIndex: 102,
             display: "flex",
             alignItems: "center",
@@ -1830,7 +1950,7 @@ function AppPageInner() {
             }}
             style={{
               padding: "6px 12px",
-              border: "1px solid var(--sh-line2)",
+              border: "1px solid #e0e0e0",
               borderRadius: 6,
               fontSize: 13,
               fontFamily: "var(--font-dm)",
@@ -1852,7 +1972,7 @@ function AppPageInner() {
       )}
 
       {/* Header */}
-      <header
+      {!isTunnelView && <header
         style={{
           display: "flex",
           justifyContent: "space-between",
@@ -1860,7 +1980,7 @@ function AppPageInner() {
           padding: "16px 24px",
           maxWidth: 1100,
           margin: "0 auto",
-          borderBottom: "1px solid var(--sh-line)",
+          borderBottom: "1px solid #e8e5e0",
         }}
       >
         <a
@@ -1918,7 +2038,7 @@ function AppPageInner() {
             href="/bookmarklet"
             style={{
               fontSize: 12,
-              color: "var(--sh-ink2)",
+              color: "var(--sh-ink-muted)",
               textDecoration: "none",
               fontFamily: "var(--font-dm)",
             }}
@@ -1929,7 +2049,7 @@ function AppPageInner() {
             onClick={handleLogout}
             style={{
               fontSize: 13,
-              color: "var(--sh-ink2)",
+              color: "#999",
               background: "none",
               border: "none",
               cursor: "pointer",
@@ -1939,10 +2059,10 @@ function AppPageInner() {
             Sign out
           </button>
         </div>
-      </header>
+      </header>}
 
       {/* Quick Capture Input */}
-      <div
+      {!isTunnelView && <div
         style={{
           maxWidth: 680,
           margin: "0 auto",
@@ -2004,7 +2124,7 @@ function AppPageInner() {
               flex: 1,
               position: "relative",
               borderRadius: 16,
-              border: `1.2px solid ${dragOver ? ct.accent : "var(--sh-line2)"}`,
+              border: `1.5px solid ${dragOver ? ct.accent : "#e8e5e0"}`,
               background: dragOver ? `${ct.bg}` : "#fff",
               transition: "border-color 0.2s, background 0.2s",
               overflow: "hidden",
@@ -2068,7 +2188,7 @@ function AppPageInner() {
                 height: 46,
                 borderRadius: "50%",
                 border: "none",
-                background: saving ? "var(--sh-line2)" : ct.accent,
+                background: saving ? "#ddd" : ct.accent,
                 color: "#fff",
                 fontSize: 22,
                 fontWeight: 300,
@@ -2091,9 +2211,9 @@ function AppPageInner() {
                   bottom: 56,
                   right: 0,
                   background: "#fff",
-                  border: "1.2px solid var(--sh-line2)",
+                  border: "1.5px solid #e8e5e0",
                   borderRadius: 12,
-                  boxShadow: "var(--sh-shadow-sm)",
+                  boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
                   overflow: "hidden",
                   minWidth: 140,
                   zIndex: 50,
@@ -2116,7 +2236,7 @@ function AppPageInner() {
                     cursor: "pointer",
                     transition: "background 0.15s",
                   }}
-                  onMouseEnter={(e) => (e.currentTarget.style.background = "var(--sh-line)")}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = "#f9f9f9")}
                   onMouseLeave={(e) => (e.currentTarget.style.background = "none")}
                 >
                   Text
@@ -2131,7 +2251,7 @@ function AppPageInner() {
                     padding: "12px 16px",
                     background: "none",
                     border: "none",
-                    borderTop: "1px solid var(--sh-line)",
+                    borderTop: "1px solid #f0f0f0",
                     textAlign: "left",
                     fontSize: 14,
                     fontFamily: "var(--font-dm)",
@@ -2139,7 +2259,7 @@ function AppPageInner() {
                     cursor: "pointer",
                     transition: "background 0.15s",
                   }}
-                  onMouseEnter={(e) => (e.currentTarget.style.background = "var(--sh-line)")}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = "#f9f9f9")}
                   onMouseLeave={(e) => (e.currentTarget.style.background = "none")}
                 >
                   Upload
@@ -2170,10 +2290,10 @@ function AppPageInner() {
             Drop image to attach
           </p>
         )}
-      </div>
+      </div>}
 
       {/* Search/Filter/Sort Controls */}
-      {cards.length > 0 && (
+      {!isTunnelView && cards.length > 0 && (
         <div
           style={{
             maxWidth: 1100,
@@ -2189,10 +2309,8 @@ function AppPageInner() {
               alignItems: "center",
               padding: "12px 16px",
               borderRadius: 12,
-              background: "var(--sh-glass)",
-              backdropFilter: "blur(12px)",
-              WebkitBackdropFilter: "blur(12px)",
-              border: "1px solid var(--sh-line)",
+              background: "#f9f9f9",
+              border: "1px solid #e8e5e0",
             }}
           >
             {/* Search input */}
@@ -2205,7 +2323,7 @@ function AppPageInner() {
               style={{
                 flex: "1 1 200px",
                 padding: "8px 12px",
-                border: "1px solid var(--sh-line2)",
+                border: "1px solid #e0e0e0",
                 borderRadius: 8,
                 fontSize: 13,
                 fontFamily: "var(--font-dm)",
@@ -2220,7 +2338,7 @@ function AppPageInner() {
               onChange={(e) => setDomainFilter(e.target.value)}
               style={{
                 padding: "8px 12px",
-                border: "1px solid var(--sh-line2)",
+                border: "1px solid #e0e0e0",
                 borderRadius: 8,
                 fontSize: 13,
                 fontFamily: "var(--font-dm)",
@@ -2243,7 +2361,7 @@ function AppPageInner() {
               onChange={(e) => setFileFilter(e.target.value)}
               style={{
                 padding: "8px 12px",
-                border: "1px solid var(--sh-line2)",
+                border: "1px solid #e0e0e0",
                 borderRadius: 8,
                 fontSize: 13,
                 fontFamily: "var(--font-dm)",
@@ -2267,7 +2385,7 @@ function AppPageInner() {
               onChange={(e) => setMediaFilter(e.target.value as "all" | "link" | "image" | "video")}
               style={{
                 padding: "8px 12px",
-                border: "1px solid var(--sh-line2)",
+                border: "1px solid #e0e0e0",
                 borderRadius: 8,
                 fontSize: 13,
                 fontFamily: "var(--font-dm)",
@@ -2288,7 +2406,7 @@ function AppPageInner() {
                 onClick={() => setShowNewFileInput(true)}
                 style={{
                   padding: "8px 12px",
-                  border: "1px solid var(--sh-line2)",
+                  border: "1px solid #e0e0e0",
                   borderRadius: 8,
                   fontSize: 13,
                   fontFamily: "var(--font-dm)",
@@ -2347,7 +2465,7 @@ function AppPageInner() {
                   }}
                   style={{
                     padding: "8px 12px",
-                    border: "1px solid var(--sh-line2)",
+                    border: "1px solid #e0e0e0",
                     borderRadius: 8,
                     fontSize: 13,
                     fontFamily: "var(--font-dm)",
@@ -2365,7 +2483,7 @@ function AppPageInner() {
               onClick={() => setShowPinnedOnly(!showPinnedOnly)}
               style={{
                 padding: "8px 12px",
-                border: showPinnedOnly ? "1.5px solid #F5C882" : "1px solid var(--sh-line2)",
+                border: showPinnedOnly ? "1.5px solid #F5C882" : "1px solid #e0e0e0",
                 borderRadius: 8,
                 fontSize: 13,
                 fontFamily: "var(--font-dm)",
@@ -2387,7 +2505,7 @@ function AppPageInner() {
               onClick={() => setShowHasMemoOnly(!showHasMemoOnly)}
               style={{
                 padding: "8px 12px",
-                border: showHasMemoOnly ? "1.5px solid #7C8D5B" : "1px solid var(--sh-line2)",
+                border: showHasMemoOnly ? "1.5px solid #7C8D5B" : "1px solid #e0e0e0",
                 borderRadius: 8,
                 fontSize: 13,
                 fontFamily: "var(--font-dm)",
@@ -2407,7 +2525,7 @@ function AppPageInner() {
               onClick={handleMemoExport}
               style={{
                 padding: "8px 12px",
-                border: "1px solid var(--sh-line2)",
+                border: "1px solid #e0e0e0",
                 borderRadius: 8,
                 fontSize: 13,
                 fontFamily: "var(--font-dm)",
@@ -2426,7 +2544,7 @@ function AppPageInner() {
               onClick={() => memoImportInputRef.current?.click()}
               style={{
                 padding: "8px 12px",
-                border: "1px solid var(--sh-line2)",
+                border: "1px solid #e0e0e0",
                 borderRadius: 8,
                 fontSize: 13,
                 fontFamily: "var(--font-dm)",
@@ -2445,7 +2563,7 @@ function AppPageInner() {
               onClick={handleMemoClear}
               style={{
                 padding: "8px 12px",
-                border: "1px solid var(--sh-line2)",
+                border: "1px solid #e0e0e0",
                 borderRadius: 8,
                 fontSize: 13,
                 fontFamily: "var(--font-dm)",
@@ -2478,7 +2596,7 @@ function AppPageInner() {
               onClick={toggleBulkMode}
               style={{
                 padding: "8px 12px",
-                border: isBulkMode ? "1.5px solid #4F6ED9" : "1px solid var(--sh-line2)",
+                border: isBulkMode ? "1.5px solid #4F6ED9" : "1px solid #e0e0e0",
                 borderRadius: 8,
                 fontSize: 13,
                 fontFamily: "var(--font-dm)",
@@ -2514,7 +2632,7 @@ function AppPageInner() {
         <p
           style={{
             textAlign: "center",
-            color: "var(--sh-ink2)",
+            color: "var(--sh-ink-muted)",
             fontSize: 14,
             padding: "60px 0",
           }}
@@ -2526,7 +2644,7 @@ function AppPageInner() {
         <p
           style={{
             textAlign: "center",
-            color: "var(--sh-ink2)",
+            color: "var(--sh-ink-muted)",
             fontSize: 14,
             padding: "60px 0",
           }}
@@ -2578,6 +2696,8 @@ function AppPageInner() {
           onNotesSaved={handleNotesSaved}
           files={files}
           userId={user?.id || "anon"}
+          toolsContent={tunnelToolsContent}
+          cardCount={filteredCards.length}
         />
       )}
 
@@ -2589,7 +2709,7 @@ function AppPageInner() {
           bottom: 8,
           right: 8,
           fontSize: 9,
-          color: "var(--sh-ink2)",
+          color: "#999",
           opacity: 0.5,
           fontFamily: "monospace",
           pointerEvents: "none",
