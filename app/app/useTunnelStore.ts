@@ -190,6 +190,13 @@ export function useTunnelStore(userId: string, cardIds: string[]) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cardIds.join(",")]);
 
+  // Cleanup save timer on unmount
+  useEffect(() => {
+    return () => {
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    };
+  }, []);
+
   const debouncedSave = useCallback(
     (s: TunnelState) => {
       if (saveTimerRef.current) clearTimeout(saveTimerRef.current);

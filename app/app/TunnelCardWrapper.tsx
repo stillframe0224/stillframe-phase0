@@ -114,6 +114,13 @@ export default function TunnelCardWrapper({
     };
   }, [card.id, position.z, stageScale, onPositionChange]);
 
+  // Cleanup z-depth debounce timer on unmount
+  useEffect(() => {
+    return () => {
+      if (zDebounce.current) clearTimeout(zDebounce.current);
+    };
+  }, []);
+
   const handleWheel = useCallback(
     (e: React.WheelEvent) => {
       e.stopPropagation();
