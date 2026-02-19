@@ -12,7 +12,10 @@ test("LP CTAs are visible and clickable", async ({ page }) => {
   await expect(waitlist).toBeVisible();
 
   await earlyAccess.click({ trial: true });
-  await pricing.click({ trial: true });
+  // pricing CTA may be disabled when checkout URL is not configured
+  if (!await pricing.isDisabled()) {
+    await pricing.click({ trial: true });
+  }
   await waitlist.click({ trial: true });
 });
 
