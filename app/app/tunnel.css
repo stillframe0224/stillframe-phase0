@@ -1,0 +1,82 @@
+/* Tunnel Canvas — 3D floating card space */
+
+.tunnel-scene {
+  perspective: 1200px;
+  overflow: hidden;
+  position: relative;
+  width: 100vw;
+  height: calc(100vh - 160px);
+  background: #0a0a0a;
+}
+
+.tunnel-grid-bg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+  background-size: 60px 60px;
+  z-index: 0;
+}
+
+.tunnel-stage {
+  transform-style: preserve-3d;
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  will-change: transform;
+}
+
+.tunnel-card {
+  position: absolute;
+  will-change: transform;
+  transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  cursor: grab;
+  z-index: 1;
+}
+
+.tunnel-card:hover {
+  z-index: 10;
+}
+
+.tunnel-card.dragging {
+  transition: none;
+  cursor: grabbing;
+  z-index: 100;
+}
+
+.tunnel-card-inner {
+  animation: tunnelFloat 6s ease-in-out infinite alternate;
+}
+
+.tunnel-card.dragging .tunnel-card-inner {
+  animation-play-state: paused;
+}
+
+@keyframes tunnelFloat {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-6px); }
+}
+
+.tunnel-hud {
+  position: absolute;
+  bottom: 12px;
+  left: 16px;
+  z-index: 200;
+  pointer-events: none;
+  user-select: none;
+  font-family: monospace;
+  font-size: 11px;
+  color: rgba(255,255,255,0.35);
+  line-height: 1.6;
+}
+
+.tunnel-hud-layout {
+  font-size: 13px;
+  color: rgba(255,255,255,0.5);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 4px;
+}
