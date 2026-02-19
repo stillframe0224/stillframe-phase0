@@ -2,11 +2,6 @@
 
 import { useRef, useEffect, useCallback, useMemo } from "react";
 import type { Card, File as FileRecord } from "@/lib/supabase/types";
-import { DndContext } from "@dnd-kit/core";
-import {
-  SortableContext,
-  verticalListSortingStrategy,
-} from "@dnd-kit/sortable";
 import TunnelCardWrapper from "./TunnelCardWrapper";
 import { useTunnelStore } from "./useTunnelStore";
 
@@ -140,14 +135,12 @@ export default function TunnelCanvas({
   }, [cycleLayout, resetAll]);
 
   return (
-    <DndContext>
-      <SortableContext items={[]} strategy={verticalListSortingStrategy}>
-        <div
-          ref={sceneRef}
-          className="tunnel-scene"
-          onPointerDown={handleScenePointerDown}
-          onWheel={handleSceneWheel}
-        >
+    <div
+      ref={sceneRef}
+      className="tunnel-scene"
+      onPointerDown={handleScenePointerDown}
+      onWheel={handleSceneWheel}
+    >
           <div className="tunnel-grid-bg" />
           <div
             ref={stageRef}
@@ -182,8 +175,6 @@ export default function TunnelCanvas({
             <div>Shift+drag: pan / Scroll: zoom</div>
             <div>Scroll on card: depth</div>
           </div>
-        </div>
-      </SortableContext>
-    </DndContext>
+    </div>
   );
 }
