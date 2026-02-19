@@ -6,7 +6,7 @@
   position: relative;
   width: 100vw;
   height: calc(100vh - 160px);
-  background: #0a0a0a;
+  background: var(--sh-paper);
   touch-action: pan-y;
 }
 
@@ -15,8 +15,8 @@
   inset: 0;
   pointer-events: none;
   background-image:
-    linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+    linear-gradient(var(--sh-grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--sh-grid-line) 1px, transparent 1px);
   background-size: 60px 60px;
   z-index: 0;
 }
@@ -71,13 +71,13 @@
   user-select: none;
   font-family: monospace;
   font-size: 11px;
-  color: rgba(255,255,255,0.35);
+  color: var(--sh-ink-muted);
   line-height: 1.6;
 }
 
 .tunnel-hud-layout {
   font-size: 13px;
-  color: rgba(255,255,255,0.5);
+  color: var(--sh-ink-sub);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.1em;

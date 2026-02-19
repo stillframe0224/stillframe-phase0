@@ -2,11 +2,19 @@
 @config "../tailwind.config.cjs";
 
 :root {
-  --bg: #faf8f5;
-  --text: #2a2a2a;
-  --text-sub: #777;
-  --text-muted: #999;
-  --border: #e8e5e0;
+  --sh-paper: #fdfcf9;
+  --sh-ink: #2a2a2a;
+  --sh-ink-sub: #6f6f6f;
+  --sh-ink-muted: #b8b8b8;
+  --sh-line: #e8e5e0;
+  --sh-grid-line: rgba(0, 0, 0, 0.035);
+  --sh-shadow-quiet: 0 10px 30px rgba(20, 20, 20, 0.08);
+
+  --bg: var(--sh-paper);
+  --text: var(--sh-ink);
+  --text-sub: var(--sh-ink-sub);
+  --text-muted: var(--sh-ink-muted);
+  --border: var(--sh-line);
 }
 
 * {

@@ -1594,7 +1594,14 @@ function AppPageInner() {
             Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in
             your environment. See OPS/supabase-setup.md for instructions.
           </p>
-          <p style={{ fontSize: 12, color: "#bbb", marginTop: 12, fontFamily: "monospace" }}>
+          <p
+            style={{
+              fontSize: 12,
+              color: "var(--sh-ink-muted)",
+              marginTop: 12,
+              fontFamily: "monospace",
+            }}
+          >
             URL: {getConfigStatus().url ? "set" : "MISSING"} / KEY: {getConfigStatus().key ? "set" : "MISSING"}
           </p>
           <a
@@ -1918,7 +1925,7 @@ function AppPageInner() {
             href="/bookmarklet"
             style={{
               fontSize: 12,
-              color: "#bbb",
+              color: "var(--sh-ink-muted)",
               textDecoration: "none",
               fontFamily: "var(--font-dm)",
             }}
@@ -2512,7 +2519,7 @@ function AppPageInner() {
         <p
           style={{
             textAlign: "center",
-            color: "#bbb",
+            color: "var(--sh-ink-muted)",
             fontSize: 14,
             padding: "60px 0",
           }}
@@ -2524,7 +2531,7 @@ function AppPageInner() {
         <p
           style={{
             textAlign: "center",
-            color: "#bbb",
+            color: "var(--sh-ink-muted)",
             fontSize: 14,
             padding: "60px 0",
           }}
