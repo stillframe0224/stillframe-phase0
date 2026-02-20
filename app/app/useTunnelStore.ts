@@ -26,25 +26,107 @@ export type PersistError = "quota" | "corrupt" | null;
 
 const LAYOUT_ORDER: TunnelLayout[] = ["scatter", "grid", "circle"];
 
+/** Card bounding box dimensions for overlap detection */
+const CARD_W = 240;
+const CARD_H = 280;
+
 function getStorageKey(userId: string): string {
   return `stillframe.tunnel.v1:${userId}`;
 }
 
-/** Simple hash from string to number in [0, 1) */
-function hashToFloat(str: string, seed: number): number {
-  let h = seed;
-  for (let i = 0; i < str.length; i++) {
-    h = ((h << 5) - h + str.charCodeAt(i)) | 0;
-  }
-  return ((h >>> 0) % 10000) / 10000;
+/** Mulberry32 — seeded PRNG (deterministic, uniform [0,1)) */
+function mulberry32(seed: number): () => number {
+  let s = seed >>> 0;
+  return () => {
+    s |= 0;
+    s = (s + 0x6d2b79f5) | 0;
+    let t = Math.imul(s ^ (s >>> 15), 1 | s);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
 }
 
+/** Hash a string to a uint32 seed */
+function strToSeed(str: string): number {
+  let h = 2166136261;
+  for (let i = 0; i < str.length; i++) {
+    h = Math.imul(h ^ str.charCodeAt(i), 16777619);
+  }
+  return h >>> 0;
+}
+
+/** Check AABB overlap with tolerance */
+function overlaps(
+  a: { x: number; y: number },
+  b: { x: number; y: number },
+  margin = 24
+): boolean {
+  return (
+    Math.abs(a.x - b.x) < CARD_W + margin &&
+    Math.abs(a.y - b.y) < CARD_H + margin
+  );
+}
+
+/**
+ * Seeded scatter: deterministic non-overlapping placement.
+ * Uses card ids joined as seed → mulberry32 PRNG.
+ * Each card gets up to MAX_TRIES random candidates; picks the one
+ * with least overlap (greedy). Falls back to grid if needed.
+ */
+function scatterPositions(
+  cardIds: string[],
+  viewW: number,
+  viewH: number
+): Record<string, Position3D> {
+  const padX = 80;
+  const padY = 60;
+  const availW = Math.max(viewW - padX * 2 - CARD_W, 200);
+  const availH = Math.max(viewH - padY * 2 - CARD_H, 200);
+
+  // Seed from all card ids to keep layout stable across re-renders
+  const seed = strToSeed(cardIds.join("|"));
+  const rand = mulberry32(seed);
+
+  const placed: Array<{ x: number; y: number }> = [];
+  const result: Record<string, Position3D> = {};
+
+  const MAX_TRIES = 40;
+
+  cardIds.forEach((id) => {
+    let bestPos = { x: padX, y: padY };
+    let bestOverlapCount = Infinity;
+
+    for (let t = 0; t < MAX_TRIES; t++) {
+      const cx = padX + rand() * availW;
+      const cy = padY + rand() * availH;
+      const count = placed.filter((p) => overlaps(p, { x: cx, y: cy })).length;
+      if (count < bestOverlapCount) {
+        bestOverlapCount = count;
+        bestPos = { x: cx, y: cy };
+        if (count === 0) break; // found a clear spot
+      }
+    }
+
+    const zSeed = strToSeed(id + "z");
+    const zRand = mulberry32(zSeed);
+    const z = zRand() * 80 - 40; // -40 to +40
+
+    placed.push(bestPos);
+    result[id] = { x: bestPos.x, y: bestPos.y, z };
+  });
+
+  return result;
+}
+
+/** Legacy single-card scatter (used when adding a new card in scatter mode) */
 function scatterPosition(cardId: string, viewW: number, viewH: number): Position3D {
-  const padX = 140;
-  const padY = 100;
-  const x = padX + hashToFloat(cardId, 1) * Math.max(viewW - padX * 2, 200);
-  const y = padY + hashToFloat(cardId, 2) * Math.max(viewH - padY * 2, 200);
-  const z = hashToFloat(cardId, 3) * 100 - 50; // -50 to +50
+  const seed = strToSeed(cardId);
+  const rand = mulberry32(seed);
+  const padX = 80;
+  const padY = 60;
+  const x = padX + rand() * Math.max(viewW - padX * 2 - CARD_W, 200);
+  const y = padY + rand() * Math.max(viewH - padY * 2 - CARD_H, 200);
+  const z = (mulberry32(strToSeed(cardId + "z")))() * 80 - 40;
   return { x, y, z };
 }
 
@@ -91,13 +173,8 @@ function computeLayout(
     case "circle":
       return circlePositions(cardIds);
     case "scatter":
-    default: {
-      const result: Record<string, Position3D> = {};
-      cardIds.forEach((id) => {
-        result[id] = scatterPosition(id, viewW, viewH);
-      });
-      return result;
-    }
+    default:
+      return scatterPositions(cardIds, viewW, viewH);
   }
 }
 

@@ -6,7 +6,7 @@
   position: relative;
   width: 100vw;
   height: calc(100vh - 36px);
-  background: var(--sh-paper);
+  background: var(--paper-bg, #fdfdfd);
   touch-action: pan-y;
 }
 
@@ -15,9 +15,9 @@
   inset: 0;
   pointer-events: none;
   background-image:
-    linear-gradient(var(--sh-grid-line) 1px, transparent 1px),
-    linear-gradient(90deg, var(--sh-grid-line) 1px, transparent 1px);
-  background-size: 60px 60px;
+    linear-gradient(var(--paper-line, rgba(0,0,0,0.055)) 1px, transparent 1px),
+    linear-gradient(90deg, var(--paper-line, rgba(0,0,0,0.055)) 1px, transparent 1px);
+  background-size: 40px 40px;
   z-index: 0;
 }
 
