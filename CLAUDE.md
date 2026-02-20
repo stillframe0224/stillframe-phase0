@@ -51,3 +51,15 @@ Next.js 16 (Turbopack) + Supabase + Tailwind CSS. Deployed on Vercel.
 - `NEXT_PUBLIC_*` env vars are inlined at BUILD TIME — Vercel must rebuild after env var changes
 - Auth is handled client-side in `app/app/page.tsx` (redirect to `/auth/login` if no user)
 - The `/app` page is pre-rendered as static (`○`) — useEffect handles runtime logic
+
+## CI & Automerge
+- PR-first workflow; 6 required checks on `main` (audit, build, guard, smoke, deploy-smoke, codex-review-check).
+- Safe-only automerge: docs/ops/md/txt/css PRs merge automatically. See `OPS/AUTOMERGE.md`.
+- **Emergency stop**: `gh variable set AUTOMERGE_GLOBAL_OFF -R stillframe0224/stillframe-phase0 --body "1"`
+- **Restore**: `gh variable set AUTOMERGE_GLOBAL_OFF -R stillframe0224/stillframe-phase0 --body "0"`
+
+## Agent operations
+- Harness-first contract style: define success criteria before implementation. See `OPS/AGENT_HARNESS.md`.
+- Task template: `OPS/TASK_CONTRACT_TEMPLATE.md`.
+- Agent memory: Claude Code built-in (`~/.claude/projects/.../memory/MEMORY.md`). See `OPS/CLAUDE_MEM.md`.
+- Privacy: never paste credentials in chat unless wrapped in `<private>...</private>` tags.
