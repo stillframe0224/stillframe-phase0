@@ -84,7 +84,7 @@ export default function Pricing({ lang, gumroadUrl }: PricingProps) {
       </ul>
       <p
         style={{
-          margin: "0 0 14px",
+          margin: "0 0 8px",
           fontSize: 13,
           color: "#8a5a00",
           fontFamily: "var(--font-dm)",
@@ -95,7 +95,19 @@ export default function Pricing({ lang, gumroadUrl }: PricingProps) {
           display: "inline-block",
         }}
       >
-        {c.urgency[lang]}
+        🔥 {c.urgency[lang]}
+      </p>
+      <p
+        style={{
+          margin: "0 0 16px",
+          fontSize: 12,
+          color: "#9b6b10",
+          fontFamily: "var(--font-dm)",
+        }}
+      >
+        {lang === "ja"
+          ? "初回コホートが埋まり次第、通常価格へ移行します"
+          : "Pricing moves to standard after the first cohort fills."}
       </p>
       {hasCheckoutUrl ? (
         <a
