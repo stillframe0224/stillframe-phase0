@@ -17,7 +17,7 @@
   background-image:
     linear-gradient(var(--paper-line, rgba(0,0,0,0.055)) 1px, transparent 1px),
     linear-gradient(90deg, var(--paper-line, rgba(0,0,0,0.055)) 1px, transparent 1px);
-  background-size: 40px 40px;
+  background-size: var(--paper-grid-size, 56px) var(--paper-grid-size, 56px);
   z-index: 0;
 }
 
@@ -52,6 +52,39 @@
 
 .tunnel-card-inner {
   animation: tunnelFloat 6s ease-in-out infinite alternate;
+  position: relative;
+}
+
+/* Slab ":before" — thin paper-stack offset shadow layer */
+.tunnel-card-inner::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 10px;
+  background: transparent;
+  box-shadow:
+    2px 2px 0 rgba(0, 0, 0, 0.06),
+    4px 4px 0 rgba(0, 0, 0, 0.03);
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* Bottom-half tint — gentle neutral fade for paper depth */
+.tunnel-card-inner::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 42%;
+  border-radius: 0 0 10px 10px;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(0, 0, 0, 0.028) 100%
+  );
+  pointer-events: none;
+  z-index: 2;
 }
 
 .tunnel-card.dragging .tunnel-card-inner {
@@ -130,6 +163,14 @@
   border: 1px solid var(--sh-line);
   border-radius: 999px;
   background: #fff;
+  cursor: pointer;
+  font-family: var(--font-dm), system-ui, sans-serif;
+  transition: background 0.12s, border-color 0.12s;
+}
+
+.tunnel-hud-layout:hover {
+  background: rgba(0,0,0,0.04);
+  border-color: var(--sh-line2);
 }
 
 .tunnel-hud-btn {

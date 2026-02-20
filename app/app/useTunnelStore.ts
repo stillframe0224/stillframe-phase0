@@ -3,7 +3,7 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { arrangeGridNonOverlap } from "./tunnelArrange";
 
-export type TunnelLayout = "scatter" | "grid" | "circle";
+export type TunnelLayout = "scatter" | "grid" | "circle" | "cluster";
 
 export interface Position3D {
   x: number;
@@ -25,7 +25,7 @@ export interface TunnelState {
 
 export type PersistError = "quota" | "corrupt" | null;
 
-const LAYOUT_ORDER: TunnelLayout[] = ["scatter", "grid", "circle"];
+const LAYOUT_ORDER: TunnelLayout[] = ["scatter", "grid", "circle", "cluster"];
 
 /** Card bounding box dimensions for overlap detection */
 const CARD_W = 240;
@@ -166,13 +166,16 @@ function computeLayout(
   layout: TunnelLayout,
   cardIds: string[],
   viewW: number,
-  viewH: number
+  viewH: number,
+  cardTypeMap: Record<string, string> = {}
 ): Record<string, Position3D> {
   switch (layout) {
     case "grid":
       return gridPositions(cardIds);
     case "circle":
       return circlePositions(cardIds);
+    case "cluster":
+      return clusterPositions(cardIds, cardTypeMap);
     case "scatter":
     default:
       return scatterPositions(cardIds, viewW, viewH);
@@ -227,7 +230,94 @@ function saveState(userId: string, state: TunnelState): "quota" | "unknown" | nu
   }
 }
 
-export function useTunnelStore(userId: string, cardIds: string[]) {
+/** Cluster layout: group cards by type, place each group in a radial mini-grid */
+function clusterPositions(
+  cardIds: string[],
+  cardTypeMap: Record<string, string>
+): Record<string, Position3D> {
+  // Group cardIds by their type label
+  const groups: Record<string, string[]> = {};
+  cardIds.forEach((id) => {
+    const t = cardTypeMap[id] || "memo";
+    if (!groups[t]) groups[t] = [];
+    groups[t].push(id);
+  });
+
+  const typeKeys = Object.keys(groups);
+  const totalGroups = typeKeys.length;
+  const result: Record<string, Position3D> = {};
+
+  // Place group centers in a circle, then cards in mini-grid within each group
+  const viewCx = typeof window !== "undefined" ? window.innerWidth / 2 - 120 : 600;
+  const viewCy = typeof window !== "undefined" ? (window.innerHeight - 160) / 2 - 140 : 300;
+  const groupRadius = Math.max(280, Math.min(viewCx, viewCy) * 0.65);
+
+  typeKeys.forEach((typeKey, gi) => {
+    const angle = (2 * Math.PI * gi) / totalGroups - Math.PI / 2;
+    const gcx = viewCx + Math.cos(angle) * groupRadius;
+    const gcy = viewCy + Math.sin(angle) * groupRadius;
+
+    const groupCards = groups[typeKey];
+    const cols = Math.max(Math.ceil(Math.sqrt(groupCards.length)), 1);
+    const gapX = 260;
+    const gapY = 300;
+    const totalW = (cols - 1) * gapX;
+    const totalH = (Math.ceil(groupCards.length / cols) - 1) * gapY;
+
+    groupCards.forEach((id, li) => {
+      const col = li % cols;
+      const row = Math.floor(li / cols);
+      result[id] = {
+        x: gcx - totalW / 2 + col * gapX,
+        y: gcy - totalH / 2 + row * gapY,
+        z: 0,
+      };
+    });
+  });
+
+  return result;
+}
+
+/**
+ * Compute bounding box center of placed cards.
+ * Returns the pan offset needed to center cards in the viewport.
+ */
+export function computeFitCamera(
+  positions: Record<string, Position3D>,
+  viewW: number,
+  viewH: number
+): { x: number; y: number } {
+  const ids = Object.keys(positions);
+  if (ids.length === 0) return { x: 0, y: 0 };
+
+  const CARD_W = 240;
+  const CARD_H = 280;
+
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  ids.forEach((id) => {
+    const p = positions[id];
+    minX = Math.min(minX, p.x);
+    minY = Math.min(minY, p.y);
+    maxX = Math.max(maxX, p.x + CARD_W);
+    maxY = Math.max(maxY, p.y + CARD_H);
+  });
+
+  const bboxCx = (minX + maxX) / 2;
+  const bboxCy = (minY + maxY) / 2;
+  const vpCx = viewW / 2;
+  const vpCy = (viewH - 160) / 2;
+
+  return {
+    x: vpCx - bboxCx,
+    y: vpCy - bboxCy,
+  };
+}
+
+export function useTunnelStore(
+  userId: string,
+  cardIds: string[],
+  cardTypeMap: Record<string, string> = {}
+) {
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const stateRef = useRef<TunnelState | null>(null);
 
@@ -305,8 +395,8 @@ export function useTunnelStore(userId: string, cardIds: string[]) {
         if (current.layout === "scatter") {
           positions[id] = scatterPosition(id, viewW, viewH);
         } else {
-          // Recompute full layout when in grid/circle
-          const all = computeLayout(current.layout, cardIds, viewW, viewH);
+          // Recompute full layout when in grid/circle/cluster
+          const all = computeLayout(current.layout, cardIds, viewW, viewH, cardTypeMap);
           setState((prev) => {
             const next = { ...prev, positions: all };
             debouncedSave(next);
@@ -393,12 +483,12 @@ export function useTunnelStore(userId: string, cardIds: string[]) {
       const nextLayout = LAYOUT_ORDER[(idx + 1) % LAYOUT_ORDER.length];
       const viewW = window.innerWidth;
       const viewH = window.innerHeight - 160;
-      const positions = computeLayout(nextLayout, cardIds, viewW, viewH);
+      const positions = computeLayout(nextLayout, cardIds, viewW, viewH, cardTypeMap);
       const next: TunnelState = { ...prev, layout: nextLayout, positions };
       debouncedSave(next);
       return next;
     });
-  }, [cardIds, debouncedSave]);
+  }, [cardIds, cardTypeMap, debouncedSave]);
 
   const arrangeCards = useCallback(() => {
     setState((prev) => {
@@ -409,16 +499,48 @@ export function useTunnelStore(userId: string, cardIds: string[]) {
     });
   }, [cardIds, debouncedSave]);
 
-  const resetAll = useCallback(() => {
+  /**
+   * Reset to "always aligned" state:
+   * 1) Force layout = GRID using arrangeGridNonOverlap
+   * 2) Shift all card positions so the grid bbox center aligns with the
+   *    viewport center — camera stays at {x:0, y:0, zoom:1}
+   * 3) Reset orbit (rx/ry) — handled by TunnelCanvas after this call
+   */
+  const resetAll = useCallback((): void => {
     const viewW = window.innerWidth;
-    const viewH = window.innerHeight - 160;
-    const initial: TunnelState = {
-      positions: computeLayout("scatter", cardIds, viewW, viewH),
-      camera: { x: 0, y: 0, zoom: 1 },
-      layout: "scatter",
-    };
-    setState(initial);
-    debouncedSave(initial);
+    const viewH = window.innerHeight;
+    const rawPositions = arrangeGridNonOverlap(cardIds);
+
+    // Compute how much to shift all positions so bbox center = viewport center
+    const CARD_W = 240;
+    const CARD_H = 280;
+    const ids = Object.keys(rawPositions);
+    if (ids.length > 0) {
+      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+      ids.forEach((id) => {
+        const p = rawPositions[id];
+        minX = Math.min(minX, p.x);
+        minY = Math.min(minY, p.y);
+        maxX = Math.max(maxX, p.x + CARD_W);
+        maxY = Math.max(maxY, p.y + CARD_H);
+      });
+      const bboxCx = (minX + maxX) / 2;
+      const bboxCy = (minY + maxY) / 2;
+      const dx = viewW / 2 - bboxCx;
+      const dy = viewH / 2 - bboxCy;
+      ids.forEach((id) => {
+        rawPositions[id] = {
+          ...rawPositions[id],
+          x: rawPositions[id].x + dx,
+          y: rawPositions[id].y + dy,
+        };
+      });
+    }
+
+    const camera: CameraState = { x: 0, y: 0, zoom: 1 };
+    const next: TunnelState = { positions: rawPositions, camera, layout: "grid" };
+    setState(next);
+    debouncedSave(next);
   }, [cardIds, debouncedSave]);
 
   return {
