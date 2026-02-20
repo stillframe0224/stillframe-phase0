@@ -4,6 +4,9 @@ on:
   pull_request:
     branches: [main]
     types: [opened, synchronize, reopened, ready_for_review, labeled, unlabeled]
+  workflow_run:
+    workflows: [e2e, stage3, deploy-smoke, ui-smoke]
+    types: [completed]
 
 permissions:
   contents: write
@@ -11,33 +14,107 @@ permissions:
   issues: write
 
 concurrency:
-  group: automerge-safe-${{ github.event.pull_request.number }}
+  group: automerge-safe-${{ github.event.pull_request.number || github.event.workflow_run.id }}
   cancel-in-progress: true
 
 jobs:
   automerge:
     name: automerge-safe
     if: >-
-      github.event.pull_request.draft == false &&
-      github.event.pull_request.head.repo.full_name == github.repository
+      (github.event_name == 'pull_request'
+       && github.event.pull_request.draft == false
+       && github.event.pull_request.head.repo.full_name == github.repository)
+      ||
+      (github.event_name == 'workflow_run'
+       && github.event.workflow_run.conclusion == 'success'
+       && github.event.workflow_run.event == 'pull_request')
     runs-on: ubuntu-latest
     steps:
+      - name: Resolve PR number
+        id: resolve
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+
+            let prNumber = null;
+            let prData = null;
+
+            if (context.eventName === 'pull_request') {
+              prNumber = context.payload.pull_request.number;
+            } else {
+              // workflow_run: find associated PR
+              const prs = context.payload.workflow_run.pull_requests || [];
+              if (prs.length > 0) {
+                prNumber = prs[0].number;
+              } else {
+                // fallback: find open PR by head_sha
+                const headSha = context.payload.workflow_run.head_sha;
+                const headBranch = context.payload.workflow_run.head_branch;
+                core.info(`No pull_requests in payload; searching by branch=${headBranch} sha=${headSha}`);
+                const { data: pulls } = await github.rest.pulls.list({
+                  owner, repo,
+                  state: 'open',
+                  head: `${owner}:${headBranch}`,
+                  per_page: 5,
+                });
+                if (pulls.length > 0) {
+                  prNumber = pulls[0].number;
+                }
+              }
+            }
+
+            if (!prNumber) {
+              core.info('No associated PR found; exiting safely.');
+              core.setOutput('skip', 'true');
+              return;
+            }
+
+            // Fetch full PR data for safety checks
+            const { data: pr } = await github.rest.pulls.get({
+              owner, repo,
+              pull_number: prNumber,
+            });
+
+            if (pr.draft) {
+              core.info(`PR #${prNumber} is draft; skipping.`);
+              core.setOutput('skip', 'true');
+              return;
+            }
+            if (pr.head.repo.full_name !== `${owner}/${repo}`) {
+              core.info(`PR #${prNumber} is from fork; skipping.`);
+              core.setOutput('skip', 'true');
+              return;
+            }
+            if (pr.state !== 'open') {
+              core.info(`PR #${prNumber} is ${pr.state}; skipping.`);
+              core.setOutput('skip', 'true');
+              return;
+            }
+
+            core.setOutput('skip', 'false');
+            core.setOutput('pr_number', String(prNumber));
+            core.setOutput('pr_title', pr.title);
+            core.setOutput('pr_labels', JSON.stringify(pr.labels.map(l => l.name)));
+
       - name: Classify changed files
+        if: steps.resolve.outputs.skip != 'true'
         id: classify
         uses: actions/github-script@v7
         with:
           script: |
-            const pr = context.payload.pull_request;
-            const prNumber = pr.number;
+            const prNumber = parseInt('${{ steps.resolve.outputs.pr_number }}', 10);
+            const prTitle = `${{ steps.resolve.outputs.pr_title }}`;
+            const labels = JSON.parse('${{ steps.resolve.outputs.pr_labels }}');
 
             // --- Kill switches ---
-            const labels = pr.labels.map(l => l.name);
             if (labels.includes('automerge:off')) {
               core.setOutput('eligible', 'false');
               core.setOutput('reason', 'Kill switch label "automerge:off" present');
               return;
             }
-            if (pr.title.includes('[NO-AUTOMERGE]')) {
+            if (prTitle.includes('[NO-AUTOMERGE]')) {
               core.setOutput('eligible', 'false');
               core.setOutput('reason', 'PR title contains [NO-AUTOMERGE]');
               return;
@@ -58,6 +135,7 @@ jobs:
             }
 
             core.setOutput('files', files.join('\n'));
+            core.setOutput('pr_number_out', String(prNumber));
 
             // --- Deny patterns (checked first) ---
             const denyPatterns = [
@@ -104,7 +182,9 @@ jobs:
             core.setOutput('reason', 'All files in safe allowlist');
 
       - name: Write job summary
+        if: steps.resolve.outputs.skip != 'true'
         run: |
+          PR_NUM="${{ steps.classify.outputs.pr_number_out || steps.resolve.outputs.pr_number }}"
           cat >> "$GITHUB_STEP_SUMMARY" <<EOF
           ## automerge-safe classification
 
@@ -112,7 +192,8 @@ jobs:
           |-------|-------|
           | **Eligible** | \`${{ steps.classify.outputs.eligible }}\` |
           | **Reason** | ${{ steps.classify.outputs.reason }} |
-          | **PR** | #${{ github.event.pull_request.number }} |
+          | **PR** | #${PR_NUM} |
+          | **Trigger** | ${{ github.event_name }} |
 
           <details><summary>Changed files</summary>
 
@@ -124,13 +205,13 @@ jobs:
           EOF
 
       - name: Add label if eligible
-        if: steps.classify.outputs.eligible == 'true'
+        if: steps.resolve.outputs.skip != 'true' && steps.classify.outputs.eligible == 'true'
         uses: actions/github-script@v7
         with:
           script: |
             const owner = context.repo.owner;
             const repo = context.repo.repo;
-            const prNumber = context.payload.pull_request.number;
+            const prNumber = parseInt('${{ steps.resolve.outputs.pr_number }}', 10);
             const labelName = 'automerge:eligible';
             const labelColor = 'c2e0c6';  // neutral green
 
@@ -155,10 +236,10 @@ jobs:
             });
 
       - name: Attempt automerge
-        if: steps.classify.outputs.eligible == 'true'
+        if: steps.resolve.outputs.skip != 'true' && steps.classify.outputs.eligible == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_NUMBER: ${{ steps.resolve.outputs.pr_number }}
         run: |
           set -euo pipefail
 
