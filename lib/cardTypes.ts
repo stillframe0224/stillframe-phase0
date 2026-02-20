@@ -19,3 +19,26 @@ export const cardTypes: CardType[] = [
 export function getCardType(label: string): CardType {
   return cardTypes.find((t) => t.label === label) || cardTypes[0];
 }
+
+// ── Monochrome maps ──
+export const MONO_SYMBOLS: Record<string, string> = {
+  memo: "●",
+  idea: "◆",
+  quote: "\u201C",
+  task: "■",
+  feeling: "~",
+  image: "▲",
+  fragment: "…",
+  dream: "○",
+};
+
+export const MONO_ACCENTS: Record<string, string> = {
+  memo: "#b0b0b0",
+  idea: "#9a9a9a",
+  quote: "#a8a8a8",
+  task: "#8a8a8a",
+  feeling: "#bfbfbf",
+  image: "#a0a0a0",
+  fragment: "#c5c5c5",
+  dream: "#959595",
+};

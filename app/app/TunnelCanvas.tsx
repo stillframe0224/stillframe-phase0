@@ -11,6 +11,28 @@ import {
 import type { Card, File as FileRecord } from "@/lib/supabase/types";
 import TunnelCardWrapper from "./TunnelCardWrapper";
 import { useTunnelStore } from "./useTunnelStore";
+import { createFSMContext, transition, type FSMContext } from "./tunnelDragFSM";
+import { countOverlapPairs } from "./tunnelLayout";
+import {
+  createPerfMonitor,
+  recordFrameTime,
+  tierCssClass,
+  isLowEndMobile,
+  type PerfMonitor,
+  type QualityTier,
+} from "./tunnelPerfMonitor";
+
+// ── Debug hook type ──
+declare global {
+  interface Window {
+    __SHINEN_DEBUG__?: {
+      overlapPairs: number;
+      queuedReset: number;
+      state: string;
+      qualityTier: QualityTier;
+    };
+  }
+}
 
 interface TunnelCanvasProps {
   cards: Card[];
@@ -31,6 +53,7 @@ const ZOOM_STEP = 0.001;
 const ZOOM_COMMIT_DELAY = 250;
 const DEFAULT_CAMERA = { x: 0, y: 0, zoom: 1 };
 const DEFAULT_ORBIT = { rx: -8, ry: 10 };
+const RESIZE_SETTLE_DEBOUNCE_MS = 80;
 
 export default function TunnelCanvas({
   cards,
@@ -48,11 +71,10 @@ export default function TunnelCanvas({
   const {
     positions,
     camera,
-    layout,
     persistError,
     setCardPosition,
     setCamera,
-    cycleLayout,
+    arrangeCards,
     resetAll,
   } = useTunnelStore(userId, cardIds);
 
@@ -69,8 +91,40 @@ export default function TunnelCanvas({
     pointerId: number;
   } | null>(null);
 
+  // FSM state
+  const fsmRef = useRef<FSMContext>(createFSMContext());
+  const cardSizesRef = useRef<Map<string, { w: number; h: number }>>(new Map());
+  const settleRafRef = useRef<number | null>(null);
+  const dirtySizeRef = useRef(false);
+  const resizeDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Perf monitor
+  const perfRef = useRef<PerfMonitor>(createPerfMonitor(isLowEndMobile() ? "no-shadow" : "full"));
+  const perfRafRef = useRef<number | null>(null);
+  const lastFrameRef = useRef<number>(0);
+  const [qualityTier, setQualityTier] = useState<QualityTier>(() =>
+    isLowEndMobile() ? "no-shadow" : "full"
+  );
+
   const [isToolsOpen, setIsToolsOpen] = useState(false);
   const [isCameraDirty, setIsCameraDirty] = useState(false);
+
+  // ── Debug hook ──
+  const updateDebug = useCallback(() => {
+    if (typeof window !== "undefined") {
+      const { overlapPairs } = countOverlapPairs(positions, cardSizesRef.current);
+      window.__SHINEN_DEBUG__ = {
+        overlapPairs,
+        queuedReset: fsmRef.current.pendingReset ? 1 : 0,
+        state: fsmRef.current.state,
+        qualityTier: perfRef.current.tier,
+      };
+    }
+  }, [positions]);
+
+  useEffect(() => {
+    updateDebug();
+  }, [updateDebug]);
 
   const isDirty = useCallback(
     (cam: { x: number; y: number; zoom: number }, orbit: { rx: number; ry: number }) => {
@@ -110,6 +164,164 @@ export default function TunnelCanvas({
     return () => {
       if (commitTimerRef.current !== null) {
         clearTimeout(commitTimerRef.current);
+      }
+    };
+  }, []);
+
+  // ── Perf monitor rAF loop ──
+  useEffect(() => {
+    const tick = (now: number) => {
+      if (lastFrameRef.current > 0) {
+        const delta = now - lastFrameRef.current;
+        perfRef.current = recordFrameTime(perfRef.current, delta);
+        const newTier = perfRef.current.tier;
+        setQualityTier((prev) => {
+          if (prev !== newTier) {
+            // Apply CSS class
+            if (sceneRef.current) {
+              sceneRef.current.classList.remove("perf-no-shadow", "perf-no-3d", "perf-no-anim");
+              const cls = tierCssClass(newTier);
+              if (cls) sceneRef.current.classList.add(cls);
+            }
+            return newTier;
+          }
+          return prev;
+        });
+      }
+      lastFrameRef.current = now;
+      perfRafRef.current = requestAnimationFrame(tick);
+    };
+    perfRafRef.current = requestAnimationFrame(tick);
+    return () => {
+      if (perfRafRef.current !== null) {
+        cancelAnimationFrame(perfRafRef.current);
+      }
+    };
+  }, []);
+
+  // ── FSM drag handlers ──
+
+  const executeReset = useCallback(() => {
+    resetAll(cardSizesRef.current.size > 0 ? cardSizesRef.current : undefined);
+    orbitRef.current = DEFAULT_ORBIT;
+    cameraRef.current = DEFAULT_CAMERA;
+    applyVisualCamera(DEFAULT_CAMERA, DEFAULT_ORBIT);
+  }, [resetAll, applyVisualCamera]);
+
+  const handleDragStart = useCallback((cardId: string) => {
+    fsmRef.current = transition(fsmRef.current, { type: "DRAG_START", cardId });
+    // Cancel any pending settle
+    if (settleRafRef.current !== null) {
+      cancelAnimationFrame(settleRafRef.current);
+      settleRafRef.current = null;
+    }
+    updateDebug();
+  }, [updateDebug]);
+
+  const handleDragEnd = useCallback((cardId: string) => {
+    fsmRef.current = transition(fsmRef.current, { type: "DRAG_END", cardId });
+    // 1-frame delay for settling
+    settleRafRef.current = requestAnimationFrame(() => {
+      const hadPending = fsmRef.current.pendingReset;
+      fsmRef.current = transition(fsmRef.current, { type: "SETTLE_COMPLETE" });
+      settleRafRef.current = null;
+
+      if (hadPending) {
+        executeReset();
+        fsmRef.current = { ...fsmRef.current, pendingReset: false };
+      }
+
+      // If sizes changed during settling, debounce one re-layout
+      if (dirtySizeRef.current && fsmRef.current.state === "idle") {
+        dirtySizeRef.current = false;
+        if (resizeDebounceRef.current) clearTimeout(resizeDebounceRef.current);
+        resizeDebounceRef.current = setTimeout(() => {
+          if (fsmRef.current.state === "idle") {
+            arrangeCards(cardSizesRef.current);
+          }
+        }, RESIZE_SETTLE_DEBOUNCE_MS);
+      }
+
+      updateDebug();
+    });
+    updateDebug();
+  }, [executeReset, arrangeCards, updateDebug]);
+
+  const handleResetRequest = useCallback(() => {
+    if (fsmRef.current.state === "idle") {
+      executeReset();
+    } else {
+      fsmRef.current = transition(fsmRef.current, { type: "RESET_REQUEST" });
+    }
+    updateDebug();
+  }, [executeReset, updateDebug]);
+
+  // ── ResizeObserver: dirtySize flag + rAF batching ──
+
+  useEffect(() => {
+    const stage = stageRef.current;
+    if (!stage) return;
+
+    let resizeRafPending = false;
+
+    const observer = new ResizeObserver((entries) => {
+      let changed = false;
+      for (const entry of entries) {
+        const el = entry.target as HTMLElement;
+        const cardId = el.getAttribute("data-card-id");
+        if (!cardId) continue;
+        const w = entry.contentRect.width;
+        const h = entry.contentRect.height;
+        if (w === 0 && h === 0) continue;
+        const prev = cardSizesRef.current.get(cardId);
+        if (!prev || Math.abs(prev.w - w) > 2 || Math.abs(prev.h - h) > 2) {
+          cardSizesRef.current.set(cardId, { w, h });
+          changed = true;
+        }
+      }
+
+      if (!changed) return;
+      dirtySizeRef.current = true;
+
+      // During settling/dragging, just mark dirty — don't re-layout
+      if (fsmRef.current.state !== "idle") return;
+
+      // Batch in rAF (one per frame)
+      if (!resizeRafPending) {
+        resizeRafPending = true;
+        requestAnimationFrame(() => {
+          resizeRafPending = false;
+          if (dirtySizeRef.current && fsmRef.current.state === "idle") {
+            dirtySizeRef.current = false;
+            arrangeCards(cardSizesRef.current);
+          }
+        });
+      }
+    });
+
+    // Observe all .tunnel-card elements
+    const observeAll = () => {
+      const allCards = stage.querySelectorAll(".tunnel-card[data-card-id]");
+      allCards.forEach((el) => observer.observe(el));
+    };
+    observeAll();
+
+    // MutationObserver to catch new cards
+    const mutation = new MutationObserver(observeAll);
+    mutation.observe(stage, { childList: true });
+
+    return () => {
+      observer.disconnect();
+      mutation.disconnect();
+      if (resizeDebounceRef.current) clearTimeout(resizeDebounceRef.current);
+    };
+  }, [arrangeCards]);
+
+  // Cleanup settle RAF on unmount
+  useEffect(() => {
+    return () => {
+      if (settleRafRef.current !== null) {
+        cancelAnimationFrame(settleRafRef.current);
       }
     };
   }, []);
@@ -206,16 +418,11 @@ export default function TunnelCanvas({
 
       if (e.key === "k" || e.key === "K") {
         setIsToolsOpen((prev) => !prev);
-      } else if (e.key === "a" || e.key === "A") {
-        cycleLayout();
       } else if (e.key === "Escape") {
         if (isToolsOpen) {
           setIsToolsOpen(false);
         } else {
-          resetAll();
-          orbitRef.current = DEFAULT_ORBIT;
-          cameraRef.current = DEFAULT_CAMERA;
-          applyVisualCamera(DEFAULT_CAMERA, DEFAULT_ORBIT);
+          handleResetRequest();
         }
       } else if (e.key === "r" || e.key === "R") {
         handleResetCamera();
@@ -224,7 +431,9 @@ export default function TunnelCanvas({
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [cycleLayout, resetAll, isToolsOpen, handleResetCamera, applyVisualCamera]);
+  }, [isToolsOpen, handleResetCamera, handleResetRequest]);
+
+  const tierClass = tierCssClass(qualityTier);
 
   return (
     <div
@@ -233,7 +442,7 @@ export default function TunnelCanvas({
       data-cam-rx={DEFAULT_ORBIT.rx}
       data-cam-ry={DEFAULT_ORBIT.ry}
       data-cam-zoom={DEFAULT_CAMERA.zoom}
-      className="tunnel-scene"
+      className={`tunnel-scene${tierClass ? ` ${tierClass}` : ""}`}
       onPointerDown={handleScenePointerDown}
       onWheel={handleSceneWheel}
     >
@@ -261,6 +470,8 @@ export default function TunnelCanvas({
               onNotesSaved={onNotesSaved}
               files={files}
               stageScale={camera.zoom}
+              onDragStart={handleDragStart}
+              onDragEnd={handleDragEnd}
             />
           );
         })}
@@ -274,7 +485,6 @@ export default function TunnelCanvas({
           </a>
           <span className="tunnel-hud-dot" aria-hidden="true" />
           <span className="tunnel-hud-count">{cardCount ?? cards.length}</span>
-          <span className="tunnel-hud-layout">{layout}</span>
           {persistError && (
             <span data-testid="tunnel-persist-error" className="tunnel-hud-error">
               {persistError === "quota" ? "not saved: quota" : "not saved: parse"}

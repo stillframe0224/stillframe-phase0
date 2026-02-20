@@ -15,9 +15,8 @@
   inset: 0;
   pointer-events: none;
   background-image:
-    linear-gradient(var(--sh-grid-line) 1px, transparent 1px),
-    linear-gradient(90deg, var(--sh-grid-line) 1px, transparent 1px);
-  background-size: 60px 60px;
+    linear-gradient(90deg, rgba(0,0,0,0.015) 1px, transparent 1px);
+  background-size: 80px 80px;
   z-index: 0;
 }
 
@@ -120,18 +119,6 @@
   font-size: 12px;
 }
 
-.tunnel-hud-layout {
-  font-size: 11px;
-  color: var(--sh-ink-sub);
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  padding: 3px 8px;
-  border: 1px solid var(--sh-line);
-  border-radius: 999px;
-  background: #fff;
-}
-
 .tunnel-hud-btn {
   border: 1px solid var(--sh-line2);
   background: #fff;
@@ -170,3 +157,9 @@
   align-items: center;
   margin-bottom: 10px;
 }
+
+/* ── Performance degradation tiers ── */
+.perf-no-shadow .tunnel-card { box-shadow: none !important; }
+.perf-no-3d .tunnel-stage { transform-style: flat; }
+.perf-no-anim .tunnel-card { transition: none !important; }
+.perf-no-anim .tunnel-card-inner { animation: none !important; }

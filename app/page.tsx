@@ -11,6 +11,7 @@ import AppHeader from "@/ui/components/AppHeader";
 import Pricing from "@/app/components/Pricing";
 import Waitlist from "@/app/components/Waitlist";
 import TrackEvent from "@/app/components/TrackEvent";
+import ZenCan from "@/app/components/ZenCan";
 import { PrimaryButton, Card } from "@/ui/components/ui";
 
 const GUMROAD_URL = process.env.NEXT_PUBLIC_GUMROAD_PRODUCT_URL || "#";
@@ -45,7 +46,7 @@ function DotDivider() {
         padding: "48px 0",
       }}
     >
-      {["#F5C882", "#A0B8F5", "#7EDBA0"].map((c) => (
+      {["#c0c0c0", "#a8a8a8", "#b8b8b8"].map((c) => (
         <div
           key={c}
           style={{
@@ -187,7 +188,7 @@ export default function Home() {
         </div>
       </section>
 
-      <DotDivider />
+      <ZenCan />
 
       {/* Demo Section */}
       <section
@@ -232,11 +233,11 @@ export default function Home() {
                 padding: "5px 14px",
                 borderRadius: 999,
                 border: `1.5px solid ${
-                  selectedType === t.label ? t.border : "transparent"
+                  selectedType === t.label ? "#ccc" : "transparent"
                 }`,
                 background:
-                  selectedType === t.label ? t.bg : "transparent",
-                color: t.accent,
+                  selectedType === t.label ? "#f5f5f5" : "transparent",
+                color: "#777",
                 opacity: selectedType === t.label ? 1 : 0.45,
                 fontSize: 12,
                 fontWeight: 600,
@@ -278,7 +279,7 @@ export default function Home() {
               outline: "none",
               transition: "border-color 0.2s",
             }}
-            onFocus={(e) => (e.currentTarget.style.borderColor = ct.border)}
+            onFocus={(e) => (e.currentTarget.style.borderColor = "#aaa")}
             onBlur={(e) => (e.currentTarget.style.borderColor = "#e8e5e0")}
           />
           <button
@@ -288,7 +289,7 @@ export default function Home() {
               height: 48,
               borderRadius: "50%",
               border: "none",
-              background: ct.accent,
+              background: "#333",
               color: "#fff",
               fontSize: 22,
               fontWeight: 300,
@@ -405,8 +406,8 @@ export default function Home() {
                     width: 48,
                     height: 48,
                     borderRadius: 12,
-                    background: ["#FFF8F0", "#EEF2FF", "#F0FFF4"][i],
-                    border: `1px solid ${["#F5C882", "#A0B8F5", "#7EDBA0"][i]}`,
+                    background: "#f5f5f5",
+                    border: "1px solid #ddd",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",

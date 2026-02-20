@@ -24,6 +24,7 @@
   --sh-shadow-quiet: 0 10px 30px rgba(20,20,20,0.08);
   --sh-radius: 14px;
   --sh-glass: rgba(255,255,255,0.72);
+  --sh-ink-sub: rgba(0,0,0,0.25);
 }
 
 * {

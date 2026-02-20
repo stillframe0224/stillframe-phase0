@@ -21,6 +21,8 @@ interface TunnelCardWrapperProps {
   onNotesSaved: (cardId: string, notes: string | null) => void;
   files: FileRecord[];
   stageScale: number;
+  onDragStart?: (cardId: string) => void;
+  onDragEnd?: (cardId: string) => void;
 }
 
 export default function TunnelCardWrapper({
@@ -35,6 +37,8 @@ export default function TunnelCardWrapper({
   onNotesSaved,
   files,
   stageScale,
+  onDragStart,
+  onDragEnd,
 }: TunnelCardWrapperProps) {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const dragState = useRef<{
@@ -77,6 +81,10 @@ export default function TunnelCardWrapper({
         wrapperRef.current?.classList.remove("dragging");
       }
 
+      if (ds.isDragging) {
+        onDragEnd?.(card.id);
+      }
+
       if (commitPosition && ds.isDragging) {
         const dx = e.clientX - ds.startX;
         const dy = e.clientY - ds.startY;
@@ -108,6 +116,7 @@ export default function TunnelCardWrapper({
         if (Math.abs(dx) < DRAG_THRESHOLD && Math.abs(dy) < DRAG_THRESHOLD) return;
         ds.isDragging = true;
         wrapperRef.current?.classList.add("dragging");
+        onDragStart?.(card.id);
       }
 
       // Direct DOM manipulation for instant response, accounting for stage scale
@@ -129,7 +138,7 @@ export default function TunnelCardWrapper({
       window.removeEventListener("pointerup", handlePointerUp);
       window.removeEventListener("pointercancel", handlePointerCancel);
     };
-  }, [card.id, position.z, stageScale, onPositionChange]);
+  }, [card.id, position.z, stageScale, onPositionChange, onDragStart, onDragEnd]);
 
   // Cleanup z-depth debounce timer on unmount
   useEffect(() => {
@@ -159,6 +168,7 @@ export default function TunnelCardWrapper({
     <div
       ref={wrapperRef}
       className="tunnel-card"
+      data-card-id={card.id}
       style={{
         transform: `translate3d(${position.x}px, ${position.y}px, ${position.z}px)`,
         width: 240,
