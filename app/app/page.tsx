@@ -1500,6 +1500,8 @@ function AppPageInner() {
 
       if (file.type.startsWith("image/")) {
         const img = new Image();
+        const objectUrl = URL.createObjectURL(file);
+        const revoke = () => URL.revokeObjectURL(objectUrl);
         img.onload = () => {
           const maxSize = 512;
           let { width, height } = img;
@@ -1514,14 +1516,23 @@ function AppPageInner() {
           canvas.height = height;
           ctx.drawImage(img, 0, 0, width, height);
           canvas.toBlob((blob) => {
-            if (blob) resolve(blob);
-            else reject(new Error("Failed to generate thumbnail"));
+            try {
+              if (blob) resolve(blob);
+              else reject(new Error("Failed to generate thumbnail"));
+            } finally {
+              revoke();
+            }
           }, "image/jpeg", 0.85);
         };
-        img.onerror = () => reject(new Error("Failed to load image"));
-        img.src = URL.createObjectURL(file);
+        img.onerror = () => {
+          revoke();
+          reject(new Error("Failed to load image"));
+        };
+        img.src = objectUrl;
       } else if (file.type.startsWith("video/")) {
         const video = document.createElement("video");
+        const objectUrl = URL.createObjectURL(file);
+        const revoke = () => URL.revokeObjectURL(objectUrl);
         video.onloadeddata = () => {
           video.currentTime = 0.2; // Seek to 0.2s
         };
@@ -1539,12 +1550,19 @@ function AppPageInner() {
           canvas.height = height;
           ctx.drawImage(video, 0, 0, width, height);
           canvas.toBlob((blob) => {
-            if (blob) resolve(blob);
-            else reject(new Error("Failed to generate video thumbnail"));
+            try {
+              if (blob) resolve(blob);
+              else reject(new Error("Failed to generate video thumbnail"));
+            } finally {
+              revoke();
+            }
           }, "image/jpeg", 0.85);
         };
-        video.onerror = () => reject(new Error("Failed to load video"));
-        video.src = URL.createObjectURL(file);
+        video.onerror = () => {
+          revoke();
+          reject(new Error("Failed to load video"));
+        };
+        video.src = objectUrl;
       } else {
         reject(new Error("Unsupported file type"));
       }

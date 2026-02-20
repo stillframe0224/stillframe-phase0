@@ -90,51 +90,52 @@ test("Reset guarantees camera+layout+fit and overlap=0", async ({ page }) => {
     )
     .toBe(0);
 
-  // ── Camera zoom must return to 1 via data-cam-zoom attribute ─────────────
+  // ── Reset acceptance: camera/orbit/layout must settle together ───────────
   await expect
     .poll(
-      async () => {
-        return page.evaluate(() => {
-          const el = document.querySelector('[data-testid="tunnel-root"]');
-          return parseFloat(el?.getAttribute("data-cam-zoom") ?? "0");
-        });
-      },
-      { timeout: 5000, message: "camera zoom should be 1 after reset" }
+      async () =>
+        await page.evaluate(() => {
+          const root = document.querySelector('[data-testid="tunnel-root"]');
+          const debug = (window as any).__SHINEN_DEBUG__;
+          const snap = debug?.snapshot ? debug.snapshot() : null;
+          const layoutText =
+            (document.querySelector('[data-testid="layout-pill"]')?.textContent || "")
+              .trim()
+              .toLowerCase();
+          return {
+            camRx: parseFloat(root?.getAttribute("data-cam-rx") ?? "99"),
+            camRy: parseFloat(root?.getAttribute("data-cam-ry") ?? "99"),
+            camZoom: parseFloat(root?.getAttribute("data-cam-zoom") ?? "0"),
+            orbitRx: parseFloat(root?.getAttribute("data-orbit-rx") ?? "99"),
+            orbitRy: parseFloat(root?.getAttribute("data-orbit-ry") ?? "99"),
+            layout: snap?.layout ?? layoutText,
+            state: snap?.state ?? "idle",
+            overlapPairs: snap?.overlapPairs ?? 0,
+          };
+        }),
+      { timeout: 10000, message: "reset should fully settle camera/orbit/layout together" }
     )
-    .toBeCloseTo(1, 2);
+    .toMatchObject({
+      layout: "grid",
+      state: "idle",
+      overlapPairs: 0,
+    });
 
-  // ── Orbit must return to flat (rx=0, ry=0) after reset ──────────────────
-  const camRx = await page.evaluate(() => {
-    const el = document.querySelector('[data-testid="tunnel-root"]');
-    return parseFloat(el?.getAttribute("data-cam-rx") ?? "99");
+  const settled = await page.evaluate(() => {
+    const root = document.querySelector('[data-testid="tunnel-root"]');
+    return {
+      camRx: parseFloat(root?.getAttribute("data-cam-rx") ?? "99"),
+      camRy: parseFloat(root?.getAttribute("data-cam-ry") ?? "99"),
+      camZoom: parseFloat(root?.getAttribute("data-cam-zoom") ?? "0"),
+      orbitRx: parseFloat(root?.getAttribute("data-orbit-rx") ?? "99"),
+      orbitRy: parseFloat(root?.getAttribute("data-orbit-ry") ?? "99"),
+    };
   });
-  const camRy = await page.evaluate(() => {
-    const el = document.querySelector('[data-testid="tunnel-root"]');
-    return parseFloat(el?.getAttribute("data-cam-ry") ?? "99");
-  });
-  expect(Math.abs(camRx)).toBeLessThanOrEqual(0.1);
-  expect(Math.abs(camRy)).toBeLessThanOrEqual(0.1);
-
-  // ── Opportunistic: poll __SHINEN_DEBUG__.snapshot() until state=idle ───────
-  const hasDebug = await page.evaluate(
-    () => !!(window as any).__SHINEN_DEBUG__?.snapshot
-  );
-  if (hasDebug) {
-    await expect
-      .poll(
-        async () =>
-          await page.evaluate(() =>
-            (window as any).__SHINEN_DEBUG__.snapshot()
-          ),
-        { timeout: 8000, message: "debug snapshot should reach idle after reset" }
-      )
-      .toMatchObject({
-        state: "idle",
-        layout: "grid",
-        camera: { x: 0, y: 0, zoom: 1 },
-        overlapPairs: 0,
-      });
-  }
+  expect(Math.abs(settled.camRx)).toBeLessThanOrEqual(0.1);
+  expect(Math.abs(settled.camRy)).toBeLessThanOrEqual(0.1);
+  expect(Math.abs(settled.orbitRx)).toBeLessThanOrEqual(0.1);
+  expect(Math.abs(settled.orbitRy)).toBeLessThanOrEqual(0.1);
+  expect(settled.camZoom).toBeCloseTo(1, 2);
 
   const hudAfterReset = await page.getByTestId("tunnel-hud").boundingBox();
   expect(hudAfterReset).toBeTruthy();

@@ -52,9 +52,7 @@ const ZOOM_MAX = 3.0;
 const ZOOM_STEP = 0.001;
 const ZOOM_COMMIT_DELAY = 250;
 const DEFAULT_CAMERA = { x: 0, y: 0, zoom: 1 };
-const DEFAULT_ORBIT = { rx: -8, ry: 10 };
-// Reset always snaps to flat/horizontal view (no tilt)
-const RESET_ORBIT = { rx: 0, ry: 0 };
+const DEFAULT_ORBIT = { rx: 0, ry: 0 };
 
 export default function TunnelCanvas({
   cards,
@@ -117,6 +115,8 @@ export default function TunnelCanvas({
         sceneRef.current.setAttribute("data-cam-rx", String(Number(orbit.rx.toFixed(3))));
         sceneRef.current.setAttribute("data-cam-ry", String(Number(orbit.ry.toFixed(3))));
         sceneRef.current.setAttribute("data-cam-zoom", String(Number(cam.zoom.toFixed(4))));
+        sceneRef.current.setAttribute("data-orbit-rx", String(Number(orbit.rx.toFixed(3))));
+        sceneRef.current.setAttribute("data-orbit-ry", String(Number(orbit.ry.toFixed(3))));
       }
     },
     []
@@ -218,10 +218,10 @@ export default function TunnelCanvas({
     }
     // resetAll() arranges GRID, centers positions, saves camera={0,0,1} — returns void
     resetAll();
-    // Reset to flat view — orbit goes to 0/0, not DEFAULT_ORBIT (which has tilt)
-    orbitRef.current = RESET_ORBIT;
+    // Reset to flat view — orbit must always be horizontal.
+    orbitRef.current = DEFAULT_ORBIT;
     cameraRef.current = DEFAULT_CAMERA;
-    applyVisualCamera(DEFAULT_CAMERA, RESET_ORBIT);
+    applyVisualCamera(DEFAULT_CAMERA, DEFAULT_ORBIT);
     requestAnimationFrame(() => {
       interactionStateRef.current = isDraggingRef.current ? "dragging" : "idle";
       if (queuedResetRef.current && !isDraggingRef.current) {
@@ -332,6 +332,8 @@ export default function TunnelCanvas({
       data-cam-rx={DEFAULT_ORBIT.rx}
       data-cam-ry={DEFAULT_ORBIT.ry}
       data-cam-zoom={DEFAULT_CAMERA.zoom}
+      data-orbit-rx={DEFAULT_ORBIT.rx}
+      data-orbit-ry={DEFAULT_ORBIT.ry}
       className="tunnel-scene"
       onPointerDown={handleScenePointerDown}
       onWheel={handleSceneWheel}
@@ -409,7 +411,7 @@ export default function TunnelCanvas({
                 ref={uploadInputRef}
                 type="file"
                 accept="image/*,video/*"
-                multiple
+                multiple={false}
                 data-testid="upload-input"
                 style={{ display: "none" }}
                 onChange={(e) => {

@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 
-const RX0 = -8;
-const RY0 = 10;
+const RX0 = 0;
+const RY0 = 0;
 const ZOOM0 = 1;
 
 test("tunnel minimal HUD: no heavy top UI, orbit works, reset restores", async ({ page }) => {
