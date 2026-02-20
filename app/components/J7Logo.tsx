@@ -10,12 +10,14 @@ interface J7LogoProps {
   size?: number;
   showText?: boolean;
   className?: string;
+  dataTestId?: string;
 }
 
-export default function J7Logo({ size = 24, showText = true, className }: J7LogoProps) {
+export default function J7Logo({ size = 24, showText = true, className, dataTestId }: J7LogoProps) {
   return (
     <span
       className={className}
+      data-testid={dataTestId}
       style={{ display: "inline-flex", alignItems: "center", gap: 8 }}
     >
       <svg
