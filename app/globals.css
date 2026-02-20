@@ -28,6 +28,7 @@
   /* ── Paper-grid tokens (zen paper theme) ── */
   --paper-bg: #fdfdfd;
   --paper-line: rgba(0,0,0,0.055);   /* ruled/grid lines */
+  --paper-grid-size: 56px;            /* grid tile size */
   --card-border: rgba(0,0,0,0.12);   /* 1.5px card border */
   --card-shadow: 0 4px 20px -6px rgba(0,0,0,0.12), 0 1px 4px rgba(0,0,0,0.05);
   --slab-shade: rgba(0,0,0,0.025);   /* slab layer tint */
@@ -41,7 +42,7 @@
   background-image:
     linear-gradient(var(--paper-line) 1px, transparent 1px),
     linear-gradient(90deg, var(--paper-line) 1px, transparent 1px);
-  background-size: 40px 40px;
+  background-size: var(--paper-grid-size) var(--paper-grid-size);
 }
 
 * {
