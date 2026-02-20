@@ -35,7 +35,19 @@ jobs:
       )
     runs-on: ubuntu-latest
     steps:
+      - name: Global kill switch gate
+        id: gate
+        env:
+          DISABLED: ${{ vars.AUTOMERGE_GLOBAL_OFF == '1' }}
+        run: |
+          echo "disabled=$DISABLED" >> "$GITHUB_OUTPUT"
+          if [ "$DISABLED" = "true" ]; then
+            echo "## automerge-safe: DISABLED" >> "$GITHUB_STEP_SUMMARY"
+            echo "Global kill switch enabled (\`AUTOMERGE_GLOBAL_OFF=1\`). All automerge actions skipped." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
       - name: Resolve PR number
+        if: steps.gate.outputs.disabled != 'true'
         id: resolve
         uses: actions/github-script@v7
         with:
@@ -104,7 +116,7 @@ jobs:
             core.setOutput('pr_labels', JSON.stringify(pr.labels.map(l => l.name)));
 
       - name: Classify changed files
-        if: steps.resolve.outputs.skip != 'true'
+        if: steps.gate.outputs.disabled != 'true' && steps.resolve.outputs.skip != 'true'
         id: classify
         uses: actions/github-script@v7
         with:
@@ -187,7 +199,7 @@ jobs:
             core.setOutput('reason', 'All files in safe allowlist');
 
       - name: Write job summary
-        if: steps.resolve.outputs.skip != 'true'
+        if: steps.gate.outputs.disabled != 'true' && steps.resolve.outputs.skip != 'true'
         run: |
           PR_NUM="${{ steps.classify.outputs.pr_number_out || steps.resolve.outputs.pr_number }}"
           cat >> "$GITHUB_STEP_SUMMARY" <<EOF
@@ -210,7 +222,7 @@ jobs:
           EOF
 
       - name: Add label if eligible
-        if: steps.resolve.outputs.skip != 'true' && steps.classify.outputs.eligible == 'true'
+        if: steps.gate.outputs.disabled != 'true' && steps.resolve.outputs.skip != 'true' && steps.classify.outputs.eligible == 'true'
         uses: actions/github-script@v7
         with:
           script: |
@@ -241,7 +253,7 @@ jobs:
             });
 
       - name: Attempt automerge
-        if: steps.resolve.outputs.skip != 'true' && steps.classify.outputs.eligible == 'true'
+        if: steps.gate.outputs.disabled != 'true' && steps.resolve.outputs.skip != 'true' && steps.classify.outputs.eligible == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ steps.resolve.outputs.pr_number }}
@@ -280,7 +292,19 @@ jobs:
     if: github.event_name == 'schedule'
     runs-on: ubuntu-latest
     steps:
+      - name: Global kill switch gate
+        id: gate
+        env:
+          DISABLED: ${{ vars.AUTOMERGE_GLOBAL_OFF == '1' }}
+        run: |
+          echo "disabled=$DISABLED" >> "$GITHUB_OUTPUT"
+          if [ "$DISABLED" = "true" ]; then
+            echo "## sweep-eligible: DISABLED" >> "$GITHUB_STEP_SUMMARY"
+            echo "Global kill switch enabled (\`AUTOMERGE_GLOBAL_OFF=1\`). Sweep skipped." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
       - name: Sweep eligible PRs
+        if: steps.gate.outputs.disabled != 'true'
         id: sweep
         uses: actions/github-script@v7
         with:
@@ -427,6 +451,7 @@ jobs:
             core.setOutput('details', JSON.stringify(results));
 
       - name: Write sweep summary
+        if: steps.gate.outputs.disabled != 'true'
         run: |
           cat >> "$GITHUB_STEP_SUMMARY" <<EOF
           ## automerge-safe sweep

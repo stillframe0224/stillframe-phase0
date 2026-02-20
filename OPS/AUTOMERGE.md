@@ -33,10 +33,28 @@ If ANY changed file is not in the allowlist, the PR is ineligible.
 
 ## Kill Switches
 
+### Per-PR
 1. **Label**: Add `automerge:off` to the PR → automerge is skipped.
 2. **Title token**: Include `[NO-AUTOMERGE]` in the PR title → automerge is skipped.
 
 Both are checked before file classification.
+
+### Global (repository variable)
+3. **`AUTOMERGE_GLOBAL_OFF`**: Set to `"1"` → ALL automerge paths are disabled (PR-triggered, workflow_run retry, hourly sweeper). The jobs still pass (non-blocking) but skip all mutating actions and write a "DISABLED" message to the step summary.
+
+**Disable** (stop all automerge immediately):
+```bash
+gh variable set AUTOMERGE_GLOBAL_OFF --repo stillframe0224/stillframe-phase0 --body "1"
+```
+
+**Re-enable** (either set to `"0"` or delete):
+```bash
+gh variable set AUTOMERGE_GLOBAL_OFF --repo stillframe0224/stillframe-phase0 --body "0"
+# or
+gh variable delete AUTOMERGE_GLOBAL_OFF --repo stillframe0224/stillframe-phase0
+```
+
+The gate is evaluated at job start via `${{ vars.AUTOMERGE_GLOBAL_OFF == '1' }}`. When absent or any value other than `"1"`, automerge is enabled.
 
 ## Merge Behavior
 
