@@ -18,13 +18,14 @@ declare global {
   interface Window {
     __SHINEN_DEBUG__?: {
       requestArrange: () => void;
+      requestResetAll: () => void;
       snapshot: () => {
-        state: "idle" | "dragging";
+        state: "idle" | "dragging" | "settling";
         overlapPairs: number;
-        queuedArrange: boolean;
-        layout: string;
+        queuedReset?: boolean;
+        queuedArrange?: boolean;
+        layout: "grid" | "scatter" | "circle" | "cluster";
         camera: { x: number; y: number; zoom: number };
-        orbit: { rx: number; ry: number };
       };
     };
   }
@@ -94,7 +95,9 @@ export default function TunnelCanvas({
 
   const [isToolsOpen, setIsToolsOpen] = useState(false);
   const isDraggingRef = useRef(false);
+  const queuedResetRef = useRef(false);
   const queuedArrangeRef = useRef(false);
+  const interactionStateRef = useRef<"idle" | "dragging" | "settling">("idle");
 
   const applyVisualCamera = useCallback(
     (cam: { x: number; y: number; zoom: number }, orbit: { rx: number; ry: number }) => {
@@ -197,33 +200,32 @@ export default function TunnelCanvas({
     [setCamera, applyVisualCamera]
   );
 
-  /**
-   * Full reset: grid layout + fitToViewport + orbit reset.
-   * resetAll() from the store arranges cards in a grid and returns
-   * the fitted camera (pan centered on card bbox, zoom=1).
-   */
-  const handleResetAll = useCallback(() => {
+  const performResetAll = useCallback(() => {
+    interactionStateRef.current = "settling";
     if (commitTimerRef.current !== null) {
       clearTimeout(commitTimerRef.current);
       commitTimerRef.current = null;
     }
-    const fittedCam = resetAll(); // arranges grid + returns fitted camera
+    const fittedCam = resetAll();
     orbitRef.current = DEFAULT_ORBIT;
     cameraRef.current = fittedCam;
     applyVisualCamera(fittedCam, DEFAULT_ORBIT);
+    requestAnimationFrame(() => {
+      interactionStateRef.current = isDraggingRef.current ? "dragging" : "idle";
+      if (queuedResetRef.current && !isDraggingRef.current) {
+        queuedResetRef.current = false;
+        performResetAll();
+      }
+    });
   }, [resetAll, applyVisualCamera]);
 
-  /** Camera-only reset (no layout change) — kept for 'r' hotkey */
-  const handleResetCamera = useCallback(() => {
-    if (commitTimerRef.current !== null) {
-      clearTimeout(commitTimerRef.current);
-      commitTimerRef.current = null;
+  const requestResetAll = useCallback(() => {
+    if (isDraggingRef.current) {
+      queuedResetRef.current = true;
+      return;
     }
-    orbitRef.current = DEFAULT_ORBIT;
-    cameraRef.current = DEFAULT_CAMERA;
-    setCamera(DEFAULT_CAMERA);
-    applyVisualCamera(DEFAULT_CAMERA, DEFAULT_ORBIT);
-  }, [setCamera, applyVisualCamera]);
+    performResetAll();
+  }, [performResetAll]);
 
   const calcOverlapPairs = useCallback(() => {
     if (!stageRef.current) return 0;
@@ -250,11 +252,19 @@ export default function TunnelCanvas({
 
   const onDragStateChange = useCallback((dragging: boolean) => {
     isDraggingRef.current = dragging;
-    if (!dragging && queuedArrangeRef.current) {
-      queuedArrangeRef.current = false;
-      arrangeCards();
+    interactionStateRef.current = dragging ? "dragging" : "idle";
+    if (!dragging) {
+      if (queuedResetRef.current) {
+        queuedResetRef.current = false;
+        performResetAll();
+        return;
+      }
+      if (queuedArrangeRef.current) {
+        queuedArrangeRef.current = false;
+        arrangeCards();
+      }
     }
-  }, [arrangeCards]);
+  }, [arrangeCards, performResetAll]);
 
   useEffect(() => {
     const debugEnabled =
@@ -270,19 +280,20 @@ export default function TunnelCanvas({
     }
     window.__SHINEN_DEBUG__ = {
       requestArrange,
+      requestResetAll: handleResetAll,
       snapshot: () => ({
         state: isDraggingRef.current ? "dragging" : "idle",
         overlapPairs: calcOverlapPairs(),
         queuedArrange: queuedArrangeRef.current,
-        layout,
+        queuedReset: false,
+        layout: layout as "grid" | "scatter" | "circle" | "cluster",
         camera: { ...cameraRef.current },
-        orbit: { ...orbitRef.current },
       }),
     };
     return () => {
       delete window.__SHINEN_DEBUG__;
     };
-  }, [requestArrange, calcOverlapPairs, layout]);
+  }, [requestArrange, handleResetAll, calcOverlapPairs, layout]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {

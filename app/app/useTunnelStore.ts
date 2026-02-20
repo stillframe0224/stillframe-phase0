@@ -502,20 +502,45 @@ export function useTunnelStore(
   /**
    * Reset to "always aligned" state:
    * 1) Force layout = GRID using arrangeGridNonOverlap
-   * 2) Compute fitToViewport pan so cards are centered
+   * 2) Shift all card positions so the grid bbox center aligns with the
+   *    viewport center — camera stays at {x:0, y:0, zoom:1}
    * 3) Reset orbit (rx/ry) — handled by TunnelCanvas after this call
-   * Returns the fitted camera so TunnelCanvas can apply visual reset.
    */
-  const resetAll = useCallback((): CameraState => {
+  const resetAll = useCallback((): void => {
     const viewW = window.innerWidth;
     const viewH = window.innerHeight;
-    const positions = arrangeGridNonOverlap(cardIds);
-    const fitCam = computeFitCamera(positions, viewW, viewH);
-    const camera: CameraState = { x: fitCam.x, y: fitCam.y, zoom: 1 };
-    const next: TunnelState = { positions, camera, layout: "grid" };
+    const rawPositions = arrangeGridNonOverlap(cardIds);
+
+    // Compute how much to shift all positions so bbox center = viewport center
+    const CARD_W = 240;
+    const CARD_H = 280;
+    const ids = Object.keys(rawPositions);
+    if (ids.length > 0) {
+      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+      ids.forEach((id) => {
+        const p = rawPositions[id];
+        minX = Math.min(minX, p.x);
+        minY = Math.min(minY, p.y);
+        maxX = Math.max(maxX, p.x + CARD_W);
+        maxY = Math.max(maxY, p.y + CARD_H);
+      });
+      const bboxCx = (minX + maxX) / 2;
+      const bboxCy = (minY + maxY) / 2;
+      const dx = viewW / 2 - bboxCx;
+      const dy = viewH / 2 - bboxCy;
+      ids.forEach((id) => {
+        rawPositions[id] = {
+          ...rawPositions[id],
+          x: rawPositions[id].x + dx,
+          y: rawPositions[id].y + dy,
+        };
+      });
+    }
+
+    const camera: CameraState = { x: 0, y: 0, zoom: 1 };
+    const next: TunnelState = { positions: rawPositions, camera, layout: "grid" };
     setState(next);
     debouncedSave(next);
-    return camera;
   }, [cardIds, debouncedSave]);
 
   return {
