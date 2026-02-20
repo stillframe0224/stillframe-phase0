@@ -11,16 +11,21 @@ import {
 import type { Card, File as FileRecord } from "@/lib/supabase/types";
 import TunnelCardWrapper from "./TunnelCardWrapper";
 import { useTunnelStore } from "./useTunnelStore";
+import { countOverlapPairs } from "./tunnelArrange";
 import J7Logo from "@/app/components/J7Logo";
 
 declare global {
   interface Window {
     __SHINEN_DEBUG__?: {
       requestArrange: () => void;
+      requestResetAll: () => void;
       snapshot: () => {
-        state: "idle" | "dragging";
+        state: "idle" | "dragging" | "settling";
         overlapPairs: number;
-        queuedArrange: boolean;
+        queuedReset?: boolean;
+        queuedArrange?: boolean;
+        layout: "grid" | "scatter" | "circle" | "cluster";
+        camera: { x: number; y: number; zoom: number };
       };
     };
   }
@@ -59,6 +64,10 @@ export default function TunnelCanvas({
   cardCount,
 }: TunnelCanvasProps) {
   const cardIds = useMemo(() => cards.map((c) => c.id), [cards]);
+  const cardTypeMap = useMemo(
+    () => Object.fromEntries(cards.map((c) => [c.id, c.card_type || "memo"])),
+    [cards]
+  );
   const {
     positions,
     camera,
@@ -66,9 +75,10 @@ export default function TunnelCanvas({
     persistError,
     setCardPosition,
     setCamera,
+    cycleLayout,
     arrangeCards,
     resetAll,
-  } = useTunnelStore(userId, cardIds);
+  } = useTunnelStore(userId, cardIds, cardTypeMap);
 
   const sceneRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
@@ -84,22 +94,10 @@ export default function TunnelCanvas({
   } | null>(null);
 
   const [isToolsOpen, setIsToolsOpen] = useState(false);
-  const [isCameraDirty, setIsCameraDirty] = useState(false);
   const isDraggingRef = useRef(false);
+  const queuedResetRef = useRef(false);
   const queuedArrangeRef = useRef(false);
-
-  const isDirty = useCallback(
-    (cam: { x: number; y: number; zoom: number }, orbit: { rx: number; ry: number }) => {
-      return (
-        Math.abs(cam.x - DEFAULT_CAMERA.x) > 0.1 ||
-        Math.abs(cam.y - DEFAULT_CAMERA.y) > 0.1 ||
-        Math.abs(cam.zoom - DEFAULT_CAMERA.zoom) > 0.001 ||
-        Math.abs(orbit.rx - DEFAULT_ORBIT.rx) > 0.1 ||
-        Math.abs(orbit.ry - DEFAULT_ORBIT.ry) > 0.1
-      );
-    },
-    []
-  );
+  const interactionStateRef = useRef<"idle" | "dragging" | "settling">("idle");
 
   const applyVisualCamera = useCallback(
     (cam: { x: number; y: number; zoom: number }, orbit: { rx: number; ry: number }) => {
@@ -112,9 +110,8 @@ export default function TunnelCanvas({
         sceneRef.current.setAttribute("data-cam-ry", String(Number(orbit.ry.toFixed(3))));
         sceneRef.current.setAttribute("data-cam-zoom", String(Number(cam.zoom.toFixed(4))));
       }
-      setIsCameraDirty(isDirty(cam, orbit));
     },
-    [isDirty]
+    []
   );
 
   useEffect(() => {
@@ -203,31 +200,37 @@ export default function TunnelCanvas({
     [setCamera, applyVisualCamera]
   );
 
-  const handleResetCamera = useCallback(() => {
+  const performResetAll = useCallback(() => {
+    interactionStateRef.current = "settling";
     if (commitTimerRef.current !== null) {
       clearTimeout(commitTimerRef.current);
       commitTimerRef.current = null;
     }
+    // resetAll() arranges GRID, centers positions, saves camera={0,0,1} — returns void
+    resetAll();
     orbitRef.current = DEFAULT_ORBIT;
     cameraRef.current = DEFAULT_CAMERA;
-    setCamera(DEFAULT_CAMERA);
     applyVisualCamera(DEFAULT_CAMERA, DEFAULT_ORBIT);
-  }, [setCamera, applyVisualCamera]);
+    requestAnimationFrame(() => {
+      interactionStateRef.current = isDraggingRef.current ? "dragging" : "idle";
+      if (queuedResetRef.current && !isDraggingRef.current) {
+        queuedResetRef.current = false;
+        performResetAll();
+      }
+    });
+  }, [resetAll, applyVisualCamera]);
+
+  const requestResetAll = useCallback(() => {
+    if (isDraggingRef.current) {
+      queuedResetRef.current = true;
+      return;
+    }
+    performResetAll();
+  }, [performResetAll]);
 
   const calcOverlapPairs = useCallback(() => {
-    if (!stageRef.current) return 0;
-    const cards = Array.from(stageRef.current.querySelectorAll<HTMLElement>('[data-testid="tunnel-card"]'));
-    let overlapPairs = 0;
-    for (let i = 0; i < cards.length; i++) {
-      const a = cards[i].getBoundingClientRect();
-      for (let j = i + 1; j < cards.length; j++) {
-        const b = cards[j].getBoundingClientRect();
-        const hit = a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
-        if (hit) overlapPairs++;
-      }
-    }
-    return overlapPairs;
-  }, []);
+    return countOverlapPairs(positions, { w: 240, h: 320 });
+  }, [positions]);
 
   const requestArrange = useCallback(() => {
     if (isDraggingRef.current) {
@@ -239,11 +242,19 @@ export default function TunnelCanvas({
 
   const onDragStateChange = useCallback((dragging: boolean) => {
     isDraggingRef.current = dragging;
-    if (!dragging && queuedArrangeRef.current) {
-      queuedArrangeRef.current = false;
-      arrangeCards();
+    interactionStateRef.current = dragging ? "dragging" : "idle";
+    if (!dragging) {
+      if (queuedResetRef.current) {
+        queuedResetRef.current = false;
+        performResetAll();
+        return;
+      }
+      if (queuedArrangeRef.current) {
+        queuedArrangeRef.current = false;
+        arrangeCards();
+      }
     }
-  }, [arrangeCards]);
+  }, [arrangeCards, performResetAll]);
 
   useEffect(() => {
     const debugEnabled =
@@ -259,16 +270,20 @@ export default function TunnelCanvas({
     }
     window.__SHINEN_DEBUG__ = {
       requestArrange,
+      requestResetAll,
       snapshot: () => ({
-        state: isDraggingRef.current ? "dragging" : "idle",
+        state: interactionStateRef.current,
         overlapPairs: calcOverlapPairs(),
         queuedArrange: queuedArrangeRef.current,
+        queuedReset: queuedResetRef.current,
+        layout: layout as "grid" | "scatter" | "circle" | "cluster",
+        camera: { ...cameraRef.current },
       }),
     };
     return () => {
       delete window.__SHINEN_DEBUG__;
     };
-  }, [requestArrange, calcOverlapPairs]);
+  }, [requestArrange, requestResetAll, calcOverlapPairs, layout]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -284,19 +299,16 @@ export default function TunnelCanvas({
         if (isToolsOpen) {
           setIsToolsOpen(false);
         } else {
-          resetAll();
-          orbitRef.current = DEFAULT_ORBIT;
-          cameraRef.current = DEFAULT_CAMERA;
-          applyVisualCamera(DEFAULT_CAMERA, DEFAULT_ORBIT);
+          requestResetAll();
         }
       } else if (e.key === "r" || e.key === "R") {
-        handleResetCamera();
+        requestResetAll();
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [requestArrange, resetAll, isToolsOpen, handleResetCamera, applyVisualCamera]);
+  }, [requestArrange, requestResetAll, isToolsOpen]);
 
   return (
     <div
@@ -346,7 +358,15 @@ export default function TunnelCanvas({
           </a>
           <span className="tunnel-hud-dot" aria-hidden="true" />
           <span className="tunnel-hud-count">{cardCount ?? cards.length}</span>
-          <span className="tunnel-hud-layout">{layout}</span>
+          <button
+            type="button"
+            className="tunnel-hud-layout"
+            data-testid="layout-pill"
+            onClick={cycleLayout}
+            title="Click to cycle layout"
+          >
+            {layout}
+          </button>
           {persistError && (
             <span data-testid="tunnel-persist-error" className="tunnel-hud-error">
               {persistError === "quota" ? "not saved: quota" : "not saved: parse"}
@@ -362,11 +382,14 @@ export default function TunnelCanvas({
           >
             Arrange
           </button>
-          {isCameraDirty && (
-            <button type="button" className="tunnel-hud-btn" onClick={handleResetCamera}>
-              Reset
-            </button>
-          )}
+          <button
+            type="button"
+            className="tunnel-hud-btn"
+            data-testid="reset-btn"
+            onClick={requestResetAll}
+          >
+            Reset
+          </button>
           <button type="button" className="tunnel-hud-btn" onClick={() => setIsToolsOpen((prev) => !prev)}>
             ...
           </button>

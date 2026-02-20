@@ -136,6 +136,7 @@ function AppPageInner() {
     typeof window !== "undefined" &&
     (window as any).__E2E_ALLOWED__ === true &&
     new URLSearchParams(window.location.search).get("e2e") === "1";
+  const debugMode = searchParams.get("debug") === "1";
   const forceTunnelInE2E = e2eMode && searchParams.get("tunnel") === "1";
   const viewMode = forceTunnelInE2E ? "tunnel" : e2eMode ? "list" : (searchParams.get("view") || "tunnel");
   const isTunnelView = viewMode === "tunnel";
@@ -509,6 +510,7 @@ function AppPageInner() {
     if (sortOrder !== "newest") params.set("sort", sortOrder);
     if (showPinnedOnly) params.set("p", "1");
     if (e2eMode) params.set("e2e", "1");
+    if (debugMode) params.set("debug", "1");
     if (forceTunnelInE2E) {
       params.set("view", "tunnel");
       params.set("tunnel", "1");
@@ -520,7 +522,7 @@ function AppPageInner() {
     // Use history.replaceState to avoid Next.js router triggering _rsc re-fetch
     // which can redirect to /auth/login when the session appears stale.
     window.history.replaceState(null, "", newUrl);
-  }, [searchQuery, domainFilter, fileFilter, mediaFilter, showHasMemoOnly, sortOrder, showPinnedOnly, e2eMode, forceTunnelInE2E, viewMode]);
+  }, [searchQuery, domainFilter, fileFilter, mediaFilter, showHasMemoOnly, sortOrder, showPinnedOnly, e2eMode, debugMode, forceTunnelInE2E, viewMode]);
 
   // Extract unique domains from cards
   const domains = useMemo(() => {
