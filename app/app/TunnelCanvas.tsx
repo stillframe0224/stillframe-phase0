@@ -206,10 +206,11 @@ export default function TunnelCanvas({
       clearTimeout(commitTimerRef.current);
       commitTimerRef.current = null;
     }
-    const fittedCam = resetAll();
+    // resetAll() arranges GRID, centers positions, saves camera={0,0,1} — returns void
+    resetAll();
     orbitRef.current = DEFAULT_ORBIT;
-    cameraRef.current = fittedCam;
-    applyVisualCamera(fittedCam, DEFAULT_ORBIT);
+    cameraRef.current = DEFAULT_CAMERA;
+    applyVisualCamera(DEFAULT_CAMERA, DEFAULT_ORBIT);
     requestAnimationFrame(() => {
       interactionStateRef.current = isDraggingRef.current ? "dragging" : "idle";
       if (queuedResetRef.current && !isDraggingRef.current) {
@@ -280,12 +281,12 @@ export default function TunnelCanvas({
     }
     window.__SHINEN_DEBUG__ = {
       requestArrange,
-      requestResetAll: handleResetAll,
+      requestResetAll,
       snapshot: () => ({
-        state: isDraggingRef.current ? "dragging" : "idle",
+        state: interactionStateRef.current,
         overlapPairs: calcOverlapPairs(),
         queuedArrange: queuedArrangeRef.current,
-        queuedReset: false,
+        queuedReset: queuedResetRef.current,
         layout: layout as "grid" | "scatter" | "circle" | "cluster",
         camera: { ...cameraRef.current },
       }),
@@ -293,7 +294,7 @@ export default function TunnelCanvas({
     return () => {
       delete window.__SHINEN_DEBUG__;
     };
-  }, [requestArrange, handleResetAll, calcOverlapPairs, layout]);
+  }, [requestArrange, requestResetAll, calcOverlapPairs, layout]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -309,16 +310,16 @@ export default function TunnelCanvas({
         if (isToolsOpen) {
           setIsToolsOpen(false);
         } else {
-          handleResetAll();
+          requestResetAll();
         }
       } else if (e.key === "r" || e.key === "R") {
-        handleResetCamera();
+        requestResetAll();
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [requestArrange, handleResetAll, isToolsOpen, handleResetCamera]);
+  }, [requestArrange, requestResetAll, isToolsOpen]);
 
   return (
     <div
@@ -396,7 +397,7 @@ export default function TunnelCanvas({
             type="button"
             className="tunnel-hud-btn"
             data-testid="reset-btn"
-            onClick={handleResetAll}
+            onClick={requestResetAll}
           >
             Reset
           </button>
