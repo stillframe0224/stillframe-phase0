@@ -24,6 +24,7 @@ declare global {
         overlapPairs: number;
         queuedReset?: boolean;
         queuedArrange?: boolean;
+        arrangeVersion: number;
         layout: "grid" | "scatter" | "circle" | "cluster";
         camera: { x: number; y: number; zoom: number };
       };
@@ -97,6 +98,7 @@ export default function TunnelCanvas({
   const isDraggingRef = useRef(false);
   const queuedResetRef = useRef(false);
   const queuedArrangeRef = useRef(false);
+  const arrangeVersionRef = useRef(0);
   const interactionStateRef = useRef<"idle" | "dragging" | "settling">("idle");
 
   const applyVisualCamera = useCallback(
@@ -202,6 +204,8 @@ export default function TunnelCanvas({
 
   const performResetAll = useCallback(() => {
     interactionStateRef.current = "settling";
+    arrangeVersionRef.current += 1;
+    queuedArrangeRef.current = false;
     if (commitTimerRef.current !== null) {
       clearTimeout(commitTimerRef.current);
       commitTimerRef.current = null;
@@ -237,6 +241,7 @@ export default function TunnelCanvas({
       queuedArrangeRef.current = true;
       return;
     }
+    arrangeVersionRef.current += 1;
     arrangeCards();
   }, [arrangeCards]);
 
@@ -246,11 +251,13 @@ export default function TunnelCanvas({
     if (!dragging) {
       if (queuedResetRef.current) {
         queuedResetRef.current = false;
+        queuedArrangeRef.current = false;
         performResetAll();
         return;
       }
       if (queuedArrangeRef.current) {
         queuedArrangeRef.current = false;
+        arrangeVersionRef.current += 1;
         arrangeCards();
       }
     }
@@ -276,6 +283,7 @@ export default function TunnelCanvas({
         overlapPairs: calcOverlapPairs(),
         queuedArrange: queuedArrangeRef.current,
         queuedReset: queuedResetRef.current,
+        arrangeVersion: arrangeVersionRef.current,
         layout: layout as "grid" | "scatter" | "circle" | "cluster",
         camera: { ...cameraRef.current },
       }),
