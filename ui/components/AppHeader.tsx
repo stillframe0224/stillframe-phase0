@@ -14,6 +14,7 @@
 import React from "react";
 import { PrimaryButton } from "@/ui/components/ui";
 import LangToggle from "@/app/components/LangToggle";
+import J7Logo from "@/app/components/J7Logo";
 import type { Lang } from "@/lib/copy";
 
 interface NavLink {
@@ -70,39 +71,7 @@ export default function AppHeader({
           flexShrink: 0,
         }}
       >
-        <span
-          style={{
-            display: "inline-flex",
-            width: 32,
-            height: 32,
-            alignItems: "center",
-            justifyContent: "center",
-            borderRadius: 9999,
-            background: "#fff",
-            border: "1px solid #e5e5e5",
-            boxShadow: "0 1px 2px rgba(0, 0, 0, 0.06)",
-          }}
-        >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/enso.png"
-            width={20}
-            height={20}
-            alt="enso"
-            style={{ display: "block" }}
-          />
-        </span>
-        <span
-          style={{
-            fontFamily: "var(--font-serif)",
-            fontSize: 22,
-            fontWeight: 600,
-            color: "#2a2a2a",
-            letterSpacing: "-0.01em",
-          }}
-        >
-          SHINEN
-        </span>
+        <J7Logo size={24} showText={true} />
         {byline && (
           <span
             style={{

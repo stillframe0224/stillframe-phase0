@@ -11,6 +11,7 @@ import {
 import type { Card, File as FileRecord } from "@/lib/supabase/types";
 import TunnelCardWrapper from "./TunnelCardWrapper";
 import { useTunnelStore } from "./useTunnelStore";
+import J7Logo from "@/app/components/J7Logo";
 
 interface TunnelCanvasProps {
   cards: Card[];
@@ -269,8 +270,7 @@ export default function TunnelCanvas({
       <div className="tunnel-hud" data-testid="tunnel-hud">
         <div className="tunnel-hud-left">
           <a href="/" className="tunnel-hud-brand" aria-label="Home">
-            <img src="/enso.png" alt="" />
-            SHINEN
+            <J7Logo size={16} showText={true} />
           </a>
           <span className="tunnel-hud-dot" aria-hidden="true" />
           <span className="tunnel-hud-count">{cardCount ?? cards.length}</span>
