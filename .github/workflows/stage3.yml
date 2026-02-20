@@ -37,3 +37,6 @@ jobs:
 
       - name: codex headings autofix tests
         run: bash scripts/tests/test_codex_headings.sh
+
+      - name: tunnel arrange unit tests
+        run: npm run test:unit

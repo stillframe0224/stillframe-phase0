@@ -156,13 +156,13 @@ jobs:
         run: npm ci
 
       - name: Build with E2E=1
-        run: E2E=1 npm run build
+        run: E2E=1 NEXT_PUBLIC_SHINEN_DEBUG=1 npm run build
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
 
       - name: Run E2E smoke tests
-        run: npm run test:e2e:ci
+        run: NEXT_PUBLIC_SHINEN_DEBUG=1 npm run test:e2e:ci
 
       - name: Upload smoke report
         if: failure()

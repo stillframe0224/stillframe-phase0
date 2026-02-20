@@ -27,7 +27,7 @@ export default defineConfig({
     url: baseURL,
     reuseExistingServer: !isCI,
     timeout: 120_000,
-    env: { ...process.env, E2E: "1" },
+    env: { ...process.env, E2E: "1", NEXT_PUBLIC_SHINEN_DEBUG: "1" },
   },
   projects: [
     {

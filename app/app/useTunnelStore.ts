@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useRef, useEffect } from "react";
+import { arrangeGridNonOverlap } from "./tunnelArrange";
 
 export type TunnelLayout = "scatter" | "grid" | "circle";
 
@@ -399,6 +400,15 @@ export function useTunnelStore(userId: string, cardIds: string[]) {
     });
   }, [cardIds, debouncedSave]);
 
+  const arrangeCards = useCallback(() => {
+    setState((prev) => {
+      const positions = arrangeGridNonOverlap(cardIds);
+      const next: TunnelState = { ...prev, layout: "grid", positions };
+      debouncedSave(next);
+      return next;
+    });
+  }, [cardIds, debouncedSave]);
+
   const resetAll = useCallback(() => {
     const viewW = window.innerWidth;
     const viewH = window.innerHeight - 160;
@@ -419,6 +429,7 @@ export function useTunnelStore(userId: string, cardIds: string[]) {
     setCardPosition,
     setCamera,
     cycleLayout,
+    arrangeCards,
     resetAll,
   };
 }

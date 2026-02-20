@@ -71,7 +71,7 @@ export default function AppHeader({
           flexShrink: 0,
         }}
       >
-        <J7Logo size={24} showText={true} />
+        <J7Logo size={24} showText={true} dataTestId="j7-logo" />
         {byline && (
           <span
             style={{

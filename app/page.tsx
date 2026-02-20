@@ -104,6 +104,7 @@ export default function Home() {
   return (
     <div
       className="paper-grid-bg"
+      data-testid="paper-grid"
       style={{
         minHeight: "100vh",
         fontFamily: "var(--font-dm), system-ui, sans-serif",

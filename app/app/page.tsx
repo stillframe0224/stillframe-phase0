@@ -11,6 +11,7 @@ import type { Card, File as FileRecord } from "@/lib/supabase/types";
 import AppCard from "./AppCard";
 import AiFeedbackBus from "./AiFeedbackBus";
 import TunnelCanvas from "./TunnelCanvas";
+import J7Logo from "@/app/components/J7Logo";
 import "./tunnel.css";
 import {
   DndContext,
@@ -1997,15 +1998,7 @@ function AppPageInner() {
             letterSpacing: "-0.01em",
           }}
         >
-          <img
-            src="/enso.png"
-            alt=""
-            style={{
-              width: 20,
-              height: 20,
-            }}
-          />
-          SHINEN
+          <J7Logo size={20} showText={true} dataTestId="j7-logo" />
         </a>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           {user?.avatar_url ? (
