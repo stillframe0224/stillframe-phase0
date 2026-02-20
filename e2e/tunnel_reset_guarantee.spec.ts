@@ -103,20 +103,25 @@ test("Reset guarantees camera+layout+fit and overlap=0", async ({ page }) => {
     )
     .toBeCloseTo(1, 2);
 
-  // ── Opportunistic: use __SHINEN_DEBUG__.snapshot() if available ──────────
+  // ── Opportunistic: poll __SHINEN_DEBUG__.snapshot() until state=idle ───────
   const hasDebug = await page.evaluate(
     () => !!(window as any).__SHINEN_DEBUG__?.snapshot
   );
   if (hasDebug) {
-    const snap = await page.evaluate(() =>
-      (window as any).__SHINEN_DEBUG__.snapshot()
-    );
-    expect(snap).toMatchObject({
-      state: "idle",
-      layout: "grid",
-      camera: { x: 0, y: 0, zoom: 1 },
-      overlapPairs: 0,
-    });
+    await expect
+      .poll(
+        async () =>
+          await page.evaluate(() =>
+            (window as any).__SHINEN_DEBUG__.snapshot()
+          ),
+        { timeout: 8000, message: "debug snapshot should reach idle after reset" }
+      )
+      .toMatchObject({
+        state: "idle",
+        layout: "grid",
+        camera: { x: 0, y: 0, zoom: 1 },
+        overlapPairs: 0,
+      });
   }
 
   const hudAfterReset = await page.getByTestId("tunnel-hud").boundingBox();
