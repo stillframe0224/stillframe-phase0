@@ -48,7 +48,13 @@ Both are checked before file classification.
 - Checks `mergeStateStatus` via the API.
 - Only merges if status is `CLEAN` (all checks passed, no conflicts).
 - If checks are pending or failing, does nothing and exits cleanly.
-- Will re-evaluate on the next PR event (synchronize, labeled, etc.).
+- Re-evaluates automatically when required-check workflows complete (via `workflow_run` trigger).
+
+### Retry mechanism
+- Retry is driven by `workflow_run(completed)` of the required workflows: `e2e`, `stage3`, `deploy-smoke`, `ui-smoke`.
+- When any of these workflows completes successfully on a `pull_request` event, automerge-safe re-runs and checks if the PR is now CLEAN.
+- `check_suite`/`check_run` triggers are NOT used due to GitHub Actions recursion prevention constraints.
+- No polling or sleep loops — purely event-driven.
 
 ### Safety guarantees
 - **Never uses `--admin`** — respects branch protection and merge queues.
