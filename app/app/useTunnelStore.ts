@@ -2,6 +2,11 @@
 
 import { useState, useCallback, useRef, useEffect } from "react";
 import { arrangeGridNonOverlap } from "./tunnelArrange";
+import {
+  hasFiniteCamera,
+  hasFinitePositions,
+  normalizeTunnelLayout,
+} from "./tunnelStateGuards";
 
 export type TunnelLayout = "scatter" | "grid" | "circle" | "cluster";
 
@@ -202,7 +207,13 @@ function loadState(userId: string): TunnelState | { error: "corrupt" } | null {
     ) {
       return { error: "corrupt" };
     }
-    return parsed;
+    if (!hasFinitePositions(parsed.positions) || !hasFiniteCamera(parsed.camera)) {
+      return { error: "corrupt" };
+    }
+    return {
+      ...parsed,
+      layout: normalizeTunnelLayout(parsed.layout),
+    };
   } catch {
     return { error: "corrupt" };
   }
@@ -334,9 +345,9 @@ export function useTunnelStore(
     // Corrupt data: start fresh, error will be surfaced via useEffect
     if (loaded !== null && "error" in loaded) {
       const initial: TunnelState = {
-        positions: computeLayout("scatter", cardIds, viewW, viewH),
+        positions: arrangeGridNonOverlap(cardIds),
         camera: { x: 0, y: 0, zoom: 1 },
-        layout: "scatter",
+        layout: "grid",
       };
       stateRef.current = initial;
       return initial;

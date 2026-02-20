@@ -10,6 +10,12 @@ test("Reset guarantees camera+layout+fit and overlap=0", async ({ page }) => {
   await expect(page.getByTestId("tunnel-card").first()).toBeVisible({
     timeout: 15000,
   });
+  await expect(page.getByTestId("tunnel-hud")).toBeVisible({
+    timeout: 15000,
+  });
+
+  const hudBefore = await page.getByTestId("tunnel-hud").boundingBox();
+  expect(hudBefore).toBeTruthy();
 
   // ── Perturb: drag a card + scroll to dirty state ────────────────────────
   const card = page.getByTestId("tunnel-card").first();
@@ -22,8 +28,29 @@ test("Reset guarantees camera+layout+fit and overlap=0", async ({ page }) => {
   }
   await page.mouse.wheel(0, 600);
 
+  const hudAfterPerturb = await page.getByTestId("tunnel-hud").boundingBox();
+  expect(hudAfterPerturb).toBeTruthy();
+  expect(Math.abs((hudAfterPerturb?.x ?? 0) - (hudBefore?.x ?? 0))).toBeLessThanOrEqual(1);
+  expect(Math.abs((hudAfterPerturb?.y ?? 0) - (hudBefore?.y ?? 0))).toBeLessThanOrEqual(1);
+
+  const initialArrangeVersion = await page.evaluate(() => {
+    const d = (window as any).__SHINEN_DEBUG__;
+    return d?.snapshot ? Number(d.snapshot().arrangeVersion ?? 0) : 0;
+  });
+
   // ── Reset ────────────────────────────────────────────────────────────────
   await page.getByTestId("reset-btn").click();
+
+  await expect
+    .poll(
+      async () =>
+        await page.evaluate(() => {
+          const d = (window as any).__SHINEN_DEBUG__;
+          return d?.snapshot ? Number(d.snapshot().arrangeVersion ?? 0) : 1;
+        }),
+      { timeout: 10000, message: "arrangeVersion should advance after reset" }
+    )
+    .toBeGreaterThan(initialArrangeVersion);
 
   // ── Primary: data-x/data-y attribute AABB check ──────────────────────────
   // TunnelCardWrapper writes data-x/data-y/data-w/data-h as logical world
@@ -91,6 +118,11 @@ test("Reset guarantees camera+layout+fit and overlap=0", async ({ page }) => {
       overlapPairs: 0,
     });
   }
+
+  const hudAfterReset = await page.getByTestId("tunnel-hud").boundingBox();
+  expect(hudAfterReset).toBeTruthy();
+  expect(Math.abs((hudAfterReset?.x ?? 0) - (hudBefore?.x ?? 0))).toBeLessThanOrEqual(1);
+  expect(Math.abs((hudAfterReset?.y ?? 0) - (hudBefore?.y ?? 0))).toBeLessThanOrEqual(1);
 
   // ── All cards loosely in viewport (perspective-safe center check) ────────
   const outOfView = await page.evaluate(() => {
