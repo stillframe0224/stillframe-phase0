@@ -31,20 +31,33 @@ ENSURE_CODEX_CHANGED=0
 codex_check_is_failing() {  # args: PR, REPO
   local pr="${1:?pr required}" repo="${2:?repo required}" s=""
 
+  # statusCheckRollup may contain MULTIPLE runs of the same check
+  # (e.g. old failed + new passed after body edit). If ANY run is
+  # success/neutral, the check is NOT failing.
   s="$(gh pr view "$pr" --repo "$repo" --json statusCheckRollup --jq '
     [ .statusCheckRollup[]?
       | select(.name=="codex-review-check")
       | ((.conclusion // .state // .status // "") | ascii_downcase)
-    ][0] // ""
+    ] | if any(. == "success" or . == "neutral") then "success"
+        else (last // "")
+        end
   ' 2>/dev/null || true)"
 
+  if [[ "$s" == "success" || "$s" == "neutral" ]]; then
+    return 1
+  fi
   if [[ "$s" =~ ^(failure|failed|timed_out|cancelled|action_required|error)$ ]]; then
     return 0
   fi
 
   # Fallback when statusCheckRollup is unavailable/empty.
-  gh pr checks "$pr" --repo "$repo" 2>/dev/null |
-    awk '$1=="codex-review-check" && $2=="fail"{found=1} END{exit(found?0:1)}'
+  # If any line shows pass, not failing.
+  local checks_out
+  checks_out="$(gh pr checks "$pr" --repo "$repo" 2>/dev/null || true)"
+  if echo "$checks_out" | awk '$1=="codex-review-check" && $2=="pass"{found=1} END{exit(found?0:1)}'; then
+    return 1
+  fi
+  echo "$checks_out" | awk '$1=="codex-review-check" && $2=="fail"{found=1} END{exit(found?0:1)}'
 }
 
 ensure_codex_headings() {  # args: PR_NUMBER, REPO
