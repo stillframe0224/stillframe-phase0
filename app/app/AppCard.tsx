@@ -981,7 +981,7 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
         minWidth: 210,
         borderRadius: 16,
         border: `1.5px solid ${isSelected ? "#4F6ED9" : ct.border}`,
-        background: `linear-gradient(to bottom, transparent 54%, var(--card-bottom-tint, rgba(0,0,0,0.025)) 100%), ${isSelected ? "#EEF2FF" : ct.bg}`,
+        background: `linear-gradient(to bottom, transparent 55%, rgba(${ct.accentRgb}, 0.07) 100%), ${isSelected ? "#EEF2FF" : ct.bg}`,
         overflow: "hidden",
         cursor: isBulkMode ? "pointer" : "default",
         position: "relative",

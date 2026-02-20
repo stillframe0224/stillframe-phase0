@@ -17,7 +17,7 @@
   background-image:
     linear-gradient(var(--paper-line, rgba(0,0,0,0.055)) 1px, transparent 1px),
     linear-gradient(90deg, var(--paper-line, rgba(0,0,0,0.055)) 1px, transparent 1px);
-  background-size: var(--paper-grid-size, 56px) var(--paper-grid-size, 56px);
+  background-size: var(--paper-grid-size) var(--paper-grid-size);
   z-index: 0;
 }
 
@@ -55,7 +55,7 @@
   position: relative;
 }
 
-/* Slab ":before" — thin paper-stack offset shadow layer */
+/* Slab ":before" — paper-stack offset shadow (+1 step for subtle depth) */
 .tunnel-card-inner::before {
   content: "";
   position: absolute;
@@ -63,25 +63,27 @@
   border-radius: 10px;
   background: transparent;
   box-shadow:
-    2px 2px 0 rgba(0, 0, 0, 0.06),
-    4px 4px 0 rgba(0, 0, 0, 0.03);
+    1px 1px 0 rgba(0, 0, 0, 0.04),
+    2px 2px 0 rgba(0, 0, 0, 0.07),
+    4px 4px 0 rgba(0, 0, 0, 0.04),
+    6px 6px 0 rgba(0, 0, 0, 0.02);
   z-index: -1;
   pointer-events: none;
 }
 
-/* Bottom-half tint — gentle neutral fade for paper depth */
+/* Bottom-half tint — type accent color (via --accent-rgb CSS var on card) */
 .tunnel-card-inner::after {
   content: "";
   position: absolute;
   left: 0;
   right: 0;
   bottom: 0;
-  height: 42%;
+  height: 45%;
   border-radius: 0 0 10px 10px;
   background: linear-gradient(
     180deg,
-    transparent 0%,
-    rgba(0, 0, 0, 0.028) 100%
+    rgba(var(--accent-rgb, 120, 120, 120), 0) 0%,
+    rgba(var(--accent-rgb, 120, 120, 120), 0.075) 100%
   );
   pointer-events: none;
   z-index: 2;
@@ -107,13 +109,14 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 10px;
+  padding: 6px 10px;
   border-radius: 12px;
-  background: var(--sh-glass);
-  border: 1px solid var(--sh-line);
-  box-shadow: var(--sh-shadow-sm);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  /* Borderless / frameless: very subtle glass without hard outline */
+  background: rgba(253, 253, 253, 0.72);
+  border: none;
+  box-shadow: none;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
 .tunnel-hud-left,
@@ -126,10 +129,10 @@
 .tunnel-hud-brand {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   text-decoration: none;
   color: var(--sh-ink);
-  font-size: 12px;
+  font-size: 15px;
   letter-spacing: 0.02em;
   font-family: var(--font-dm), system-ui, sans-serif;
 }
