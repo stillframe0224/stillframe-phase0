@@ -34,6 +34,20 @@ declare global {
   }
 }
 
+/**
+ * Debug hooks are enabled only when ALL conditions are met:
+ * - NODE_ENV !== "production" (dev/test builds), OR
+ * - NEXT_PUBLIC_SHINEN_DEBUG === "1" AND ?debug=1 in URL (opt-in in prod)
+ */
+function isDebugHookEnabled(): boolean {
+  if (process.env.NODE_ENV !== "production") return true;
+  if (typeof window === "undefined") return false;
+  return (
+    process.env.NEXT_PUBLIC_SHINEN_DEBUG === "1" &&
+    window.location.search.includes("debug=1")
+  );
+}
+
 interface TunnelCanvasProps {
   cards: Card[];
   onDelete: (id: string) => void;
@@ -109,17 +123,17 @@ export default function TunnelCanvas({
   const [isToolsOpen, setIsToolsOpen] = useState(false);
   const [isCameraDirty, setIsCameraDirty] = useState(false);
 
-  // ── Debug hook ──
+  // ── Debug hook (guarded: dev OR opt-in only) ──
+  const debugEnabled = useRef(isDebugHookEnabled());
   const updateDebug = useCallback(() => {
-    if (typeof window !== "undefined") {
-      const { overlapPairs } = countOverlapPairs(positions, cardSizesRef.current);
-      window.__SHINEN_DEBUG__ = {
-        overlapPairs,
-        queuedReset: fsmRef.current.pendingReset ? 1 : 0,
-        state: fsmRef.current.state,
-        qualityTier: perfRef.current.tier,
-      };
-    }
+    if (!debugEnabled.current) return;
+    const { overlapPairs } = countOverlapPairs(positions, cardSizesRef.current);
+    window.__SHINEN_DEBUG__ = {
+      overlapPairs,
+      queuedReset: fsmRef.current.pendingReset ? 1 : 0,
+      state: fsmRef.current.state,
+      qualityTier: perfRef.current.tier,
+    };
   }, [positions]);
 
   useEffect(() => {

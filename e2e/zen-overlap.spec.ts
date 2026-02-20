@@ -10,7 +10,7 @@ import { expect, test } from "@playwright/test";
 
 test("zen-overlap: 140 cards, drag+reset spam, overlap===0", async ({ page }) => {
   // Navigate to app with e2e mode + tunnel view
-  await page.goto("/app?e2e=1&view=tunnel&tunnel=1");
+  await page.goto("/app?e2e=1&view=tunnel&tunnel=1&debug=1");
 
   const root = page.getByTestId("tunnel-root");
   await expect(root).toBeVisible({ timeout: 10000 });
