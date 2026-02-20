@@ -8,10 +8,10 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { computeFitCamera } from "./useTunnelStore";
 import type { Card, File as FileRecord } from "@/lib/supabase/types";
 import TunnelCardWrapper from "./TunnelCardWrapper";
 import { useTunnelStore } from "./useTunnelStore";
+import { countOverlapPairs } from "./tunnelArrange";
 import J7Logo from "@/app/components/J7Logo";
 
 declare global {
@@ -229,19 +229,8 @@ export default function TunnelCanvas({
   }, [performResetAll]);
 
   const calcOverlapPairs = useCallback(() => {
-    if (!stageRef.current) return 0;
-    const cards = Array.from(stageRef.current.querySelectorAll<HTMLElement>('[data-testid="tunnel-card"]'));
-    let overlapPairs = 0;
-    for (let i = 0; i < cards.length; i++) {
-      const a = cards[i].getBoundingClientRect();
-      for (let j = i + 1; j < cards.length; j++) {
-        const b = cards[j].getBoundingClientRect();
-        const hit = a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
-        if (hit) overlapPairs++;
-      }
-    }
-    return overlapPairs;
-  }, []);
+    return countOverlapPairs(positions, { w: 240, h: 320 });
+  }, [positions]);
 
   const requestArrange = useCallback(() => {
     if (isDraggingRef.current) {
