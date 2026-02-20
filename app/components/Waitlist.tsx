@@ -29,7 +29,19 @@ export default function Waitlist({
     if (!normalizedEmail) return;
 
     const destination = postUrl ? "webhook" : fallbackEmail ? "mailto" : "none";
-    track("waitlist_submit", { email: normalizedEmail, destination });
+    const endpointHost = (() => {
+      if (!postUrl) return "none";
+      try {
+        return new URL(postUrl).host;
+      } catch {
+        return "invalid_url";
+      }
+    })();
+    track("waitlist_submit", {
+      email: normalizedEmail,
+      destination,
+      endpoint_host: endpointHost,
+    });
     setLoading(true);
     setErrorMessage(null);
 
@@ -44,6 +56,7 @@ export default function Waitlist({
         track("waitlist_submit_result", {
           email: normalizedEmail,
           destination,
+          endpoint_host: endpointHost,
           status: String(res.status),
           ok: String(res.ok),
         });
@@ -58,10 +71,14 @@ export default function Waitlist({
       setSubmitted(true);
     } catch (error) {
       setErrorMessage(c.error[lang]);
+      const reason = error instanceof Error ? error.message : "unknown_error";
+      const statusMatch = reason.match(/waitlist_submit_failed_(\d{3})/);
       track("waitlist_submit_failed", {
         email: normalizedEmail,
         destination,
-        reason: error instanceof Error ? error.message : "unknown_error",
+        endpoint_host: endpointHost,
+        reason,
+        http_status: statusMatch?.[1] ?? "none",
       });
     } finally {
       setLoading(false);
