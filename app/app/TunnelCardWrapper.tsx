@@ -4,6 +4,7 @@ import { useRef, useCallback, useEffect } from "react";
 import type { Card, File as FileRecord } from "@/lib/supabase/types";
 import type { Position3D } from "./useTunnelStore";
 import AppCard from "./AppCard";
+import { getCardType } from "@/lib/cardTypes";
 
 const INTERACTIVE_SELECTOR =
   'button,a,input,textarea,select,[role="button"],[data-no-drag],[data-no-dnd]';
@@ -38,6 +39,7 @@ export default function TunnelCardWrapper({
   stageScale,
   onDragStateChange,
 }: TunnelCardWrapperProps) {
+  const ct = getCardType(card.card_type || "memo");
   const wrapperRef = useRef<HTMLDivElement>(null);
   const dragState = useRef<{
     startX: number;
@@ -173,6 +175,7 @@ export default function TunnelCardWrapper({
       style={{
         transform: `translate3d(${position.x}px, ${position.y}px, ${position.z}px)`,
         width: 240,
+        ["--accent-rgb" as string]: ct.accentRgb,
       }}
       onPointerDown={handlePointerDown}
       onWheel={handleWheel}

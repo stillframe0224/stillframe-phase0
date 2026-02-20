@@ -107,6 +107,7 @@ export default function ThoughtCard({ text, type, index }: ThoughtCardProps) {
         width: 210,
         minWidth: 210,
         boxShadow: "var(--card-slab-shadow, 0 1.8px 0 rgba(0,0,0,0.06), 0 0.9px 0 rgba(0,0,0,0.04))",
+        ["--accent-rgb" as string]: ct.accentRgb,
         animationName: "cardPop",
         animationDuration: "0.45s",
         animationTimingFunction: "ease-out",
@@ -118,7 +119,7 @@ export default function ThoughtCard({ text, type, index }: ThoughtCardProps) {
         style={{
           borderRadius: 10,
           border: "1.5px solid var(--card-border, rgba(0,0,0,0.12))",
-          background: "linear-gradient(to bottom, transparent 54%, var(--card-bottom-tint, rgba(0,0,0,0.025)) 100%), var(--paper-bg, #fdfdfd)",
+          background: "linear-gradient(to bottom, transparent 55%, rgba(var(--accent-rgb, 120,120,120), 0.07) 100%), var(--paper-bg, #fdfdfd)",
           overflow: "hidden",
           cursor: "default",
           boxShadow: "var(--card-shadow, 0 4px 20px -6px rgba(0,0,0,0.12), 0 1px 4px rgba(0,0,0,0.05))",

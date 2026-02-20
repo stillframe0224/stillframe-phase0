@@ -45,19 +45,47 @@ function DotDivider() {
         padding: "48px 0",
       }}
     >
-      {["#F5C882", "#A0B8F5", "#7EDBA0"].map((c) => (
+      {[0.18, 0.10, 0.06].map((op, i) => (
         <div
-          key={c}
+          key={i}
           style={{
-            width: 6,
-            height: 6,
+            width: 5,
+            height: 5,
             borderRadius: "50%",
-            background: c,
-            opacity: 0.6,
+            background: `rgba(0,0,0,${op})`,
           }}
         />
       ))}
     </div>
+  );
+}
+
+/** Karesansui sand-ripple SVG overlay (static decorative) */
+function SandRipple() {
+  return (
+    <svg
+      aria-hidden="true"
+      style={{
+        position: "absolute",
+        inset: 0,
+        width: "100%",
+        height: "100%",
+        pointerEvents: "none",
+        userSelect: "none",
+      }}
+      viewBox="0 0 1200 400"
+      preserveAspectRatio="xMidYMid slice"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      {/* concentric gentle arcs — karesansui sand ripples */}
+      <path d="M600 420 Q400 300 200 360 Q0 420 -100 380" stroke="rgba(0,0,0,0.04)" strokeWidth="1.5" />
+      <path d="M600 460 Q380 320 160 390 Q-60 460 -140 410" stroke="rgba(0,0,0,0.033)" strokeWidth="1.5" />
+      <path d="M600 500 Q360 340 120 420 Q-100 500 -180 440" stroke="rgba(0,0,0,0.025)" strokeWidth="1.5" />
+      <path d="M600 420 Q800 300 1000 360 Q1200 420 1300 380" stroke="rgba(0,0,0,0.04)" strokeWidth="1.5" />
+      <path d="M600 460 Q820 320 1040 390 Q1260 460 1340 410" stroke="rgba(0,0,0,0.033)" strokeWidth="1.5" />
+      <path d="M600 500 Q840 340 1080 420 Q1300 500 1380 440" stroke="rgba(0,0,0,0.025)" strokeWidth="1.5" />
+    </svg>
   );
 }
 
@@ -108,8 +136,14 @@ export default function Home() {
       style={{
         minHeight: "100vh",
         fontFamily: "var(--font-dm), system-ui, sans-serif",
+        position: "relative",
+        overflow: "hidden",
       }}
     >
+      {/* Karesansui sand-ripple decorative backdrop */}
+      <div style={{ position: "absolute", inset: 0, pointerEvents: "none", zIndex: 0 }}>
+        <SandRipple />
+      </div>
       {/* Nav */}
       <AppHeader lang={lang} onToggle={toggleLang} byline={copy.nav.byline[lang]} />
 
@@ -151,12 +185,31 @@ export default function Home() {
           href="#demo"
           onClick={() => track("hero_cta_click")}
           aria-label={copy.hero.cta[lang]}
-          className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#D9A441] rounded-full"
           style={{ textDecoration: "none" }}
         >
-          <PrimaryButton className="rounded-full px-7 py-3 text-sm">
+          <button
+            style={{
+              padding: "10px 28px",
+              borderRadius: 999,
+              border: "1.5px solid rgba(0,0,0,0.75)",
+              background: "transparent",
+              color: "rgba(0,0,0,0.8)",
+              fontSize: 14,
+              fontWeight: 500,
+              letterSpacing: "0.04em",
+              fontFamily: "var(--font-dm), system-ui, sans-serif",
+              cursor: "pointer",
+              transition: "background 0.15s, color 0.15s",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = "rgba(0,0,0,0.06)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = "transparent";
+            }}
+          >
             {copy.hero.cta[lang]}
-          </PrimaryButton>
+          </button>
         </a>
       </section>
 
@@ -407,8 +460,8 @@ export default function Home() {
                     width: 48,
                     height: 48,
                     borderRadius: 12,
-                    background: ["#FFF8F0", "#EEF2FF", "#F0FFF4"][i],
-                    border: `1px solid ${["#F5C882", "#A0B8F5", "#7EDBA0"][i]}`,
+                    background: "rgba(0,0,0,0.03)",
+                    border: "1px solid rgba(0,0,0,0.10)",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
