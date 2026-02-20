@@ -12,8 +12,8 @@ const copy = {
       ja: "すべての思考に、画像がつく。",
     },
     sub: {
-      en: "Paste a URL and the image appears. Drop a photo and it becomes a card. Even if you do nothing, a gentle illustration fills the space — so your thoughts never feel empty.",
-      ja: "URLを貼れば画像を自動取得。写真をドロップすればそのままカードに。何もしなくても、やさしいイラストが空白を埋めてくれる。思考が空っぽに見えることは、もうない。",
+      en: "Paste a URL and the image appears. Drop a photo and it becomes a card. Even if you do nothing, a gentle illustration fills the space — no manual image hunting, no empty thoughts.",
+      ja: "URLを貼れば画像を自動取得。写真をドロップすればそのままカードに。何もしなくても、やさしいイラストが空白を埋める。画像探しの手作業を減らし、思考を止めない。",
     },
     cta: {
       en: "Try Quick Capture",
@@ -41,8 +41,8 @@ const copy = {
       {
         title: { en: "Paste a URL", ja: "URLを貼る" },
         desc: {
-          en: "OGP image is fetched automatically.",
-          ja: "OGP画像を自動取得。",
+          en: "OGP image is fetched automatically, no manual fetch needed.",
+          ja: "OGP画像を自動取得。手作業の取得は不要。",
         },
       },
       {
