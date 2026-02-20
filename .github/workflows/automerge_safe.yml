@@ -1,0 +1,190 @@
+name: automerge-safe
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review, labeled, unlabeled]
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+concurrency:
+  group: automerge-safe-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  automerge:
+    name: automerge-safe
+    if: >-
+      github.event.pull_request.draft == false &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - name: Classify changed files
+        id: classify
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const prNumber = pr.number;
+
+            // --- Kill switches ---
+            const labels = pr.labels.map(l => l.name);
+            if (labels.includes('automerge:off')) {
+              core.setOutput('eligible', 'false');
+              core.setOutput('reason', 'Kill switch label "automerge:off" present');
+              return;
+            }
+            if (pr.title.includes('[NO-AUTOMERGE]')) {
+              core.setOutput('eligible', 'false');
+              core.setOutput('reason', 'PR title contains [NO-AUTOMERGE]');
+              return;
+            }
+
+            // --- Gather all changed files (paginated) ---
+            const files = [];
+            for (let page = 1; ; page++) {
+              const resp = await github.rest.pulls.listFiles({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: prNumber,
+                per_page: 100,
+                page,
+              });
+              files.push(...resp.data.map(f => f.filename));
+              if (resp.data.length < 100) break;
+            }
+
+            core.setOutput('files', files.join('\n'));
+
+            // --- Deny patterns (checked first) ---
+            const denyPatterns = [
+              /^\.github\/workflows\//,
+              /^pnpm-lock\.yaml$/,
+              /^package-lock\.json$/,
+              /^yarn\.lock$/,
+              /^app\//,
+              /^lib\//,
+              /^scripts\//,
+              /^api\//,
+            ];
+
+            for (const f of files) {
+              for (const pattern of denyPatterns) {
+                if (pattern.test(f)) {
+                  core.setOutput('eligible', 'false');
+                  core.setOutput('reason', `Denied by file: ${f}`);
+                  return;
+                }
+              }
+            }
+
+            // --- Allow patterns (every file must match one) ---
+            const allowPatterns = [
+              /^docs\//,
+              /^ops\//,
+              /^\.github\/(?!workflows\/)/,
+              /\.md$/,
+              /\.txt$/,
+              /\.css$/,
+            ];
+
+            for (const f of files) {
+              const allowed = allowPatterns.some(p => p.test(f));
+              if (!allowed) {
+                core.setOutput('eligible', 'false');
+                core.setOutput('reason', `File not in allowlist: ${f}`);
+                return;
+              }
+            }
+
+            core.setOutput('eligible', 'true');
+            core.setOutput('reason', 'All files in safe allowlist');
+
+      - name: Write job summary
+        run: |
+          cat >> "$GITHUB_STEP_SUMMARY" <<EOF
+          ## automerge-safe classification
+
+          | Field | Value |
+          |-------|-------|
+          | **Eligible** | \`${{ steps.classify.outputs.eligible }}\` |
+          | **Reason** | ${{ steps.classify.outputs.reason }} |
+          | **PR** | #${{ github.event.pull_request.number }} |
+
+          <details><summary>Changed files</summary>
+
+          \`\`\`
+          ${{ steps.classify.outputs.files }}
+          \`\`\`
+
+          </details>
+          EOF
+
+      - name: Add label if eligible
+        if: steps.classify.outputs.eligible == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const prNumber = context.payload.pull_request.number;
+            const labelName = 'automerge:eligible';
+            const labelColor = 'c2e0c6';  // neutral green
+
+            // Ensure label exists
+            try {
+              await github.rest.issues.getLabel({ owner, repo, name: labelName });
+            } catch (e) {
+              if (e.status === 404) {
+                await github.rest.issues.createLabel({
+                  owner, repo,
+                  name: labelName,
+                  color: labelColor,
+                  description: 'Safe-only automerge eligible',
+                });
+              }
+            }
+
+            await github.rest.issues.addLabels({
+              owner, repo,
+              issue_number: prNumber,
+              labels: [labelName],
+            });
+
+      - name: Attempt automerge
+        if: steps.classify.outputs.eligible == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+
+          REPO="${{ github.repository }}"
+          AUTO_MERGE=$(gh api "repos/${REPO}" --jq '.allow_auto_merge // false')
+
+          echo "allow_auto_merge=${AUTO_MERGE}"
+
+          if [ "$AUTO_MERGE" = "true" ]; then
+            echo "Repo has auto-merge enabled; enabling auto-merge on PR."
+            gh pr merge "$PR_NUMBER" --repo "$REPO" --auto --squash --delete-branch || {
+              echo "::warning::gh pr merge --auto failed; not falling back to admin merge."
+              exit 0
+            }
+          else
+            echo "Auto-merge not enabled on repo; checking merge state."
+            STATE=$(gh pr view "$PR_NUMBER" --repo "$REPO" --json mergeStateStatus --jq '.mergeStateStatus')
+            echo "mergeStateStatus=${STATE}"
+            if [ "$STATE" = "CLEAN" ]; then
+              echo "PR is CLEAN; merging now."
+              gh pr merge "$PR_NUMBER" --repo "$REPO" --squash --delete-branch || {
+                echo "::warning::gh pr merge failed; not falling back to admin merge."
+                exit 0
+              }
+            else
+              echo "PR is not CLEAN (state=${STATE}); skipping merge. Will retry on next event."
+              exit 0
+            fi
+          fi
