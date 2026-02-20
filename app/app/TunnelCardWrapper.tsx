@@ -119,6 +119,8 @@ export default function TunnelCardWrapper({
       const newY = ds.startPosY + dy / stageScale;
       if (wrapperRef.current) {
         wrapperRef.current.style.transform = `translate3d(${newX}px, ${newY}px, ${position.z}px)`;
+        wrapperRef.current.setAttribute("data-x", String(Number(newX.toFixed(2))));
+        wrapperRef.current.setAttribute("data-y", String(Number(newY.toFixed(2))));
       }
     };
 
@@ -164,6 +166,10 @@ export default function TunnelCardWrapper({
       ref={wrapperRef}
       className="tunnel-card"
       data-testid="tunnel-card"
+      data-x={position.x}
+      data-y={position.y}
+      data-w={240}
+      data-h={320}
       style={{
         transform: `translate3d(${position.x}px, ${position.y}px, ${position.z}px)`,
         width: 240,
