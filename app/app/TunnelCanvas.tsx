@@ -13,6 +13,19 @@ import TunnelCardWrapper from "./TunnelCardWrapper";
 import { useTunnelStore } from "./useTunnelStore";
 import J7Logo from "@/app/components/J7Logo";
 
+declare global {
+  interface Window {
+    __SHINEN_DEBUG__?: {
+      requestArrange: () => void;
+      snapshot: () => {
+        state: "idle" | "dragging";
+        overlapPairs: number;
+        queuedArrange: boolean;
+      };
+    };
+  }
+}
+
 interface TunnelCanvasProps {
   cards: Card[];
   onDelete: (id: string) => void;
@@ -53,7 +66,7 @@ export default function TunnelCanvas({
     persistError,
     setCardPosition,
     setCamera,
-    cycleLayout,
+    arrangeCards,
     resetAll,
   } = useTunnelStore(userId, cardIds);
 
@@ -72,6 +85,8 @@ export default function TunnelCanvas({
 
   const [isToolsOpen, setIsToolsOpen] = useState(false);
   const [isCameraDirty, setIsCameraDirty] = useState(false);
+  const isDraggingRef = useRef(false);
+  const queuedArrangeRef = useRef(false);
 
   const isDirty = useCallback(
     (cam: { x: number; y: number; zoom: number }, orbit: { rx: number; ry: number }) => {
@@ -199,6 +214,62 @@ export default function TunnelCanvas({
     applyVisualCamera(DEFAULT_CAMERA, DEFAULT_ORBIT);
   }, [setCamera, applyVisualCamera]);
 
+  const calcOverlapPairs = useCallback(() => {
+    if (!stageRef.current) return 0;
+    const cards = Array.from(stageRef.current.querySelectorAll<HTMLElement>('[data-testid="tunnel-card"]'));
+    let overlapPairs = 0;
+    for (let i = 0; i < cards.length; i++) {
+      const a = cards[i].getBoundingClientRect();
+      for (let j = i + 1; j < cards.length; j++) {
+        const b = cards[j].getBoundingClientRect();
+        const hit = a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
+        if (hit) overlapPairs++;
+      }
+    }
+    return overlapPairs;
+  }, []);
+
+  const requestArrange = useCallback(() => {
+    if (isDraggingRef.current) {
+      queuedArrangeRef.current = true;
+      return;
+    }
+    arrangeCards();
+  }, [arrangeCards]);
+
+  const onDragStateChange = useCallback((dragging: boolean) => {
+    isDraggingRef.current = dragging;
+    if (!dragging && queuedArrangeRef.current) {
+      queuedArrangeRef.current = false;
+      arrangeCards();
+    }
+  }, [arrangeCards]);
+
+  useEffect(() => {
+    const debugEnabled =
+      typeof window !== "undefined" &&
+      process.env.NEXT_PUBLIC_SHINEN_DEBUG === "1" &&
+      new URLSearchParams(window.location.search).get("debug") === "1";
+
+    if (!debugEnabled) {
+      if (typeof window !== "undefined") {
+        delete window.__SHINEN_DEBUG__;
+      }
+      return;
+    }
+    window.__SHINEN_DEBUG__ = {
+      requestArrange,
+      snapshot: () => ({
+        state: isDraggingRef.current ? "dragging" : "idle",
+        overlapPairs: calcOverlapPairs(),
+        queuedArrange: queuedArrangeRef.current,
+      }),
+    };
+    return () => {
+      delete window.__SHINEN_DEBUG__;
+    };
+  }, [requestArrange, calcOverlapPairs]);
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const tag = (document.activeElement?.tagName || "").toLowerCase();
@@ -208,7 +279,7 @@ export default function TunnelCanvas({
       if (e.key === "k" || e.key === "K") {
         setIsToolsOpen((prev) => !prev);
       } else if (e.key === "a" || e.key === "A") {
-        cycleLayout();
+        requestArrange();
       } else if (e.key === "Escape") {
         if (isToolsOpen) {
           setIsToolsOpen(false);
@@ -225,7 +296,7 @@ export default function TunnelCanvas({
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [cycleLayout, resetAll, isToolsOpen, handleResetCamera, applyVisualCamera]);
+  }, [requestArrange, resetAll, isToolsOpen, handleResetCamera, applyVisualCamera]);
 
   return (
     <div
@@ -238,7 +309,7 @@ export default function TunnelCanvas({
       onPointerDown={handleScenePointerDown}
       onWheel={handleSceneWheel}
     >
-      <div className="tunnel-grid-bg" />
+      <div className="tunnel-grid-bg" data-testid="paper-grid" />
       <div
         ref={stageRef}
         className="tunnel-stage"
@@ -262,6 +333,7 @@ export default function TunnelCanvas({
               onNotesSaved={onNotesSaved}
               files={files}
               stageScale={camera.zoom}
+              onDragStateChange={onDragStateChange}
             />
           );
         })}
@@ -270,7 +342,7 @@ export default function TunnelCanvas({
       <div className="tunnel-hud" data-testid="tunnel-hud">
         <div className="tunnel-hud-left">
           <a href="/" className="tunnel-hud-brand" aria-label="Home">
-            <J7Logo size={16} showText={true} />
+            <J7Logo size={16} showText={true} dataTestId="j7-logo" />
           </a>
           <span className="tunnel-hud-dot" aria-hidden="true" />
           <span className="tunnel-hud-count">{cardCount ?? cards.length}</span>
@@ -282,6 +354,14 @@ export default function TunnelCanvas({
           )}
         </div>
         <div className="tunnel-hud-right">
+          <button
+            type="button"
+            className="tunnel-hud-btn"
+            data-testid="arrange-btn"
+            onClick={requestArrange}
+          >
+            Arrange
+          </button>
           {isCameraDirty && (
             <button type="button" className="tunnel-hud-btn" onClick={handleResetCamera}>
               Reset
