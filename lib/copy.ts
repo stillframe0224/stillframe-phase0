@@ -19,6 +19,10 @@ const copy = {
       en: "Try Quick Capture",
       ja: "Quick Capture を試す",
     },
+    ctaAlt: {
+      en: "See Early Access Pricing",
+      ja: "早期アクセス料金を見る",
+    },
   },
   demo: {
     h2: { en: "Try Quick Capture", ja: "Quick Capture を試す" },
