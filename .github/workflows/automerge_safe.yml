@@ -7,6 +7,8 @@ on:
   workflow_run:
     workflows: [e2e, stage3, deploy-smoke, ui-smoke]
     types: [completed]
+  schedule:
+    - cron: '17 * * * *'
 
 permissions:
   contents: write
@@ -14,20 +16,23 @@ permissions:
   issues: write
 
 concurrency:
-  group: automerge-safe-${{ github.event.pull_request.number || github.event.workflow_run.id }}
+  group: automerge-safe-${{ github.event.pull_request.number || github.event.workflow_run.id || 'sweep' }}
   cancel-in-progress: true
 
 jobs:
   automerge:
     name: automerge-safe
     if: >-
-      (github.event_name == 'pull_request'
-       && github.event.pull_request.draft == false
-       && github.event.pull_request.head.repo.full_name == github.repository)
-      ||
-      (github.event_name == 'workflow_run'
-       && github.event.workflow_run.conclusion == 'success'
-       && github.event.workflow_run.event == 'pull_request')
+      github.event_name != 'schedule'
+      && (
+        (github.event_name == 'pull_request'
+         && github.event.pull_request.draft == false
+         && github.event.pull_request.head.repo.full_name == github.repository)
+        ||
+        (github.event_name == 'workflow_run'
+         && github.event.workflow_run.conclusion == 'success'
+         && github.event.workflow_run.event == 'pull_request')
+      )
     runs-on: ubuntu-latest
     steps:
       - name: Resolve PR number
@@ -269,3 +274,175 @@ jobs:
               exit 0
             fi
           fi
+
+  sweep-eligible:
+    name: sweep-eligible
+    if: github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Sweep eligible PRs
+        id: sweep
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+
+            // Find open PRs with automerge:eligible label
+            const { data: prs } = await github.rest.issues.listForRepo({
+              owner, repo,
+              state: 'open',
+              labels: 'automerge:eligible',
+              per_page: 20,
+            });
+
+            const candidates = prs.filter(p => p.pull_request);
+            core.info(`Found ${candidates.length} open PRs with automerge:eligible label`);
+
+            const results = [];
+
+            for (const issue of candidates) {
+              const prNumber = issue.number;
+
+              // Fetch full PR data
+              const { data: pr } = await github.rest.pulls.get({
+                owner, repo,
+                pull_number: prNumber,
+              });
+
+              // Safety checks
+              if (pr.draft) {
+                results.push({ pr: prNumber, action: 'skipped', reason: 'draft' });
+                continue;
+              }
+              if (pr.head.repo.full_name !== `${owner}/${repo}`) {
+                results.push({ pr: prNumber, action: 'skipped', reason: 'fork' });
+                continue;
+              }
+
+              // Kill switches
+              const labels = pr.labels.map(l => l.name);
+              if (labels.includes('automerge:off')) {
+                results.push({ pr: prNumber, action: 'skipped', reason: 'automerge:off' });
+                continue;
+              }
+              if (pr.title.includes('[NO-AUTOMERGE]')) {
+                results.push({ pr: prNumber, action: 'skipped', reason: '[NO-AUTOMERGE]' });
+                continue;
+              }
+
+              // Re-validate allowlist/denylist
+              const files = [];
+              for (let page = 1; ; page++) {
+                const resp = await github.rest.pulls.listFiles({
+                  owner, repo,
+                  pull_number: prNumber,
+                  per_page: 100,
+                  page,
+                });
+                files.push(...resp.data.map(f => f.filename));
+                if (resp.data.length < 100) break;
+              }
+
+              const denyPatterns = [
+                /^\.github\/workflows\//,
+                /^pnpm-lock\.yaml$/,
+                /^package-lock\.json$/,
+                /^yarn\.lock$/,
+                /^app\//,
+                /^lib\//,
+                /^scripts\//,
+                /^api\//,
+              ];
+
+              let denied = false;
+              for (const f of files) {
+                for (const pattern of denyPatterns) {
+                  if (pattern.test(f)) {
+                    denied = true;
+                    results.push({ pr: prNumber, action: 'skipped', reason: `denied: ${f}` });
+                    break;
+                  }
+                }
+                if (denied) break;
+              }
+              if (denied) continue;
+
+              const allowPatterns = [
+                /^docs\//,
+                /^ops\//,
+                /^\.github\/(?!workflows\/)/,
+                /\.md$/,
+                /\.txt$/,
+                /\.css$/,
+              ];
+
+              let notAllowed = false;
+              for (const f of files) {
+                if (!allowPatterns.some(p => p.test(f))) {
+                  notAllowed = true;
+                  results.push({ pr: prNumber, action: 'skipped', reason: `not allowed: ${f}` });
+                  break;
+                }
+              }
+              if (notAllowed) continue;
+
+              // Check merge state
+              if (pr.mergeable_state === 'clean') {
+                core.info(`PR #${prNumber} is CLEAN; attempting merge.`);
+                try {
+                  await github.rest.pulls.merge({
+                    owner, repo,
+                    pull_number: prNumber,
+                    merge_method: 'squash',
+                  });
+                  results.push({ pr: prNumber, action: 'merged', reason: 'CLEAN' });
+
+                  // Delete branch after merge
+                  try {
+                    await github.rest.git.deleteRef({
+                      owner, repo,
+                      ref: `heads/${pr.head.ref}`,
+                    });
+                  } catch (e) {
+                    core.info(`Failed to delete branch ${pr.head.ref}: ${e.message}`);
+                  }
+                } catch (e) {
+                  results.push({ pr: prNumber, action: 'failed', reason: e.message });
+                }
+              } else {
+                results.push({ pr: prNumber, action: 'skipped', reason: `state=${pr.mergeable_state}` });
+              }
+            }
+
+            // Set outputs for summary
+            const merged = results.filter(r => r.action === 'merged').length;
+            const skipped = results.filter(r => r.action === 'skipped').length;
+            const failed = results.filter(r => r.action === 'failed').length;
+
+            core.setOutput('candidates', String(candidates.length));
+            core.setOutput('merged', String(merged));
+            core.setOutput('skipped', String(skipped));
+            core.setOutput('failed', String(failed));
+            core.setOutput('details', JSON.stringify(results));
+
+      - name: Write sweep summary
+        run: |
+          cat >> "$GITHUB_STEP_SUMMARY" <<EOF
+          ## automerge-safe sweep
+
+          | Metric | Count |
+          |--------|-------|
+          | **Candidates** | ${{ steps.sweep.outputs.candidates }} |
+          | **Merged** | ${{ steps.sweep.outputs.merged }} |
+          | **Skipped** | ${{ steps.sweep.outputs.skipped }} |
+          | **Failed** | ${{ steps.sweep.outputs.failed }} |
+
+          <details><summary>Details</summary>
+
+          \`\`\`json
+          ${{ steps.sweep.outputs.details }}
+          \`\`\`
+
+          </details>
+          EOF

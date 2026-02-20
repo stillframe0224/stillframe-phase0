@@ -56,14 +56,23 @@ Both are checked before file classification.
 - `check_suite`/`check_run` triggers are NOT used due to GitHub Actions recursion prevention constraints.
 - No polling or sleep loops — purely event-driven.
 
+### Hourly sweeper (`sweep-eligible` job)
+- Schedule: `cron: '17 * * * *'` (every hour at :17).
+- Lists all open PRs with the `automerge:eligible` label.
+- For each candidate: re-validates safety checks, kill switches, allowlist/denylist, then checks `mergeable_state`.
+- Merges (squash + delete branch) if state is `clean`; skips otherwise.
+- Writes a summary table to `$GITHUB_STEP_SUMMARY` with candidates/merged/skipped/failed counts.
+- Acts as a safety net for edge cases where `workflow_run` events are missed or delayed.
+
 ### Safety guarantees
 - **Never uses `--admin`** — respects branch protection and merge queues.
 - **Never bypasses required checks** — waits for all checks to pass.
-- **Never polls or sleeps** — event-driven only.
+- **Event-driven + hourly sweep** — no busy-polling or sleep loops.
 - **Never uses `pull_request_target`** — no elevated permissions from forks.
 - **Fork PRs are skipped entirely.**
 - **Draft PRs are skipped entirely.**
 - **On any merge failure, exits 0** — non-blocking, no fallback escalation.
+- **Sweeper re-validates** — never trusts stale `automerge:eligible` labels; always re-checks files.
 
 ## Auditing
 
