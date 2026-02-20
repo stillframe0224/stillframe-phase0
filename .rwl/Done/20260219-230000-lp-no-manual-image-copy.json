@@ -1,0 +1,16 @@
+{
+  "id": "20260219-230000-lp-no-manual-image-copy",
+  "goal": "LPコピーで『手動作業を減らせる』価値訴求を強化し、Waitlist登録動機を明確にする",
+  "est_minutes": 30,
+  "dod": [
+    "npm run build 通過",
+    "/Users/array0224/stillframe-phase0/reports/triad/20260219-230000-lp-no-manual-image-copy.md 作成",
+    "READMEに実行手順追記（新機能の場合）",
+    "PR作成"
+  ],
+  "evidence_paths": [
+    "/Users/array0224/stillframe-phase0/reports/triad/20260219-230000-lp-no-manual-image-copy.md"
+  ],
+  "created_at": "2026-02-19T14:00:00Z",
+  "status": "queue"
+}
