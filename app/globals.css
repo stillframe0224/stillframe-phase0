@@ -28,7 +28,7 @@
   /* ── Paper-grid tokens (zen paper theme) ── */
   --paper-bg: #fdfdfd;
   --paper-line: rgba(0,0,0,0.055);   /* ruled/grid lines */
-  --paper-grid-size: 56px;            /* grid tile size */
+  --paper-grid-size: 80px;            /* grid tile size */
   --card-border: rgba(0,0,0,0.12);   /* 1.5px card border */
   --card-shadow: 0 4px 20px -6px rgba(0,0,0,0.12), 0 1px 4px rgba(0,0,0,0.05);
   --card-slab-shadow: 0 1.8px 0 rgba(0,0,0,0.06), 0 0.9px 0 rgba(0,0,0,0.04);

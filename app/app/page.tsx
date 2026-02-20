@@ -1477,6 +1477,20 @@ function AppPageInner() {
     }
   };
 
+  // Tunnel canvas upload handler — wraps handleUploadSelect with a FileList
+  const handleTunnelUpload = useCallback(
+    (fileList: FileList) => {
+      const file = fileList[0];
+      if (!file) return;
+      // Reuse the existing upload logic by synthesizing a change event proxy
+      handleUploadSelect({
+        target: { files: fileList, value: "" },
+      } as unknown as React.ChangeEvent<HTMLInputElement>);
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [user, configured]
+  );
+
   // Generate thumbnail from image or video
   const generateThumbnail = async (file: File): Promise<Blob> => {
     return new Promise((resolve, reject) => {
@@ -2693,6 +2707,7 @@ function AppPageInner() {
           userId={user?.id || "anon"}
           toolsContent={tunnelToolsContent}
           cardCount={filteredCards.length}
+          onUpload={handleTunnelUpload}
         />
       )}
 

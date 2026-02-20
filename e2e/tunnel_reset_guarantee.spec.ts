@@ -103,6 +103,18 @@ test("Reset guarantees camera+layout+fit and overlap=0", async ({ page }) => {
     )
     .toBeCloseTo(1, 2);
 
+  // ── Orbit must return to flat (rx=0, ry=0) after reset ──────────────────
+  const camRx = await page.evaluate(() => {
+    const el = document.querySelector('[data-testid="tunnel-root"]');
+    return parseFloat(el?.getAttribute("data-cam-rx") ?? "99");
+  });
+  const camRy = await page.evaluate(() => {
+    const el = document.querySelector('[data-testid="tunnel-root"]');
+    return parseFloat(el?.getAttribute("data-cam-ry") ?? "99");
+  });
+  expect(Math.abs(camRx)).toBeLessThanOrEqual(0.1);
+  expect(Math.abs(camRy)).toBeLessThanOrEqual(0.1);
+
   // ── Opportunistic: poll __SHINEN_DEBUG__.snapshot() until state=idle ───────
   const hasDebug = await page.evaluate(
     () => !!(window as any).__SHINEN_DEBUG__?.snapshot

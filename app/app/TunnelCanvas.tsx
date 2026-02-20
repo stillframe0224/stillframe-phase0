@@ -43,6 +43,8 @@ interface TunnelCanvasProps {
   userId: string;
   toolsContent?: ReactNode;
   cardCount?: number;
+  /** Called when user selects files via upload button or drag-and-drop onto canvas */
+  onUpload?: (files: FileList) => void;
 }
 
 const ZOOM_MIN = 0.3;
@@ -51,6 +53,8 @@ const ZOOM_STEP = 0.001;
 const ZOOM_COMMIT_DELAY = 250;
 const DEFAULT_CAMERA = { x: 0, y: 0, zoom: 1 };
 const DEFAULT_ORBIT = { rx: -8, ry: 10 };
+// Reset always snaps to flat/horizontal view (no tilt)
+const RESET_ORBIT = { rx: 0, ry: 0 };
 
 export default function TunnelCanvas({
   cards,
@@ -63,6 +67,7 @@ export default function TunnelCanvas({
   userId,
   toolsContent,
   cardCount,
+  onUpload,
 }: TunnelCanvasProps) {
   const cardIds = useMemo(() => cards.map((c) => c.id), [cards]);
   const cardTypeMap = useMemo(
@@ -83,6 +88,7 @@ export default function TunnelCanvas({
 
   const sceneRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
+  const uploadInputRef = useRef<HTMLInputElement>(null);
   const orbitRef = useRef(DEFAULT_ORBIT);
   const cameraRef = useRef(camera);
   const commitTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -212,9 +218,10 @@ export default function TunnelCanvas({
     }
     // resetAll() arranges GRID, centers positions, saves camera={0,0,1} — returns void
     resetAll();
-    orbitRef.current = DEFAULT_ORBIT;
+    // Reset to flat view — orbit goes to 0/0, not DEFAULT_ORBIT (which has tilt)
+    orbitRef.current = RESET_ORBIT;
     cameraRef.current = DEFAULT_CAMERA;
-    applyVisualCamera(DEFAULT_CAMERA, DEFAULT_ORBIT);
+    applyVisualCamera(DEFAULT_CAMERA, RESET_ORBIT);
     requestAnimationFrame(() => {
       interactionStateRef.current = isDraggingRef.current ? "dragging" : "idle";
       if (queuedResetRef.current && !isDraggingRef.current) {
@@ -328,6 +335,11 @@ export default function TunnelCanvas({
       className="tunnel-scene"
       onPointerDown={handleScenePointerDown}
       onWheel={handleSceneWheel}
+      onDragOver={onUpload ? (e) => e.preventDefault() : undefined}
+      onDrop={onUpload ? (e) => {
+        e.preventDefault();
+        if (e.dataTransfer.files?.length) onUpload(e.dataTransfer.files);
+      } : undefined}
     >
       <div className="tunnel-grid-bg" data-testid="paper-grid" />
       <div
@@ -362,7 +374,7 @@ export default function TunnelCanvas({
       <div className="tunnel-hud" data-testid="tunnel-hud">
         <div className="tunnel-hud-left">
           <a href="/" className="tunnel-hud-brand" aria-label="Home">
-            <J7Logo size={16} showText={true} dataTestId="j7-logo" />
+            <J7Logo size={26} showText={true} dataTestId="j7-logo" />
           </a>
           <span className="tunnel-hud-dot" aria-hidden="true" />
           <span className="tunnel-hud-count">{cardCount ?? cards.length}</span>
@@ -382,6 +394,33 @@ export default function TunnelCanvas({
           )}
         </div>
         <div className="tunnel-hud-right">
+          {onUpload && (
+            <>
+              <button
+                type="button"
+                className="tunnel-hud-btn tunnel-hud-btn--upload"
+                data-testid="upload-btn"
+                onClick={() => uploadInputRef.current?.click()}
+                title="Upload image or video"
+              >
+                ↑ Upload
+              </button>
+              <input
+                ref={uploadInputRef}
+                type="file"
+                accept="image/*,video/*"
+                multiple
+                data-testid="upload-input"
+                style={{ display: "none" }}
+                onChange={(e) => {
+                  if (e.target.files?.length) {
+                    onUpload(e.target.files);
+                    e.target.value = "";
+                  }
+                }}
+              />
+            </>
+          )}
           <button
             type="button"
             className="tunnel-hud-btn"
