@@ -28,7 +28,8 @@ export default function Waitlist({
     const normalizedEmail = email.trim().toLowerCase();
     if (!normalizedEmail) return;
 
-    track("waitlist_submit", { email: normalizedEmail });
+    const destination = postUrl ? "webhook" : fallbackEmail ? "mailto" : "none";
+    track("waitlist_submit", { email: normalizedEmail, destination });
     setLoading(true);
     setErrorMessage(null);
 
@@ -40,6 +41,13 @@ export default function Waitlist({
           body: JSON.stringify({ email: normalizedEmail }),
         });
 
+        track("waitlist_submit_result", {
+          email: normalizedEmail,
+          destination,
+          status: String(res.status),
+          ok: String(res.ok),
+        });
+
         if (!res.ok) throw new Error(`waitlist_submit_failed_${res.status}`);
       } else if (fallbackEmail) {
         window.location.href = `mailto:${fallbackEmail}?subject=SHINEN Waitlist&body=Please add ${normalizedEmail} to the waitlist.`;
@@ -48,9 +56,13 @@ export default function Waitlist({
       }
 
       setSubmitted(true);
-    } catch {
+    } catch (error) {
       setErrorMessage(c.error[lang]);
-      track("waitlist_submit_failed", { email: normalizedEmail });
+      track("waitlist_submit_failed", {
+        email: normalizedEmail,
+        destination,
+        reason: error instanceof Error ? error.message : "unknown_error",
+      });
     } finally {
       setLoading(false);
     }
