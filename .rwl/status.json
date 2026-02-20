@@ -1,7 +1,7 @@
 {
   "failure_count": 0,
   "max_failures": 5,
-  "last_run_at": "2026-02-19T14:00:00Z",
-  "last_task_id": "20260219-230000-lp-no-manual-image-copy",
+  "last_run_at": "2026-02-20T14:07:00Z",
+  "last_task_id": "20260220-230000-lp-cta-ab-variant",
   "note": "failure_count >= max_failures で自律タスクを停止。手動リセット: failure_count を 0 に戻す"
 }

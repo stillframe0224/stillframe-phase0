@@ -95,6 +95,7 @@ export default function Home() {
   const [input, setInput] = useState("");
   const [cards, setCards] = useState<Card[]>([]);
   const [nextId, setNextId] = useState(1);
+  const [ctaVariant, setCtaVariant] = useState<"default" | "early">("default");
   const inputRef = useRef<HTMLInputElement>(null);
   const demoTracked = useRef(false);
 
@@ -120,6 +121,13 @@ export default function Home() {
     track("page_view");
   }, []);
 
+  useEffect(() => {
+    const query = new URLSearchParams(window.location.search);
+    const variant = query.get("cta") === "early" ? "early" : "default";
+    setCtaVariant(variant);
+    track("lp_cta_variant_seen", { variant });
+  }, []);
+
   // Get hero sample cards
   const sampleCards: Card[] = sampleTypes.map((type, i) => ({
     id: i + 100,
@@ -128,6 +136,8 @@ export default function Home() {
   }));
 
   const ct = cardTypes.find((t) => t.label === selectedType) || cardTypes[0];
+  const heroCtaLabel =
+    ctaVariant === "early" ? copy.hero.ctaAlt[lang] : copy.hero.cta[lang];
 
   return (
     <div
@@ -183,8 +193,8 @@ export default function Home() {
         </p>
         <a
           href="#demo"
-          onClick={() => track("hero_cta_click")}
-          aria-label={copy.hero.cta[lang]}
+          onClick={() => track("hero_cta_click", { variant: ctaVariant })}
+          aria-label={heroCtaLabel}
           style={{ textDecoration: "none" }}
         >
           <button
@@ -208,7 +218,7 @@ export default function Home() {
               e.currentTarget.style.background = "transparent";
             }}
           >
-            {copy.hero.cta[lang]}
+            {heroCtaLabel}
           </button>
         </a>
       </section>

@@ -43,5 +43,13 @@
     "session": "nightly",
     "pr_url": "https://github.com/stillframe0224/stillframe-phase0/pull/83",
     "evidence": "/Users/array0224/stillframe-phase0/reports/triad/20260219-230000-lp-no-manual-image-copy.md"
+  },
+  {
+    "id": "20260220-230000-lp-cta-ab-variant",
+    "goal": "LPのCTAコピーをクエリパラメータでA/B切替可能にし、計測イベントにvariantを付与する",
+    "completed_at": "2026-02-20T14:07:00Z",
+    "session": "nightly",
+    "pr_url": "https://github.com/stillframe0224/stillframe-phase0/pull/106",
+    "evidence": "/Users/array0224/stillframe-phase0/reports/triad/20260220-230000-lp-cta-ab-variant.md"
   }
 ]
