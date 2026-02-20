@@ -28,3 +28,12 @@ jobs:
             exit 1
           fi
           echo "All Codex review sections found."
+
+  codex-headings-unit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: codex headings autofix tests
+        run: bash scripts/tests/test_codex_headings.sh
