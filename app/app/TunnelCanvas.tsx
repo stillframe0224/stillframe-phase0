@@ -52,7 +52,7 @@ const ZOOM_MAX = 3.0;
 const ZOOM_STEP = 0.001;
 const ZOOM_COMMIT_DELAY = 250;
 const DEFAULT_CAMERA = { x: 0, y: 0, zoom: 1 };
-const DEFAULT_ORBIT = { rx: 0, ry: 0 };
+const DEFAULT_ORBIT = { rx: -8, ry: 10 };
 
 export default function TunnelCanvas({
   cards,

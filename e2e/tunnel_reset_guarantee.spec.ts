@@ -131,10 +131,11 @@ test("Reset guarantees camera+layout+fit and overlap=0", async ({ page }) => {
       orbitRy: parseFloat(root?.getAttribute("data-orbit-ry") ?? "99"),
     };
   });
-  expect(Math.abs(settled.camRx)).toBeLessThanOrEqual(0.1);
-  expect(Math.abs(settled.camRy)).toBeLessThanOrEqual(0.1);
-  expect(Math.abs(settled.orbitRx)).toBeLessThanOrEqual(0.1);
-  expect(Math.abs(settled.orbitRy)).toBeLessThanOrEqual(0.1);
+  // DEFAULT_ORBIT = {rx:-8, ry:10} — reset restores the canonical tilt
+  expect(settled.camRx).toBeCloseTo(-8, 1);
+  expect(settled.camRy).toBeCloseTo(10, 1);
+  expect(settled.orbitRx).toBeCloseTo(-8, 1);
+  expect(settled.orbitRy).toBeCloseTo(10, 1);
   expect(settled.camZoom).toBeCloseTo(1, 2);
 
   const hudAfterReset = await page.getByTestId("tunnel-hud").boundingBox();
