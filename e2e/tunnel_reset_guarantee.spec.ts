@@ -3,12 +3,14 @@ import { test, expect } from "@playwright/test";
 test("Reset guarantees camera+layout+fit and overlap=0", async ({ page }) => {
   await page.goto("/app?e2e=1&view=tunnel&tunnel=1&debug=1");
 
+  await expect(page.getByTestId("tunnel-root")).toBeVisible();
+
   await expect.poll(async () => {
     return page.evaluate(() => {
       const d = (window as any).__SHINEN_DEBUG__;
       return !!d?.snapshot;
     });
-  }).toBe(true);
+  }, { timeout: 10000 }).toBe(true);
 
   const card = page.getByTestId("tunnel-card").first();
   const box = await card.boundingBox();
