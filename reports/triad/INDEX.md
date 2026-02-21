@@ -3,7 +3,12 @@
 Deterministic index of `reports/triad/*.md`. Do not add timestamps here.
 
 - [INDEX_ig_preview_pipeline: INDEX: IG Preview Pipeline](INDEX_ig_preview_pipeline.md)
+- [20260221_phase0_kpi_scoreboard: Phase0 KPI Scoreboard — Adoption Note](20260221_phase0_kpi_scoreboard.md)
+- [20260221_hard_gate_canary: Hard Gate Canary](20260221_hard_gate_canary.md)
 - [20260221_docs_pr_autopilot: Triad Report: Docs PR Autopilot Adoption](20260221_docs_pr_autopilot.md)
+- [20260221_automerge_hard_gate: Triad Report: Automerge Hard Gate on Required Checks](20260221_automerge_hard_gate.md)
+- [20260221_automerge_allowlist_v11: Triad Report: Automerge Allowlist v1.1](20260221_automerge_allowlist_v11.md)
+- [20260221_app_theme_ssot_followup: 20260221_app_theme_ssot_followup.md](20260221_app_theme_ssot_followup.md)
 - [20260221_agent_memory_harness_adoption: Triad Report: Agent Memory + Harness Adoption](20260221_agent_memory_harness_adoption.md)
 - [20260220_codex_headings_autofix: Codex Headings Autofix — Report](20260220_codex_headings_autofix.md)
 - [20260220_automerge_sweeper: Triad Report: Automerge Hourly Sweeper](20260220_automerge_sweeper.md)
