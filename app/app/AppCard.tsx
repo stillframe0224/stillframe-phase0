@@ -9,6 +9,8 @@ import type { Card, File as FileRecord } from "@/lib/supabase/types";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Drawer } from "@/ui/subframe/components/Drawer";
+import CardShell from "@/app/components/CardShell";
+import YouTubeModal, { extractYouTubeId } from "@/app/components/YouTubeModal";
 
 type PreviewCacheEntry = {
   status: "ok" | "fail";
@@ -224,6 +226,7 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
   const [showMemoPreview, setShowMemoPreview] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [showFileSelect, setShowFileSelect] = useState(false);
+  const [youtubeVideoId, setYoutubeVideoId] = useState<string | null>(null);
   const [aiAnalyzing, setAiAnalyzing] = useState(false);
   const [aiError, setAiError] = useState<string | null>(null);
   const [aiSuccess, setAiSuccess] = useState(false);
@@ -969,44 +972,27 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
   };
 
   return (
-    <div
-      ref={(node) => {
+    <CardShell
+      nodeRef={(node) => {
         cardRef.current = node;
         setNodeRef(node);
       }}
       className="thought-card"
       onClick={handleCardClick}
-      style={{
-        width: 210,
-        minWidth: 210,
-        borderRadius: "var(--card-radius, 12px)",
-        border: `1px solid ${isSelected ? "#4F6ED9" : "var(--card-border, rgba(0,0,0,0.14))"}`,
-        background: isSelected ? "#EEF2FF" : "var(--card-bg, #ffffff)",
-        overflow: "hidden",
-        cursor: isBulkMode ? "pointer" : "default",
-        position: "relative",
-        boxShadow: "var(--card-shadow, 0 14px 34px -26px rgba(0,0,0,0.22))",
-        animationName: "cardPop",
-        animationDuration: "0.45s",
-        animationTimingFunction: "ease-out",
-        animationFillMode: "both",
-        animationDelay: `${index * 0.04}s`,
-        ...dragStyle,
-      }}
-      onMouseEnter={(e) => {
+      seed={index}
+      interactive={!isBulkMode}
+      selected={isSelected}
+      animationDelay={index * 0.04}
+      dragStyle={dragStyle}
+      isDragging={isDragging}
+      onMouseEnter={() => {
         if (!isDragging && !isBulkMode) {
-          e.currentTarget.style.transform = dragStyle.transform || "translateY(-2px)";
-          e.currentTarget.style.boxShadow = "var(--card-shadow-hover, 0 18px 40px -20px rgba(0,0,0,0.28))";
-          e.currentTarget.style.borderColor = isSelected ? "#4F6ED9" : "var(--card-border-hover, rgba(0,0,0,0.18))";
           setShowDelete(true);
           setIsHovered(true);
         }
       }}
-      onMouseLeave={(e) => {
+      onMouseLeave={() => {
         if (!isDragging && !isBulkMode) {
-          e.currentTarget.style.transform = dragStyle.transform || "translateY(0)";
-          e.currentTarget.style.boxShadow = "var(--card-shadow, 0 14px 34px -26px rgba(0,0,0,0.22))";
-          e.currentTarget.style.borderColor = isSelected ? "#4F6ED9" : "var(--card-border, rgba(0,0,0,0.14))";
           setShowDelete(false);
           setIsHovered(false);
         }
@@ -1187,17 +1173,32 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
         </button>
       )}
 
-      {/* Image Area — clickable if card has URL */}
+      {/* Image Area — clickable if card has URL; YouTube opens in-site modal */}
       {cardUrl && !isBulkMode ? (
-        <a
-          href={cardUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          onClick={(e) => e.stopPropagation()}
-          style={{ display: "block", cursor: "pointer" }}
-        >
-          {imageContent}
-        </a>
+        (() => {
+          const ytId = extractYouTubeId(cardUrl);
+          return ytId ? (
+            <div
+              role="button"
+              tabIndex={0}
+              onClick={(e) => { e.stopPropagation(); setYoutubeVideoId(ytId); }}
+              onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.stopPropagation(); setYoutubeVideoId(ytId); } }}
+              style={{ display: "block", cursor: "pointer" }}
+            >
+              {imageContent}
+            </div>
+          ) : (
+            <a
+              href={cardUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              style={{ display: "block", cursor: "pointer" }}
+            >
+              {imageContent}
+            </a>
+          );
+        })()
       ) : (
         imageContent
       )}
@@ -1669,6 +1670,14 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
           </div>
         </Drawer.Content>
       </Drawer>
-    </div>
+
+      {/* YouTube in-site player modal */}
+      {youtubeVideoId && (
+        <YouTubeModal
+          videoId={youtubeVideoId}
+          onClose={() => setYoutubeVideoId(null)}
+        />
+      )}
+    </CardShell>
   );
 }

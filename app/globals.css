@@ -13,13 +13,25 @@
   --grid-line: rgba(0,0,0,0.06);
   --grid-w: 1px;
 
+  /* ── App-specific grid (larger, quieter than paper-grid) ── */
+  --app-grid-size: 210px;
+  --app-card-w: 250px;
+
+  /* ── Idle float animation ── */
+  --app-float-amp: 3px;
+  --app-float-period: 12s;
+
+  /* ── Button font (UI sans) ── */
+  --app-btn-font: var(--font-dm), system-ui, sans-serif;
+
   /* ── Card tokens ── */
   --card-bg: #ffffff;
   --card-border: rgba(0,0,0,0.14);
-  --card-border-hover: rgba(0,0,0,0.18);
+  --card-border-hover: rgba(0,0,0,0.22);
   --card-radius: 12px;
-  --card-shadow: 0 14px 34px -26px rgba(0,0,0,0.22);
-  --card-shadow-hover: 0 18px 40px -20px rgba(0,0,0,0.28);
+  --card-shadow: 0 2px 8px -2px rgba(0,0,0,0.06), 0 8px 24px -8px rgba(0,0,0,0.10);
+  --card-shadow-hover: 0 4px 12px -2px rgba(0,0,0,0.10), 0 16px 32px -8px rgba(0,0,0,0.16);
+  --card-shadow-active: 0 1px 4px -1px rgba(0,0,0,0.06), 0 4px 12px -4px rgba(0,0,0,0.08);
 
   /* ── Legacy alias tokens (kept for backward compat with tunnel/other code) ── */
   --sh-bg: #fdfdfd;
@@ -53,15 +65,60 @@
   --border: rgba(0,0,0,0.10);
 }
 
-/* ── App page grid background ── */
+/* ── App page grid background (larger, quieter) ── */
 .app-grid-bg {
   background-color: var(--bg);
   background-image:
     linear-gradient(to right, var(--grid-line) var(--grid-w), transparent var(--grid-w)),
     linear-gradient(to bottom, var(--grid-line) var(--grid-w), transparent var(--grid-w));
-  background-size: var(--paper-grid-size) var(--paper-grid-size);
+  background-size: var(--app-grid-size) var(--app-grid-size);
   background-attachment: local;
 }
+
+/* ── Idle float keyframes ── */
+@keyframes idleFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(calc(-1 * var(--app-float-amp))); }
+}
+
+/* ── YouTube modal overlay ── */
+.yt-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(0,0,0,0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+}
+.yt-modal-content {
+  position: relative;
+  width: 90vw;
+  max-width: 900px;
+  aspect-ratio: 16/9;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 24px 80px rgba(0,0,0,0.4);
+}
+.yt-modal-close {
+  position: absolute;
+  top: -40px;
+  right: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255,255,255,0.15);
+  color: #fff;
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+}
+.yt-modal-close:hover { background: rgba(255,255,255,0.3); }
 
 /* ── Legacy class alias ── */
 .paper-grid-bg {
