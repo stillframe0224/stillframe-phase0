@@ -796,8 +796,14 @@ function AppPageInner() {
         image_source = image_url ? "upload" : "generated";
         setPendingFile(null);
       } else {
+        const hasUrlInText = URL_REGEX.test(text);
         image_url = await fetchOgpImage(text);
         image_source = image_url ? "ogp" : "generated";
+
+        if (hasUrlInText && !image_url) {
+          setBanner("OGP画像を取得できなかったため、フォールバック画像を使用しました");
+          setTimeout(() => setBanner(null), 3000);
+        }
       }
 
       const supabase = createClient();
