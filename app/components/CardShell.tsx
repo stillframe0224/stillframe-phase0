@@ -67,18 +67,23 @@ export default function CardShell({
   const [hovered, setHovered] = useState(false);
   const [pressed, setPressed] = useState(false);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+  const [isE2E, setIsE2E] = useState(false);
 
-  // Check prefers-reduced-motion
+  // Check prefers-reduced-motion + E2E mode (disable animation for test stability)
   useEffect(() => {
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
     setPrefersReducedMotion(mq.matches);
     const handler = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches);
     mq.addEventListener("change", handler);
+    // Detect E2E mode — Playwright tests use ?e2e=1 and animations cause element instability
+    try {
+      setIsE2E(new URLSearchParams(window.location.search).has("e2e"));
+    } catch { /* SSR safe */ }
     return () => mq.removeEventListener("change", handler);
   }, []);
 
-  // Idle float: pause on hover, drag, or reduced-motion
-  const shouldFloat = interactive && !hovered && !isDragging && !pressed && !prefersReducedMotion;
+  // Idle float: pause on hover, drag, reduced-motion, or E2E test mode
+  const shouldFloat = interactive && !hovered && !isDragging && !pressed && !prefersReducedMotion && !isE2E;
 
   // Phase offset derived from seed (spread across animation period)
   const phaseOffset = (seed % 17) * 0.73; // ~0–12s range
