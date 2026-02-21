@@ -1,37 +1,32 @@
 # EDGE — automerge-safe edge cases (2026-02-21)
 
-## 1) PR with >100 files (pagination)
-- **Symptom:** classification appears incomplete or unexpected on very large PRs.
-- **Where to look:** `automerge-safe` job summary (`Changed files`) and classify step logs.
-- **One fix:** keep paginated `listFiles` loop (already present) and avoid non-paginated refactors.
+## 1) PR has >100 files (pagination)
+- **Symptom:** eligibility reason does not match actual changed files.
+- **Where to look:** `automerge-safe` classify step + summary “Changed files”.
+- **One fix:** keep paginated `pulls.listFiles(per_page=100,page++)` loop.
 
-## 2) `workflow_run` payload without associated PR
-- **Symptom:** workflow_run trigger executes but no PR is merged/labeled.
-- **Where to look:** `Resolve PR number` step logs (`No pull_requests in payload; searching by branch...` / `No associated PR found`).
-- **One fix:** use fallback lookup by `head_branch`/`head_sha` (already present) and keep early safe exit if unresolved.
+## 2) `workflow_run` has no associated PR
+- **Symptom:** workflow_run completed but automerge does nothing.
+- **Where to look:** `Resolve PR number` log (`No associated PR found` / fallback branch lookup lines).
+- **One fix:** use branch/SHA fallback and safe-skip when unresolved.
 
-## 3) External checks timing gap (e.g., Vercel still pending)
-- **Symptom:** eligible PR not merged immediately after one green run.
-- **Where to look:** `Attempt automerge` step (`mergeStateStatus`, `state=...`) and PR checks panel.
-- **One fix:** rely on `CLEAN` gate + workflow_run retries + hourly sweep; do not force admin merge.
+## 3) External checks finish in different order (e.g., Vercel)
+- **Symptom:** PR appears eligible but merge delayed until final checks settle.
+- **Where to look:** PR checks panel + `Attempt automerge` log (`mergeStateStatus`).
+- **One fix:** enforce CLEAN-only merge, rely on retry/sweep instead of force merge.
 
-## 4) Repo setting change (`allow_auto_merge` toggled)
-- **Symptom:** merge path behavior changes (`--auto` vs direct CLEAN merge).
-- **Where to look:** `Attempt automerge` log line `allow_auto_merge=true/false`.
-- **One fix:** periodically verify via:
+## 4) Repo setting changed (`allow_auto_merge` toggled)
+- **Symptom:** merge path switches between `--auto` and direct CLEAN merge unexpectedly.
+- **Where to look:** `Attempt automerge` log line `allow_auto_merge=...`.
+- **One fix:** verify repo setting before incidents:
   - `gh api repos/stillframe0224/stillframe-phase0 --jq '.allow_auto_merge'`
 
-## 5) Label collisions / manual label edits
-- **Symptom:** PR unexpectedly skipped or merged later than expected.
-- **Where to look:** PR labels + classify reason (`automerge:off`, `automerge:eligible`).
-- **One fix:** reserve `automerge:*` labels for automation policy only; document operator rule in runbook.
+## 5) Label collisions / manual edits
+- **Symptom:** PR unexpectedly skipped or merged.
+- **Where to look:** PR labels + classify reason in Actions summary.
+- **One fix:** reserve `automerge:*` labels for automation policy only.
 
 ## 6) Case sensitivity in paths
-- **Symptom:** unexpected allow/deny outcome for mixed-case directories.
-- **Where to look:** classify `reason` and listed file path.
-- **One fix:** keep canonical lowercase repo paths; if mixed-case paths are introduced, add explicit regex rule.
-
-## 7) Sweep list pagination (eligible PR backlog)
-- **Symptom:** some eligible PRs not processed in same hourly run when backlog >20.
-- **Where to look:** sweep logs (`Found X open PRs with automerge:eligible label`).
-- **One fix:** increase sweep `per_page` and add pagination loop (single safest enhancement if backlog grows).
+- **Symptom:** deny/allow mismatch for mixed-case paths.
+- **Where to look:** classify reason including exact filename.
+- **One fix:** enforce canonical lowercase paths in policy and review.
