@@ -59,7 +59,7 @@
   background-image:
     linear-gradient(to right, var(--grid-line) var(--grid-w), transparent var(--grid-w)),
     linear-gradient(to bottom, var(--grid-line) var(--grid-w), transparent var(--grid-w));
-  background-size: var(--grid-size) var(--grid-size);
+  background-size: var(--paper-grid-size) var(--paper-grid-size);
   background-attachment: local;
 }
 
