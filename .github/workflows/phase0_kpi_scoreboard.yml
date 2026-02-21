@@ -1,0 +1,171 @@
+name: phase0-kpi-scoreboard
+
+on:
+  schedule:
+    - cron: "13 19 * * *"  # daily 19:13 UTC (04:13 JST)
+  workflow_dispatch: {}
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  update-scoreboard:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fetch KPI data from production
+        id: kpi
+        run: |
+          set +e
+          RESP=$(curl -fsS --max-time 15 \
+            "https://stillframe-phase0.vercel.app/api/phase0-kpi" 2>&1)
+          CURL_EXIT=$?
+          set -e
+
+          if [ $CURL_EXIT -ne 0 ]; then
+            echo "curl_ok=false" >> "$GITHUB_OUTPUT"
+            echo "error=curl failed (exit $CURL_EXIT): $RESP" >> "$GITHUB_OUTPUT"
+            # Still continue — will render with error state
+          else
+            echo "curl_ok=true" >> "$GITHUB_OUTPUT"
+          fi
+
+          # Save response for parsing
+          echo "$RESP" > /tmp/kpi.json
+          cat /tmp/kpi.json
+
+      - name: Render scoreboard markdown
+        id: render
+        run: |
+          CURL_OK="${{ steps.kpi.outputs.curl_ok }}"
+
+          if [ "$CURL_OK" != "true" ]; then
+            ERROR="${{ steps.kpi.outputs.error }}"
+            BODY=$(cat <<MDEOF
+          ## Phase0 KPI Scoreboard
+
+          > **Last updated:** $(date -u '+%Y-%m-%d %H:%M UTC')
+          > **Status:** :x: DATA FETCH FAILED
+
+          \`\`\`
+          Error: $ERROR
+          \`\`\`
+
+          ---
+          _Auto-updated daily by [phase0-kpi-scoreboard](.github/workflows/phase0_kpi_scoreboard.yml)._
+          _Manual trigger: \`gh workflow run phase0-kpi-scoreboard\`_
+          MDEOF
+          )
+          # Write to file to avoid quoting issues
+          echo "$BODY" > /tmp/issue_body.md
+          exit 0
+          fi
+
+          # Parse JSON
+          OK=$(jq -r '.ok // false' /tmp/kpi.json)
+          TS=$(jq -r '.ts // "unknown"' /tmp/kpi.json)
+          TOTAL_CARDS=$(jq -r '.total_cards // 0' /tmp/kpi.json)
+          DISTINCT_USERS=$(jq -r '.distinct_users // 0' /tmp/kpi.json)
+          CARDS_7D=$(jq -r '.cards_7d // "n/a"' /tmp/kpi.json)
+          CARDS_1D=$(jq -r '.cards_1d // "n/a"' /tmp/kpi.json)
+          WAITLIST=$(jq -r '.waitlist_total // "n/a"' /tmp/kpi.json)
+          INTENT=$(jq -r '.payment_intent // "n/a"' /tmp/kpi.json)
+          PREORDERS=$(jq -r '.preorders // "n/a"' /tmp/kpi.json)
+          NOTES=$(jq -r '.notes // ""' /tmp/kpi.json)
+
+          # Thresholds
+          TH_WL=300
+          TH_INTENT=30
+          TH_PRE=5
+
+          # Status helper
+          status_icon() {
+            local val="$1" threshold="$2"
+            if [ "$val" = "null" ] || [ "$val" = "n/a" ]; then
+              echo ":white_circle: n/a"
+            elif [ "$val" -ge "$threshold" ] 2>/dev/null; then
+              echo ":white_check_mark: GO"
+            elif [ "$val" -ge $((threshold / 2)) ] 2>/dev/null; then
+              echo ":warning: WARNING"
+            else
+              echo ":red_circle: CRITICAL"
+            fi
+          }
+
+          WL_STATUS=$(status_icon "$WAITLIST" $TH_WL)
+          INTENT_STATUS=$(status_icon "$INTENT" $TH_INTENT)
+          PRE_STATUS=$(status_icon "$PREORDERS" $TH_PRE)
+
+          # Render body
+          cat > /tmp/issue_body.md <<MDEOF
+          ## Phase0 KPI Scoreboard
+
+          > **Last updated:** $(date -u '+%Y-%m-%d %H:%M UTC')  ·  API timestamp: \`$TS\`
+          > **Data OK:** $OK
+
+          ### Go / No-Go Dashboard
+
+          | Metric | Current | Target | Status |
+          |--------|---------|--------|--------|
+          | Waitlist signups | $WAITLIST | $TH_WL | $WL_STATUS |
+          | Payment intent | $INTENT | $TH_INTENT | $INTENT_STATUS |
+          | Pre-orders | $PREORDERS | $TH_PRE | $PRE_STATUS |
+
+          ### Product Usage (from Supabase)
+
+          | Metric | Value |
+          |--------|-------|
+          | Total cards | $TOTAL_CARDS |
+          | Distinct users | $DISTINCT_USERS |
+          | Cards (last 7d) | $CARDS_7D |
+          | Cards (last 24h) | $CARDS_1D |
+
+          ### Notes
+
+          $NOTES
+
+          ---
+          _Auto-updated daily by [phase0-kpi-scoreboard](.github/workflows/phase0_kpi_scoreboard.yml)._
+          _Manual trigger: \`gh workflow run phase0-kpi-scoreboard\`_
+          _API endpoint: \`/api/phase0-kpi\`_
+          MDEOF
+
+      - name: Find or create scoreboard issue
+        id: issue
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ISSUE_NUM=$(gh issue list \
+            -R "${{ github.repository }}" \
+            --search "Phase0 KPI Scoreboard in:title" \
+            --state open \
+            --json number \
+            --jq '.[0].number // empty')
+
+          if [ -z "$ISSUE_NUM" ]; then
+            echo "Creating new scoreboard issue..."
+            ISSUE_NUM=$(gh issue create \
+              -R "${{ github.repository }}" \
+              --title "Phase0 KPI Scoreboard" \
+              --body "Initializing..." \
+              --label "ops" \
+              --json number --jq '.number' 2>/dev/null || \
+              gh issue create \
+              -R "${{ github.repository }}" \
+              --title "Phase0 KPI Scoreboard" \
+              --body "Initializing..." | grep -o '[0-9]*$')
+          fi
+
+          echo "issue_num=$ISSUE_NUM" >> "$GITHUB_OUTPUT"
+          echo "Issue: #$ISSUE_NUM"
+
+      - name: Update issue body
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ISSUE_NUM="${{ steps.issue.outputs.issue_num }}"
+          gh issue edit "$ISSUE_NUM" \
+            -R "${{ github.repository }}" \
+            --body-file /tmp/issue_body.md
+          echo "Updated issue #$ISSUE_NUM"
+          echo "https://github.com/${{ github.repository }}/issues/$ISSUE_NUM"
