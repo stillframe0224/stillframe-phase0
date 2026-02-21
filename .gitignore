@@ -55,6 +55,7 @@ reports/triad/ship_evidence_*.md
 
 # --- local triad reports ---
 reports/triad/*.md
+!reports/triad/INDEX.md
 
 # --- visual evidence screenshots (local only) ---
 reports/visual-evidence/
