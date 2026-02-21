@@ -13,9 +13,10 @@
   --grid-line: rgba(0,0,0,0.06);
   --grid-w: 1px;
 
-  /* ── App-specific grid (v17 exact-match calibration) ── */
-  --app-grid-x: 103px;
-  --app-grid-y: 71px;
+  /* ── App-specific grid (v17) ── */
+  --app-grid-size: 190px;
+  --app-grid-line: rgba(0,0,0,0.08);
+  --app-grid-w: 0.7px;
   --app-card-w: 210px;
   --app-card-radius: 10px;
   --app-card-border-w: 1.5px;
@@ -33,6 +34,7 @@
   --app-float-period: 12s;
 
   /* ── Button font (UI sans) ── */
+  --font-sans: var(--font-dm), system-ui, sans-serif;
   --app-btn-font: var(--font-dm), system-ui, sans-serif;
 
   /* ── Card tokens (legacy aliases) ── */
@@ -80,10 +82,18 @@
 .app-grid-bg {
   background-color: #fdfdfd;
   background-image:
-    linear-gradient(to right, rgba(0,0,0,0.08) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(0,0,0,0.08) 1px, transparent 1px);
-  background-size: var(--app-grid-x) var(--app-grid-y);
+    linear-gradient(to right, var(--app-grid-line) var(--app-grid-w), transparent var(--app-grid-w)),
+    linear-gradient(to bottom, var(--app-grid-line) var(--app-grid-w), transparent var(--app-grid-w));
+  background-size: var(--app-grid-size) var(--app-grid-size);
   background-attachment: local;
+}
+
+.appTopbar button,
+.appTopbar a {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
 }
 
 /* ── Idle float keyframes ── */

@@ -79,12 +79,13 @@ const svgFallbacks: Record<string, React.ReactNode> = {
   ),
   idea: (
     <svg viewBox="0 0 210 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect width="210" height="120" fill="#EEF2FF" />
-      <circle cx="105" cy="50" r="25" fill="#A0B8F5" opacity="0.25" />
-      <path d="M95 45 Q105 20 115 45" stroke="#4F6ED9" strokeWidth="2" fill="none" opacity="0.5" />
-      <line x1="105" y1="75" x2="105" y2="90" stroke="#4F6ED9" strokeWidth="2" opacity="0.3" />
-      <circle cx="55" cy="35" r="6" fill="#A0B8F5" opacity="0.15" />
-      <circle cx="160" cy="75" r="10" fill="#A0B8F5" opacity="0.15" />
+      <rect width="210" height="120" fill="#fafafa" />
+      <circle cx="105" cy="50" r="22" fill="none" stroke="rgba(0,0,0,0.1)" strokeWidth="1.5" />
+      <path d="M97 46 Q105 24 113 46" stroke="rgba(0,0,0,0.15)" strokeWidth="1.5" fill="none" />
+      <line x1="105" y1="72" x2="105" y2="88" stroke="rgba(0,0,0,0.08)" strokeWidth="1" />
+      <line x1="99" y1="82" x2="111" y2="82" stroke="rgba(0,0,0,0.08)" strokeWidth="1" />
+      <circle cx="55" cy="35" r="5" fill="none" stroke="rgba(0,0,0,0.06)" strokeWidth="1" />
+      <circle cx="162" cy="78" r="8" fill="none" stroke="rgba(0,0,0,0.06)" strokeWidth="1" />
     </svg>
   ),
   quote: (
@@ -98,46 +99,53 @@ const svgFallbacks: Record<string, React.ReactNode> = {
   ),
   task: (
     <svg viewBox="0 0 210 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect width="210" height="120" fill="#F0FFF4" />
-      <rect x="50" y="30" width="16" height="16" rx="3" stroke="#7EDBA0" strokeWidth="1.5" fill="none" />
-      <path d="M54 38 L58 42 L64 34" stroke="#2D8F50" strokeWidth="2" fill="none" />
-      <line x1="75" y1="38" x2="150" y2="38" stroke="#7EDBA0" strokeWidth="1.5" opacity="0.4" />
-      <rect x="50" y="55" width="16" height="16" rx="3" stroke="#7EDBA0" strokeWidth="1.5" fill="none" />
-      <line x1="75" y1="63" x2="140" y2="63" stroke="#7EDBA0" strokeWidth="1.5" opacity="0.3" />
+      <rect width="210" height="120" fill="#fafafa" />
+      <rect x="50" y="30" width="14" height="14" rx="2" stroke="rgba(0,0,0,0.2)" strokeWidth="1.5" fill="none" />
+      <path d="M53 37 L57 41 L63 33" stroke="rgba(0,0,0,0.3)" strokeWidth="1.5" fill="none" strokeLinecap="round" />
+      <line x1="72" y1="37" x2="148" y2="37" stroke="rgba(0,0,0,0.1)" strokeWidth="1" />
+      <rect x="50" y="54" width="14" height="14" rx="2" stroke="rgba(0,0,0,0.12)" strokeWidth="1.5" fill="none" />
+      <line x1="72" y1="61" x2="138" y2="61" stroke="rgba(0,0,0,0.08)" strokeWidth="1" />
+      <rect x="50" y="78" width="14" height="14" rx="2" stroke="rgba(0,0,0,0.08)" strokeWidth="1.5" fill="none" />
+      <line x1="72" y1="85" x2="128" y2="85" stroke="rgba(0,0,0,0.06)" strokeWidth="1" />
     </svg>
   ),
   feeling: (
     <svg viewBox="0 0 210 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect width="210" height="120" fill="#FFF5EB" />
-      <path d="M20 70 Q50 30 80 65 Q110 100 140 55 Q170 20 200 60" stroke="#F0B870" strokeWidth="2" fill="none" opacity="0.5" />
-      <circle cx="50" cy="45" r="5" fill="#C07820" opacity="0.3" />
-      <circle cx="120" cy="80" r="7" fill="#F0B870" opacity="0.25" />
+      <rect width="210" height="120" fill="#fafafa" />
+      <path d="M20 75 Q50 35 80 68 Q110 100 140 58 Q170 22 200 62" stroke="rgba(0,0,0,0.12)" strokeWidth="1.5" fill="none" />
+      <circle cx="50" cy="48" r="4" fill="none" stroke="rgba(0,0,0,0.1)" strokeWidth="1" />
+      <circle cx="122" cy="82" r="6" fill="none" stroke="rgba(0,0,0,0.08)" strokeWidth="1" />
+      <circle cx="172" cy="42" r="3" fill="none" stroke="rgba(0,0,0,0.07)" strokeWidth="1" />
     </svg>
   ),
   image: (
     <svg viewBox="0 0 210 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect width="210" height="120" fill="#F5F0FF" />
-      <rect x="55" y="15" width="100" height="80" rx="2" stroke="#BBA0F5" strokeWidth="1.5" fill="none" opacity="0.4" />
-      <rect x="65" y="25" width="80" height="55" rx="1" fill="#BBA0F5" opacity="0.15" />
-      <circle cx="85" cy="42" r="8" fill="#7B4FD9" opacity="0.2" />
+      <rect width="210" height="120" fill="#fafafa" />
+      <rect x="55" y="18" width="100" height="76" rx="3" stroke="rgba(0,0,0,0.12)" strokeWidth="1.5" fill="none" />
+      <rect x="65" y="28" width="80" height="52" rx="1" fill="rgba(0,0,0,0.03)" />
+      <circle cx="85" cy="45" r="7" fill="none" stroke="rgba(0,0,0,0.1)" strokeWidth="1" />
+      <path d="M65 74 L90 54 L110 68 L130 52 L145 74Z" fill="rgba(0,0,0,0.05)" />
     </svg>
   ),
   fragment: (
     <svg viewBox="0 0 210 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect width="210" height="120" fill="#F0FDFA" />
-      <path d="M0 85 Q30 75 60 80 Q100 88 140 78 Q180 68 210 75" fill="#70D4C0" opacity="0.15" />
-      <path d="M0 95 Q50 85 100 90 Q150 95 210 88" fill="#70D4C0" opacity="0.1" />
-      <circle cx="170" cy="35" r="15" fill="#70D4C0" opacity="0.1" />
+      <rect width="210" height="120" fill="#fafafa" />
+      <path d="M0 88 Q35 78 65 83 Q105 92 145 80 Q182 68 210 78" stroke="rgba(0,0,0,0.08)" strokeWidth="1" fill="none" />
+      <path d="M0 98 Q52 88 105 93 Q155 98 210 90" stroke="rgba(0,0,0,0.05)" strokeWidth="1" fill="none" />
+      <circle cx="170" cy="38" r="13" fill="none" stroke="rgba(0,0,0,0.07)" strokeWidth="1" />
+      <line x1="30" y1="40" x2="90" y2="40" stroke="rgba(0,0,0,0.1)" strokeWidth="1" />
+      <line x1="40" y1="52" x2="80" y2="52" stroke="rgba(0,0,0,0.07)" strokeWidth="1" />
     </svg>
   ),
   dream: (
     <svg viewBox="0 0 210 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect width="210" height="120" fill="#FDF2F8" />
-      <rect x="60" y="50" width="18" height="40" rx="1" fill="#F0A0D0" opacity="0.2" />
-      <rect x="82" y="35" width="18" height="55" rx="1" fill="#F0A0D0" opacity="0.25" />
-      <rect x="104" y="45" width="18" height="45" rx="1" fill="#F0A0D0" opacity="0.2" />
-      <circle cx="130" cy="25" r="8" fill="#C04890" opacity="0.15" />
-      <circle cx="50" cy="30" r="2" fill="#F0A0D0" opacity="0.3" />
+      <rect width="210" height="120" fill="#fafafa" />
+      <rect x="60" y="52" width="16" height="38" rx="1" fill="none" stroke="rgba(0,0,0,0.08)" strokeWidth="1" />
+      <rect x="80" y="36" width="16" height="54" rx="1" fill="none" stroke="rgba(0,0,0,0.1)" strokeWidth="1" />
+      <rect x="100" y="46" width="16" height="44" rx="1" fill="none" stroke="rgba(0,0,0,0.08)" strokeWidth="1" />
+      <rect x="120" y="56" width="16" height="34" rx="1" fill="none" stroke="rgba(0,0,0,0.06)" strokeWidth="1" />
+      <circle cx="132" cy="25" r="7" fill="none" stroke="rgba(0,0,0,0.07)" strokeWidth="1" />
+      <path d="M128 25 Q132 19 136 25" stroke="rgba(0,0,0,0.08)" strokeWidth="1" fill="none" />
     </svg>
   ),
 };
@@ -1415,7 +1423,7 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
             <span
               style={{
                 fontSize: 9,
-                color: "var(--muted, rgba(0,0,0,0.42))",
+                color: "var(--app-card-meta, rgba(0,0,0,0.30))",
                 fontFamily: "var(--font-dm)",
                 textTransform: "uppercase",
                 letterSpacing: "0.12em",
