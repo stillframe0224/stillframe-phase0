@@ -1,0 +1,3 @@
+# Canary test file for allowlist v1.1 verification
+# This file should be auto-merged (docs/*.yaml is allowed)
+test: true
