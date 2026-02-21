@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Cormorant_Garamond, Noto_Serif_JP, DM_Sans } from "next/font/google";
 import "./globals.css";
 
@@ -26,6 +26,9 @@ export const metadata: Metadata = {
   title: "SHINEN — Every thought gets a picture",
   description:
     "A thought capture tool where every card gets an image. Paste a URL, drop a photo, or let a gentle illustration fill the space.",
+};
+
+export const viewport: Viewport = {
   themeColor: "#fdfdfd",
 };
 
