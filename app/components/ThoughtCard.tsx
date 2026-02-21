@@ -127,8 +127,7 @@ export default function ThoughtCard({ text, type, index }: ThoughtCardProps) {
         }}
         onMouseEnter={(e) => {
           (e.currentTarget as HTMLElement).style.transform = "translateY(-4px)";
-          (e.currentTarget as HTMLElement).style.boxShadow =
-            "0 12px 32px -8px rgba(0,0,0,0.14), 0 2px 6px rgba(0,0,0,0.06)";
+          (e.currentTarget as HTMLElement).style.boxShadow = "var(--card-shadow-hover)";
         }}
         onMouseLeave={(e) => {
           (e.currentTarget as HTMLElement).style.transform = "translateY(0)";
@@ -152,7 +151,7 @@ export default function ThoughtCard({ text, type, index }: ThoughtCardProps) {
               WebkitBoxOrient: "vertical",
               overflow: "hidden",
               margin: 0,
-              fontFamily: "var(--font-dm), system-ui, sans-serif",
+              fontFamily: "var(--font-serif-jp), var(--font-serif), 'Cormorant Garamond', Georgia, serif",
             }}
           >
             {text}

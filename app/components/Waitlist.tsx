@@ -145,7 +145,7 @@ export default function Waitlist({
           aria-label={loading ? c.submitting[lang] : c.cta[lang]}
           type="submit"
           disabled={loading}
-          className="rounded-full px-6 py-3 text-sm whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#D9A441]"
+          className="rounded-full px-6 py-3 text-sm whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[var(--accent-strong)]"
           style={{
             cursor: loading ? "wait" : undefined,
             flex: "1 0 auto",

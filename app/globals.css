@@ -27,24 +27,49 @@
 
   /* ── Paper-grid tokens (zen paper theme) ── */
   --paper-bg: #fdfdfd;
-  --paper-line: rgba(0,0,0,0.055);   /* ruled/grid lines */
-  --paper-grid-size: 80px;            /* grid tile size */
-  --card-border: rgba(0,0,0,0.12);   /* 1.5px card border */
-  --card-shadow: 0 4px 20px -6px rgba(0,0,0,0.12), 0 1px 4px rgba(0,0,0,0.05);
+  --paper-line: rgba(0,0,0,0.06);
+  --grid-size: 190px;
+  --paper-grid-size: var(--grid-size);
+  --grid-w: 1px;
+  --card-bg: #fff;
+  --card-border: rgba(0,0,0,0.14);
+  --card-border-hover: rgba(0,0,0,0.18);
+  --card-shadow: 0 14px 34px -26px rgba(0,0,0,0.22);
+  --card-shadow-hover: 0 18px 44px -30px rgba(0,0,0,0.26);
   --card-slab-shadow: 0 1.8px 0 rgba(0,0,0,0.06), 0 0.9px 0 rgba(0,0,0,0.04);
   --card-bottom-tint: rgba(0,0,0,0.025);
   --slab-shade: rgba(0,0,0,0.025);   /* slab layer tint */
   --slab-n: 2;                        /* number of slab layers */
   --slab-gap: 0.9px;                  /* slab offset per layer */
+  --text: rgba(0,0,0,0.72);
+  --muted: rgba(0,0,0,0.42);
+  --hud: rgba(0,0,0,0.55);
+  --hud-border: rgba(0,0,0,0.10);
+  --accent-soft: rgba(0,0,0,0.06);
+  --accent-mid: rgba(0,0,0,0.14);
+  --accent-strong: rgba(0,0,0,0.30);
 }
 
 /* ── Paper-grid background ── */
 .paper-grid-bg {
   background-color: var(--paper-bg);
   background-image:
-    linear-gradient(var(--paper-line) 1px, transparent 1px),
-    linear-gradient(90deg, var(--paper-line) 1px, transparent 1px);
+    linear-gradient(var(--paper-line) var(--grid-w), transparent var(--grid-w)),
+    linear-gradient(90deg, var(--paper-line) var(--grid-w), transparent var(--grid-w));
   background-size: var(--paper-grid-size) var(--paper-grid-size);
+}
+
+.app-theme-root {
+  min-height: 100dvh;
+  color: var(--text);
+}
+
+.font-ui {
+  font-family: var(--font-dm), system-ui, sans-serif;
+}
+
+.font-body {
+  font-family: var(--font-serif-jp), var(--font-serif), "Cormorant Garamond", Georgia, serif;
 }
 
 * {

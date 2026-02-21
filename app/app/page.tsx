@@ -1731,8 +1731,8 @@ function AppPageInner() {
             textAlign: "center",
             padding: "32px 24px",
             borderRadius: 16,
-            background: "#FFF8F0",
-            border: "1px solid #F5C882",
+            background: "var(--accent-soft)",
+            border: "1px solid var(--accent-mid)",
           }}
         >
           <h2 style={{ fontSize: 18, color: "#2a2a2a", marginBottom: 12 }}>
@@ -1758,7 +1758,7 @@ function AppPageInner() {
               display: "inline-block",
               marginTop: 20,
               fontSize: 13,
-              color: "#D9A441",
+              color: "var(--accent-strong)",
               textDecoration: "none",
             }}
           >
@@ -1771,8 +1771,10 @@ function AppPageInner() {
 
   return (
     <div
+      className="paper-grid-bg app-theme-root"
+      data-testid="paper-grid"
       style={{
-        minHeight: "100vh",
+        minHeight: "100dvh",
         fontFamily: "var(--font-dm), system-ui, sans-serif",
       }}
     >
@@ -2461,7 +2463,7 @@ function AppPageInner() {
                   maxLength={60}
                   style={{
                     padding: "8px 12px",
-                    border: "1px solid #D9A441",
+                    border: "1px solid var(--accent-strong)",
                     borderRadius: 8,
                     fontSize: 13,
                     fontFamily: "var(--font-dm)",
@@ -2478,7 +2480,7 @@ function AppPageInner() {
                     borderRadius: 8,
                     fontSize: 13,
                     fontFamily: "var(--font-dm)",
-                    background: "#D9A441",
+                    background: "var(--accent-strong)",
                     color: "#fff",
                     cursor: "pointer",
                   }}
@@ -2510,15 +2512,15 @@ function AppPageInner() {
               onClick={() => setShowPinnedOnly(!showPinnedOnly)}
               style={{
                 padding: "8px 12px",
-                border: showPinnedOnly ? "1.5px solid #F5C882" : "1px solid #e0e0e0",
+                border: showPinnedOnly ? "1.5px solid var(--accent-mid)" : "1px solid #e0e0e0",
                 borderRadius: 8,
                 fontSize: 13,
                 fontFamily: "var(--font-dm)",
                 outline: "none",
-                background: showPinnedOnly ? "#FFF8F0" : "#fff",
+                background: showPinnedOnly ? "var(--accent-soft)" : "#fff",
                 cursor: "pointer",
                 fontWeight: showPinnedOnly ? 600 : 400,
-                color: showPinnedOnly ? "#D9A441" : "#555",
+                color: showPinnedOnly ? "var(--accent-strong)" : "#555",
                 display: "flex",
                 alignItems: "center",
                 gap: 4,

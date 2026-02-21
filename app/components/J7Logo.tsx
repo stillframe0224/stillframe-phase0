@@ -32,7 +32,7 @@ export default function J7Logo({ size = 24, showText = true, className, dataTest
         <path
           d="M40 14 A26 26 0 1 1 16 48 A26 26 0 0 1 40 14Z"
           fill="none"
-          stroke="rgba(0,0,0,0.1)"
+          stroke="var(--hud-border)"
           strokeWidth="6"
           transform="translate(1.5,1.5)"
         />
@@ -40,7 +40,7 @@ export default function J7Logo({ size = 24, showText = true, className, dataTest
         <path
           d="M40 14 A26 26 0 1 1 16 48"
           fill="none"
-          stroke="#1a1a1a"
+          stroke="var(--hud)"
           strokeWidth="6"
           strokeLinecap="round"
         />
@@ -48,12 +48,12 @@ export default function J7Logo({ size = 24, showText = true, className, dataTest
         <path
           d="M16 48 Q20 38 28 34 Q36 30 40 36 Q44 42 40 40"
           fill="none"
-          stroke="#1a1a1a"
+          stroke="var(--hud)"
           strokeWidth="2"
           strokeLinecap="round"
         />
         {/* Center dot */}
-        <circle cx="40" cy="40" r="2" fill="#1a1a1a" />
+        <circle cx="40" cy="40" r="2" fill="var(--hud)" />
       </svg>
       {showText && (
         <span
@@ -61,7 +61,7 @@ export default function J7Logo({ size = 24, showText = true, className, dataTest
             fontFamily: "var(--font-serif), 'Cormorant Garamond', Georgia, serif",
             fontSize: size * 0.9,
             fontWeight: 600,
-            color: "rgba(0,0,0,0.4)",
+            color: "var(--hud)",
             letterSpacing: "0.12em",
             lineHeight: 1,
           }}

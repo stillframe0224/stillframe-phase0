@@ -66,13 +66,13 @@ function dbg(event: string, data?: Record<string, unknown>) {
 const svgFallbacks: Record<string, React.ReactNode> = {
   memo: (
     <svg viewBox="0 0 210 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect width="210" height="120" fill="#FFF8F0" />
-      <rect x="40" y="25" width="60" height="75" rx="4" fill="#F5C882" opacity="0.3" />
-      <line x1="50" y1="40" x2="90" y2="40" stroke="#D9A441" strokeWidth="1.5" opacity="0.5" />
-      <line x1="50" y1="50" x2="85" y2="50" stroke="#D9A441" strokeWidth="1.5" opacity="0.4" />
-      <line x1="50" y1="60" x2="88" y2="60" stroke="#D9A441" strokeWidth="1.5" opacity="0.3" />
-      <circle cx="145" cy="50" r="20" fill="#F5C882" opacity="0.2" />
-      <path d="M138 50 L145 43 L152 50 L145 57Z" fill="#D9A441" opacity="0.4" />
+      <rect width="210" height="120" fill="var(--paper-bg)" />
+      <rect x="40" y="25" width="60" height="75" rx="4" fill="rgba(0,0,0,0.12)" opacity="0.3" />
+      <line x1="50" y1="40" x2="90" y2="40" stroke="rgba(0,0,0,0.32)" strokeWidth="1.5" opacity="0.5" />
+      <line x1="50" y1="50" x2="85" y2="50" stroke="rgba(0,0,0,0.32)" strokeWidth="1.5" opacity="0.4" />
+      <line x1="50" y1="60" x2="88" y2="60" stroke="rgba(0,0,0,0.32)" strokeWidth="1.5" opacity="0.3" />
+      <circle cx="145" cy="50" r="20" fill="rgba(0,0,0,0.12)" opacity="0.2" />
+      <path d="M138 50 L145 43 L152 50 L145 57Z" fill="rgba(0,0,0,0.32)" opacity="0.4" />
     </svg>
   ),
   idea: (
@@ -87,7 +87,7 @@ const svgFallbacks: Record<string, React.ReactNode> = {
   ),
   quote: (
     <svg viewBox="0 0 210 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect width="210" height="120" fill="#FEFCE8" />
+      <rect width="210" height="120" fill="var(--paper-bg)" />
       <text x="35" y="60" fontSize="48" fill="#E5D560" opacity="0.4" fontFamily="serif">&ldquo;</text>
       <text x="155" y="90" fontSize="48" fill="#E5D560" opacity="0.4" fontFamily="serif">&rdquo;</text>
       <line x1="65" y1="55" x2="145" y2="55" stroke="#A89620" strokeWidth="1" opacity="0.3" />
@@ -980,12 +980,12 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
         width: 210,
         minWidth: 210,
         borderRadius: 16,
-        border: `1.5px solid ${isSelected ? "#4F6ED9" : ct.border}`,
-        background: `linear-gradient(to bottom, transparent 55%, rgba(${ct.accentRgb}, 0.07) 100%), ${isSelected ? "#EEF2FF" : ct.bg}`,
+        border: `1.5px solid ${isSelected ? "#4F6ED9" : "var(--card-border)"}`,
+        background: `linear-gradient(to bottom, transparent 55%, rgba(${ct.accentRgb}, 0.07) 100%), ${isSelected ? "#EEF2FF" : "var(--card-bg)"}`,
         overflow: "hidden",
         cursor: isBulkMode ? "pointer" : "default",
         position: "relative",
-        boxShadow: "var(--card-slab-shadow, 0 1.8px 0 rgba(0,0,0,0.06), 0 0.9px 0 rgba(0,0,0,0.04))",
+        boxShadow: "var(--card-shadow)",
         animationName: "cardPop",
         animationDuration: "0.45s",
         animationTimingFunction: "ease-out",
@@ -996,8 +996,8 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
       onMouseEnter={(e) => {
         if (!isDragging && !isBulkMode) {
           e.currentTarget.style.transform = dragStyle.transform || "translateY(-4px)";
-          e.currentTarget.style.boxShadow =
-            "0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.05)";
+          e.currentTarget.style.boxShadow = "var(--card-shadow-hover)";
+          e.currentTarget.style.borderColor = "var(--card-border-hover)";
           setShowDelete(true);
           setIsHovered(true);
         }
@@ -1005,7 +1005,8 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
       onMouseLeave={(e) => {
         if (!isDragging && !isBulkMode) {
           e.currentTarget.style.transform = dragStyle.transform || "translateY(0)";
-          e.currentTarget.style.boxShadow = "none";
+          e.currentTarget.style.boxShadow = "var(--card-shadow)";
+          e.currentTarget.style.borderColor = isSelected ? "#4F6ED9" : "var(--card-border)";
           setShowDelete(false);
           setIsHovered(false);
         }
@@ -1217,7 +1218,7 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
               fontSize: 13,
               fontWeight: 600,
               color: "#2a2a2a",
-              border: "1px solid #D9A441",
+              border: "1px solid var(--accent-strong)",
               borderRadius: 4,
               padding: "4px 6px",
               marginBottom: 4,
@@ -1240,6 +1241,7 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
               WebkitBoxOrient: "vertical",
               overflow: "hidden",
               lineHeight: 1.4,
+              fontFamily: "var(--font-serif-jp), var(--font-serif), 'Cormorant Garamond', Georgia, serif",
             }}
             title={displayTitle}
           >
@@ -1272,7 +1274,7 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
               color: "#8a8a8a",
               marginTop: 4,
               lineHeight: 1.45,
-              fontFamily: "var(--font-dm)",
+              fontFamily: "var(--font-serif-jp), var(--font-serif), 'Cormorant Garamond', Georgia, serif",
               display: "-webkit-box",
               WebkitLineClamp: 2,
               WebkitBoxOrient: "vertical",
