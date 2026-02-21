@@ -82,9 +82,24 @@ The gate is evaluated at job start via `${{ vars.AUTOMERGE_GLOBAL_OFF == '1' }}`
 - Writes a summary table to `$GITHUB_STEP_SUMMARY` with candidates/merged/skipped/failed counts.
 - Acts as a safety net for edge cases where `workflow_run` events are missed or delayed.
 
+### Hard gate: REQUIRED_CHECKS must be COMPLETED+SUCCESS
+
+Before any merge attempt (PR-triggered, workflow_run retry, and hourly sweeper), the workflow queries the PR's head commit via GraphQL `statusCheckRollup` and verifies that **every** check listed in the workflow-level `REQUIRED_CHECKS` env is `COMPLETED`+`SUCCESS`.
+
+If any required check is missing, pending, in-progress, or failed, the merge is blocked — regardless of `mergeStateStatus`.
+
+**Why**: GitHub's `mergeStateStatus=CLEAN` can briefly return true during a `gh run rerun` transition (the old run is invalidated but the new one hasn't reported yet). This hard gate closes that race window.
+
+**REQUIRED_CHECKS** (single source of truth in `automerge_safe.yml`):
+```
+audit, build, guard, smoke, ui-smoke, deploy-smoke, codex-review-check, codex-headings-unit
+```
+
+**Job-name uniqueness requirement**: Each required check name must be globally unique across all workflow files. If a check is renamed, the `REQUIRED_CHECKS` list must be updated.
+
 ### Safety guarantees
 - **Never uses `--admin`** — respects branch protection and merge queues.
-- **Never bypasses required checks** — waits for all checks to pass.
+- **Never bypasses required checks** — hard-gates on GraphQL statusCheckRollup before merge.
 - **Event-driven + hourly sweep** — no busy-polling or sleep loops.
 - **Never uses `pull_request_target`** — no elevated permissions from forks.
 - **Fork PRs are skipped entirely.**

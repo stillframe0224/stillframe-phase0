@@ -15,6 +15,17 @@ permissions:
   pull-requests: write
   issues: write
 
+env:
+  REQUIRED_CHECKS: |
+    audit
+    build
+    guard
+    smoke
+    ui-smoke
+    deploy-smoke
+    codex-review-check
+    codex-headings-unit
+
 concurrency:
   group: automerge-safe-${{ github.event.pull_request.number || github.event.workflow_run.id || 'sweep' }}
   cancel-in-progress: true
@@ -252,8 +263,115 @@ jobs:
               labels: [labelName],
             });
 
-      - name: Attempt automerge
+      - name: Verify required checks (hard gate)
         if: steps.gate.outputs.disabled != 'true' && steps.resolve.outputs.skip != 'true' && steps.classify.outputs.eligible == 'true'
+        id: checks
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          OWNER="${{ github.repository_owner }}"
+          REPO_NAME="${{ github.event.repository.name }}"
+          PR_NUMBER="${{ steps.resolve.outputs.pr_number }}"
+
+          RESULT=$(gh api graphql -f query='
+            query($owner:String!, $repo:String!, $number:Int!) {
+              repository(owner:$owner, name:$repo) {
+                pullRequest(number:$number) {
+                  commits(last:1) {
+                    nodes {
+                      commit {
+                        statusCheckRollup {
+                          contexts(first:100) {
+                            nodes {
+                              __typename
+                              ... on CheckRun { name status conclusion }
+                              ... on StatusContext { context state }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }' -f owner="$OWNER" -f repo="$REPO_NAME" -F number="$PR_NUMBER")
+
+          CONTEXTS=$(echo "$RESULT" | jq -c '.data.repository.pullRequest.commits.nodes[0].commit.statusCheckRollup.contexts.nodes // []')
+
+          MISSING=""
+          FAILED=""
+          ALL_OK=true
+
+          while IFS= read -r name; do
+            [ -z "$name" ] && continue
+            CHECK=$(echo "$CONTEXTS" | jq -r --arg n "$name" '[.[] | select(.__typename=="CheckRun" and .name==$n)] | last')
+            if [ "$CHECK" != "null" ] && [ -n "$CHECK" ]; then
+              STATUS=$(echo "$CHECK" | jq -r '.status')
+              CONCLUSION=$(echo "$CHECK" | jq -r '.conclusion')
+              if [ "$STATUS" != "COMPLETED" ] || [ "$CONCLUSION" != "SUCCESS" ]; then
+                FAILED="$FAILED $name($STATUS/$CONCLUSION)"
+                ALL_OK=false
+              fi
+              continue
+            fi
+            CTX=$(echo "$CONTEXTS" | jq -r --arg n "$name" '[.[] | select(.__typename=="StatusContext" and .context==$n)] | last')
+            if [ "$CTX" != "null" ] && [ -n "$CTX" ]; then
+              STATE=$(echo "$CTX" | jq -r '.state')
+              if [ "$STATE" != "SUCCESS" ]; then
+                FAILED="$FAILED $name($STATE)"
+                ALL_OK=false
+              fi
+              continue
+            fi
+            MISSING="$MISSING $name"
+            ALL_OK=false
+          done <<< "$(echo "$REQUIRED_CHECKS" | tr -s '[:space:]' '\n' | grep -v '^$')"
+
+          echo "checks_ok=$ALL_OK" >> "$GITHUB_OUTPUT"
+
+          {
+            echo "## Required checks gate"
+            echo ""
+            echo "| Check | Status |"
+            echo "|-------|--------|"
+            while IFS= read -r name; do
+              [ -z "$name" ] && continue
+              CHECK=$(echo "$CONTEXTS" | jq -r --arg n "$name" '[.[] | select(.__typename=="CheckRun" and .name==$n)] | last')
+              if [ "$CHECK" != "null" ] && [ -n "$CHECK" ]; then
+                S=$(echo "$CHECK" | jq -r '.status')
+                C=$(echo "$CHECK" | jq -r '.conclusion')
+                if [ "$S" = "COMPLETED" ] && [ "$C" = "SUCCESS" ]; then
+                  echo "| $name | :white_check_mark: SUCCESS |"
+                else
+                  echo "| $name | :x: $S/$C |"
+                fi
+                continue
+              fi
+              CTX=$(echo "$CONTEXTS" | jq -r --arg n "$name" '[.[] | select(.__typename=="StatusContext" and .context==$n)] | last')
+              if [ "$CTX" != "null" ] && [ -n "$CTX" ]; then
+                ST=$(echo "$CTX" | jq -r '.state')
+                if [ "$ST" = "SUCCESS" ]; then
+                  echo "| $name | :white_check_mark: SUCCESS |"
+                else
+                  echo "| $name | :x: $ST |"
+                fi
+                continue
+              fi
+              echo "| $name | :warning: MISSING |"
+            done <<< "$(echo "$REQUIRED_CHECKS" | tr -s '[:space:]' '\n' | grep -v '^$')"
+            echo ""
+            if [ "$ALL_OK" = "true" ]; then
+              echo "**Result: ALL PASS** — merge eligible"
+            else
+              echo "**Result: BLOCKED**"
+              [ -n "$MISSING" ] && echo "- Missing:$MISSING"
+              [ -n "$FAILED" ] && echo "- Non-success:$FAILED"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Attempt automerge
+        if: steps.gate.outputs.disabled != 'true' && steps.resolve.outputs.skip != 'true' && steps.classify.outputs.eligible == 'true' && steps.checks.outputs.checks_ok == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ steps.resolve.outputs.pr_number }}
@@ -410,6 +528,65 @@ jobs:
                 }
               }
               if (notAllowed) continue;
+
+              // Verify required checks (hard gate)
+              const requiredChecks = process.env.REQUIRED_CHECKS.split('\n').map(s => s.trim()).filter(Boolean);
+              const { repository: gqlRepo } = await github.graphql(`
+                query($owner: String!, $repo: String!, $number: Int!) {
+                  repository(owner: $owner, name: $repo) {
+                    pullRequest(number: $number) {
+                      commits(last: 1) {
+                        nodes {
+                          commit {
+                            statusCheckRollup {
+                              contexts(first: 100) {
+                                nodes {
+                                  __typename
+                                  ... on CheckRun { name status conclusion }
+                                  ... on StatusContext { context state }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              `, { owner, repo, number: prNumber });
+
+              const contexts = gqlRepo.pullRequest.commits.nodes[0]?.commit?.statusCheckRollup?.contexts?.nodes || [];
+              let checksOk = true;
+              const checksMissing = [];
+              const checksFailed = [];
+
+              for (const reqName of requiredChecks) {
+                const runs = contexts.filter(c => c.__typename === 'CheckRun' && c.name === reqName);
+                if (runs.length > 0) {
+                  const last = runs[runs.length - 1];
+                  if (last.status !== 'COMPLETED' || last.conclusion !== 'SUCCESS') {
+                    checksFailed.push(`${reqName}(${last.status}/${last.conclusion})`);
+                    checksOk = false;
+                  }
+                  continue;
+                }
+                const ctxs = contexts.filter(c => c.__typename === 'StatusContext' && c.context === reqName);
+                if (ctxs.length > 0) {
+                  const last = ctxs[ctxs.length - 1];
+                  if (last.state !== 'SUCCESS') {
+                    checksFailed.push(`${reqName}(${last.state})`);
+                    checksOk = false;
+                  }
+                  continue;
+                }
+                checksMissing.push(reqName);
+                checksOk = false;
+              }
+
+              if (!checksOk) {
+                results.push({ pr: prNumber, action: 'skipped', reason: `checks_not_ok: missing=[${checksMissing}] failed=[${checksFailed}]` });
+                continue;
+              }
 
               // Check merge state
               if (pr.mergeable_state === 'clean') {
