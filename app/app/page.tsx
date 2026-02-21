@@ -1773,7 +1773,7 @@ function AppPageInner() {
   return (
     <div
       className="app-grid-bg"
-      data-testid="paper-grid"
+      data-testid="app-grid"
       style={{
         minHeight: "100vh",
         fontFamily: "var(--app-btn-font)",
