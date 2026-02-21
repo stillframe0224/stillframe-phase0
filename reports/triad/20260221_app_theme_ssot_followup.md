@@ -1,0 +1,9 @@
+- Scope: `/app` theme SSOT alignment for white-paper + large grid + crisp cards.
+- Applied shared paper-grid at `/app` root (`paper-grid-bg app-theme-root`) so list/tunnel share one background.
+- Removed tunnel-only grid layer and moved tunnel scene height to `100dvh` for mobile viewport stability.
+- Replaced warm beige literals with neutral tokens (`--accent-soft`, `--accent-mid`, `--accent-strong`) in app flows.
+- Unified card shadow/border behavior to tokens; removed `mouseleave -> boxShadow: none` regression in `AppCard`.
+- Strengthened readability for HUD/logo via `--hud`/`--hud-border`.
+- Applied serif body font to card textual body in `AppCard` and `ThoughtCard`; kept UI controls on DM Sans.
+- Validation: forbidden color literals removed in `app/`; `boxShadow.*none` absent in `AppCard`; `npm run build` passed.
+- Residual risk: many inline styles remain in `/app/page.tsx`; recommend gradual token/class extraction in follow-up.

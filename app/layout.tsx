@@ -1,15 +1,17 @@
 import type { Metadata } from "next";
-import { Source_Serif_4, Noto_Serif_JP, DM_Sans } from "next/font/google";
+import { Cormorant_Garamond, Noto_Serif_JP, DM_Sans } from "next/font/google";
 import "./globals.css";
 
-const sourceSerif = Source_Serif_4({
+const cormorant = Cormorant_Garamond({
   subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
   variable: "--font-serif",
   display: "swap",
 });
 
 const notoSerifJP = Noto_Serif_JP({
   subsets: ["latin"],
+  weight: ["400", "500", "700"],
   variable: "--font-serif-jp",
   display: "swap",
 });
@@ -35,7 +37,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${sourceSerif.variable} ${notoSerifJP.variable} ${dmSans.variable}`}
+      className={`${cormorant.variable} ${notoSerifJP.variable} ${dmSans.variable}`}
     >
       <body>{children}</body>
     </html>

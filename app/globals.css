@@ -1,50 +1,76 @@
 @import "tailwindcss";
 @config "../tailwind.config.cjs";
 
-/* ── SHINEN Design Tokens ── */
+/* ── SHINEN Design Tokens (SSOT) ── */
 :root {
+  /* ── Core palette ── */
   --bg: #fdfdfd;
-  --text: #2a2a2a;
-  --text-sub: #777;
-  --text-muted: #999;
-  --border: #e8e5e0;
+  --text: rgba(0,0,0,0.72);
+  --muted: rgba(0,0,0,0.42);
 
-  /* SHINEN tone tokens */
+  /* ── Grid background ── */
+  --grid-size: 190px;
+  --grid-line: rgba(0,0,0,0.06);
+  --grid-w: 1px;
+
+  /* ── Card tokens ── */
+  --card-bg: #ffffff;
+  --card-border: rgba(0,0,0,0.14);
+  --card-border-hover: rgba(0,0,0,0.18);
+  --card-radius: 12px;
+  --card-shadow: 0 14px 34px -26px rgba(0,0,0,0.22);
+  --card-shadow-hover: 0 18px 40px -20px rgba(0,0,0,0.28);
+
+  /* ── Legacy alias tokens (kept for backward compat with tunnel/other code) ── */
   --sh-bg: #fdfdfd;
-  --sh-ink: rgba(0,0,0,0.62);
-  --sh-ink2: rgba(0,0,0,0.35);
-  --sh-ink-muted: rgba(0,0,0,0.35); /* alias for --sh-ink2 */
+  --sh-ink: rgba(0,0,0,0.72);
+  --sh-ink2: rgba(0,0,0,0.42);
+  --sh-ink-muted: rgba(0,0,0,0.42);
   --sh-line: rgba(0,0,0,0.08);
   --sh-line2: rgba(0,0,0,0.14);
-  --sh-grid-line: rgba(0,0,0,0.035);
+  --sh-grid-line: rgba(0,0,0,0.06);
   --sh-paper: rgba(255,255,255,0.82);
   --sh-paper2: rgba(255,255,255,0.95);
-  --sh-shadow: 0 18px 42px -22px rgba(0,0,0,0.18);
+  --sh-shadow: 0 14px 34px -26px rgba(0,0,0,0.22);
   --sh-shadow-sm: 0 2px 8px -2px rgba(0,0,0,0.08);
   --sh-shadow-quiet: 0 10px 30px rgba(20,20,20,0.08);
-  --sh-radius: 14px;
+  --sh-radius: 12px;
   --sh-glass: rgba(255,255,255,0.72);
 
-  /* ── Paper-grid tokens (zen paper theme) ── */
+  /* ── Legacy paper-grid tokens ── */
   --paper-bg: #fdfdfd;
-  --paper-line: rgba(0,0,0,0.055);   /* ruled/grid lines */
-  --paper-grid-size: 80px;            /* grid tile size */
-  --card-border: rgba(0,0,0,0.12);   /* 1.5px card border */
-  --card-shadow: 0 4px 20px -6px rgba(0,0,0,0.12), 0 1px 4px rgba(0,0,0,0.05);
-  --card-slab-shadow: 0 1.8px 0 rgba(0,0,0,0.06), 0 0.9px 0 rgba(0,0,0,0.04);
-  --card-bottom-tint: rgba(0,0,0,0.025);
-  --slab-shade: rgba(0,0,0,0.025);   /* slab layer tint */
-  --slab-n: 2;                        /* number of slab layers */
-  --slab-gap: 0.9px;                  /* slab offset per layer */
+  --paper-line: rgba(0,0,0,0.06);
+  --paper-grid-size: 80px;
+  --card-slab-shadow: none;
+  --card-bottom-tint: transparent;
+  --slab-shade: transparent;
+  --slab-n: 0;
+  --slab-gap: 0px;
+
+  /* ── Text aliases ── */
+  --text-sub: rgba(0,0,0,0.42);
+  --text-muted: rgba(0,0,0,0.42);
+  --border: rgba(0,0,0,0.10);
 }
 
-/* ── Paper-grid background ── */
-.paper-grid-bg {
-  background-color: var(--paper-bg);
+/* ── App page grid background ── */
+.app-grid-bg {
+  background-color: var(--bg);
   background-image:
-    linear-gradient(var(--paper-line) 1px, transparent 1px),
-    linear-gradient(90deg, var(--paper-line) 1px, transparent 1px);
+    linear-gradient(to right, var(--grid-line) var(--grid-w), transparent var(--grid-w)),
+    linear-gradient(to bottom, var(--grid-line) var(--grid-w), transparent var(--grid-w));
   background-size: var(--paper-grid-size) var(--paper-grid-size);
+  background-attachment: local;
+}
+
+/* ── Legacy class alias ── */
+.paper-grid-bg {
+  background-color: var(--bg);
+  background-image:
+    linear-gradient(to right, var(--grid-line) var(--grid-w), transparent var(--grid-w)),
+    linear-gradient(to bottom, var(--grid-line) var(--grid-w), transparent var(--grid-w));
+  background-size: var(--paper-grid-size) var(--paper-grid-size);
+  background-attachment: local;
 }
 
 * {
@@ -54,7 +80,7 @@
 }
 
 body {
-  background: var(--sh-bg);
+  background: var(--bg);
   color: var(--text);
   font-family: var(--font-dm), system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -73,7 +99,7 @@ body {
 }
 
 ::selection {
-  background: #f5c88266;
+  background: rgba(0,0,0,0.08);
 }
 
 /* Hide hover text preview on touch devices (no hover support) */
