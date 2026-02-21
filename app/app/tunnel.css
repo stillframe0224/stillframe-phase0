@@ -11,7 +11,14 @@
 }
 
 .tunnel-grid-bg {
-  display: none;
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(var(--paper-line, rgba(0,0,0,0.055)) 1px, transparent 1px),
+    linear-gradient(90deg, var(--paper-line, rgba(0,0,0,0.055)) 1px, transparent 1px);
+  background-size: var(--paper-grid-size, 80px) var(--paper-grid-size, 80px);
+  z-index: 0;
 }
 
 .tunnel-stage {
