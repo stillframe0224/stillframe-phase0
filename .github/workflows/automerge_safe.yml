@@ -165,12 +165,16 @@ jobs:
             core.setOutput('files', files.join('\n'));
             core.setOutput('pr_number_out', String(prNumber));
 
-            // --- Deny patterns (checked first) ---
+            // --- Deny patterns (checked first, hard stop) ---
             const denyPatterns = [
               /^\.github\/workflows\//,
+              /^\.github\/CODEOWNERS$/,
+              /^\.github\/dependabot\.ya?ml$/,
               /^pnpm-lock\.yaml$/,
               /^package-lock\.json$/,
               /^yarn\.lock$/,
+              /^package\.json$/,
+              /^vercel\.json$/,
               /^app\//,
               /^lib\//,
               /^scripts\//,
@@ -187,19 +191,29 @@ jobs:
               }
             }
 
-            // --- Allow patterns (every file must match one) ---
-            const allowPatterns = [
-              /^docs\//,
-              /^ops\//,
-              /^\.github\/(?!workflows\/)/,
-              /\.md$/,
-              /\.txt$/,
-              /\.css$/,
-            ];
+            // --- Allowlist v1.1 (extension-constrained) ---
+            const docsExts = /\.(md|mdx|txt|css|json|ya?ml|svg|png|jpe?g|gif)$/;
+            const opsExts = /\.(md|mdx|txt|json|ya?ml)$/;
+            const rootExts = /\.(md|txt|css)$/;
+
+            function isAllowed(f) {
+              // A) docs/** with docs-safe extensions
+              if (f.startsWith('docs/') && docsExts.test(f)) return true;
+              // A) OPS/** or ops/** with ops-safe extensions
+              if (/^[Oo][Pp][Ss]\//i.test(f) && opsExts.test(f)) return true;
+              // A) reports/triad/**/*.md
+              if (f.startsWith('reports/triad/') && f.endsWith('.md')) return true;
+              // B) Any *.md, *.txt, *.css anywhere (covers root README, CHANGELOG, etc.)
+              if (rootExts.test(f)) return true;
+              // C) .github — only templates and markdown
+              if (f.startsWith('.github/ISSUE_TEMPLATE/')) return true;
+              if (f === '.github/PULL_REQUEST_TEMPLATE.md') return true;
+              if (f.startsWith('.github/') && f.endsWith('.md') && !f.includes('/workflows/')) return true;
+              return false;
+            }
 
             for (const f of files) {
-              const allowed = allowPatterns.some(p => p.test(f));
-              if (!allowed) {
+              if (!isAllowed(f)) {
                 core.setOutput('eligible', 'false');
                 core.setOutput('reason', `File not in allowlist: ${f}`);
                 return;
@@ -207,7 +221,7 @@ jobs:
             }
 
             core.setOutput('eligible', 'true');
-            core.setOutput('reason', 'All files in safe allowlist');
+            core.setOutput('reason', 'All files in safe allowlist (v1.1)');
 
       - name: Write job summary
         if: steps.gate.outputs.disabled != 'true' && steps.resolve.outputs.skip != 'true'
@@ -488,9 +502,13 @@ jobs:
 
               const denyPatterns = [
                 /^\.github\/workflows\//,
+                /^\.github\/CODEOWNERS$/,
+                /^\.github\/dependabot\.ya?ml$/,
                 /^pnpm-lock\.yaml$/,
                 /^package-lock\.json$/,
                 /^yarn\.lock$/,
+                /^package\.json$/,
+                /^vercel\.json$/,
                 /^app\//,
                 /^lib\//,
                 /^scripts\//,
@@ -510,18 +528,25 @@ jobs:
               }
               if (denied) continue;
 
-              const allowPatterns = [
-                /^docs\//,
-                /^ops\//,
-                /^\.github\/(?!workflows\/)/,
-                /\.md$/,
-                /\.txt$/,
-                /\.css$/,
-              ];
+              // Allowlist v1.1 (extension-constrained)
+              const docsExts = /\.(md|mdx|txt|css|json|ya?ml|svg|png|jpe?g|gif)$/;
+              const opsExts = /\.(md|mdx|txt|json|ya?ml)$/;
+              const rootExts = /\.(md|txt|css)$/;
+
+              function isAllowedSweep(f) {
+                if (f.startsWith('docs/') && docsExts.test(f)) return true;
+                if (/^[Oo][Pp][Ss]\//i.test(f) && opsExts.test(f)) return true;
+                if (f.startsWith('reports/triad/') && f.endsWith('.md')) return true;
+                if (rootExts.test(f)) return true;
+                if (f.startsWith('.github/ISSUE_TEMPLATE/')) return true;
+                if (f === '.github/PULL_REQUEST_TEMPLATE.md') return true;
+                if (f.startsWith('.github/') && f.endsWith('.md') && !f.includes('/workflows/')) return true;
+                return false;
+              }
 
               let notAllowed = false;
               for (const f of files) {
-                if (!allowPatterns.some(p => p.test(f))) {
+                if (!isAllowedSweep(f)) {
                   notAllowed = true;
                   results.push({ pr: prNumber, action: 'skipped', reason: `not allowed: ${f}` });
                   break;
