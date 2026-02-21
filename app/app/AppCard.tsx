@@ -66,13 +66,13 @@ function dbg(event: string, data?: Record<string, unknown>) {
 const svgFallbacks: Record<string, React.ReactNode> = {
   memo: (
     <svg viewBox="0 0 210 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect width="210" height="120" fill="var(--paper-bg)" />
-      <rect x="40" y="25" width="60" height="75" rx="4" fill="rgba(0,0,0,0.12)" opacity="0.3" />
-      <line x1="50" y1="40" x2="90" y2="40" stroke="rgba(0,0,0,0.32)" strokeWidth="1.5" opacity="0.5" />
-      <line x1="50" y1="50" x2="85" y2="50" stroke="rgba(0,0,0,0.32)" strokeWidth="1.5" opacity="0.4" />
-      <line x1="50" y1="60" x2="88" y2="60" stroke="rgba(0,0,0,0.32)" strokeWidth="1.5" opacity="0.3" />
-      <circle cx="145" cy="50" r="20" fill="rgba(0,0,0,0.12)" opacity="0.2" />
-      <path d="M138 50 L145 43 L152 50 L145 57Z" fill="rgba(0,0,0,0.32)" opacity="0.4" />
+      <rect width="210" height="120" fill="#FFF8F0" />
+      <rect x="40" y="25" width="60" height="75" rx="4" fill="#F5C882" opacity="0.3" />
+      <line x1="50" y1="40" x2="90" y2="40" stroke="#D9A441" strokeWidth="1.5" opacity="0.5" />
+      <line x1="50" y1="50" x2="85" y2="50" stroke="#D9A441" strokeWidth="1.5" opacity="0.4" />
+      <line x1="50" y1="60" x2="88" y2="60" stroke="#D9A441" strokeWidth="1.5" opacity="0.3" />
+      <circle cx="145" cy="50" r="20" fill="#F5C882" opacity="0.2" />
+      <path d="M138 50 L145 43 L152 50 L145 57Z" fill="#D9A441" opacity="0.4" />
     </svg>
   ),
   idea: (
@@ -87,7 +87,7 @@ const svgFallbacks: Record<string, React.ReactNode> = {
   ),
   quote: (
     <svg viewBox="0 0 210 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect width="210" height="120" fill="var(--paper-bg)" />
+      <rect width="210" height="120" fill="#FEFCE8" />
       <text x="35" y="60" fontSize="48" fill="#E5D560" opacity="0.4" fontFamily="serif">&ldquo;</text>
       <text x="155" y="90" fontSize="48" fill="#E5D560" opacity="0.4" fontFamily="serif">&rdquo;</text>
       <line x1="65" y1="55" x2="145" y2="55" stroke="#A89620" strokeWidth="1" opacity="0.3" />
@@ -195,7 +195,7 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
 
   const dragStyle = {
     transform: CSS.Transform.toString(transform),
-    transition: isDragging ? "none" : transition,
+    transition: isDragging ? "none" : (transition || "transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease"),
     opacity: isDragging ? 0.5 : 1,
   };
   const ct = getCardType(card.card_type);
@@ -820,7 +820,7 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
   };
 
   const imageContent = (
-    <div style={{ aspectRatio: "7/4", overflow: "hidden", position: "relative" }}>
+    <div style={{ aspectRatio: "7/4", overflow: "hidden", position: "relative", background: "#f7f7f7" }}>
       {isVideoCard ? (
         <video
           controls
@@ -979,13 +979,13 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
       style={{
         width: 210,
         minWidth: 210,
-        borderRadius: 16,
-        border: `1.5px solid ${isSelected ? "#4F6ED9" : "var(--card-border)"}`,
-        background: `linear-gradient(to bottom, transparent 55%, rgba(${ct.accentRgb}, 0.07) 100%), ${isSelected ? "#EEF2FF" : "var(--card-bg)"}`,
+        borderRadius: "var(--card-radius, 12px)",
+        border: `1px solid ${isSelected ? "#4F6ED9" : "var(--card-border, rgba(0,0,0,0.14))"}`,
+        background: isSelected ? "#EEF2FF" : "var(--card-bg, #ffffff)",
         overflow: "hidden",
         cursor: isBulkMode ? "pointer" : "default",
         position: "relative",
-        boxShadow: "var(--card-shadow)",
+        boxShadow: "var(--card-shadow, 0 14px 34px -26px rgba(0,0,0,0.22))",
         animationName: "cardPop",
         animationDuration: "0.45s",
         animationTimingFunction: "ease-out",
@@ -995,9 +995,9 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
       }}
       onMouseEnter={(e) => {
         if (!isDragging && !isBulkMode) {
-          e.currentTarget.style.transform = dragStyle.transform || "translateY(-4px)";
-          e.currentTarget.style.boxShadow = "var(--card-shadow-hover)";
-          e.currentTarget.style.borderColor = "var(--card-border-hover)";
+          e.currentTarget.style.transform = dragStyle.transform || "translateY(-2px)";
+          e.currentTarget.style.boxShadow = "var(--card-shadow-hover, 0 18px 40px -20px rgba(0,0,0,0.28))";
+          e.currentTarget.style.borderColor = isSelected ? "#4F6ED9" : "var(--card-border-hover, rgba(0,0,0,0.18))";
           setShowDelete(true);
           setIsHovered(true);
         }
@@ -1005,8 +1005,8 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
       onMouseLeave={(e) => {
         if (!isDragging && !isBulkMode) {
           e.currentTarget.style.transform = dragStyle.transform || "translateY(0)";
-          e.currentTarget.style.boxShadow = "var(--card-shadow)";
-          e.currentTarget.style.borderColor = isSelected ? "#4F6ED9" : "var(--card-border)";
+          e.currentTarget.style.boxShadow = "var(--card-shadow, 0 14px 34px -26px rgba(0,0,0,0.22))";
+          e.currentTarget.style.borderColor = isSelected ? "#4F6ED9" : "var(--card-border, rgba(0,0,0,0.14))";
           setShowDelete(false);
           setIsHovered(false);
         }
@@ -1217,12 +1217,12 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
               width: "100%",
               fontSize: 13,
               fontWeight: 600,
-              color: "#2a2a2a",
-              border: "1px solid var(--accent-strong)",
+              color: "var(--text, rgba(0,0,0,0.72))",
+              border: "1px solid rgba(0,0,0,0.2)",
               borderRadius: 4,
               padding: "4px 6px",
               marginBottom: 4,
-              fontFamily: "inherit",
+              fontFamily: "var(--font-serif), var(--font-serif-jp), Georgia, serif",
               outline: "none",
             }}
           />
@@ -1232,7 +1232,7 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
             style={{
               fontSize: 13,
               fontWeight: 600,
-              color: "#2a2a2a",
+              color: "var(--text, rgba(0,0,0,0.72))",
               marginBottom: siteName ? 2 : 0,
               cursor: card.title !== undefined ? "pointer" : "default",
               wordBreak: "break-word",
@@ -1241,7 +1241,7 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
               WebkitBoxOrient: "vertical",
               overflow: "hidden",
               lineHeight: 1.4,
-              fontFamily: "var(--font-serif-jp), var(--font-serif), 'Cormorant Garamond', Georgia, serif",
+              fontFamily: "var(--font-serif), var(--font-serif-jp), Georgia, serif",
             }}
             title={displayTitle}
           >
@@ -1254,12 +1254,14 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
           <div
             style={{
               fontSize: 9,
-              color: "#aaa",
+              color: "var(--muted, rgba(0,0,0,0.42))",
               marginBottom: 4,
               fontFamily: "var(--font-dm)",
               whiteSpace: "nowrap",
               overflow: "hidden",
               textOverflow: "ellipsis",
+              textTransform: "uppercase",
+              letterSpacing: "0.12em",
             }}
           >
             {siteName}
@@ -1271,10 +1273,10 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
             data-testid="memo-snippet"
             style={{
               fontSize: 10,
-              color: "#8a8a8a",
+              color: "var(--muted, rgba(0,0,0,0.42))",
               marginTop: 4,
               lineHeight: 1.45,
-              fontFamily: "var(--font-serif-jp), var(--font-serif), 'Cormorant Garamond', Georgia, serif",
+              fontFamily: "var(--font-dm)",
               display: "-webkit-box",
               WebkitLineClamp: 2,
               WebkitBoxOrient: "vertical",
@@ -1393,8 +1395,10 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
             <span
               style={{
                 fontSize: 9,
-                color: "#aaa",
+                color: "var(--muted, rgba(0,0,0,0.42))",
                 fontFamily: "var(--font-dm)",
+                textTransform: "uppercase",
+                letterSpacing: "0.12em",
               }}
               title={new Date(card.created_at).toLocaleString()}
             >

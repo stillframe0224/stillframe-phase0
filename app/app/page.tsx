@@ -1730,9 +1730,10 @@ function AppPageInner() {
             maxWidth: 420,
             textAlign: "center",
             padding: "32px 24px",
-            borderRadius: 16,
-            background: "var(--accent-soft)",
-            border: "1px solid var(--accent-mid)",
+            borderRadius: "var(--card-radius, 12px)",
+            background: "var(--card-bg, #ffffff)",
+            border: "1px solid var(--card-border, rgba(0,0,0,0.14))",
+            boxShadow: "var(--card-shadow, 0 14px 34px -26px rgba(0,0,0,0.22))",
           }}
         >
           <h2 style={{ fontSize: 18, color: "#2a2a2a", marginBottom: 12 }}>
@@ -1758,7 +1759,7 @@ function AppPageInner() {
               display: "inline-block",
               marginTop: 20,
               fontSize: 13,
-              color: "var(--accent-strong)",
+              color: "rgba(0,0,0,0.55)",
               textDecoration: "none",
             }}
           >
@@ -1771,10 +1772,9 @@ function AppPageInner() {
 
   return (
     <div
-      className="paper-grid-bg app-theme-root"
-      data-testid="paper-grid"
+      className="app-grid-bg"
       style={{
-        minHeight: "100dvh",
+        minHeight: "100vh",
         fontFamily: "var(--font-dm), system-ui, sans-serif",
       }}
     >
@@ -2017,7 +2017,7 @@ function AppPageInner() {
           padding: "16px 24px",
           maxWidth: 1100,
           margin: "0 auto",
-          borderBottom: "1px solid #e8e5e0",
+          borderBottom: "1px solid var(--card-border, rgba(0,0,0,0.10))",
         }}
       >
         <a
@@ -2029,7 +2029,7 @@ function AppPageInner() {
             fontFamily: "var(--font-serif)",
             fontSize: 20,
             fontWeight: 600,
-            color: "#2a2a2a",
+            color: "rgba(0,0,0,0.72)",
             textDecoration: "none",
             letterSpacing: "-0.01em",
           }}
@@ -2041,7 +2041,7 @@ function AppPageInner() {
             <img
               src={user.avatar_url}
               alt="User avatar"
-              style={{ width: 30, height: 30, borderRadius: "50%" }}
+              style={{ width: 30, height: 30, borderRadius: "50%", border: "1px solid var(--card-border, rgba(0,0,0,0.10))" }}
               referrerPolicy="no-referrer"
             />
           ) : (
@@ -2050,13 +2050,13 @@ function AppPageInner() {
                 width: 30,
                 height: 30,
                 borderRadius: "50%",
-                background: "#EEF2FF",
-                border: "1px solid #A0B8F5",
+                background: "rgba(0,0,0,0.04)",
+                border: "1px solid rgba(0,0,0,0.10)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 fontSize: 13,
-                color: "#4F6ED9",
+                color: "rgba(0,0,0,0.55)",
                 fontWeight: 600,
               }}
             >
@@ -2067,7 +2067,7 @@ function AppPageInner() {
             href="/bookmarklet"
             style={{
               fontSize: 12,
-              color: "var(--sh-ink-muted)",
+              color: "rgba(0,0,0,0.45)",
               textDecoration: "none",
               fontFamily: "var(--font-dm)",
             }}
@@ -2078,9 +2078,11 @@ function AppPageInner() {
             onClick={handleLogout}
             style={{
               fontSize: 13,
-              color: "#999",
+              color: "rgba(0,0,0,0.45)",
               background: "none",
-              border: "none",
+              border: "1px solid rgba(0,0,0,0.10)",
+              borderRadius: 6,
+              padding: "4px 10px",
               cursor: "pointer",
               fontFamily: "var(--font-dm)",
             }}
@@ -2153,7 +2155,7 @@ function AppPageInner() {
               flex: 1,
               position: "relative",
               borderRadius: 16,
-              border: `1.5px solid ${dragOver ? ct.accent : "#e8e5e0"}`,
+              border: `1.5px solid ${dragOver ? ct.accent : "var(--card-border, rgba(0,0,0,0.14))"}`,
               background: dragOver ? `${ct.bg}` : "#fff",
               transition: "border-color 0.2s, background 0.2s",
               overflow: "hidden",
@@ -2338,8 +2340,8 @@ function AppPageInner() {
               alignItems: "center",
               padding: "12px 16px",
               borderRadius: 12,
-              background: "#f9f9f9",
-              border: "1px solid #e8e5e0",
+              background: "rgba(255,255,255,0.85)",
+              border: "1px solid var(--card-border, rgba(0,0,0,0.10))",
             }}
           >
             {/* Search input */}
@@ -2463,7 +2465,7 @@ function AppPageInner() {
                   maxLength={60}
                   style={{
                     padding: "8px 12px",
-                    border: "1px solid var(--accent-strong)",
+                    border: "1px solid var(--card-border, rgba(0,0,0,0.14))",
                     borderRadius: 8,
                     fontSize: 13,
                     fontFamily: "var(--font-dm)",
@@ -2480,7 +2482,7 @@ function AppPageInner() {
                     borderRadius: 8,
                     fontSize: 13,
                     fontFamily: "var(--font-dm)",
-                    background: "var(--accent-strong)",
+                    background: "rgba(0,0,0,0.72)",
                     color: "#fff",
                     cursor: "pointer",
                   }}
@@ -2512,15 +2514,15 @@ function AppPageInner() {
               onClick={() => setShowPinnedOnly(!showPinnedOnly)}
               style={{
                 padding: "8px 12px",
-                border: showPinnedOnly ? "1.5px solid var(--accent-mid)" : "1px solid #e0e0e0",
+                border: showPinnedOnly ? "1.5px solid rgba(0,0,0,0.28)" : "1px solid var(--card-border, rgba(0,0,0,0.14))",
                 borderRadius: 8,
                 fontSize: 13,
                 fontFamily: "var(--font-dm)",
                 outline: "none",
-                background: showPinnedOnly ? "var(--accent-soft)" : "#fff",
+                background: showPinnedOnly ? "rgba(0,0,0,0.05)" : "#fff",
                 cursor: "pointer",
                 fontWeight: showPinnedOnly ? 600 : 400,
-                color: showPinnedOnly ? "var(--accent-strong)" : "#555",
+                color: showPinnedOnly ? "rgba(0,0,0,0.72)" : "rgba(0,0,0,0.45)",
                 display: "flex",
                 alignItems: "center",
                 gap: 4,
