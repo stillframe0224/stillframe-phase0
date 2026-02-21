@@ -2011,6 +2011,7 @@ function AppPageInner() {
 
       {/* Header */}
       {!isTunnelView && <header
+        className="appTopbar"
         style={{
           display: "flex",
           justifyContent: "space-between",
