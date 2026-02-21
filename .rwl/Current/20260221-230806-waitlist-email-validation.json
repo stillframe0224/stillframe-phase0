@@ -1,0 +1,16 @@
+{
+  "id": "20260221-230806-waitlist-email-validation",
+  "goal": "Waitlistフォームにメール形式バリデーションと明確なエラーメッセージを追加して送信失敗を減らす",
+  "est_minutes": 25,
+  "dod": [
+    "npm run build 通過",
+    "/Users/array0224/stillframe-phase0/reports/triad/20260221-230806-waitlist-email-validation.md 作成",
+    "READMEに実行手順追記（新機能の場合）",
+    "PR作成"
+  ],
+  "evidence_paths": [
+    "/Users/array0224/stillframe-phase0/reports/triad/20260221-230806-waitlist-email-validation.md"
+  ],
+  "created_at": "2026-02-21T23:08:06+09:00",
+  "status": "queue"
+}

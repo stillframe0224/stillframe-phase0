@@ -25,8 +25,21 @@ export default function Waitlist({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (loading) return;
+
     const normalizedEmail = email.trim().toLowerCase();
     if (!normalizedEmail) return;
+
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailPattern.test(normalizedEmail)) {
+      setErrorMessage(c.invalidEmail[lang]);
+      track("waitlist_submit_failed", {
+        email: normalizedEmail,
+        destination: postUrl ? "webhook" : fallbackEmail ? "mailto" : "none",
+        reason: "invalid_email",
+      });
+      return;
+    }
 
     const destination = postUrl ? "webhook" : fallbackEmail ? "mailto" : "none";
     track("waitlist_submit", { email: normalizedEmail, destination });
@@ -128,6 +141,8 @@ export default function Waitlist({
           inputMode="email"
           autoCapitalize="none"
           autoCorrect="off"
+          aria-invalid={Boolean(errorMessage)}
+          aria-describedby={errorMessage ? "waitlist-error" : undefined}
           style={{
             flex: "1 1 240px",
             minWidth: 0,
@@ -156,6 +171,8 @@ export default function Waitlist({
       </form>
       {errorMessage && (
         <p
+          id="waitlist-error"
+          role="alert"
           style={{
             marginTop: 10,
             fontSize: 13,

@@ -102,6 +102,10 @@ const copy = {
       en: "Could not submit. Please try again.",
       ja: "送信できませんでした。もう一度お試しください。",
     },
+    invalidEmail: {
+      en: "Please enter a valid email address.",
+      ja: "有効なメールアドレスを入力してください。",
+    },
   },
   footer: {
     brand: "StillFrame",
