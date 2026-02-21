@@ -46,6 +46,8 @@ export default function Waitlist({
     setLoading(true);
     setErrorMessage(null);
 
+    let responseStatus: number | null = null;
+
     try {
       if (postUrl) {
         const res = await fetch(postUrl, {
@@ -53,6 +55,8 @@ export default function Waitlist({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email: normalizedEmail }),
         });
+
+        responseStatus = res.status;
 
         track("waitlist_submit_result", {
           email: normalizedEmail,
@@ -74,6 +78,7 @@ export default function Waitlist({
       track("waitlist_submit_failed", {
         email: normalizedEmail,
         destination,
+        status: responseStatus ? String(responseStatus) : "none",
         reason: error instanceof Error ? error.message : "unknown_error",
       });
     } finally {
