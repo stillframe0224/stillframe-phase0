@@ -94,30 +94,30 @@ export default function CardShell({
   const liftY = hoverLift + activePush;
 
   const shadow = pressed && interactive
-    ? "var(--card-shadow-active, 0 1px 4px -1px rgba(0,0,0,0.06))"
+    ? "var(--app-card-shadow-active, 0 8px 14px -4px rgba(0,0,0,0.06))"
     : hovered && interactive
-    ? "var(--card-shadow-hover, 0 4px 12px -2px rgba(0,0,0,0.10), 0 16px 32px -8px rgba(0,0,0,0.16))"
-    : "var(--card-shadow, 0 2px 8px -2px rgba(0,0,0,0.06), 0 8px 24px -8px rgba(0,0,0,0.10))";
+    ? "var(--app-card-shadow-hover, 0 18px 28px -8px rgba(0,0,0,0.10))"
+    : "var(--app-card-shadow-idle, 0 11px 18px -5px rgba(0,0,0,0.07))";
 
   const borderColor = selected
     ? "#4F6ED9"
     : hovered && interactive
-    ? "var(--card-border-hover, rgba(0,0,0,0.22))"
-    : "var(--card-border, rgba(0,0,0,0.14))";
+    ? "var(--card-border-hover, rgba(0,0,0,0.34))"
+    : "var(--app-card-border, rgba(0,0,0,0.30))";
 
   const shellStyle: CSSProperties = {
-    width: "var(--app-card-w, 250px)",
-    minWidth: "var(--app-card-w, 250px)",
-    borderRadius: "var(--card-radius, 12px)",
-    border: `1px solid ${borderColor}`,
-    background: selected ? "#EEF2FF" : "var(--card-bg, #ffffff)",
+    width: "var(--app-card-w, 210px)",
+    minWidth: "var(--app-card-w, 210px)",
+    borderRadius: "var(--app-card-radius, 10px)",
+    border: `var(--app-card-border-w, 1.5px) solid ${borderColor}`,
+    background: "var(--app-card-bg, #ffffff)",
     overflow: "hidden",
     cursor: interactive ? (isDragging ? "grabbing" : "default") : "default",
     position: "relative",
     boxShadow: shadow,
     // Float animation (applied via wrapper, not here—see below)
     transform: liftY !== 0 ? `translateY(${liftY}px)` : undefined,
-    transition: "box-shadow 0.2s ease, border-color 0.2s ease, transform 0.2s ease",
+    transition: "box-shadow 0.18s ease, border-color 0.18s ease, transform 0.18s ease",
     // Entry animation
     animationName: "cardPop",
     animationDuration: "0.45s",
