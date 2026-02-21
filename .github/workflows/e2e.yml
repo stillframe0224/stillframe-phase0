@@ -82,6 +82,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Design token regression guard
+        run: bash scripts/tests/test_design_tokens.sh
+
       - name: Build app (no E2E env — production artifact)
         run: npm run build
 

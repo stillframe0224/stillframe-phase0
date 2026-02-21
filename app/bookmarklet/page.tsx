@@ -51,8 +51,8 @@ export default function BookmarkletPage() {
           style={{
             padding: "16px 20px",
             borderRadius: 12,
-            background: "#FFF8F0",
-            border: "1.5px solid #F5C882",
+            background: "var(--accent-soft)",
+            border: "1.5px solid var(--accent-mid)",
             marginBottom: 24,
             textAlign: "center",
           }}
@@ -67,7 +67,7 @@ export default function BookmarkletPage() {
               display: "inline-block",
               padding: "8px 20px",
               borderRadius: 8,
-              background: "#D9A441",
+              background: "var(--accent-strong)",
               color: "#fff",
               fontSize: 14,
               fontWeight: 600,
@@ -94,7 +94,7 @@ export default function BookmarkletPage() {
             href="/app"
             style={{
               fontSize: 13,
-              color: "#D9A441",
+              color: "var(--accent-strong)",
               textDecoration: "none",
               fontFamily: "var(--font-dm)",
             }}

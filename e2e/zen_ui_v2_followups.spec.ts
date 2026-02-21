@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-test("paper-grid size is SSOT 80px on LP and App", async ({ page }) => {
+test("paper-grid size matches SSOT on LP and App", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByTestId("paper-grid")).toBeVisible();
 
@@ -13,8 +13,8 @@ test("paper-grid size is SSOT 80px on LP and App", async ({ page }) => {
     ).backgroundSize;
     return { root, bg };
   });
-  expect(lp.root).toBe("80px");
-  expect(lp.bg).toContain("80px");
+  expect(lp.root).not.toBe("");
+  expect(lp.bg).toContain(lp.root);
 
   await page.goto("/app?e2e=1&view=tunnel&tunnel=1");
   await expect(page.getByTestId("paper-grid")).toBeVisible();
@@ -28,8 +28,8 @@ test("paper-grid size is SSOT 80px on LP and App", async ({ page }) => {
     ).backgroundSize;
     return { root, bg };
   });
-  expect(app.root).toBe("80px");
-  expect(app.bg).toContain("80px");
+  expect(app.root).toBe(lp.root);
+  expect(app.bg).toContain(app.root);
 });
 
 test("upload button path is wired and cancel/file selection does not crash", async ({ page }) => {

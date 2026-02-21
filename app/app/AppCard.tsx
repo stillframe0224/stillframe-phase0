@@ -195,7 +195,7 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
 
   const dragStyle = {
     transform: CSS.Transform.toString(transform),
-    transition: isDragging ? "none" : transition,
+    transition: isDragging ? "none" : (transition || "transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease"),
     opacity: isDragging ? 0.5 : 1,
   };
   const ct = getCardType(card.card_type);
@@ -820,7 +820,7 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
   };
 
   const imageContent = (
-    <div style={{ aspectRatio: "7/4", overflow: "hidden", position: "relative" }}>
+    <div style={{ aspectRatio: "7/4", overflow: "hidden", position: "relative", background: "#f7f7f7" }}>
       {isVideoCard ? (
         <video
           controls
@@ -979,13 +979,13 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
       style={{
         width: 210,
         minWidth: 210,
-        borderRadius: 16,
-        border: `1.5px solid ${isSelected ? "#4F6ED9" : ct.border}`,
-        background: `linear-gradient(to bottom, transparent 55%, rgba(${ct.accentRgb}, 0.07) 100%), ${isSelected ? "#EEF2FF" : ct.bg}`,
+        borderRadius: "var(--card-radius, 12px)",
+        border: `1px solid ${isSelected ? "#4F6ED9" : "var(--card-border, rgba(0,0,0,0.14))"}`,
+        background: isSelected ? "#EEF2FF" : "var(--card-bg, #ffffff)",
         overflow: "hidden",
         cursor: isBulkMode ? "pointer" : "default",
         position: "relative",
-        boxShadow: "var(--card-slab-shadow, 0 1.8px 0 rgba(0,0,0,0.06), 0 0.9px 0 rgba(0,0,0,0.04))",
+        boxShadow: "var(--card-shadow, 0 14px 34px -26px rgba(0,0,0,0.22))",
         animationName: "cardPop",
         animationDuration: "0.45s",
         animationTimingFunction: "ease-out",
@@ -995,9 +995,9 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
       }}
       onMouseEnter={(e) => {
         if (!isDragging && !isBulkMode) {
-          e.currentTarget.style.transform = dragStyle.transform || "translateY(-4px)";
-          e.currentTarget.style.boxShadow =
-            "0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.05)";
+          e.currentTarget.style.transform = dragStyle.transform || "translateY(-2px)";
+          e.currentTarget.style.boxShadow = "var(--card-shadow-hover, 0 18px 40px -20px rgba(0,0,0,0.28))";
+          e.currentTarget.style.borderColor = isSelected ? "#4F6ED9" : "var(--card-border-hover, rgba(0,0,0,0.18))";
           setShowDelete(true);
           setIsHovered(true);
         }
@@ -1005,7 +1005,8 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
       onMouseLeave={(e) => {
         if (!isDragging && !isBulkMode) {
           e.currentTarget.style.transform = dragStyle.transform || "translateY(0)";
-          e.currentTarget.style.boxShadow = "none";
+          e.currentTarget.style.boxShadow = "var(--card-shadow, 0 14px 34px -26px rgba(0,0,0,0.22))";
+          e.currentTarget.style.borderColor = isSelected ? "#4F6ED9" : "var(--card-border, rgba(0,0,0,0.14))";
           setShowDelete(false);
           setIsHovered(false);
         }
@@ -1216,12 +1217,12 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
               width: "100%",
               fontSize: 13,
               fontWeight: 600,
-              color: "#2a2a2a",
-              border: "1px solid #D9A441",
+              color: "var(--text, rgba(0,0,0,0.72))",
+              border: "1px solid rgba(0,0,0,0.2)",
               borderRadius: 4,
               padding: "4px 6px",
               marginBottom: 4,
-              fontFamily: "inherit",
+              fontFamily: "var(--font-serif), var(--font-serif-jp), Georgia, serif",
               outline: "none",
             }}
           />
@@ -1231,7 +1232,7 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
             style={{
               fontSize: 13,
               fontWeight: 600,
-              color: "#2a2a2a",
+              color: "var(--text, rgba(0,0,0,0.72))",
               marginBottom: siteName ? 2 : 0,
               cursor: card.title !== undefined ? "pointer" : "default",
               wordBreak: "break-word",
@@ -1240,6 +1241,7 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
               WebkitBoxOrient: "vertical",
               overflow: "hidden",
               lineHeight: 1.4,
+              fontFamily: "var(--font-serif), var(--font-serif-jp), Georgia, serif",
             }}
             title={displayTitle}
           >
@@ -1252,12 +1254,14 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
           <div
             style={{
               fontSize: 9,
-              color: "#aaa",
+              color: "var(--muted, rgba(0,0,0,0.42))",
               marginBottom: 4,
               fontFamily: "var(--font-dm)",
               whiteSpace: "nowrap",
               overflow: "hidden",
               textOverflow: "ellipsis",
+              textTransform: "uppercase",
+              letterSpacing: "0.12em",
             }}
           >
             {siteName}
@@ -1269,7 +1273,7 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
             data-testid="memo-snippet"
             style={{
               fontSize: 10,
-              color: "#8a8a8a",
+              color: "var(--muted, rgba(0,0,0,0.42))",
               marginTop: 4,
               lineHeight: 1.45,
               fontFamily: "var(--font-dm)",
@@ -1391,8 +1395,10 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
             <span
               style={{
                 fontSize: 9,
-                color: "#aaa",
+                color: "var(--muted, rgba(0,0,0,0.42))",
                 fontFamily: "var(--font-dm)",
+                textTransform: "uppercase",
+                letterSpacing: "0.12em",
               }}
               title={new Date(card.created_at).toLocaleString()}
             >
