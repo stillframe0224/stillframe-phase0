@@ -123,6 +123,17 @@ jobs:
           branch: "docs/triad-index-bot"
           delete-branch: true
           title: "docs: update triad index"
-          body: "Automated, deterministic update of reports/triad/INDEX.md."
+          body: |
+            Automated, deterministic update of reports/triad/INDEX.md.
+
+            ## Codex: RISKS
+            - No runtime code changes; INDEX.md is a docs-only file
+
+            ## Codex: TESTS
+            - Deterministic generation — identical input = identical output
+            - No-op if INDEX.md unchanged
+
+            ## Codex: EDGE
+            - New triad reports added between runs are picked up on next schedule
           add-paths: |
             reports/triad/INDEX.md
