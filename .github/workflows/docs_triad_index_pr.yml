@@ -1,0 +1,126 @@
+name: docs-triad-index-pr
+
+on:
+  schedule:
+    - cron: "41 18 * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: docs-triad-index-pr
+  cancel-in-progress: true
+
+jobs:
+  index-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Global kill switch gate
+        id: gate
+        run: |
+          if [ "${{ vars.AUTOMERGE_GLOBAL_OFF }}" = "1" ]; then
+            echo "DISABLED: AUTOMERGE_GLOBAL_OFF=1 (skipping docs triad index PR)" >> "$GITHUB_STEP_SUMMARY"
+            echo "disabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "disabled=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Checkout
+        if: steps.gate.outputs.disabled != 'true'
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check App credentials present
+        if: steps.gate.outputs.disabled != 'true'
+        id: creds
+        run: |
+          if [ -n "${{ secrets.GH_APP_ID }}" ] && [ -n "${{ secrets.GH_APP_PRIVATE_KEY }}" ]; then
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+            echo "NO_APP_TOKEN: missing secrets for GitHub App token; skipping PR creation." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Create GitHub App token
+        if: steps.gate.outputs.disabled != 'true' && steps.creds.outputs.ok == 'true'
+        id: app-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ secrets.GH_APP_ID }}
+          private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
+
+      - name: Generate reports/triad/INDEX.md (deterministic)
+        if: steps.gate.outputs.disabled != 'true' && steps.creds.outputs.ok == 'true'
+        run: |
+          node <<'NODE'
+          const fs = require("fs");
+          const path = require("path");
+
+          const dir = path.join("reports", "triad");
+          fs.mkdirSync(dir, { recursive: true });
+
+          const files = fs.readdirSync(dir)
+            .filter(f => f.endsWith(".md"))
+            .filter(f => f !== "INDEX.md")
+            .sort()
+            .reverse();
+
+          function titleOf(relPath) {
+            try {
+              const txt = fs.readFileSync(relPath, "utf8");
+              const m = txt.match(/^#\s+(.+)\s*$/m);
+              return m ? m[1].trim() : path.basename(relPath);
+            } catch {
+              return path.basename(relPath);
+            }
+          }
+
+          const lines = [];
+          lines.push("# Triad Index");
+          lines.push("");
+          lines.push("Deterministic index of `reports/triad/*.md`. Do not add timestamps here.");
+          lines.push("");
+
+          if (files.length === 0) {
+            lines.push("_No triad reports yet._");
+          } else {
+            for (const f of files) {
+              const rel = path.join(dir, f);
+              const title = titleOf(rel).replace(/\[/g, "\\[").replace(/\]/g, "\\]");
+              lines.push(`- [${f.replace(/\.md$/, "")}: ${title}](${f})`);
+            }
+          }
+
+          lines.push("");
+          fs.writeFileSync(path.join(dir, "INDEX.md"), lines.join("\n") + "\n");
+          console.log(`Wrote ${path.join(dir, "INDEX.md")} with ${files.length} entries`);
+          NODE
+
+      - name: Check diff
+        if: steps.gate.outputs.disabled != 'true' && steps.creds.outputs.ok == 'true'
+        id: diff
+        run: |
+          if git diff --quiet -- reports/triad/INDEX.md; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "No changes in reports/triad/INDEX.md; skipping PR." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "INDEX.md changed; will open/update PR." >> "$GITHUB_STEP_SUMMARY"
+            git diff --stat -- reports/triad/INDEX.md >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Create/Update PR
+        if: steps.gate.outputs.disabled != 'true' && steps.creds.outputs.ok == 'true' && steps.diff.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          commit-message: "docs: update triad index"
+          branch: "docs/triad-index-bot"
+          delete-branch: true
+          title: "docs: update triad index"
+          body: "Automated, deterministic update of reports/triad/INDEX.md."
+          add-paths: |
+            reports/triad/INDEX.md
