@@ -68,13 +68,13 @@ function dbg(event: string, data?: Record<string, unknown>) {
 const svgFallbacks: Record<string, React.ReactNode> = {
   memo: (
     <svg viewBox="0 0 210 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect width="210" height="120" fill="#FFF8F0" />
-      <rect x="40" y="25" width="60" height="75" rx="4" fill="#F5C882" opacity="0.3" />
-      <line x1="50" y1="40" x2="90" y2="40" stroke="#D9A441" strokeWidth="1.5" opacity="0.5" />
-      <line x1="50" y1="50" x2="85" y2="50" stroke="#D9A441" strokeWidth="1.5" opacity="0.4" />
-      <line x1="50" y1="60" x2="88" y2="60" stroke="#D9A441" strokeWidth="1.5" opacity="0.3" />
-      <circle cx="145" cy="50" r="20" fill="#F5C882" opacity="0.2" />
-      <path d="M138 50 L145 43 L152 50 L145 57Z" fill="#D9A441" opacity="0.4" />
+      <rect width="210" height="120" fill="#fafafa" />
+      <rect x="40" y="25" width="60" height="75" rx="3" fill="none" stroke="rgba(0,0,0,0.08)" strokeWidth="1" />
+      <line x1="50" y1="40" x2="90" y2="40" stroke="rgba(0,0,0,0.15)" strokeWidth="1" />
+      <line x1="50" y1="52" x2="85" y2="52" stroke="rgba(0,0,0,0.1)" strokeWidth="1" />
+      <line x1="50" y1="64" x2="88" y2="64" stroke="rgba(0,0,0,0.08)" strokeWidth="1" />
+      <circle cx="150" cy="55" r="18" fill="none" stroke="rgba(0,0,0,0.07)" strokeWidth="1" />
+      <path d="M143 55 L150 48 L157 55 L150 62Z" fill="none" stroke="rgba(0,0,0,0.1)" strokeWidth="1" />
     </svg>
   ),
   idea: (
@@ -89,11 +89,11 @@ const svgFallbacks: Record<string, React.ReactNode> = {
   ),
   quote: (
     <svg viewBox="0 0 210 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect width="210" height="120" fill="#FEFCE8" />
-      <text x="35" y="60" fontSize="48" fill="#E5D560" opacity="0.4" fontFamily="serif">&ldquo;</text>
-      <text x="155" y="90" fontSize="48" fill="#E5D560" opacity="0.4" fontFamily="serif">&rdquo;</text>
-      <line x1="65" y1="55" x2="145" y2="55" stroke="#A89620" strokeWidth="1" opacity="0.3" />
-      <line x1="75" y1="68" x2="135" y2="68" stroke="#A89620" strokeWidth="1" opacity="0.25" />
+      <rect width="210" height="120" fill="#fafafa" />
+      <text x="35" y="60" fontSize="48" fill="rgba(0,0,0,0.08)" fontFamily="serif">&ldquo;</text>
+      <text x="155" y="90" fontSize="48" fill="rgba(0,0,0,0.08)" fontFamily="serif">&rdquo;</text>
+      <line x1="65" y1="55" x2="145" y2="55" stroke="rgba(0,0,0,0.12)" strokeWidth="1" />
+      <line x1="75" y1="68" x2="135" y2="68" stroke="rgba(0,0,0,0.08)" strokeWidth="1" />
     </svg>
   ),
   task: (
@@ -156,10 +156,10 @@ const CHIP_BASE_STYLE: React.CSSProperties = {
   whiteSpace: "nowrap",
 };
 
-const CHIP_TYPE_STYLE = (accent: string, border: string): React.CSSProperties => ({
+const CHIP_TYPE_STYLE = (_accent: string, _border: string): React.CSSProperties => ({
   ...CHIP_BASE_STYLE,
-  color: accent,
-  background: `${border}33`,
+  color: "var(--app-card-meta, rgba(0,0,0,0.30))",
+  background: "transparent",
   borderColor: "transparent",
 });
 
@@ -823,7 +823,7 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
   };
 
   const imageContent = (
-    <div style={{ aspectRatio: "7/4", overflow: "hidden", position: "relative", background: "#f7f7f7" }}>
+    <div style={{ aspectRatio: "7/4", overflow: "hidden", position: "relative", background: "#ffffff" }}>
       {isVideoCard ? (
         <video
           controls
@@ -970,6 +970,7 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
       onToggleSelect(card.id);
     }
   };
+  const isE2EAppCard = card.id === "e2e-card-1";
 
   return (
     <CardShell
@@ -997,6 +998,7 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
           setIsHovered(false);
         }
       }}
+      data-testid={isE2EAppCard ? "e2e-app-card" : undefined}
     >
       {/* DnD grip handle — visible on hover, handle-only drag */}
       {isDraggable && !isBulkMode && (
@@ -1181,7 +1183,14 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
             <div
               role="button"
               tabIndex={0}
-              onClick={(e) => { e.stopPropagation(); setYoutubeVideoId(ytId); }}
+              onClick={(e) => {
+                e.stopPropagation();
+                if (e.metaKey || e.ctrlKey) {
+                  window.open(cardUrl, "_blank", "noopener,noreferrer");
+                  return;
+                }
+                setYoutubeVideoId(ytId);
+              }}
               onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.stopPropagation(); setYoutubeVideoId(ytId); } }}
               style={{ display: "block", cursor: "pointer" }}
             >
@@ -1204,7 +1213,7 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
       )}
 
       {/* Text */}
-      <div style={{ padding: "10px 14px 12px" }}>
+      <div style={{ padding: "13px 16px 13px" }}>
         {/* Title - compact 2-line clamp, editable on click */}
         {isEditingTitle ? (
           <input
@@ -1216,9 +1225,9 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
             onKeyDown={handleTitleKeyDown}
             style={{
               width: "100%",
-              fontSize: 13,
+              fontSize: 14,
               fontWeight: 600,
-              color: "var(--text, rgba(0,0,0,0.72))",
+              color: "var(--app-card-text, #111111)",
               border: "1px solid rgba(0,0,0,0.2)",
               borderRadius: 4,
               padding: "4px 6px",
@@ -1231,9 +1240,9 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
           <div
             onClick={handleTitleClick}
             style={{
-              fontSize: 13,
+              fontSize: 14,
               fontWeight: 600,
-              color: "var(--text, rgba(0,0,0,0.72))",
+              color: "var(--app-card-text, #111111)",
               marginBottom: siteName ? 2 : 0,
               cursor: card.title !== undefined ? "pointer" : "default",
               wordBreak: "break-word",
@@ -1241,8 +1250,8 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
               WebkitLineClamp: 2,
               WebkitBoxOrient: "vertical",
               overflow: "hidden",
-              lineHeight: 1.4,
-              fontFamily: "var(--font-serif), var(--font-serif-jp), Georgia, serif",
+              lineHeight: 1.7,
+              fontFamily: "'Cormorant Garamond','Noto Serif JP',Georgia,serif",
             }}
             title={displayTitle}
           >
@@ -1255,7 +1264,7 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
           <div
             style={{
               fontSize: 9,
-              color: "var(--muted, rgba(0,0,0,0.42))",
+              color: "var(--app-card-meta, rgba(0,0,0,0.30))",
               marginBottom: 4,
               fontFamily: "var(--font-dm)",
               whiteSpace: "nowrap",
@@ -1274,7 +1283,7 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
             data-testid="memo-snippet"
             style={{
               fontSize: 10,
-              color: "var(--muted, rgba(0,0,0,0.42))",
+              color: "var(--app-card-meta, rgba(0,0,0,0.30))",
               marginTop: 4,
               lineHeight: 1.45,
               fontFamily: "var(--font-dm)",
@@ -1326,7 +1335,17 @@ export default function AppCard({ card, index, onDelete, onPinToggle, onFileAssi
           </div>
         )}
 
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 8, gap: 8 }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            marginTop: 10,
+            paddingTop: 8,
+            gap: 8,
+            borderTop: "1px solid var(--app-card-sep, rgba(0,0,0,0.07))",
+          }}
+        >
           {/* MEMO pill with hover preview */}
           <div style={{ position: "relative" }}>
             <button

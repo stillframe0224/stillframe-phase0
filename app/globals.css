@@ -13,9 +13,20 @@
   --grid-line: rgba(0,0,0,0.06);
   --grid-w: 1px;
 
-  /* ── App-specific grid (larger, quieter than paper-grid) ── */
-  --app-grid-size: 210px;
-  --app-card-w: 250px;
+  /* ── App-specific grid (v17 exact-match calibration) ── */
+  --app-grid-x: 103px;
+  --app-grid-y: 71px;
+  --app-card-w: 210px;
+  --app-card-radius: 10px;
+  --app-card-border-w: 1.5px;
+  --app-card-border: rgba(0,0,0,0.30);
+  --app-card-bg: #ffffff;
+  --app-card-text: #111111;
+  --app-card-meta: rgba(0,0,0,0.30);
+  --app-card-sep: rgba(0,0,0,0.07);
+  --app-card-shadow-idle: 0 11px 18px -5px rgba(0,0,0,0.07);
+  --app-card-shadow-hover: 0 18px 28px -8px rgba(0,0,0,0.10);
+  --app-card-shadow-active: 0 8px 14px -4px rgba(0,0,0,0.06);
 
   /* ── Idle float animation ── */
   --app-float-amp: 3px;
@@ -24,14 +35,14 @@
   /* ── Button font (UI sans) ── */
   --app-btn-font: var(--font-dm), system-ui, sans-serif;
 
-  /* ── Card tokens ── */
-  --card-bg: #ffffff;
-  --card-border: rgba(0,0,0,0.14);
-  --card-border-hover: rgba(0,0,0,0.22);
-  --card-radius: 12px;
-  --card-shadow: 0 2px 8px -2px rgba(0,0,0,0.06), 0 8px 24px -8px rgba(0,0,0,0.10);
-  --card-shadow-hover: 0 4px 12px -2px rgba(0,0,0,0.10), 0 16px 32px -8px rgba(0,0,0,0.16);
-  --card-shadow-active: 0 1px 4px -1px rgba(0,0,0,0.06), 0 4px 12px -4px rgba(0,0,0,0.08);
+  /* ── Card tokens (legacy aliases) ── */
+  --card-bg: var(--app-card-bg);
+  --card-border: var(--app-card-border);
+  --card-border-hover: rgba(0,0,0,0.34);
+  --card-radius: var(--app-card-radius);
+  --card-shadow: var(--app-card-shadow-idle);
+  --card-shadow-hover: var(--app-card-shadow-hover);
+  --card-shadow-active: var(--app-card-shadow-active);
 
   /* ── Legacy alias tokens (kept for backward compat with tunnel/other code) ── */
   --sh-bg: #fdfdfd;
@@ -67,11 +78,11 @@
 
 /* ── App page grid background (larger, quieter) ── */
 .app-grid-bg {
-  background-color: var(--bg);
+  background-color: #fdfdfd;
   background-image:
-    linear-gradient(to right, var(--grid-line) var(--grid-w), transparent var(--grid-w)),
-    linear-gradient(to bottom, var(--grid-line) var(--grid-w), transparent var(--grid-w));
-  background-size: var(--app-grid-size) var(--app-grid-size);
+    linear-gradient(to right, rgba(0,0,0,0.08) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0,0,0,0.08) 1px, transparent 1px);
+  background-size: var(--app-grid-x) var(--app-grid-y);
   background-attachment: local;
 }
 
