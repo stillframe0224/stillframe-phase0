@@ -2704,7 +2704,7 @@ function AppPageInner() {
                   display: "grid",
                   gridTemplateColumns: e2eMode
                     ? "1fr"
-                    : "repeat(auto-fill, minmax(220px, 1fr))",
+                    : "repeat(auto-fill, minmax(210px, 1fr))",
                   gap: 8,
                 }}
               >
