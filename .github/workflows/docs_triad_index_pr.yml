@@ -99,18 +99,20 @@ jobs:
           console.log(`Wrote ${path.join(dir, "INDEX.md")} with ${files.length} entries`);
           NODE
 
-      - name: Check diff
+      - name: Check diff (handles new + modified)
         if: steps.gate.outputs.disabled != 'true' && steps.creds.outputs.ok == 'true'
         id: diff
         run: |
-          if git diff --quiet -- reports/triad/INDEX.md; then
+          git add -- reports/triad/INDEX.md
+          if git diff --cached --quiet -- reports/triad/INDEX.md; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
             echo "No changes in reports/triad/INDEX.md; skipping PR." >> "$GITHUB_STEP_SUMMARY"
           else
             echo "changed=true" >> "$GITHUB_OUTPUT"
             echo "INDEX.md changed; will open/update PR." >> "$GITHUB_STEP_SUMMARY"
-            git diff --stat -- reports/triad/INDEX.md >> "$GITHUB_STEP_SUMMARY"
+            git diff --cached --stat -- reports/triad/INDEX.md >> "$GITHUB_STEP_SUMMARY"
           fi
+          git reset -- reports/triad/INDEX.md
 
       - name: Create/Update PR
         if: steps.gate.outputs.disabled != 'true' && steps.creds.outputs.ok == 'true' && steps.diff.outputs.changed == 'true'
