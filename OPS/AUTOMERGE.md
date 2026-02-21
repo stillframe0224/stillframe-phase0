@@ -6,29 +6,52 @@ Workflow: `.github/workflows/automerge_safe.yml`
 
 Automatically merges LOW-RISK pull requests that touch only documentation, ops configs, and style files. Designed to be safe-by-default: if uncertain, it does nothing.
 
-## Allowlist (files that CAN be auto-merged)
-
-| Pattern | Examples |
-|---------|----------|
-| `docs/**` | Any file under docs/ |
-| `ops/**` | Ops runbooks, guides |
-| `.github/**` (except workflows) | PR templates, issue templates, CODEOWNERS |
-| `**/*.md` | README, CHANGELOG, etc. |
-| `**/*.txt` | License, notices |
-| `**/*.css` | Stylesheets (no logic) |
-
-## Denylist (files that BLOCK auto-merge)
+## Denylist (hard stop — checked FIRST)
 
 | Pattern | Reason |
 |---------|--------|
 | `.github/workflows/**` | CI/CD changes require human review |
+| `.github/CODEOWNERS` | Access control |
+| `.github/dependabot.yml` / `.github/dependabot.yaml` | Dependency bot config |
 | `pnpm-lock.yaml` / `package-lock.json` / `yarn.lock` | Dependency changes |
+| `package.json` / `vercel.json` | Project config |
 | `app/**` | Application source code |
 | `lib/**` | Shared library code |
 | `scripts/**` | Build/deploy scripts |
 | `api/**` | API routes |
 
 If ANY changed file matches the denylist, the entire PR is ineligible.
+
+## Allowlist v1.1 (extension-constrained)
+
+Previous v1.0 allowed `docs/**` and `ops/**` as whole directories, which could pass through executable files (e.g., `docs/run.sh`). v1.1 constrains each directory to specific safe extensions.
+
+### A) Docs assets
+
+| Directory | Allowed extensions |
+|-----------|--------------------|
+| `docs/**` | `.md`, `.mdx`, `.txt`, `.css`, `.json`, `.yml`, `.yaml`, `.svg`, `.png`, `.jpg`, `.jpeg`, `.gif` |
+| `OPS/**` / `ops/**` | `.md`, `.mdx`, `.txt`, `.json`, `.yml`, `.yaml` |
+| `reports/triad/**` | `.md` |
+
+### B) Repo-root text/style
+
+| Pattern | Scope |
+|---------|-------|
+| `**/*.md` | Any markdown anywhere |
+| `**/*.txt` | Any text file anywhere |
+| `**/*.css` | Any stylesheet anywhere |
+
+### C) .github (tightened)
+
+| Allowed | Example |
+|---------|---------|
+| `.github/ISSUE_TEMPLATE/**` | Issue template YAML/MD |
+| `.github/PULL_REQUEST_TEMPLATE.md` | PR template |
+| `.github/*.md` (not in workflows/) | `.github/CONTRIBUTING.md` |
+
+Everything else under `.github/` is NOT allowed (CODEOWNERS, dependabot, workflows are denied explicitly).
+
 If ANY changed file is not in the allowlist, the PR is ineligible.
 
 ## Kill Switches
