@@ -1,0 +1,27 @@
+# Triad Index
+
+Deterministic index of `reports/triad/*.md`. Do not add timestamps here.
+
+- [INDEX_ig_preview_pipeline: INDEX: IG Preview Pipeline](INDEX_ig_preview_pipeline.md)
+- [20260221_docs_pr_autopilot: Triad Report: Docs PR Autopilot Adoption](20260221_docs_pr_autopilot.md)
+- [20260221_agent_memory_harness_adoption: Triad Report: Agent Memory + Harness Adoption](20260221_agent_memory_harness_adoption.md)
+- [20260220_codex_headings_autofix: Codex Headings Autofix — Report](20260220_codex_headings_autofix.md)
+- [20260220_automerge_sweeper: Triad Report: Automerge Hourly Sweeper](20260220_automerge_sweeper.md)
+- [20260220_automerge_safe: Triad Report: Safe-Only Automerge](20260220_automerge_safe.md)
+- [20260220_automerge_retry: Triad Report: Automerge Retry via workflow_run](20260220_automerge_retry.md)
+- [20260220_automerge_killswitch_e2e: automerge kill switch E2E evidence](20260220_automerge_killswitch_e2e.md)
+- [20260220_automerge_killswitch: Triad Report: Global Kill Switch for Automerge](20260220_automerge_killswitch.md)
+- [20260219_ui_tone_align_clean: 20260219 UI Tone Align (Clean Diff)](20260219_ui_tone_align_clean.md)
+- [20260219_shinen_tunnel_ui: Tunnel Canvas — SHINEN 3D Floating Cards](20260219_shinen_tunnel_ui.md)
+- [20260219_ig_proxy_hardening_closeout: IG Image Proxy Hardening — Closeout Report](20260219_ig_proxy_hardening_closeout.md)
+- [20260219_ig_image_proxy_ref_remove: 20260219_ig_image_proxy_ref_remove](20260219_ig_image_proxy_ref_remove.md)
+- [20260219_ci_guardrails: CI Guardrails — codex headings + stable smoke + rerun notes](20260219_ci_guardrails.md)
+- [20260218_app_ui_acceptance_smoke: TRIAD 20260218_app_ui_acceptance_smoke — CLOSE ✅](20260218_app_ui_acceptance_smoke.md)
+- [20260218_always_reorder_notes_ig: TRIAD 20260218_always_reorder_notes_ig — CLOSE ✅](20260218_always_reorder_notes_ig.md)
+- [20260218-230114-waitlist-privacy-microcopy: Task: Waitlistフォーム付近に安心感を高める補足文を追加し登録率改善の土台を作る](20260218-230114-waitlist-privacy-microcopy.md)
+- [20260216-174500-ai-feedback-not-rendered-fix: AI Feedback Not Rendered for CARD_NOT_FOUND Fix](20260216-174500-ai-feedback-not-rendered-fix.md)
+- [20260216-173000-no-silent-ai-feedback-testids: No-Silent AI Feedback + Test IDs](20260216-173000-no-silent-ai-feedback-testids.md)
+- [20260216-171500-build-stamp-no-silent-errors: Build Stamp + No-Silent AI Errors Fix](20260216-171500-build-stamp-no-silent-errors.md)
+- [20260216-162700-ai-organize-404-robust-fix: AI Organize 404-vs-401 Mismatch Resolution + Robust Error Feedback](20260216-162700-ai-organize-404-robust-fix.md)
+- [20260216-160000-ai-organize-404-feedback: AI Organize 404 Feedback Fix](20260216-160000-ai-organize-404-feedback.md)
+
