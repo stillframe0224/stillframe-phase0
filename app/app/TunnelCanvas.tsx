@@ -343,6 +343,7 @@ export default function TunnelCanvas({
         if (e.dataTransfer.files?.length) onUpload(e.dataTransfer.files);
       } : undefined}
     >
+      <div className="tunnel-grid-bg" data-testid="paper-grid" />
       <div
         ref={stageRef}
         className="tunnel-stage"
