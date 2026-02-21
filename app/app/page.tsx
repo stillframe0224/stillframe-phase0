@@ -1773,14 +1773,10 @@ function AppPageInner() {
   return (
     <div
       className="app-grid-bg"
-      data-testid="paper-grid"
+      data-testid="app-grid"
       style={{
         minHeight: "100vh",
-        fontFamily: "var(--font-dm), system-ui, sans-serif",
-        backgroundColor: "var(--bg)",
-        backgroundImage:
-          "linear-gradient(to right, var(--grid-line) var(--grid-w), transparent var(--grid-w)), linear-gradient(to bottom, var(--grid-line) var(--grid-w), transparent var(--grid-w))",
-        backgroundSize: "var(--paper-grid-size) var(--paper-grid-size)",
+        fontFamily: "var(--app-btn-font)",
       }}
     >
       {/* Always-mounted AI feedback bus - Phase0: hidden unless NEXT_PUBLIC_ENABLE_AI=1 */}
