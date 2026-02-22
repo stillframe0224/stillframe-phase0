@@ -20,7 +20,7 @@ test("LP CTAs are visible and clickable", async ({ page }) => {
 });
 
 test("/app grid is aligned and has no horizontal overflow", async ({ page }) => {
-  await page.goto("/app?e2e=1");
+  await page.goto("/app?e2e=1&legacy=1");
 
   const grid = page.getByTestId("card-grid");
   const cards = page.getByTestId("card-item");
@@ -42,7 +42,7 @@ test("/app grid is aligned and has no horizontal overflow", async ({ page }) => 
 });
 
 test("memo opens and persists after reload", async ({ page }) => {
-  await page.goto("/app?e2e=1");
+  await page.goto("/app?e2e=1&legacy=1");
 
   const firstCard = page.getByTestId("card-item").first();
   const firstCardId = await firstCard.getAttribute("data-card-id");
@@ -68,7 +68,7 @@ test("memo opens and persists after reload", async ({ page }) => {
 });
 
 test("memo dialog keyboard a11y: autofocus, trap, esc, focus restore", async ({ page }) => {
-  await page.goto("/app?e2e=1");
+  await page.goto("/app?e2e=1&legacy=1");
 
   const firstCard = page.getByTestId("card-item").first();
   const memoChip = firstCard.getByTestId("chip-memo");
@@ -105,7 +105,7 @@ test("memo dialog keyboard a11y: autofocus, trap, esc, focus restore", async ({ 
 });
 
 test("__E2E_ALLOWED__ is sealed: readonly, non-configurable, non-deletable", async ({ page }) => {
-  await page.goto("/app?e2e=1", { waitUntil: "networkidle" });
+  await page.goto("/app?e2e=1&legacy=1", { waitUntil: "networkidle" });
 
   const result = await page.evaluate(() => {
     const w = window as any;

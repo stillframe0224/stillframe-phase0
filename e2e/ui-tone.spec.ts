@@ -3,8 +3,8 @@
  *
  * Verifies that the --sh-* design token system is applied correctly across
  * the three surfaces changed in the white-tone PR:
- *   1. /app?e2e=1&view=list  — list view body + card grid
- *   2. /app?e2e=1            — tunnel canvas scene + HUD (e2eMode forces list,
+ *   1. /app?e2e=1&legacy=1&view=list  — list view body + card grid
+ *   2. /app?e2e=1&legacy=1            — tunnel canvas scene + HUD (e2eMode forces list,
  *                              but CSS variables are still resolved globally)
  *   3. / (LP)                — landing page footer text
  *
@@ -46,7 +46,7 @@ function isNearWhite(rgb: [number, number, number] | null): boolean {
 // 1. Body background is paper-white (not dark) on /app list view
 // ---------------------------------------------------------------------------
 test("body background is paper-white on /app list view", async ({ page }) => {
-  await page.goto("/app?e2e=1&view=list");
+  await page.goto("/app?e2e=1&legacy=1&view=list");
   await page.getByTestId("cards-grid").waitFor({ state: "visible" });
 
   const bodyBg = await page.evaluate(() =>
@@ -69,7 +69,7 @@ test("body background is paper-white on /app list view", async ({ page }) => {
 // 2. --sh-paper CSS variable is defined and resolves to a non-dark colour
 // ---------------------------------------------------------------------------
 test("--sh-paper CSS variable resolves to a light colour on /app", async ({ page }) => {
-  await page.goto("/app?e2e=1&view=list");
+  await page.goto("/app?e2e=1&legacy=1&view=list");
   await page.getByTestId("cards-grid").waitFor({ state: "visible" });
 
   const shPaper = await page.evaluate(() =>
@@ -102,7 +102,7 @@ test("--sh-paper CSS variable resolves to a light colour on /app", async ({ page
 // 3. --sh-ink-muted resolves and is not pure-white (HUD text legibility)
 // ---------------------------------------------------------------------------
 test("--sh-ink-muted resolves to a mid-tone (not pure white) on /app", async ({ page }) => {
-  await page.goto("/app?e2e=1&view=list");
+  await page.goto("/app?e2e=1&legacy=1&view=list");
   await page.getByTestId("cards-grid").waitFor({ state: "visible" });
 
   const resolvedColor = await page.evaluate(() => {

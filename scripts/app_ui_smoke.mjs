@@ -268,7 +268,7 @@ async function main() {
   });
 
   // URL to navigate: in E2E mode, always use ?e2e=1 to activate mock cards
-  const appUrl = E2E_MODE ? `${BASE_URL}/app?e2e=1` : `${BASE_URL}/app`;
+  const appUrl = E2E_MODE ? `${BASE_URL}/app?e2e=1&legacy=1` : `${BASE_URL}/app`;
 
   try {
     // Navigate — catch connection errors so diagnostics are always saved

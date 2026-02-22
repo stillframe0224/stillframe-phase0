@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 
 test("Reset guarantees camera+layout+fit and overlap=0", async ({ page }) => {
-  await page.goto("/app?e2e=1&view=tunnel&tunnel=1&debug=1");
+  await page.goto("/app?e2e=1&legacy=1&view=tunnel&tunnel=1&debug=1");
 
   const root = page.getByTestId("tunnel-root");
   await expect(root).toBeVisible({ timeout: 15000 });

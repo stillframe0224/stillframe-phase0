@@ -1,19 +1,19 @@
 import { expect, test } from "@playwright/test";
 
 test("e2e mode auto-forces list view (tunnel safety net)", async ({ page }) => {
-  await page.goto("/app?e2e=1");
+  await page.goto("/app?e2e=1&legacy=1");
 
   // e2eMode auto-forces list view — verify grid is visible (backwards compat)
   const grid = page.getByTestId("cards-grid");
   await expect(grid).toBeVisible();
 
   // Even with explicit view=tunnel, e2eMode takes priority → still list view
-  await page.goto("/app?e2e=1&view=tunnel");
+  await page.goto("/app?e2e=1&legacy=1&view=tunnel");
   await expect(grid).toBeVisible();
 });
 
 test("?view=list shows the original grid layout with 6 cards", async ({ page }) => {
-  await page.goto("/app?e2e=1&view=list");
+  await page.goto("/app?e2e=1&legacy=1&view=list");
 
   const grid = page.getByTestId("cards-grid");
   await expect(grid).toBeVisible();
@@ -23,7 +23,7 @@ test("?view=list shows the original grid layout with 6 cards", async ({ page }) 
 });
 
 test("view=list fallback preserves card interactivity", async ({ page }) => {
-  await page.goto("/app?e2e=1&view=list");
+  await page.goto("/app?e2e=1&legacy=1&view=list");
 
   // Cards render
   const cards = page.getByTestId("card-item");
@@ -42,12 +42,12 @@ test("view=list fallback preserves card interactivity", async ({ page }) => {
 
 test("?view=list navigated twice keeps grid visible", async ({ page }) => {
   // Navigate to list view, then navigate to list again — should stay stable
-  await page.goto("/app?e2e=1&view=list");
+  await page.goto("/app?e2e=1&legacy=1&view=list");
   const grid = page.getByTestId("cards-grid");
   await expect(grid).toBeVisible();
 
   // Navigate to list explicitly a second time (simulates URL param roundtrip)
-  await page.goto("/app?e2e=1&view=list");
+  await page.goto("/app?e2e=1&legacy=1&view=list");
   await expect(grid).toBeVisible();
 
   // Cards still present and count is correct
@@ -57,7 +57,7 @@ test("?view=list navigated twice keeps grid visible", async ({ page }) => {
 
 test("tunnel localStorage: valid state survives reload, corrupt state is recoverable", async ({ page }) => {
   // Load the app to get a valid origin for localStorage access
-  await page.goto("/app?e2e=1&view=list");
+  await page.goto("/app?e2e=1&legacy=1&view=list");
   await page.getByTestId("cards-grid").waitFor({ state: "visible" });
 
   // Write a well-formed tunnel state directly — simulates what useTunnelStore writes
