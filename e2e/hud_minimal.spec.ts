@@ -5,7 +5,7 @@ const RY0 = 0;
 const ZOOM0 = 1;
 
 test("tunnel minimal HUD: no heavy top UI, orbit works, reset restores", async ({ page }) => {
-  await page.goto("/app?e2e=1&view=tunnel&tunnel=1");
+  await page.goto("/app?e2e=1&legacy=1&view=tunnel&tunnel=1");
 
   const root = page.getByTestId("tunnel-root");
   await expect(root).toBeVisible();

@@ -90,7 +90,7 @@ async function main() {
 
     // 2-5. App pages (E2E only)
     if (E2E_MODE) {
-      const appUrl = `${BASE_URL}/app?e2e=1`;
+      const appUrl = `${BASE_URL}/app?e2e=1&legacy=1`;
       try {
         await page.goto(appUrl, { waitUntil: "domcontentloaded", timeout: 30_000 });
         await page.waitForTimeout(2000);

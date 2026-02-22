@@ -16,7 +16,7 @@ test("paper-grid size matches SSOT on LP and App", async ({ page }) => {
   expect(lp.root).not.toBe("");
   expect(lp.bg).toContain(lp.root);
 
-  await page.goto("/app?e2e=1&view=tunnel&tunnel=1");
+  await page.goto("/app?e2e=1&legacy=1&view=tunnel&tunnel=1");
   await expect(page.getByTestId("paper-grid")).toBeVisible();
 
   const app = await page.evaluate(() => {
@@ -33,7 +33,7 @@ test("paper-grid size matches SSOT on LP and App", async ({ page }) => {
 });
 
 test("upload button path is wired and cancel/file selection does not crash", async ({ page }) => {
-  await page.goto("/app?e2e=1&view=tunnel&tunnel=1");
+  await page.goto("/app?e2e=1&legacy=1&view=tunnel&tunnel=1");
   await expect(page.getByTestId("tunnel-root")).toBeVisible();
   await expect(page.getByTestId("upload-btn")).toBeVisible();
 
