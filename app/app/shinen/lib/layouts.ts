@@ -1,4 +1,4 @@
-import { TILE_GX, TILE_GY } from "./constants";
+import { TILE_GX, TILE_GY, getCardWidth } from "./constants";
 import type { ShinenCard } from "./types";
 
 type PartialPos = Pick<ShinenCard, "px" | "py" | "z">;
@@ -15,7 +15,8 @@ export function layoutScatter(cards: ShinenCard[]): ShinenCard[] {
 export function layoutGrid(cards: ShinenCard[]): ShinenCard[] {
   const n = cards.length;
   const cols = Math.ceil(Math.sqrt(n));
-  const gx = 230, gy = 150;
+  const cw = getCardWidth();
+  const gx = cw + 30, gy = cw * 0.75 + 20; // card width + gap, card height + gap
   const ox = -((cols - 1) * gx) / 2;
   const rows = Math.ceil(n / cols);
   const oy = -((rows - 1) * gy) / 2;
@@ -43,13 +44,16 @@ export function layoutCircle(cards: ShinenCard[]): ShinenCard[] {
 
 export function layoutTiles(cards: ShinenCard[]): ShinenCard[] {
   const cols = Math.ceil(Math.sqrt(cards.length));
-  const ox = -((cols - 1) * TILE_GX) / 2;
+  const cw = getCardWidth();
+  const tgx = cw + 20; // card width + 20px gap
+  const tgy = cw * 0.65 + 16; // card height + 16px gap
+  const ox = -((cols - 1) * tgx) / 2;
   const rows = Math.ceil(cards.length / cols);
-  const oy = -((rows - 1) * TILE_GY) / 2;
+  const oy = -((rows - 1) * tgy) / 2;
   return cards.map((c, i) => ({
     ...c,
-    px: ox + (i % cols) * TILE_GX,
-    py: oy + Math.floor(i / cols) * TILE_GY,
+    px: ox + (i % cols) * tgx,
+    py: oy + Math.floor(i / cols) * tgy,
     z: -300,
   }));
 }

@@ -25,8 +25,8 @@ export default function NavBar({ cards, layoutLabel, camIsRotated, onCycleLayout
       }}
     >
       {/* Logo + title */}
-      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-        <svg width={24} height={24} viewBox="0 0 80 80">
+      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+        <svg width={36} height={36} viewBox="0 0 80 80">
           <path
             d="M40 14 A26 26 0 1 1 16 48 A26 26 0 0 1 40 14Z"
             fill="none"
@@ -53,9 +53,9 @@ export default function NavBar({ cards, layoutLabel, camIsRotated, onCycleLayout
         <span
           style={{
             fontFamily: "'Cormorant Garamond',serif",
-            fontSize: 16,
+            fontSize: 22,
             fontWeight: 500,
-            color: "rgba(0,0,0,0.4)",
+            color: "rgba(0,0,0,0.5)",
             letterSpacing: "0.15em",
             textTransform: "uppercase",
           }}
