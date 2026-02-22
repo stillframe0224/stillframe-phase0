@@ -1,9 +1,35 @@
 // Save to SHINEN - Background Script (MV3)
 
+const RESTRICTED_URL_PATTERNS = [
+  /^$/,
+  /^chrome:/i,
+  /^chrome-extension:/i,
+  /^edge:/i,
+  /^about:/i,
+  /^file:/i,
+  /^view-source:/i,
+];
+
+function isRestrictedUrl(rawUrl) {
+  if (!rawUrl) return true;
+  return RESTRICTED_URL_PATTERNS.some((re) => re.test(rawUrl));
+}
+
 chrome.action.onClicked.addListener(async (tab) => {
+  const tabUrl = tab.url || tab.pendingUrl || '';
+
+  // Restricted pages (chrome://, edge://, etc.) block scripting/messaging.
+  // Open SHINEN directly instead of attempting DOM injection.
+  if (isRestrictedUrl(tabUrl)) {
+    await chrome.tabs.create({
+      url: 'https://stillframe-phase0.vercel.app/app?auto=1&reason=restricted_url',
+    });
+    return;
+  }
+
   try {
     // Get basic tab info
-    const url = tab.url || '';
+    const url = tabUrl;
     const title = tab.title || '';
 
     // Execute content extraction script in the active tab
@@ -23,8 +49,9 @@ chrome.action.onClicked.addListener(async (tab) => {
 
   } catch (error) {
     console.error('Save to SHINEN failed:', error);
-    // Fallback: open SHINEN with minimal params
-    const fallbackUrl = `https://stillframe-phase0.vercel.app/app?auto=1&url=${encodeURIComponent(tab.url || '')}`;
+    // Fallback: open SHINEN with minimal params (never pass restricted URLs)
+    const safeUrl = isRestrictedUrl(tab.url) ? '' : (tab.url || '');
+    const fallbackUrl = `https://stillframe-phase0.vercel.app/app?auto=1&url=${encodeURIComponent(safeUrl)}`;
     await chrome.tabs.create({ url: fallbackUrl });
   }
 });
