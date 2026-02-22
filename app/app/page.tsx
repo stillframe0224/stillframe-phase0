@@ -75,5 +75,9 @@ export default function AppPage() {
 
   if (!authed) return null;
 
-  return <ShinenCanvas initialCards={e2eMode ? buildE2EMockCards() : undefined} e2eMode={e2eMode} />;
+  return (
+    <div className="app-grid-bg">
+      <ShinenCanvas initialCards={e2eMode ? buildE2EMockCards() : undefined} e2eMode={e2eMode} />
+    </div>
+  );
 }
