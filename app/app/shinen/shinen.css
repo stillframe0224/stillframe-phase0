@@ -1,0 +1,16 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=DM+Sans:wght@300;400;500;600&family=Caveat:wght@400&display=swap');
+
+.si17::placeholder {
+  font-family: 'Caveat', cursive;
+  font-size: 17px;
+  color: rgba(0,0,0,0.3);
+}
+
+.tb17 {
+  transition: all 0.2s;
+}
+
+.tb17:hover {
+  background: rgba(0,0,0,0.06) !important;
+  color: rgba(0,0,0,0.5) !important;
+}

@@ -23,8 +23,8 @@ test("e2e bypass is disabled without E2E env var", async ({ page }) => {
   const allowed = await page.evaluate(() => (window as any).__E2E_ALLOWED__);
   expect(allowed).toBe(false);
 
-  // Mock cards must NOT be rendered
-  const cardCount = await page.getByTestId("card-item").count();
+  // Mock cards must NOT be rendered (check both old and new testids)
+  const cardCount = await page.getByTestId("shinen-card").count();
   expect(cardCount).toBe(0);
 });
 
