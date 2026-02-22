@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 
-test("paper-grid size matches SSOT on LP and App", async ({ page }) => {
+// Skipped: tunnel UI removed in v17 rewrite
+test.skip("paper-grid size matches SSOT on LP and App", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByTestId("paper-grid")).toBeVisible();
 
@@ -32,7 +33,7 @@ test("paper-grid size matches SSOT on LP and App", async ({ page }) => {
   expect(app.bg).toContain(app.root);
 });
 
-test("upload button path is wired and cancel/file selection does not crash", async ({ page }) => {
+test.skip("upload button path is wired and cancel/file selection does not crash", async ({ page }) => {
   await page.goto("/app?e2e=1&legacy=1&view=tunnel&tunnel=1");
   await expect(page.getByTestId("tunnel-root")).toBeVisible();
   await expect(page.getByTestId("upload-btn")).toBeVisible();

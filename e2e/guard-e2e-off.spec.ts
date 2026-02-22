@@ -23,9 +23,9 @@ test("e2e bypass is disabled without E2E env var", async ({ page }) => {
   const allowed = await page.evaluate(() => (window as any).__E2E_ALLOWED__);
   expect(allowed).toBe(false);
 
-  // Mock cards must NOT be rendered
-  const cardCount = await page.getByTestId("card-item").count();
-  expect(cardCount).toBe(0);
+  // E2E mock cards must NOT be rendered (sample cards may exist when Supabase is unconfigured)
+  const mockCards = await page.locator('[data-testid="shinen-card-face"]', { hasText: "E2E mock card" }).count();
+  expect(mockCards).toBe(0);
 });
 
 // I-1: __E2E_ALLOWED__ is sealed even when false (writable:false, configurable:false)
