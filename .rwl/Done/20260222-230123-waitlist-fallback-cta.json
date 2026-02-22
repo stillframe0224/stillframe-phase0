@@ -1,0 +1,16 @@
+{
+  "id": "20260222-230123-waitlist-fallback-cta",
+  "goal": "Waitlist送信失敗時にメール代替CTAを表示し、登録導線を維持する",
+  "est_minutes": 25,
+  "dod": [
+    "npm run build 通過",
+    "/Users/array0224/stillframe-phase0/reports/triad/20260222-230123-waitlist-fallback-cta.md 作成",
+    "READMEに実行手順追記（新機能の場合）",
+    "PR作成"
+  ],
+  "evidence_paths": [
+    "/Users/array0224/stillframe-phase0/reports/triad/20260222-230123-waitlist-fallback-cta.md"
+  ],
+  "created_at": "2026-02-22T23:01:23+09:00",
+  "status": "queue"
+}

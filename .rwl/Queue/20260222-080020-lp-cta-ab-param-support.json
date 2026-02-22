@@ -1,0 +1,9 @@
+{
+  "id": "20260222-080020-lp-cta-ab-param-support",
+  "goal": "LPのCTA文言をquery paramで切替可能にしてA/B計測を可能にする",
+  "est_minutes": 30,
+  "dod": ["npm run build 通過", "reports/triad/<id>.md 作成", "PR作成"],
+  "evidence_paths": ["/Users/array0224/stillframe-phase0/reports/triad/20260222-080020-lp-cta-ab-param-support.md"],
+  "created_at": "2026-02-21T23:00:20Z",
+  "status": "queue"
+}

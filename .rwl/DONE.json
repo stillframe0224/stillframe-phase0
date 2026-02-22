@@ -27,5 +27,19 @@
     "completed_at": "2026-02-18T00:00:00Z",
     "commit": "ecd4172",
     "evidence": "/Users/array0224/stillframe-phase0/reports/triad/20260218_ig_memo_reorder.md"
+  },
+  {
+    "id": "20260219-080700-waitlist-success-telemetry",
+    "goal": "Waitlist送信成功/失敗イベントに送信先とHTTPステータスを付与して可観測性を上げる",
+    "completed_at": "2026-02-22T23:09:00Z",
+    "pr_url": "https://github.com/stillframe0224/stillframe-phase0/pull/150",
+    "evidence": "/Users/array0224/stillframe-phase0/reports/triad/20260219-080700-waitlist-success-telemetry.md"
+  },
+  {
+    "id": "20260219-080800-pricing-cta-urgency-copy",
+    "goal": "Pricingカードに限定オファー文言を追加してGumroad導線を強化する",
+    "completed_at": "2026-02-22T23:15:00Z",
+    "pr_url": "https://github.com/stillframe0224/stillframe-phase0/pull/151",
+    "evidence": "/Users/array0224/stillframe-phase0/reports/triad/20260219-080800-pricing-cta-urgency-copy.md"
   }
 ]

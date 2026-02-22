@@ -1,0 +1,9 @@
+{
+  "id": "20260222-080030-card-create-error-log-context",
+  "goal": "カード作成失敗ログに入力ソースと処理段階を含めて原因特定を速める",
+  "est_minutes": 20,
+  "dod": ["npm run build 通過", "reports/triad/<id>.md 作成", "PR作成"],
+  "evidence_paths": ["/Users/array0224/stillframe-phase0/reports/triad/20260222-080030-card-create-error-log-context.md"],
+  "created_at": "2026-02-21T23:00:30Z",
+  "status": "queue"
+}

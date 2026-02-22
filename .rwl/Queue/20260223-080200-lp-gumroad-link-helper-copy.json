@@ -1,0 +1,9 @@
+{
+  "id": "20260223-080200-lp-gumroad-link-helper-copy",
+  "goal": "Pricing CTA直下に購入リスクを下げる補足文言を追加してクリック率改善を狙う",
+  "est_minutes": 15,
+  "dod": ["npm run build 通過", "reports/triad/<id>.md 作成", "PR作成"],
+  "evidence_paths": ["/Users/array0224/stillframe-phase0/reports/triad/20260223-080200-lp-gumroad-link-helper-copy.md"],
+  "created_at": "2026-02-23T08:02:00+09:00",
+  "status": "queue"
+}

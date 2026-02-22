@@ -1,0 +1,15 @@
+{
+  "id": "20260222-080010-ogp-fetch-fallback-message",
+  "goal": "OGP画像取得失敗時にユーザー向けフォールバック文言を表示してカード作成離脱を減らす",
+  "est_minutes": 25,
+  "dod": [
+    "npm run build 通過",
+    "reports/triad/<id>.md 作成",
+    "PR作成"
+  ],
+  "evidence_paths": [
+    "/Users/array0224/stillframe-phase0/reports/triad/20260222-080010-ogp-fetch-fallback-message.md"
+  ],
+  "created_at": "2026-02-21T23:00:10Z",
+  "status": "done"
+}

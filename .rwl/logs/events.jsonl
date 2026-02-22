@@ -2,3 +2,5 @@
 {"ts": "2026-02-17T23:02:16Z", "type": "task_done", "task_id": "20260218-080000-waitlist-email-normalize", "result": "success", "pr_url": "https://github.com/array0224-cloud/stillframe-phase0/pull/11"}
 {"ts": "2026-02-17T23:03:05Z", "type": "task_done", "task_id": "20260218-080100-pricing-cta-fallback", "result": "success", "pr_url": "https://github.com/array0224-cloud/stillframe-phase0/pull/12"}
 {"ts": "2026-02-18T00:00:00Z", "type": "task_done", "task_id": "20260218_ig_memo_reorder", "result": "success", "commit": "ecd4172", "evidence": "reports/triad/20260218_ig_memo_reorder.md"}
+{"ts":"2026-02-22T23:09:00Z","type":"task_done","task_id":"20260219-080700-waitlist-success-telemetry","result":"success","pr_url":"https://github.com/stillframe0224/stillframe-phase0/pull/150"}
+{"ts":"2026-02-22T23:15:00Z","type":"task_done","task_id":"20260219-080800-pricing-cta-urgency-copy","result":"success","pr_url":"https://github.com/stillframe0224/stillframe-phase0/pull/151"}
