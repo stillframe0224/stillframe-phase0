@@ -80,6 +80,14 @@ const copy = {
       ],
     },
     cta: { en: "Get Early Access", ja: "早期アクセスを取得" },
+    urgency: {
+      en: "Early-bird closes soon: only first 20 members keep this price forever",
+      ja: "早割はまもなく終了。先着20名のみこの価格をずっと維持できます",
+    },
+    helper: {
+      en: "7-day no-questions refund if it doesn't fit your workflow.",
+      ja: "ワークフローに合わなければ7日以内は理由不要で返金します。",
+    },
   },
   waitlist: {
     h2: { en: "Stay in the loop", ja: "最新情報を受け取る" },

@@ -81,6 +81,21 @@ export default function Pricing({ lang, gumroadUrl }: PricingProps) {
           </li>
         ))}
       </ul>
+      <p
+        style={{
+          margin: "0 0 14px",
+          fontSize: 13,
+          color: "#8a5a00",
+          fontFamily: "var(--font-dm)",
+          background: "#fff4da",
+          border: "1px solid #f3dfb3",
+          borderRadius: 999,
+          padding: "6px 12px",
+          display: "inline-block",
+        }}
+      >
+        {c.urgency[lang]}
+      </p>
       <a
         href={gumroadUrl}
         target="_blank"
@@ -95,6 +110,16 @@ export default function Pricing({ lang, gumroadUrl }: PricingProps) {
           {c.cta[lang]}
         </PrimaryButton>
       </a>
+      <p
+        style={{
+          marginTop: 10,
+          fontSize: 12,
+          color: "#8a8a8a",
+          fontFamily: "var(--font-dm)",
+        }}
+      >
+        {c.helper[lang]}
+      </p>
     </section>
   );
 }
