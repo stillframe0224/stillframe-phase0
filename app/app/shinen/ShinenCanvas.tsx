@@ -144,19 +144,25 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
 
   // Add new thought (text only)
   const addThought = useCallback((text: string) => {
-    setCards((prev) => [
-      ...prev,
-      {
-        id: Date.now(),
-        type: Math.floor(Math.random() * 8),
-        text,
-        px: (Math.random() - 0.5) * 380,
-        py: (Math.random() - 0.5) * 200,
-        z: -20 - Math.random() * 100,
-      },
-    ]);
-    setLayoutIdx(-1);
-  }, []);
+    setCards((prev) => {
+      const next = [
+        ...prev,
+        {
+          id: Date.now(),
+          type: Math.floor(Math.random() * 8),
+          text,
+          px: (Math.random() - 0.5) * 380,
+          py: (Math.random() - 0.5) * 200,
+          z: -20 - Math.random() * 100,
+        },
+      ];
+      // Re-apply current layout if not free/scatter
+      if (layoutIdx >= 0 && LAYOUTS[layoutIdx] !== "scatter") {
+        return applyLayout(LAYOUTS[layoutIdx], next);
+      }
+      return next;
+    });
+  }, [layoutIdx]);
 
   // File upload handler
   const handleFileUpload = useCallback(
@@ -166,23 +172,34 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
       media?: { type: "image" | "video" | "audio" | "pdf"; url: string; thumbnail?: string };
       file?: { name: string; size: number; mimeType: string };
     }) => {
-      setCards((prev) => [
-        ...prev,
-        {
-          id: Date.now(),
-          type: result.type,
-          text: result.text,
-          px: (Math.random() - 0.5) * 380,
-          py: (Math.random() - 0.5) * 200,
-          z: -20 - Math.random() * 100,
-          media: result.media,
-          file: result.file,
-        },
-      ]);
-      setLayoutIdx(-1);
+      setCards((prev) => {
+        const next = [
+          ...prev,
+          {
+            id: Date.now(),
+            type: result.type,
+            text: result.text,
+            px: (Math.random() - 0.5) * 380,
+            py: (Math.random() - 0.5) * 200,
+            z: -20 - Math.random() * 100,
+            media: result.media,
+            file: result.file,
+          },
+        ];
+        if (layoutIdx >= 0 && LAYOUTS[layoutIdx] !== "scatter") {
+          return applyLayout(LAYOUTS[layoutIdx], next);
+        }
+        return next;
+      });
     },
-    [],
+    [layoutIdx],
   );
+
+  // Delete single card
+  const handleDeleteCard = useCallback((cardId: number) => {
+    setCards((prev) => prev.filter((c) => c.id !== cardId));
+    setHoveredId(null);
+  }, []);
 
   // Media click handler — toggle playback (single active at a time)
   const handleMediaClick = useCallback(
@@ -241,7 +258,11 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
     [cards, cam.rx, cam.ry, zoom],
   );
 
-  const camIsRotated = Math.abs(cam.rx) > 0.5 || Math.abs(cam.ry) > 0.5 || Math.abs(zoom) > 5;
+  const t = targetCam.current;
+  const camIsRotated =
+    Math.abs(cam.rx) > 0.3 || Math.abs(cam.ry) > 0.3 ||
+    Math.abs(t.rx) > 0.3 || Math.abs(t.ry) > 0.3 ||
+    Math.abs(zoom) > 3;
 
   const handleResetAll = useCallback(() => {
     resetCamera();
@@ -289,6 +310,7 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
             onLeave={() => !isDragging && setHoveredId(null)}
             onMediaClick={() => handleMediaClick(card.id)}
             onResizeStart={handleResizeStart}
+            onDelete={handleDeleteCard}
           />
         ))}
       </div>
