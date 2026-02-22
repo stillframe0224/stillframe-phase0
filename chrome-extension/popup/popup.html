@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Save to SHINEN</title>
+    <link rel="stylesheet" href="./popup.css" />
+  </head>
+  <body>
+    <main class="popup">
+      <header class="header">
+        <div class="logo" aria-label="SHINEN logo">
+          <svg viewBox="0 0 96 30" role="img" aria-hidden="true">
+            <path d="M6 5h22v6H16v14H6z" fill="currentColor" />
+            <path d="M36 5h22v6H46v8c0 2.8-1.1 5.4-3.1 7.3L36 23v-6.6l3.4-3.4H36z" fill="currentColor" />
+            <path d="M68 5h22v6H80.4L76 25h-8.2l4.7-14H68z" fill="currentColor" />
+          </svg>
+        </div>
+        <p class="subtitle">Save current page as a SHINEN card</p>
+      </header>
+
+      <section class="preview" id="preview" aria-live="polite">
+        <div class="thumb-wrap" id="thumbWrap" hidden>
+          <img id="thumb" alt="thumbnail" />
+        </div>
+        <div class="meta">
+          <p id="site" class="site">Detecting site...</p>
+          <p id="title" class="title">ページ情報を取得中...</p>
+        </div>
+      </section>
+
+      <button id="saveBtn" class="save-btn" disabled>SHINENに保存</button>
+
+      <p id="status" class="status" hidden></p>
+    </main>
+
+    <script type="module" src="./popup.js"></script>
+  </body>
+</html>

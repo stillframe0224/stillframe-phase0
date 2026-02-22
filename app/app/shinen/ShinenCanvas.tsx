@@ -10,6 +10,7 @@ import { useCamera } from "./hooks/useCamera";
 import { useDrag } from "./hooks/useDrag";
 import { useSelection } from "./hooks/useSelection";
 import { useTouch } from "./hooks/useTouch";
+import { setupClipReceiver, type ClipData } from "./lib/clip-receiver";
 import Background from "./Background";
 import ThoughtCard from "./ThoughtCard";
 import SelectionOverlay from "./SelectionOverlay";
@@ -163,6 +164,57 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
       return next;
     });
   }, [layoutIdx]);
+
+  const createClipCard = useCallback((clip: ClipData): ShinenCard => {
+    const id = Date.now() + Math.floor(Math.random() * 10000);
+    const media =
+      clip.media?.type === "youtube"
+        ? {
+            type: "youtube" as const,
+            url: clip.url,
+            youtubeId: clip.media.youtubeId,
+            thumbnail: clip.media.thumbnail ?? clip.thumbnail ?? undefined,
+          }
+        : clip.thumbnail
+          ? {
+              type: "image" as const,
+              url: clip.thumbnail,
+              thumbnail: clip.thumbnail,
+            }
+          : undefined;
+
+    return {
+      id,
+      type: 8, // clip
+      text: clip.author ? `${clip.title}\n${clip.author}` : clip.title || clip.url,
+      px: (Math.random() - 0.5) * 380,
+      py: (Math.random() - 0.5) * 200,
+      z: -20 - Math.random() * 100,
+      source: {
+        url: clip.url,
+        site: clip.site || "other",
+        ...(clip.favicon ? { favicon: clip.favicon } : {}),
+      },
+      ...(media ? { media } : {}),
+    };
+  }, []);
+
+  // Extension/web message receiver for clipped links.
+  useEffect(() => {
+    const teardown = setupClipReceiver((clip) => {
+      setCards((prev) => {
+        const next = [...prev, createClipCard(clip)];
+        if (layoutIdx >= 0 && LAYOUTS[layoutIdx] !== "scatter") {
+          return applyLayout(LAYOUTS[layoutIdx], next);
+        }
+        return next;
+      });
+    });
+
+    return () => {
+      teardown?.();
+    };
+  }, [createClipCard, layoutIdx]);
 
   // File upload handler
   const handleFileUpload = useCallback(
