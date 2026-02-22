@@ -102,6 +102,14 @@ const copy = {
       en: "Could not submit. Please try again.",
       ja: "送信できませんでした。もう一度お試しください。",
     },
+    fallbackCta: {
+      en: "Email us instead",
+      ja: "メールで登録する",
+    },
+    fallbackHint: {
+      en: "If the form fails, you can still join via email.",
+      ja: "フォームが失敗した場合も、メールで登録できます。",
+    },
   },
   footer: {
     brand: "StillFrame",
