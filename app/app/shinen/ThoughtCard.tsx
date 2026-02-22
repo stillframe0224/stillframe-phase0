@@ -115,6 +115,31 @@ export default function ThoughtCard({
         {/* Media preview / playback area */}
         {hasMedia && <MediaPreview card={card} isPlaying={isPlaying} onMediaClick={onMediaClick} />}
 
+        {card.source && (
+          <div
+            style={{
+              marginTop: hasMedia ? 10 : 0,
+              marginBottom: 6,
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+            }}
+          >
+            <SiteIcon source={card.source} />
+            <span
+              style={{
+                fontSize: 10,
+                fontFamily: "'DM Sans',sans-serif",
+                color: "rgba(0,0,0,0.45)",
+                letterSpacing: "0.04em",
+                textTransform: "uppercase",
+              }}
+            >
+              {card.source.site}
+            </span>
+          </div>
+        )}
+
         {/* Text content */}
         <div
           style={{
@@ -124,7 +149,7 @@ export default function ThoughtCard({
             color: "#111",
             fontWeight: 400,
             whiteSpace: "pre-line",
-            marginTop: hasMedia ? 10 : 0,
+            marginTop: 0,
           }}
         >
           {card.text}
@@ -474,4 +499,84 @@ function formatSize(bytes: number): string {
   if (bytes < 1024) return `${bytes}B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)}KB`;
   return `${(bytes / (1024 * 1024)).toFixed(1)}MB`;
+}
+
+function SiteIcon({ source }: { source: NonNullable<ShinenCard["source"]> }) {
+  const site = source.site.toLowerCase();
+
+  if (site === "youtube") {
+    return (
+      <svg width={16} height={16} viewBox="0 0 16 16" aria-hidden="true">
+        <rect x="1" y="3" width="14" height="10" rx="2.2" fill="#ff0033" />
+        <polygon points="7,6 11,8 7,10" fill="#ffffff" />
+      </svg>
+    );
+  }
+
+  if (site === "x") {
+    return (
+      <svg width={16} height={16} viewBox="0 0 16 16" aria-hidden="true">
+        <text x="8" y="12" textAnchor="middle" fontSize="12" fontWeight="700" fontFamily="serif" fill="#000000">
+          𝕏
+        </text>
+      </svg>
+    );
+  }
+
+  if (site === "note") {
+    return (
+      <svg width={16} height={16} viewBox="0 0 16 16" aria-hidden="true">
+        <circle cx="8" cy="8" r="8" fill="#2cb67d" />
+        <text x="8" y="11" textAnchor="middle" fontSize="9" fontWeight="700" fontFamily="sans-serif" fill="#ffffff">
+          n
+        </text>
+      </svg>
+    );
+  }
+
+  if (site === "medium") {
+    return (
+      <svg width={16} height={16} viewBox="0 0 16 16" aria-hidden="true">
+        <text x="8" y="12" textAnchor="middle" fontSize="11" fontWeight="700" fontFamily="serif" fill="#000000">
+          M
+        </text>
+      </svg>
+    );
+  }
+
+  if (site === "instagram") {
+    return (
+      <svg width={16} height={16} viewBox="0 0 16 16" aria-hidden="true">
+        <defs>
+          <linearGradient id="ig-gradient" x1="0%" y1="100%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#f58529" />
+            <stop offset="55%" stopColor="#dd2a7b" />
+            <stop offset="100%" stopColor="#8134af" />
+          </linearGradient>
+        </defs>
+        <rect x="1.5" y="1.5" width="13" height="13" rx="3.2" fill="url(#ig-gradient)" />
+      </svg>
+    );
+  }
+
+  const domain = parseDomain(source.url);
+  const fallback = source.favicon || `https://www.google.com/s2/favicons?domain=${domain}&sz=32`;
+
+  return (
+    <img
+      src={fallback}
+      alt={site}
+      width={16}
+      height={16}
+      style={{ width: 16, height: 16, display: "block" }}
+    />
+  );
+}
+
+function parseDomain(url: string): string {
+  try {
+    return new URL(url).hostname;
+  } catch {
+    return "";
+  }
 }
