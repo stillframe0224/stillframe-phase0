@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 
-test("e2e mode auto-forces list view (tunnel safety net)", async ({ page }) => {
+// Skipped: tunnel UI removed in v17 rewrite
+test.skip("e2e mode auto-forces list view (tunnel safety net)", async ({ page }) => {
   await page.goto("/app?e2e=1&legacy=1");
 
   // e2eMode auto-forces list view — verify grid is visible (backwards compat)
@@ -12,7 +13,7 @@ test("e2e mode auto-forces list view (tunnel safety net)", async ({ page }) => {
   await expect(grid).toBeVisible();
 });
 
-test("?view=list shows the original grid layout with 6 cards", async ({ page }) => {
+test.skip("?view=list shows the original grid layout with 6 cards", async ({ page }) => {
   await page.goto("/app?e2e=1&legacy=1&view=list");
 
   const grid = page.getByTestId("cards-grid");
@@ -22,7 +23,7 @@ test("?view=list shows the original grid layout with 6 cards", async ({ page }) 
   await expect(cards).toHaveCount(6);
 });
 
-test("view=list fallback preserves card interactivity", async ({ page }) => {
+test.skip("view=list fallback preserves card interactivity", async ({ page }) => {
   await page.goto("/app?e2e=1&legacy=1&view=list");
 
   // Cards render
@@ -40,7 +41,7 @@ test("view=list fallback preserves card interactivity", async ({ page }) => {
   await expect(dialog).toBeVisible();
 });
 
-test("?view=list navigated twice keeps grid visible", async ({ page }) => {
+test.skip("?view=list navigated twice keeps grid visible", async ({ page }) => {
   // Navigate to list view, then navigate to list again — should stay stable
   await page.goto("/app?e2e=1&legacy=1&view=list");
   const grid = page.getByTestId("cards-grid");
@@ -55,7 +56,7 @@ test("?view=list navigated twice keeps grid visible", async ({ page }) => {
   await expect(cards).toHaveCount(6);
 });
 
-test("tunnel localStorage: valid state survives reload, corrupt state is recoverable", async ({ page }) => {
+test.skip("tunnel localStorage: valid state survives reload, corrupt state is recoverable", async ({ page }) => {
   // Load the app to get a valid origin for localStorage access
   await page.goto("/app?e2e=1&legacy=1&view=list");
   await page.getByTestId("cards-grid").waitFor({ state: "visible" });

@@ -45,7 +45,8 @@ function isNearWhite(rgb: [number, number, number] | null): boolean {
 // ---------------------------------------------------------------------------
 // 1. Body background is paper-white (not dark) on /app list view
 // ---------------------------------------------------------------------------
-test("body background is paper-white on /app list view", async ({ page }) => {
+// Skipped: legacy list view removed in v17 rewrite
+test.skip("body background is paper-white on /app list view", async ({ page }) => {
   await page.goto("/app?e2e=1&legacy=1&view=list");
   await page.getByTestId("cards-grid").waitFor({ state: "visible" });
 
@@ -68,7 +69,7 @@ test("body background is paper-white on /app list view", async ({ page }) => {
 // ---------------------------------------------------------------------------
 // 2. --sh-paper CSS variable is defined and resolves to a non-dark colour
 // ---------------------------------------------------------------------------
-test("--sh-paper CSS variable resolves to a light colour on /app", async ({ page }) => {
+test.skip("--sh-paper CSS variable resolves to a light colour on /app", async ({ page }) => {
   await page.goto("/app?e2e=1&legacy=1&view=list");
   await page.getByTestId("cards-grid").waitFor({ state: "visible" });
 
@@ -101,7 +102,7 @@ test("--sh-paper CSS variable resolves to a light colour on /app", async ({ page
 // ---------------------------------------------------------------------------
 // 3. --sh-ink-muted resolves and is not pure-white (HUD text legibility)
 // ---------------------------------------------------------------------------
-test("--sh-ink-muted resolves to a mid-tone (not pure white) on /app", async ({ page }) => {
+test.skip("--sh-ink-muted resolves to a mid-tone (not pure white) on /app", async ({ page }) => {
   await page.goto("/app?e2e=1&legacy=1&view=list");
   await page.getByTestId("cards-grid").waitFor({ state: "visible" });
 

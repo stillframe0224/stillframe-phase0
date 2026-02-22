@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 
-test("tunnel arrange contention resolves to idle + non-overlap", async ({ page }) => {
+// Skipped: tunnel UI removed in v17 rewrite
+test.skip("tunnel arrange contention resolves to idle + non-overlap", async ({ page }) => {
   await page.goto("/app?e2e=1&legacy=1&view=tunnel&tunnel=1&debug=1");
 
   await expect(page.getByTestId("tunnel-root")).toBeVisible();
@@ -50,7 +51,7 @@ test("tunnel arrange contention resolves to idle + non-overlap", async ({ page }
     });
 });
 
-test("paper-grid and j7-logo exist on LP and App", async ({ page }) => {
+test.skip("paper-grid and j7-logo exist on LP and App", async ({ page }) => {
   await page.goto("/?debug=1");
   await expect(page.getByTestId("paper-grid")).toBeVisible();
   await expect(page.getByTestId("j7-logo")).toBeVisible();
@@ -60,7 +61,7 @@ test("paper-grid and j7-logo exist on LP and App", async ({ page }) => {
   await expect(page.getByTestId("j7-logo")).toBeVisible();
 });
 
-test("reset btn → layout=grid, overlapPairs=0, zoom=1", async ({ page }) => {
+test.skip("reset btn → layout=grid, overlapPairs=0, zoom=1", async ({ page }) => {
   await page.goto("/app?e2e=1&legacy=1&view=tunnel&tunnel=1&debug=1");
 
   await expect(page.getByTestId("tunnel-root")).toBeVisible();
