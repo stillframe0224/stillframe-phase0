@@ -16,6 +16,7 @@ interface ThoughtCardProps {
   onLeave: () => void;
   onMediaClick?: () => void;
   onResizeStart?: (cardId: number, e: React.PointerEvent) => void;
+  onDelete?: (cardId: number) => void;
 }
 
 export default function ThoughtCard({
@@ -33,6 +34,7 @@ export default function ThoughtCard({
   onLeave,
   onMediaClick,
   onResizeStart,
+  onDelete,
 }: ThoughtCardProps) {
   const t = TYPES[card.type] ?? TYPES[0];
   const floatY = isDragging ? 0 : Math.sin(time * 0.0005 + card.id * 2.1) * 3;
@@ -165,6 +167,42 @@ export default function ThoughtCard({
             </span>
           )}
         </div>
+
+        {/* Delete button (top-right corner) */}
+        {isHovered && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              e.preventDefault();
+              onDelete?.(card.id);
+            }}
+            onPointerDown={(e) => e.stopPropagation()}
+            style={{
+              position: "absolute",
+              right: 4,
+              top: 4,
+              width: 16,
+              height: 16,
+              padding: 0,
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              opacity: 0.2,
+              fontSize: 12,
+              lineHeight: 1,
+              color: "#000",
+              fontFamily: "'DM Sans',sans-serif",
+              transition: "opacity 0.15s",
+            }}
+            onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.opacity = "0.5")}
+            onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.opacity = "0.2")}
+          >
+            ×
+          </button>
+        )}
 
         {/* Resize grip (bottom-right corner) */}
         {isHovered && (
