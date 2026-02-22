@@ -12,7 +12,7 @@
 exit code: 0（成功）
 
 ## PR
-(TBD)
+https://github.com/stillframe0224/stillframe-phase0/pull/146
 
 ## READMEへの追記
 なし
