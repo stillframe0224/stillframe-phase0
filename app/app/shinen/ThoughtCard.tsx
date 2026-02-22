@@ -15,6 +15,7 @@ interface ThoughtCardProps {
   onEnter: () => void;
   onLeave: () => void;
   onMediaClick?: () => void;
+  onResizeStart?: (cardId: number, e: React.PointerEvent) => void;
 }
 
 export default function ThoughtCard({
@@ -31,13 +32,14 @@ export default function ThoughtCard({
   onEnter,
   onLeave,
   onMediaClick,
+  onResizeStart,
 }: ThoughtCardProps) {
   const t = TYPES[card.type] ?? TYPES[0];
   const floatY = isDragging ? 0 : Math.sin(time * 0.0005 + card.id * 2.1) * 3;
 
   // When playing video/youtube, expand card width
   const isVideoPlaying = isPlaying && card.media && (card.media.type === "video" || card.media.type === "youtube");
-  const baseWidth = getCardWidth();
+  const baseWidth = card.w ?? getCardWidth();
   const cardWidth = isVideoPlaying ? Math.max(420, baseWidth * 2) : baseWidth;
 
   const sc = isDragging ? p.s * 1.05 : isHovered ? p.s * 1.02 : p.s;
@@ -102,7 +104,7 @@ export default function ThoughtCard({
           borderRadius: 10,
           border: selectedBorder,
           padding: "16px 18px 13px",
-          minHeight: TAP_TARGET_MIN,
+          minHeight: card.h ?? TAP_TARGET_MIN,
           boxShadow: `0 ${liftY}px ${liftBlur}px -${Math.round(liftBlur * 0.3)}px rgba(0,0,0,${liftA})${selectedGlow ? `, ${selectedGlow}` : ""}`,
           transition: isDragging ? "none" : "box-shadow 0.35s",
           overflow: "hidden",
@@ -163,6 +165,34 @@ export default function ThoughtCard({
             </span>
           )}
         </div>
+
+        {/* Resize grip (bottom-right corner) */}
+        {isHovered && (
+          <div
+            onPointerDown={(e) => {
+              e.stopPropagation();
+              e.preventDefault();
+              onResizeStart?.(card.id, e);
+            }}
+            style={{
+              position: "absolute",
+              right: 2,
+              bottom: 2,
+              width: 16,
+              height: 16,
+              cursor: "nwse-resize",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              opacity: 0.3,
+            }}
+          >
+            <svg width={8} height={8} viewBox="0 0 8 8" stroke="rgba(0,0,0,0.5)" strokeWidth="1" fill="none">
+              <line x1="7" y1="1" x2="1" y2="7" />
+              <line x1="7" y1="4" x2="4" y2="7" />
+            </svg>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -181,10 +211,13 @@ function MediaPreview({
   const media = card.media;
   if (!media) return null;
 
-  // Image thumbnail
+  // Image thumbnail — click to open full image
   if (media.type === "image") {
     return (
-      <div style={{ margin: "-16px -18px 0", borderRadius: "8px 8px 0 0", overflow: "hidden" }}>
+      <div
+        onClick={(e) => { e.stopPropagation(); window.open(media.url, "_blank"); }}
+        style={{ margin: "-16px -18px 0", borderRadius: "8px 8px 0 0", overflow: "hidden", cursor: "zoom-in" }}
+      >
         <img
           src={media.url}
           alt={card.text}
@@ -317,59 +350,56 @@ function MediaPreview({
     );
   }
 
-  // Audio
+  // Audio — always show waveform icon + play button (prominent before playback)
   if (media.type === "audio") {
     return (
       <div
         style={{
           margin: "-16px -18px 0 -18px",
-          padding: "12px 18px",
-          background: "rgba(0,0,0,0.02)",
-          borderBottom: "1px solid rgba(0,0,0,0.05)",
+          padding: isPlaying ? "12px 18px" : "20px 18px",
+          background: "rgba(0,0,0,0.03)",
+          borderBottom: "1px solid rgba(0,0,0,0.06)",
           display: "flex",
           alignItems: "center",
-          gap: 10,
+          justifyContent: isPlaying ? "flex-start" : "center",
+          gap: 12,
         }}
       >
-        {/* Wave icon */}
-        <svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="rgba(0,0,0,0.35)" strokeWidth="1.5" strokeLinecap="round">
-          <line x1="4" y1="8" x2="4" y2="16" />
-          <line x1="8" y1="5" x2="8" y2="19" />
-          <line x1="12" y1="3" x2="12" y2="21" />
-          <line x1="16" y1="7" x2="16" y2="17" />
-          <line x1="20" y1="10" x2="20" y2="14" />
-        </svg>
         {isPlaying ? (
           <audio src={media.url} autoPlay controls style={{ height: 28, flex: 1 }} />
         ) : (
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onMediaClick?.();
-            }}
-            style={{
-              background: "rgba(0,0,0,0.05)",
-              border: "1px solid rgba(0,0,0,0.08)",
-              borderRadius: 6,
-              padding: "3px 10px",
-              minHeight: TAP_TARGET_MIN,
-              fontSize: 10,
-              fontFamily: "'DM Sans',sans-serif",
-              color: "rgba(0,0,0,0.4)",
-              cursor: "pointer",
-            }}
+          <div
+            onClick={(e) => { e.stopPropagation(); onMediaClick?.(); }}
+            style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8, cursor: "pointer", width: "100%" }}
           >
-            play
-          </button>
+            {/* Large waveform icon */}
+            <svg width={48} height={28} viewBox="0 0 48 28" fill="none" stroke="rgba(0,0,0,0.25)" strokeWidth="2" strokeLinecap="round">
+              <line x1="6" y1="10" x2="6" y2="18" />
+              <line x1="12" y1="6" x2="12" y2="22" />
+              <line x1="18" y1="2" x2="18" y2="26" />
+              <line x1="24" y1="5" x2="24" y2="23" />
+              <line x1="30" y1="8" x2="30" y2="20" />
+              <line x1="36" y1="4" x2="36" y2="24" />
+              <line x1="42" y1="10" x2="42" y2="18" />
+            </svg>
+            <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+              <svg width={10} height={10} viewBox="0 0 24 24" fill="rgba(0,0,0,0.3)">
+                <polygon points="8,5 19,12 8,19" />
+              </svg>
+              <span style={{ fontSize: 9, color: "rgba(0,0,0,0.3)", fontFamily: "'DM Sans',sans-serif", letterSpacing: "0.05em" }}>PLAY</span>
+            </div>
+          </div>
         )}
       </div>
     );
   }
 
   // PDF icon
+  // PDF — click to open in new tab
   if (media.type === "pdf") {
     return (
       <div
+        onClick={(e) => { e.stopPropagation(); window.open(media.url, "_blank"); }}
         style={{
           margin: "-16px -18px 0 -18px",
           padding: "16px 18px",
@@ -378,6 +408,7 @@ function MediaPreview({
           display: "flex",
           alignItems: "center",
           gap: 10,
+          cursor: "pointer",
         }}
       >
         <svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="rgba(0,0,0,0.35)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -389,6 +420,11 @@ function MediaPreview({
         <span style={{ fontSize: 11, color: "rgba(0,0,0,0.4)", fontFamily: "'DM Sans',sans-serif" }}>
           PDF
         </span>
+        <svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="rgba(0,0,0,0.2)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginLeft: "auto" }}>
+          <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+          <polyline points="15 3 21 3 21 9" />
+          <line x1="10" y1="14" x2="21" y2="3" />
+        </svg>
       </div>
     );
   }
