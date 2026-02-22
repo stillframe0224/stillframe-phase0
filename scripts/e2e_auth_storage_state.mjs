@@ -37,8 +37,8 @@ async function main() {
   const page = await context.newPage();
 
   try {
-    // Navigate to /app?e2e=1 — mock cards render if __E2E_ALLOWED__ is true
-    await page.goto(`${BASE_URL}/app?e2e=1`, { waitUntil: "domcontentloaded", timeout: TIMEOUT });
+    // Navigate to /app?e2e=1&legacy=1 — mock cards render if __E2E_ALLOWED__ is true
+    await page.goto(`${BASE_URL}/app?e2e=1&legacy=1`, { waitUntil: "domcontentloaded", timeout: TIMEOUT });
     await page.waitForTimeout(2000);
 
     // Verify E2E mock is active
