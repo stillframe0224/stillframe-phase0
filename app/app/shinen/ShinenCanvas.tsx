@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
-import { TYPES, LAYOUTS, Z_MIN, Z_MAX, INITIAL_CARDS } from "./lib/constants";
+import { TYPES, LAYOUTS, Z_MIN, Z_MAX, INITIAL_CARDS, getCardWidth } from "./lib/constants";
 import { proj } from "./lib/projection";
 import { applyLayout } from "./lib/layouts";
 import type { ShinenCard } from "./lib/types";
@@ -30,6 +30,8 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
   const [layoutIdx, setLayoutIdx] = useState(-1);
   const [sortDir, setSortDir] = useState<"newest" | "oldest">("newest");
   const [playingId, setPlayingId] = useState<number | null>(null);
+  const [resizingId, setResizingId] = useState<number | null>(null);
+  const resizeStartRef = useRef<{ mx: number; my: number; w: number; h: number } | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
 
   // Animation loop (rAF + camera lerp)
@@ -89,6 +91,12 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if ((e.target as HTMLElement).tagName === "INPUT") return;
+      // Ctrl+A / Cmd+A → select all cards
+      if ((e.key === "a" || e.key === "A") && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        setSelected(new Set(cards.map((c) => c.id)));
+        return;
+      }
       if (e.key === "a" || e.key === "A") cycleLayout();
       if (e.key === "r" || e.key === "R") {
         resetCamera();
@@ -111,7 +119,7 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [cycleLayout, resetCamera, setZoom, clearSelection, deleteSelected, selected, playingId]);
+  }, [cycleLayout, resetCamera, setZoom, clearSelection, deleteSelected, selected, playingId, cards, setSelected]);
 
   // Pointer down on background: selection rect or camera drag (also stops media)
   const handleBgDown = useCallback(
@@ -184,6 +192,46 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
     [],
   );
 
+  // Card resize handler
+  const handleResizeStart = useCallback(
+    (cardId: number, e: React.PointerEvent) => {
+      const card = cards.find((c) => c.id === cardId);
+      if (!card) return;
+      setResizingId(cardId);
+      resizeStartRef.current = {
+        mx: e.clientX,
+        my: e.clientY,
+        w: card.w ?? getCardWidth(),
+        h: card.h ?? 0, // 0 = auto height
+      };
+    },
+    [cards],
+  );
+
+  useEffect(() => {
+    if (resizingId == null) return;
+    const onMove = (e: PointerEvent) => {
+      const start = resizeStartRef.current;
+      if (!start) return;
+      const dx = e.clientX - start.mx;
+      const dy = e.clientY - start.my;
+      const newW = Math.max(120, start.w + dx);
+      const newH = start.h > 0 ? Math.max(60, start.h + dy) : (dy > 10 ? 60 + dy : undefined);
+      setCards((prev) =>
+        prev.map((c) =>
+          c.id === resizingId ? { ...c, w: newW, ...(newH != null ? { h: newH } : {}) } : c,
+        ),
+      );
+    };
+    const onUp = () => setResizingId(null);
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
+    return () => {
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+    };
+  }, [resizingId]);
+
   // Project and z-sort cards
   const projCards = useMemo(
     () =>
@@ -240,6 +288,7 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
             onEnter={() => !isDragging && setHoveredId(card.id)}
             onLeave={() => !isDragging && setHoveredId(null)}
             onMediaClick={() => handleMediaClick(card.id)}
+            onResizeStart={handleResizeStart}
           />
         ))}
       </div>

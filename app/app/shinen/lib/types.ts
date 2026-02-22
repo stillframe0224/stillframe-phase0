@@ -7,6 +7,10 @@ export interface ShinenCard {
   px: number;
   py: number;
   z: number;
+  /** Custom card width (overrides default). Set by resize grip. */
+  w?: number;
+  /** Custom card height (overrides auto). Set by resize grip. */
+  h?: number;
   source?: {
     url: string;
     site: string;
