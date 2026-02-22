@@ -112,7 +112,7 @@ export default function InputBar({ onSubmit, onFileUpload, time }: InputBarProps
     <div
       style={{
         position: "absolute",
-        bottom: 28,
+        top: 56,
         left: "50%",
         transform: "translateX(-50%)",
         zIndex: 100,
@@ -135,8 +135,8 @@ export default function InputBar({ onSubmit, onFileUpload, time }: InputBarProps
           border: dragOver
             ? "1.5px dashed rgba(79,110,217,0.4)"
             : focused
-              ? "1.5px solid rgba(0,0,0,0.22)"
-              : "1.5px solid rgba(0,0,0,0.15)",
+              ? "1.5px solid rgba(0,0,0,0.30)"
+              : "1.5px solid rgba(0,0,0,0.22)",
           borderRadius: 14,
           padding: "11px 15px",
           display: "flex",
@@ -192,14 +192,16 @@ export default function InputBar({ onSubmit, onFileUpload, time }: InputBarProps
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            opacity: 0.3,
+            opacity: 0.5,
             transition: "opacity 0.2s",
           }}
-          onMouseEnter={(e) => ((e.target as HTMLElement).style.opacity = "0.6")}
-          onMouseLeave={(e) => ((e.target as HTMLElement).style.opacity = "0.3")}
+          onMouseEnter={(e) => ((e.target as HTMLElement).style.opacity = "0.75")}
+          onMouseLeave={(e) => ((e.target as HTMLElement).style.opacity = "0.5")}
         >
-          <svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" />
+          {/* Plus icon */}
+          <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+            <line x1="12" y1="5" x2="12" y2="19" />
+            <line x1="5" y1="12" x2="19" y2="12" />
           </svg>
         </button>
 
