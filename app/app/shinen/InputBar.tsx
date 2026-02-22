@@ -32,8 +32,16 @@ function detectMediaType(mime: string): "image" | "video" | "audio" | "pdf" | nu
   return null;
 }
 
-function fileNameWithoutExt(name: string): string {
-  return name.replace(/\.[^/.]+$/, "");
+function cleanFileName(name: string): string {
+  // Remove extension
+  let title = name.replace(/\.[^/.]+$/, "");
+  // Remove UUID patterns (8-4-4-4-12 hex)
+  title = title.replace(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi, "").trim();
+  // Remove leading/trailing separators left after UUID removal
+  title = title.replace(/^[-_\s]+|[-_\s]+$/g, "").replace(/[-_]{2,}/g, "-");
+  // Truncate if > 30 chars
+  if (title.length > 30) title = title.slice(0, 27) + "...";
+  return title || name.replace(/\.[^/.]+$/, "").slice(0, 27);
 }
 
 export default function InputBar({ onSubmit, onFileUpload, time }: InputBarProps) {
@@ -52,7 +60,7 @@ export default function InputBar({ onSubmit, onFileUpload, time }: InputBarProps
     (file: File) => {
       const blobUrl = URL.createObjectURL(file);
       const mediaType = detectMediaType(file.type);
-      const title = fileNameWithoutExt(file.name);
+      const title = cleanFileName(file.name);
 
       if (file.type.startsWith("text/")) {
         // Read text files and put content in card
@@ -112,7 +120,7 @@ export default function InputBar({ onSubmit, onFileUpload, time }: InputBarProps
     <div
       style={{
         position: "absolute",
-        top: 56,
+        bottom: 28,
         left: "50%",
         transform: "translateX(-50%)",
         zIndex: 100,
