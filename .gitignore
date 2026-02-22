@@ -72,3 +72,11 @@ test-results/
 
 # local e2e auth bootstrap state
 .auth/
+
+# --- local dev artifacts ---
+.plan/
+.rwl/Done/
+.rwl/Queue/
+.rwl/logs/slack_runner.*.log
+reports/transcribe/
+scripts/transcribe_youtube_long.sh
