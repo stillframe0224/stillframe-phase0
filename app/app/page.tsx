@@ -11,6 +11,7 @@ import type { Card, File as FileRecord } from "@/lib/supabase/types";
 import AppCard from "./AppCard";
 import AiFeedbackBus from "./AiFeedbackBus";
 import TunnelCanvas from "./TunnelCanvas";
+import ShinenV17Canvas from "./v17/ShinenV17Canvas";
 import J7Logo from "@/app/components/J7Logo";
 import "./tunnel.css";
 import {
@@ -140,6 +141,7 @@ function AppPageInner() {
   const forceTunnelInE2E = e2eMode && searchParams.get("tunnel") === "1";
   const viewMode = forceTunnelInE2E ? "tunnel" : e2eMode ? "list" : (searchParams.get("view") || "tunnel");
   const isTunnelView = viewMode === "tunnel";
+  const legacyMode = searchParams.get("legacy") === "1";
 
   const [cards, setCards] = useState<Card[]>([]);
   const [files, setFiles] = useState<FileRecord[]>([]);
@@ -1768,6 +1770,10 @@ function AppPageInner() {
         </div>
       </div>
     );
+  }
+
+  if (!legacyMode) {
+    return <ShinenV17Canvas />;
   }
 
   return (
