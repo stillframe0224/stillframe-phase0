@@ -142,23 +142,70 @@ export default function ThoughtCard({
         {hasMedia && <MediaPreview card={card} isPlaying={isPlaying} isHovered={isHovered} onMediaClick={onMediaClick} />}
 
         {/* Text content */}
-        <div
-          style={{
-            fontFamily: "'Cormorant Garamond','Noto Serif JP',Georgia,serif",
-            fontSize: 14,
-            lineHeight: 1.7,
-            color: "#111",
-            fontWeight: 400,
-            whiteSpace: "pre-line",
-            marginTop: hasMedia ? 10 : 0,
-            display: "-webkit-box",
-            WebkitLineClamp: 3,
-            WebkitBoxOrient: "vertical" as const,
-            overflow: "hidden",
-          }}
-        >
-          {card.text}
-        </div>
+        {card.type === 8 ? (() => {
+          // CLIP card: split "title\n\ndesc" and render separately
+          const parts = card.text ? card.text.split("\n\n") : [];
+          const clipTitle = parts[0] ?? "";
+          const clipDesc = parts.slice(1).join("\n\n").trim();
+          return (
+            <div style={{ marginTop: hasMedia ? 10 : 0 }}>
+              {/* Title — 2-line clamp, serif */}
+              <div
+                style={{
+                  fontFamily: "'Cormorant Garamond','Noto Serif JP',Georgia,serif",
+                  fontSize: 14,
+                  lineHeight: 1.6,
+                  color: "#111",
+                  fontWeight: 500,
+                  display: "-webkit-box",
+                  WebkitLineClamp: 2,
+                  WebkitBoxOrient: "vertical" as const,
+                  overflow: "hidden",
+                }}
+              >
+                {clipTitle}
+              </div>
+              {/* Desc — 2-line clamp, sans-serif, muted */}
+              {clipDesc ? (
+                <div
+                  data-testid="clip-desc"
+                  style={{
+                    marginTop: 4,
+                    fontFamily: "'DM Sans',sans-serif",
+                    fontSize: 11,
+                    lineHeight: 1.55,
+                    color: "rgba(0,0,0,0.42)",
+                    display: "-webkit-box",
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: "vertical" as const,
+                    overflow: "hidden",
+                    whiteSpace: "pre-line",
+                  }}
+                >
+                  {clipDesc}
+                </div>
+              ) : null}
+            </div>
+          );
+        })() : (
+          <div
+            style={{
+              fontFamily: "'Cormorant Garamond','Noto Serif JP',Georgia,serif",
+              fontSize: 14,
+              lineHeight: 1.7,
+              color: "#111",
+              fontWeight: 400,
+              whiteSpace: "pre-line",
+              marginTop: hasMedia ? 10 : 0,
+              display: "-webkit-box",
+              WebkitLineClamp: 3,
+              WebkitBoxOrient: "vertical" as const,
+              overflow: "hidden",
+            }}
+          >
+            {card.text}
+          </div>
+        )}
 
         {/* Memo snippet (if card has a memo) */}
         {memo && (
