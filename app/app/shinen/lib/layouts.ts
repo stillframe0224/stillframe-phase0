@@ -1,7 +1,5 @@
-import { getCardWidth } from "./constants";
+import { getCardWidth, CARD_HEIGHT_DEFAULT } from "./constants";
 import type { ShinenCard } from "./types";
-
-type PartialPos = Pick<ShinenCard, "px" | "py" | "z">;
 
 export function layoutScatter(cards: ShinenCard[]): ShinenCard[] {
   return cards.map((c) => ({
@@ -18,31 +16,22 @@ export function layoutGrid(cards: ShinenCard[]): ShinenCard[] {
   const cols = Math.ceil(Math.sqrt(n));
   const rows = Math.ceil(n / cols);
   const cw = getCardWidth();
+  const ch = CARD_HEIGHT_DEFAULT;
   const GAP = 30;
 
-  // Compute per-column max width and per-row max height
-  const colW = new Array(cols).fill(cw);
-  const rowH = new Array(rows).fill(cw * 0.75);
-  cards.forEach((c, i) => {
-    const col = i % cols;
-    const row = Math.floor(i / cols);
-    colW[col] = Math.max(colW[col], (c.w ?? cw));
-    rowH[row] = Math.max(rowH[row], (c.h ?? cw * 0.75));
-  });
-
-  // Prefix sums for offsets
+  // Fixed-size grid — ignore card.w/card.h to prevent overlap
   const colX = [0];
-  for (let c = 1; c < cols; c++) colX[c] = colX[c - 1] + colW[c - 1] + GAP;
+  for (let c = 1; c < cols; c++) colX[c] = colX[c - 1] + cw + GAP;
   const rowY = [0];
-  for (let r = 1; r < rows; r++) rowY[r] = rowY[r - 1] + rowH[r - 1] + GAP;
+  for (let r = 1; r < rows; r++) rowY[r] = rowY[r - 1] + ch + GAP;
 
-  const totalW = colX[cols - 1] + colW[cols - 1];
-  const totalH = rowY[rows - 1] + rowH[rows - 1];
+  const totalW = colX[cols - 1] + cw;
+  const totalH = rowY[rows - 1] + ch;
 
   return cards.map((c, i) => ({
     ...c,
-    px: colX[i % cols] - totalW / 2 + (c.w ?? cw) / 2,
-    py: rowY[Math.floor(i / cols)] - totalH / 2 + (c.h ?? cw * 0.75) / 2,
+    px: colX[i % cols] - totalW / 2 + cw / 2,
+    py: rowY[Math.floor(i / cols)] - totalH / 2 + ch / 2,
     z: -80,
   }));
 }
@@ -67,31 +56,22 @@ export function layoutTiles(cards: ShinenCard[]): ShinenCard[] {
   const cols = Math.ceil(Math.sqrt(n));
   const rows = Math.ceil(n / cols);
   const cw = getCardWidth();
+  const ch = Math.round(CARD_HEIGHT_DEFAULT * 0.75);
   const GAP = 30;
-  const defH = cw * 0.65;
 
-  // Compute per-column max width and per-row max height
-  const colW = new Array(cols).fill(cw);
-  const rowH = new Array(rows).fill(defH);
-  cards.forEach((c, i) => {
-    const col = i % cols;
-    const row = Math.floor(i / cols);
-    colW[col] = Math.max(colW[col], (c.w ?? cw));
-    rowH[row] = Math.max(rowH[row], (c.h ?? defH));
-  });
-
+  // Fixed-size tiles — ignore card.w/card.h to prevent overlap
   const colX = [0];
-  for (let c = 1; c < cols; c++) colX[c] = colX[c - 1] + colW[c - 1] + GAP;
+  for (let c = 1; c < cols; c++) colX[c] = colX[c - 1] + cw + GAP;
   const rowY = [0];
-  for (let r = 1; r < rows; r++) rowY[r] = rowY[r - 1] + rowH[r - 1] + GAP;
+  for (let r = 1; r < rows; r++) rowY[r] = rowY[r - 1] + ch + GAP;
 
-  const totalW = colX[cols - 1] + colW[cols - 1];
-  const totalH = rowY[rows - 1] + rowH[rows - 1];
+  const totalW = colX[cols - 1] + cw;
+  const totalH = rowY[rows - 1] + ch;
 
   return cards.map((c, i) => ({
     ...c,
-    px: colX[i % cols] - totalW / 2 + (c.w ?? cw) / 2,
-    py: rowY[Math.floor(i / cols)] - totalH / 2 + (c.h ?? defH) / 2,
+    px: colX[i % cols] - totalW / 2 + cw / 2,
+    py: rowY[Math.floor(i / cols)] - totalH / 2 + ch / 2,
     z: -300,
   }));
 }

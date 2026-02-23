@@ -286,6 +286,19 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
     };
   }, [reorderDrag?.fromId, reorderDrag?.pointerId]);
 
+  // Delete single card (declared before keyboard handler that references it)
+  const handleDeleteCard = useCallback((cardId: number) => {
+    setCards((prev) => prev.filter((c) => c.id !== cardId));
+    setMemoById((prev) => {
+      const key = String(cardId);
+      if (!(key in prev)) return prev;
+      const next = { ...prev };
+      delete next[key];
+      return next;
+    });
+    setHoveredId(null);
+  }, []);
+
   // Keyboard shortcuts
   const cycleLayout = useCallback(() => {
     const next = (layoutIdx + 1) % LAYOUTS.length;
@@ -323,14 +336,17 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
         setZoom(0);
       }
       if (e.key === "Delete" || e.key === "Backspace") {
+        if (memoModalCardId != null) return; // Don't delete while memo modal is open
         if (selected.size > 0) {
           deleteSelected();
+        } else if (hoveredId != null) {
+          handleDeleteCard(hoveredId);
         }
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [cycleLayout, resetCamera, setZoom, clearSelection, deleteSelected, selected, playingId, cards, setSelected, memoModalCardId, closeMemoModal]);
+  }, [cycleLayout, resetCamera, setZoom, clearSelection, deleteSelected, selected, playingId, cards, setSelected, memoModalCardId, closeMemoModal, hoveredId, handleDeleteCard]);
 
   // Pointer down on background: selection rect or camera drag (also stops media)
   const handleBgDown = useCallback(
@@ -408,18 +424,7 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
     [layoutIdx],
   );
 
-  // Delete single card
-  const handleDeleteCard = useCallback((cardId: number) => {
-    setCards((prev) => prev.filter((c) => c.id !== cardId));
-    setMemoById((prev) => {
-      const key = String(cardId);
-      if (!(key in prev)) return prev;
-      const next = { ...prev };
-      delete next[key];
-      return next;
-    });
-    setHoveredId(null);
-  }, []);
+
 
   // Clip receiver — listen for clips from Chrome extension bridge
   useEffect(() => {
@@ -697,16 +702,18 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
       {/* Hint */}
       <HintOverlay isIdle={isIdle} />
 
-      {/* Memo toolbar (search, filter, export/import/clear) */}
-      <MemoToolbar
-        search={searchQuery}
-        onSearchChange={setSearchQuery}
-        hasMemoFilter={filterHasMemo}
-        onToggleHasMemo={() => setFilterHasMemo((p) => !p)}
-        memoById={memoById}
-        onImportMemos={handleImportMemos}
-        onClearMemos={clearMemos}
-      />
+      {/* Memo toolbar (search, filter, export/import/clear) — e2e only */}
+      {e2eMode && (
+        <MemoToolbar
+          search={searchQuery}
+          onSearchChange={setSearchQuery}
+          hasMemoFilter={filterHasMemo}
+          onToggleHasMemo={() => setFilterHasMemo((p) => !p)}
+          memoById={memoById}
+          onImportMemos={handleImportMemos}
+          onClearMemos={clearMemos}
+        />
+      )}
 
       {/* Input bar */}
       <InputBar onSubmit={addThought} onFileUpload={handleFileUpload} time={time} />

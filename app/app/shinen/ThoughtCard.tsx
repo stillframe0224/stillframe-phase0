@@ -138,7 +138,7 @@ export default function ThoughtCard({
           }}
         >
         {/* Media preview / playback area */}
-        {hasMedia && <MediaPreview card={card} isPlaying={isPlaying} onMediaClick={onMediaClick} />}
+        {hasMedia && <MediaPreview card={card} isPlaying={isPlaying} isHovered={isHovered} onMediaClick={onMediaClick} />}
 
         {/* Text content */}
         <div
@@ -150,6 +150,10 @@ export default function ThoughtCard({
             fontWeight: 400,
             whiteSpace: "pre-line",
             marginTop: hasMedia ? 10 : 0,
+            display: "-webkit-box",
+            WebkitLineClamp: 3,
+            WebkitBoxOrient: "vertical" as const,
+            overflow: "hidden",
           }}
         >
           {card.text}
@@ -261,7 +265,7 @@ export default function ThoughtCard({
             title="Open in new tab"
             style={{
               position: "absolute",
-              right: 22,
+              right: 32,
               top: 4,
               width: 16,
               height: 16,
@@ -321,7 +325,7 @@ export default function ThoughtCard({
           </svg>
         </div>
 
-        {/* Delete button (top-right corner) */}
+        {/* Delete button (top-right corner) — larger hit target */}
         {isHovered && (
           <button
             data-no-drag
@@ -334,26 +338,27 @@ export default function ThoughtCard({
             style={{
               position: "absolute",
               zIndex: 20,
-              right: 4,
-              top: 4,
-              width: 16,
-              height: 16,
+              right: 2,
+              top: 2,
+              width: 28,
+              height: 28,
               padding: 0,
-              background: "none",
+              background: "rgba(0,0,0,0.04)",
               border: "none",
+              borderRadius: 6,
               cursor: "pointer",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              opacity: 0.2,
-              fontSize: 12,
+              opacity: 0.3,
+              fontSize: 18,
               lineHeight: 1,
               color: "#000",
               fontFamily: "'DM Sans',sans-serif",
               transition: "opacity 0.15s",
             }}
-            onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.opacity = "0.5")}
-            onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.opacity = "0.2")}
+            onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.opacity = "0.6")}
+            onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.opacity = "0.3")}
           >
             ×
           </button>
@@ -398,10 +403,12 @@ export default function ThoughtCard({
 function MediaPreview({
   card,
   isPlaying,
+  isHovered,
   onMediaClick,
 }: {
   card: ShinenCard;
   isPlaying: boolean;
+  isHovered: boolean;
   onMediaClick?: () => void;
 }) {
   const media = card.media;
@@ -422,7 +429,7 @@ function MediaPreview({
           style={{
             width: "100%",
             height: "auto",
-            maxHeight: 180,
+            maxHeight: 96,
             objectFit: "cover",
             display: "block",
           }}
@@ -464,9 +471,9 @@ function MediaPreview({
         <img
           src={media.thumbnail || `https://img.youtube.com/vi/${media.youtubeId}/hqdefault.jpg`}
           alt={card.text}
-          style={{ width: "100%", height: "auto", maxHeight: 180, objectFit: "cover", display: "block" }}
+          style={{ width: "100%", height: "auto", maxHeight: 96, objectFit: "cover", display: "block" }}
         />
-        {/* Play button overlay */}
+        {/* Play button overlay — visible on hover only */}
         <div
           style={{
             position: "absolute",
@@ -475,6 +482,8 @@ function MediaPreview({
             alignItems: "center",
             justifyContent: "center",
             background: "rgba(0,0,0,0.2)",
+            opacity: isHovered ? 1 : 0,
+            transition: "opacity 0.25s ease",
           }}
         >
           <div
