@@ -262,39 +262,39 @@ export default function ThoughtCard({
           </button>
         )}
 
-        {/* Drag handle (top-left corner) */}
-        {isHovered && (
-          <div
-            data-testid="drag-handle"
-            data-no-drag
-            onPointerDown={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              onReorderDragStart?.(card.id, e);
-            }}
-            style={{
-              position: "absolute",
-              left: 4,
-              top: 4,
-              width: 16,
-              height: 16,
-              cursor: "grab",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              opacity: 0.2,
-            }}
-          >
-            <svg width={10} height={10} viewBox="0 0 10 10" fill="rgba(0,0,0,0.5)">
-              <circle cx="3" cy="2" r="1" />
-              <circle cx="7" cy="2" r="1" />
-              <circle cx="3" cy="5" r="1" />
-              <circle cx="7" cy="5" r="1" />
-              <circle cx="3" cy="8" r="1" />
-              <circle cx="7" cy="8" r="1" />
-            </svg>
-          </div>
-        )}
+        {/* Drag handle (top-left corner) — always in DOM so Playwright count works pre-hover */}
+        <div
+          data-testid="drag-handle"
+          data-no-drag
+          onPointerDown={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            onReorderDragStart?.(card.id, e);
+          }}
+          style={{
+            position: "absolute",
+            left: 4,
+            top: 4,
+            width: 16,
+            height: 16,
+            cursor: "grab",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            opacity: isHovered ? 0.2 : 0,
+            transition: "opacity 0.15s",
+            pointerEvents: isHovered ? "auto" : "none",
+          }}
+        >
+          <svg width={10} height={10} viewBox="0 0 10 10" fill="rgba(0,0,0,0.5)">
+            <circle cx="3" cy="2" r="1" />
+            <circle cx="7" cy="2" r="1" />
+            <circle cx="3" cy="5" r="1" />
+            <circle cx="7" cy="5" r="1" />
+            <circle cx="3" cy="8" r="1" />
+            <circle cx="7" cy="8" r="1" />
+          </svg>
+        </div>
 
         {/* Delete button (top-right corner) */}
         {isHovered && (

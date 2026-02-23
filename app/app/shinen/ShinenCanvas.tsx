@@ -26,6 +26,8 @@ const MEMO_STORAGE_KEY = "shinen_memo_v1";
 interface ReorderDragState {
   fromId: number;
   pointerId: number;
+  lastClientX: number;
+  lastClientY: number;
 }
 
 /** Extract YouTube video ID from common URL formats. Returns null if not YouTube. */
@@ -74,6 +76,7 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
   const [reorderDrag, setReorderDrag] = useState<ReorderDragState | null>(null);
   const resizeStartRef = useRef<{ mx: number; my: number; w: number; h: number } | null>(null);
   const reorderCaptureRef = useRef<{ el: HTMLElement; pointerId: number } | null>(null);
+  const reorderDragRef = useRef<ReorderDragState | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
 
   // Animation loop (rAF + camera lerp)
@@ -169,15 +172,12 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
           // Ignore capture failures.
         }
       }
-      setSortDir("custom");
-      try {
-        const u = new URL(window.location.href);
-        u.searchParams.set("sort", "custom");
-        window.history.replaceState({}, "", u.toString());
-      } catch {
-        // Ignore URL update failures.
-      }
-      setReorderDrag({ fromId: cardId, pointerId: e.pointerId });
+      setReorderDrag({
+        fromId: cardId,
+        pointerId: e.pointerId,
+        lastClientX: e.clientX,
+        lastClientY: e.clientY,
+      });
     },
     [],
   );
@@ -207,11 +207,26 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
     return () => el.removeEventListener("wheel", onWheel);
   }, [hoveredId, selected, changeSelectedZ, handleBgWheel]);
 
+  useEffect(() => {
+    reorderDragRef.current = reorderDrag;
+  }, [reorderDrag]);
+
   // Reorder drag lifecycle (drop target resolved via elementFromPoint -> closest)
   useEffect(() => {
     if (!reorderDrag) return;
+    const onMove = (e: PointerEvent) => {
+      const current = reorderDragRef.current;
+      if (!current || e.pointerId !== current.pointerId) return;
+      setReorderDrag((prev) => {
+        if (!prev || prev.pointerId !== e.pointerId) return prev;
+        if (prev.lastClientX === e.clientX && prev.lastClientY === e.clientY) return prev;
+        return { ...prev, lastClientX: e.clientX, lastClientY: e.clientY };
+      });
+    };
+
     const onEnd = (e: PointerEvent) => {
-      if (e.pointerId !== reorderDrag.pointerId) return;
+      const current = reorderDragRef.current;
+      if (!current || e.pointerId !== current.pointerId) return;
 
       const capture = reorderCaptureRef.current;
       if (capture) {
@@ -225,22 +240,34 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
         }
       }
 
-      const target = document.elementFromPoint(e.clientX, e.clientY) as HTMLElement | null;
-      const targetCard = target?.closest("[data-card-id]") as HTMLElement | null;
-      const toId = Number(targetCard?.dataset.cardId);
-      if (Number.isFinite(toId) && toId !== reorderDrag.fromId) {
-        setCards((prev) => moveCardById(prev, reorderDrag.fromId, toId));
+      const dropX = e.clientX || current.lastClientX;
+      const dropY = e.clientY || current.lastClientY;
+      const target = document.elementFromPoint(dropX, dropY) as HTMLElement | null;
+      const targetCard = target?.closest("[data-card-id],[data-shinen-card]") as HTMLElement | null;
+      const toId = Number(targetCard?.dataset.cardId ?? targetCard?.dataset.shinenCard);
+      if (Number.isFinite(toId) && toId !== current.fromId) {
+        setCards((prev) => moveCardById(prev, current.fromId, toId));
+        setSortDir("custom");
+        try {
+          const u = new URL(window.location.href);
+          u.searchParams.set("sort", "custom");
+          window.history.replaceState(null, "", u.toString());
+        } catch {
+          // Ignore URL update failures.
+        }
       }
       setReorderDrag(null);
     };
 
+    window.addEventListener("pointermove", onMove);
     window.addEventListener("pointerup", onEnd);
     window.addEventListener("pointercancel", onEnd);
     return () => {
+      window.removeEventListener("pointermove", onMove);
       window.removeEventListener("pointerup", onEnd);
       window.removeEventListener("pointercancel", onEnd);
     };
-  }, [reorderDrag]);
+  }, [reorderDrag?.fromId, reorderDrag?.pointerId]);
 
   // Keyboard shortcuts
   const cycleLayout = useCallback(() => {
@@ -551,7 +578,10 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
             isPlaying={playingId === card.id}
             time={time}
             memo={memoById[String(card.id)]}
-            onPointerDown={(e) => startDrag(card.id, e)}
+            onPointerDown={(e) => {
+              if (reorderDrag) return;
+              startDrag(card.id, e);
+            }}
             onEnter={() => !isDragging && setHoveredId(card.id)}
             onLeave={() => !isDragging && setHoveredId(null)}
             onMediaClick={() => handleMediaClick(card.id)}
