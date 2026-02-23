@@ -43,5 +43,13 @@
     "session": "nightly",
     "pr_url": "https://github.com/stillframe0224/stillframe-phase0/pull/83",
     "evidence": "/Users/array0224/stillframe-phase0/reports/triad/20260219-230000-lp-no-manual-image-copy.md"
+  },
+  {
+    "id": "20260223-230000-pricing-no-lockin-copy",
+    "goal": "Pricing訴求に『いつでも解約可能・データはあなたのもの』を追加して購入不安を下げる",
+    "completed_at": "2026-02-23T14:34:00Z",
+    "session": "nightly",
+    "pr_url": "https://github.com/stillframe0224/stillframe-phase0/pull/164",
+    "evidence": "/Users/array0224/stillframe-phase0/reports/triad/20260223-230000-pricing-no-lockin-copy.md"
   }
 ]
