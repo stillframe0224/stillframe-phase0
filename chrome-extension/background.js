@@ -1,4 +1,6 @@
 // Save to SHINEN - Background Script (MV3)
+// When popup is enabled (manifest "default_popup"), onClicked does NOT fire.
+// Kept as fallback + for extractPageData/buildShinenUrl reuse.
 
 const RESTRICTED_URL_PATTERNS = [
   /^$/,
@@ -18,8 +20,6 @@ function isRestrictedUrl(rawUrl) {
 chrome.action.onClicked.addListener(async (tab) => {
   const tabUrl = tab.url || tab.pendingUrl || '';
 
-  // Restricted pages (chrome://, edge://, etc.) block scripting/messaging.
-  // Open SHINEN directly instead of attempting DOM injection.
   if (isRestrictedUrl(tabUrl)) {
     await chrome.tabs.create({
       url: 'https://stillframe-phase0.vercel.app/app?auto=1&reason=restricted_url',
@@ -28,11 +28,9 @@ chrome.action.onClicked.addListener(async (tab) => {
   }
 
   try {
-    // Get basic tab info
     const url = tabUrl;
     const title = tab.title || '';
 
-    // Execute content extraction script in the active tab
     const results = await chrome.scripting.executeScript({
       target: { tabId: tab.id },
       func: extractPageData,
@@ -41,15 +39,11 @@ chrome.action.onClicked.addListener(async (tab) => {
     const extracted = results[0]?.result || {};
     const { site = '', img = '', sel = '' } = extracted;
 
-    // Build SHINEN URL
     const shinenUrl = buildShinenUrl(url, title, img, site, sel);
-
-    // Open in new tab
     await chrome.tabs.create({ url: shinenUrl });
 
   } catch (error) {
     console.error('Save to SHINEN failed:', error);
-    // Fallback: open SHINEN with minimal params (never pass restricted URLs)
     const safeUrl = isRestrictedUrl(tab.url) ? '' : (tab.url || '');
     const fallbackUrl = `https://stillframe-phase0.vercel.app/app?auto=1&url=${encodeURIComponent(safeUrl)}`;
     await chrome.tabs.create({ url: fallbackUrl });
@@ -60,13 +54,11 @@ chrome.action.onClicked.addListener(async (tab) => {
  * Content extraction function (runs in page context)
  */
 function extractPageData() {
-  // Helper: normalize URL
   function norm(raw) {
     if (!raw) return null;
     let x = raw.trim();
     if (!x) return null;
 
-    // Decode if double-encoded
     if (x.includes('%2F') || x.includes('%3A')) {
       try {
         const decoded = decodeURIComponent(x);
@@ -78,12 +70,10 @@ function extractPageData() {
       }
     }
 
-    // Protocol-relative
     if (x.startsWith('//')) {
       x = 'https:' + x;
     }
 
-    // Relative path
     if (x.startsWith('/')) {
       try {
         x = new URL(x, location.href).href;
@@ -92,7 +82,6 @@ function extractPageData() {
       }
     }
 
-    // Accept only http/https
     if (!/^https?:\/\//.test(x)) {
       return null;
     }
@@ -100,14 +89,11 @@ function extractPageData() {
     return x.slice(0, 2000);
   }
 
-  // Extract site name
   const siteMeta = document.querySelector('meta[property="og:site_name"]');
   const site = (siteMeta?.content || '').slice(0, 100);
 
-  // Extract selection
   const sel = (window.getSelection()?.toString() || '').slice(0, 1200);
 
-  // Extract best image
   const candidates = [];
 
   function add(v) {
@@ -121,7 +107,6 @@ function extractPageData() {
     }
   }
 
-  // 1. Meta tags
   const metas = document.querySelectorAll(
     'meta[property="og:image"],' +
     'meta[property="og:image:secure_url"],' +
@@ -131,11 +116,9 @@ function extractPageData() {
   );
   metas.forEach((m) => add(m.content));
 
-  // 2. Link rel=image_src
   const lnk = document.querySelector('link[rel="image_src"]');
   if (lnk) add(lnk.href);
 
-  // 3. JSON-LD (all blocks)
   const lds = document.querySelectorAll('script[type="application/ld+json"]');
   lds.forEach((ld) => {
     try {
@@ -152,14 +135,11 @@ function extractPageData() {
     }
   });
 
-  // 4. Amazon-specific
   const azLanding = document.querySelector('#landingImage');
   if (azLanding) {
-    // data-old-hires
     const hires = azLanding.getAttribute('data-old-hires');
     if (hires) add(hires);
 
-    // data-a-dynamic-image (pick largest by area)
     const dynImg = azLanding.getAttribute('data-a-dynamic-image');
     if (dynImg) {
       try {
@@ -175,13 +155,11 @@ function extractPageData() {
     }
   }
 
-  // #imgTagWrapperId
   const azWrap = document.querySelector('#imgTagWrapperId img');
   if (azWrap) {
     add(azWrap.src || azWrap.getAttribute('data-a-dynamic-image'));
   }
 
-  // img[data-a-dynamic-image] (mobile)
   const azMobile = document.querySelectorAll('img[data-a-dynamic-image]');
   azMobile.forEach((im) => {
     const dd = im.getAttribute('data-a-dynamic-image');
@@ -199,7 +177,6 @@ function extractPageData() {
     }
   });
 
-  // 5. FANZA/DMM-specific (prefer pics.dmm.co.jp, pick largest)
   let fanzaBest = null;
   const imgs = document.querySelectorAll('img');
   imgs.forEach((im) => {
@@ -216,9 +193,8 @@ function extractPageData() {
       }
     }
   });
-  if (fanzaBest) candidates.unshift(fanzaBest); // Add to front
+  if (fanzaBest) candidates.unshift(fanzaBest);
 
-  // 6. Normalize and pick first valid
   let img = '';
   for (const c of candidates) {
     const n = norm(c);

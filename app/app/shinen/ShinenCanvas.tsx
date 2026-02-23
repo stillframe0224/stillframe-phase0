@@ -16,6 +16,8 @@ import SelectionOverlay from "./SelectionOverlay";
 import InputBar from "./InputBar";
 import NavBar from "./NavBar";
 import HintOverlay from "./HintOverlay";
+import { initClipReceiver } from "./lib/clip-receiver";
+import type { ClipData } from "./lib/clip-receiver";
 
 interface ShinenCanvasProps {
   initialCards?: ShinenCard[];
@@ -200,6 +202,38 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
     setCards((prev) => prev.filter((c) => c.id !== cardId));
     setHoveredId(null);
   }, []);
+
+  // Clip receiver — listen for clips from Chrome extension bridge
+  useEffect(() => {
+    const cleanup = initClipReceiver((clipData: ClipData) => {
+      setCards((prev) => {
+        const next = [
+          ...prev,
+          {
+            id: Date.now(),
+            type: 8, // clip type
+            text: clipData.title || clipData.url || "Saved clip",
+            px: (Math.random() - 0.5) * 380,
+            py: (Math.random() - 0.5) * 200,
+            z: -20 - Math.random() * 100,
+            source: clipData.url ? {
+              url: clipData.url,
+              site: clipData.site || new URL(clipData.url).hostname,
+            } : undefined,
+            media: clipData.img ? {
+              type: "image" as const,
+              url: clipData.img,
+            } : undefined,
+          },
+        ];
+        if (layoutIdx >= 0 && LAYOUTS[layoutIdx] !== "scatter") {
+          return applyLayout(LAYOUTS[layoutIdx], next);
+        }
+        return next;
+      });
+    });
+    return cleanup;
+  }, [layoutIdx]);
 
   // Media click handler — toggle playback (single active at a time)
   const handleMediaClick = useCallback(
