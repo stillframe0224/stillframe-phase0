@@ -104,21 +104,39 @@ export default function ThoughtCard({
         );
       })}
 
-      {/* Main card face */}
+      {/* Main card shell: decorative face is below, controls/content above */}
       <div
-        data-testid="shinen-card-face"
         style={{
           position: "relative",
-          background: "#fff",
           borderRadius: 10,
-          border: selectedBorder,
-          padding: "16px 18px 13px",
           minHeight: card.h ?? TAP_TARGET_MIN,
-          boxShadow: `0 ${liftY}px ${liftBlur}px -${Math.round(liftBlur * 0.3)}px rgba(0,0,0,${liftA})${selectedGlow ? `, ${selectedGlow}` : ""}`,
-          transition: isDragging ? "none" : "box-shadow 0.35s",
           overflow: "hidden",
         }}
       >
+        <div
+          data-testid="shinen-card-face"
+          style={{
+            position: "absolute",
+            inset: 0,
+            zIndex: 0,
+            pointerEvents: "none",
+            background: "#fff",
+            borderRadius: 10,
+            border: selectedBorder,
+            boxShadow: `0 ${liftY}px ${liftBlur}px -${Math.round(liftBlur * 0.3)}px rgba(0,0,0,${liftA})${selectedGlow ? `, ${selectedGlow}` : ""}`,
+            transition: isDragging ? "none" : "box-shadow 0.35s",
+          }}
+        />
+
+        <div
+          style={{
+            position: "relative",
+            zIndex: 1,
+            pointerEvents: "auto",
+            padding: "16px 18px 13px",
+            minHeight: card.h ?? TAP_TARGET_MIN,
+          }}
+        >
         {/* Media preview / playback area */}
         {hasMedia && <MediaPreview card={card} isPlaying={isPlaying} onMediaClick={onMediaClick} />}
 
@@ -142,6 +160,8 @@ export default function ThoughtCard({
           <div
             data-testid="memo-snippet"
             style={{
+              position: "relative",
+              zIndex: 10,
               marginTop: 8,
               padding: "6px 8px",
               background: "rgba(79,110,217,0.04)",
@@ -162,6 +182,8 @@ export default function ThoughtCard({
         {/* Type label + memo chip */}
         <div
           style={{
+            position: "relative",
+            zIndex: 10,
             marginTop: 10,
             display: "flex",
             alignItems: "center",
@@ -205,6 +227,8 @@ export default function ThoughtCard({
             }}
             onPointerDown={(e) => e.stopPropagation()}
             style={{
+              position: "relative",
+              zIndex: 11,
               marginLeft: card.file ? 0 : "auto",
               padding: "2px 7px",
               borderRadius: 6,
@@ -273,6 +297,7 @@ export default function ThoughtCard({
           }}
           style={{
             position: "absolute",
+            zIndex: 20,
             left: 4,
             top: 4,
             width: 16,
@@ -281,9 +306,9 @@ export default function ThoughtCard({
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            opacity: isHovered ? 0.2 : 0,
+            opacity: isHovered ? 0.2 : 0.12,
             transition: "opacity 0.15s",
-            pointerEvents: isHovered ? "auto" : "none",
+            pointerEvents: "auto",
           }}
         >
           <svg width={10} height={10} viewBox="0 0 10 10" fill="rgba(0,0,0,0.5)">
@@ -308,6 +333,7 @@ export default function ThoughtCard({
             onPointerDown={(e) => e.stopPropagation()}
             style={{
               position: "absolute",
+              zIndex: 20,
               right: 4,
               top: 4,
               width: 16,
@@ -344,6 +370,7 @@ export default function ThoughtCard({
             }}
             style={{
               position: "absolute",
+              zIndex: 20,
               right: 2,
               bottom: 2,
               width: 16,
@@ -361,6 +388,7 @@ export default function ThoughtCard({
             </svg>
           </div>
         )}
+        </div>
       </div>
     </div>
   );
