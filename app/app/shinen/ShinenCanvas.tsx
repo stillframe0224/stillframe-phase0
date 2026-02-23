@@ -23,6 +23,9 @@ import { initClipReceiver } from "./lib/clip-receiver";
 import type { ClipData } from "./lib/clip-receiver";
 
 const MEMO_STORAGE_KEY = "shinen_memo_v1";
+const CARDS_STORAGE_KEY = "shinen_cards_v1";
+const LAYOUT_STORAGE_KEY = "shinen_layout_v1";
+const CARDS_SAVE_DEBOUNCE = 400; // ms
 
 interface ReorderDragState {
   fromId: number;
@@ -62,11 +65,40 @@ interface ShinenCanvasProps {
 }
 
 export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCanvasProps) {
-  const [cards, setCards] = useState<ShinenCard[]>(
-    () => (initialCards ?? INITIAL_CARDS.map((c) => ({ ...c }))) as ShinenCard[],
-  );
+  const [cards, setCards] = useState<ShinenCard[]>(() => {
+    // E2E mode: use provided mock cards (never touch localStorage)
+    if (initialCards) return initialCards as ShinenCard[];
+    // Try restoring from localStorage
+    if (typeof window !== "undefined") {
+      try {
+        const raw = localStorage.getItem(CARDS_STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed as ShinenCard[];
+        }
+      } catch {
+        // Malformed cache — fall through to defaults.
+      }
+    }
+    return INITIAL_CARDS.map((c) => ({ ...c })) as ShinenCard[];
+  });
   const [hoveredId, setHoveredId] = useState<number | null>(null);
-  const [layoutIdx, setLayoutIdx] = useState(-1);
+  const [layoutIdx, setLayoutIdx] = useState(() => {
+    // Restore layout index from localStorage (non-e2e only)
+    if (initialCards) return -1;
+    if (typeof window !== "undefined") {
+      try {
+        const raw = localStorage.getItem(LAYOUT_STORAGE_KEY);
+        if (raw !== null) {
+          const idx = Number(raw);
+          if (Number.isFinite(idx) && idx >= -1 && idx < LAYOUTS.length) return idx;
+        }
+      } catch {
+        // Ignore.
+      }
+    }
+    return -1;
+  });
   const [sortDir, setSortDir] = useState<"newest" | "oldest" | "custom">("newest");
   const [playingId, setPlayingId] = useState<number | null>(null);
   const [resizingId, setResizingId] = useState<number | null>(null);
@@ -130,6 +162,33 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
       // Ignore storage failures.
     }
   }, [memoById]);
+
+  // Persist cards to localStorage (debounced, non-e2e only)
+  const cardsSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    if (e2eMode) return;
+    if (cardsSaveTimer.current) clearTimeout(cardsSaveTimer.current);
+    cardsSaveTimer.current = setTimeout(() => {
+      try {
+        localStorage.setItem(CARDS_STORAGE_KEY, JSON.stringify(cards));
+      } catch {
+        // Storage full or disabled — silently ignore.
+      }
+    }, CARDS_SAVE_DEBOUNCE);
+    return () => {
+      if (cardsSaveTimer.current) clearTimeout(cardsSaveTimer.current);
+    };
+  }, [cards, e2eMode]);
+
+  // Persist layout index (non-e2e only)
+  useEffect(() => {
+    if (e2eMode) return;
+    try {
+      localStorage.setItem(LAYOUT_STORAGE_KEY, String(layoutIdx));
+    } catch {
+      // Ignore.
+    }
+  }, [layoutIdx, e2eMode]);
 
   const closeMemoModal = useCallback(() => {
     setMemoModalCardId(null);
