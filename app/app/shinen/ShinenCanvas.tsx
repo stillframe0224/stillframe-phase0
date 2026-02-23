@@ -542,9 +542,14 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
     const img = params.get("img") || undefined;
     const site = params.get("site") || undefined;
     const sel = params.get("s") || undefined;
+    const desc = params.get("desc") || undefined;
 
     const ytId = extractYoutubeId(url);
-    const cardText = sel ? `${title}\n\n${sel}` : title;
+    // Build card text: title + description + selection (each on its own line)
+    const textParts = [title];
+    if (desc && desc !== title) textParts.push(desc);
+    if (sel) textParts.push(sel);
+    const cardText = textParts.join("\n\n");
 
     setCards((prev) => {
       // Dedup: skip if a card with this URL already exists
@@ -585,7 +590,7 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
     // Clean auto-capture params from URL bar
     try {
       const cleanUrl = new URL(window.location.href);
-      for (const k of ["auto", "url", "title", "img", "site", "s"]) {
+      for (const k of ["auto", "url", "title", "desc", "img", "site", "s"]) {
         cleanUrl.searchParams.delete(k);
       }
       window.history.replaceState(null, "", cleanUrl.toString());
