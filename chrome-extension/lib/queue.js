@@ -79,21 +79,41 @@ export async function migrateFromLocalStorage(storage) {
   }
 
   try {
-    const raw = localStorage.getItem("shinen_clip_queue");
-    if (raw) {
-      const oldItems = JSON.parse(raw);
-      if (Array.isArray(oldItems) && oldItems.length > 0) {
-        const migrated = oldItems.map((item) => ({
-          clipId: item.clipId || generateClipId(),
-          nonce: item.nonce || generateNonce(),
-          data: item.data || item,
-          enqueuedAt: item.enqueuedAt || Date.now(),
-        }));
-        const existing = await getQueue(storage);
-        const merged = [...existing, ...migrated].slice(-MAX_QUEUE);
-        await setQueue(storage, merged);
-        localStorage.removeItem("shinen_clip_queue");
+    const LEGACY_KEYS = ["shinen_clip_queue", "shinen-clip-queue"];
+    const allMigrated = [];
+
+    for (const key of LEGACY_KEYS) {
+      const raw = localStorage.getItem(key);
+      if (!raw) continue;
+      try {
+        const oldItems = JSON.parse(raw);
+        if (Array.isArray(oldItems)) {
+          for (const item of oldItems) {
+            allMigrated.push({
+              clipId: item.clipId || generateClipId(),
+              nonce: item.nonce || generateNonce(),
+              data: item.data || item,
+              enqueuedAt: item.enqueuedAt || Date.now(),
+            });
+          }
+        }
+      } catch (parseErr) {
+        console.warn(`[SHINEN Queue] Failed to parse "${key}":`, parseErr);
       }
+      localStorage.removeItem(key);
+    }
+
+    if (allMigrated.length > 0) {
+      // Deduplicate by clipId
+      const seen = new Set();
+      const unique = allMigrated.filter((item) => {
+        if (seen.has(item.clipId)) return false;
+        seen.add(item.clipId);
+        return true;
+      });
+      const existing = await getQueue(storage);
+      const merged = [...existing, ...unique].slice(-MAX_QUEUE);
+      await setQueue(storage, merged);
     }
   } catch (e) {
     console.warn("[SHINEN Queue] Migration error:", e);

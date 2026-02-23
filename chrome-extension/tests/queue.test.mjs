@@ -5,6 +5,7 @@ import {
   setQueue,
   enqueue,
   dequeueByAck,
+  migrateFromLocalStorage,
   QUEUE_KEY,
   MAX_QUEUE,
 } from "../lib/queue.js";
@@ -120,6 +121,116 @@ describe("Queue SSOT", () => {
       assert.equal(q.length, 2);
       assert.equal(q[0].clipId, a.clipId);
       assert.equal(q[1].clipId, c.clipId);
+    });
+  });
+
+  describe("migrateFromLocalStorage", () => {
+    // Mock localStorage for migration tests
+    function createMockLocalStorage(items) {
+      const store = { ...items };
+      return {
+        getItem(key) { return store[key] ?? null; },
+        removeItem(key) { delete store[key]; },
+        _store: store,
+      };
+    }
+
+    it("migrates shinen_clip_queue (underscore key)", async () => {
+      const mockLS = createMockLocalStorage({
+        shinen_clip_queue: JSON.stringify([
+          { clipId: "c1", nonce: "n1", data: { title: "A" }, enqueuedAt: 100 },
+        ]),
+      });
+      // Inject mock localStorage
+      globalThis.localStorage = mockLS;
+
+      const s = createMockStorage();
+      await migrateFromLocalStorage(s);
+
+      const q = await getQueue(s);
+      assert.equal(q.length, 1);
+      assert.equal(q[0].clipId, "c1");
+      assert.equal(q[0].data.title, "A");
+      // localStorage key removed
+      assert.equal(mockLS._store["shinen_clip_queue"], undefined);
+
+      delete globalThis.localStorage;
+    });
+
+    it("migrates shinen-clip-queue (hyphen key)", async () => {
+      const mockLS = createMockLocalStorage({
+        "shinen-clip-queue": JSON.stringify([
+          { clipId: "c2", nonce: "n2", data: { title: "B" }, enqueuedAt: 200 },
+        ]),
+      });
+      globalThis.localStorage = mockLS;
+
+      const s = createMockStorage();
+      await migrateFromLocalStorage(s);
+
+      const q = await getQueue(s);
+      assert.equal(q.length, 1);
+      assert.equal(q[0].clipId, "c2");
+      assert.equal(q[0].data.title, "B");
+      assert.equal(mockLS._store["shinen-clip-queue"], undefined);
+
+      delete globalThis.localStorage;
+    });
+
+    it("merges both keys and deduplicates by clipId", async () => {
+      const mockLS = createMockLocalStorage({
+        shinen_clip_queue: JSON.stringify([
+          { clipId: "dup", nonce: "n1", data: { title: "First" }, enqueuedAt: 100 },
+          { clipId: "only_underscore", nonce: "n2", data: { title: "U" }, enqueuedAt: 200 },
+        ]),
+        "shinen-clip-queue": JSON.stringify([
+          { clipId: "dup", nonce: "n3", data: { title: "Dupe" }, enqueuedAt: 300 },
+          { clipId: "only_hyphen", nonce: "n4", data: { title: "H" }, enqueuedAt: 400 },
+        ]),
+      });
+      globalThis.localStorage = mockLS;
+
+      const s = createMockStorage();
+      await migrateFromLocalStorage(s);
+
+      const q = await getQueue(s);
+      // 3 unique items (dup appears once — first wins)
+      assert.equal(q.length, 3);
+      const ids = q.map((i) => i.clipId);
+      assert.ok(ids.includes("dup"));
+      assert.ok(ids.includes("only_underscore"));
+      assert.ok(ids.includes("only_hyphen"));
+      // First occurrence of "dup" wins
+      const dupItem = q.find((i) => i.clipId === "dup");
+      assert.equal(dupItem.data.title, "First");
+
+      // Both keys removed
+      assert.equal(mockLS._store["shinen_clip_queue"], undefined);
+      assert.equal(mockLS._store["shinen-clip-queue"], undefined);
+
+      delete globalThis.localStorage;
+    });
+
+    it("does not run migration twice", async () => {
+      const mockLS = createMockLocalStorage({
+        shinen_clip_queue: JSON.stringify([
+          { clipId: "c1", nonce: "n1", data: { title: "A" }, enqueuedAt: 100 },
+        ]),
+      });
+      globalThis.localStorage = mockLS;
+
+      const s = createMockStorage();
+      await migrateFromLocalStorage(s);
+      assert.equal((await getQueue(s)).length, 1);
+
+      // Second call: add new items to localStorage — should be ignored
+      mockLS._store.shinen_clip_queue = JSON.stringify([
+        { clipId: "c9", nonce: "n9", data: { title: "New" }, enqueuedAt: 900 },
+      ]);
+      await migrateFromLocalStorage(s);
+      assert.equal((await getQueue(s)).length, 1); // Still 1, second run skipped
+
+      delete globalThis.localStorage;
     });
   });
 });

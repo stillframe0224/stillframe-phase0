@@ -48,11 +48,24 @@ export function initClipReceiver(onClip: ClipHandler): () => void {
 
     const { clipId, nonce, data } = msg;
 
-    // Always ACK (even for duplicates) to help queue drain
-    sendAck(clipId, nonce);
+    // Dedup: already processed → ACK immediately to drain queue, then skip
+    if (seenClipIds.has(clipId)) {
+      sendAck(clipId, nonce);
+      return;
+    }
 
-    // Dedup check
-    if (seenClipIds.has(clipId)) return;
+    // Process clip — ACK only on success
+    if (currentHandler && data) {
+      try {
+        currentHandler(data);
+      } catch (e) {
+        console.error("[SHINEN clip-receiver] Handler error:", e);
+        // Do NOT ACK — leave in queue for retry on next drain
+        return;
+      }
+    }
+
+    // Handler succeeded (or no handler/data) → mark seen + ACK
     seenClipIds.add(clipId);
 
     // Cap seen set size
@@ -61,16 +74,7 @@ export function initClipReceiver(onClip: ClipHandler): () => void {
       if (first !== undefined) seenClipIds.delete(first);
     }
 
-    // Process clip
-    if (currentHandler && data) {
-      try {
-        currentHandler(data);
-      } catch (e) {
-        console.error("[SHINEN clip-receiver] Handler error:", e);
-        // Don't ACK on failure? We already ACK'd above for queue drain.
-        // The dedup prevents re-processing anyway.
-      }
-    }
+    sendAck(clipId, nonce);
   };
 
   currentListener = listener;
