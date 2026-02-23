@@ -19,6 +19,21 @@ import HintOverlay from "./HintOverlay";
 import { initClipReceiver } from "./lib/clip-receiver";
 import type { ClipData } from "./lib/clip-receiver";
 
+/** Extract YouTube video ID from common URL formats. Returns null if not YouTube. */
+function extractYoutubeId(url: string): string | null {
+  try {
+    const u = new URL(url);
+    if (u.hostname === "youtu.be") return u.pathname.slice(1).split("?")[0] || null;
+    if (u.hostname.includes("youtube.com")) {
+      if (u.pathname.startsWith("/shorts/")) return u.pathname.slice(8).split("?")[0] || null;
+      return u.searchParams.get("v");
+    }
+  } catch {
+    // invalid URL
+  }
+  return null;
+}
+
 interface ShinenCanvasProps {
   initialCards?: ShinenCard[];
   e2eMode?: boolean;
@@ -221,10 +236,21 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
               url: clipData.url,
               site: clipData.site || new URL(clipData.url).hostname,
             } : undefined,
-            media: clipData.img ? {
-              type: "image" as const,
-              url: clipData.img,
-            } : undefined,
+            media: (() => {
+              const ytId = clipData.url ? extractYoutubeId(clipData.url) : null;
+              if (ytId) {
+                return {
+                  type: "youtube" as const,
+                  url: clipData.url,
+                  youtubeId: ytId,
+                  thumbnail: `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`,
+                };
+              }
+              if (clipData.img) {
+                return { type: "image" as const, url: clipData.img };
+              }
+              return undefined;
+            })(),
           },
         ];
         if (layoutIdx >= 0 && LAYOUTS[layoutIdx] !== "scatter") {

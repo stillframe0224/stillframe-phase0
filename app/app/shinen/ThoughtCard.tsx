@@ -168,6 +168,44 @@ export default function ThoughtCard({
           )}
         </div>
 
+        {/* Open link button (top-right, left of delete — only for cards with source URL) */}
+        {isHovered && card.source?.url && (
+          <button
+            data-no-drag
+            onClick={(e) => {
+              e.stopPropagation();
+              e.preventDefault();
+              window.open(card.source!.url, "_blank", "noopener,noreferrer");
+            }}
+            onPointerDown={(e) => e.stopPropagation()}
+            title="Open in new tab"
+            style={{
+              position: "absolute",
+              right: 22,
+              top: 4,
+              width: 16,
+              height: 16,
+              padding: 0,
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              opacity: 0.2,
+              fontSize: 11,
+              lineHeight: 1,
+              color: "#000",
+              fontFamily: "'DM Sans',sans-serif",
+              transition: "opacity 0.15s",
+            }}
+            onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.opacity = "0.6")}
+            onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.opacity = "0.2")}
+          >
+            ↗
+          </button>
+        )}
+
         {/* Delete button (top-right corner) */}
         {isHovered && (
           <button
@@ -283,7 +321,7 @@ function MediaPreview({
           <iframe
             src={`https://www.youtube.com/embed/${media.youtubeId}?autoplay=1`}
             style={{ width: "100%", aspectRatio: "16/9", border: "none", display: "block" }}
-            allow="autoplay; encrypted-media"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowFullScreen
           />
         </div>
