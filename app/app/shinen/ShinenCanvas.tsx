@@ -541,7 +541,11 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
             p={p}
             camRx={cam.rx}
             camRy={cam.ry}
-            isDragging={drag?.id === card.id || (groupDrag != null && selected.has(card.id))}
+            isDragging={
+              drag?.id === card.id ||
+              (groupDrag != null && selected.has(card.id)) ||
+              reorderDrag?.fromId === card.id
+            }
             isHovered={hoveredId === card.id}
             isSelected={selected.has(card.id)}
             isPlaying={playingId === card.id}
