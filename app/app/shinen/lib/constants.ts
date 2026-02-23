@@ -36,6 +36,9 @@ export function getCardWidth(): number {
   return Math.min(CARD_WIDTH_DESKTOP, window.innerWidth * 0.45);
 }
 
+/** Default card height for layout algorithms (px) */
+export const CARD_HEIGHT_DEFAULT = 180;
+
 /** Tap-target minimum size (px) per mobile a11y guidelines */
 export const TAP_TARGET_MIN = 44;
 

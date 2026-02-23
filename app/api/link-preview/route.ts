@@ -18,6 +18,11 @@ function isInstagramHost(host: string): boolean {
   return h === "instagram.com" || h.endsWith(".instagram.com") || h === "instagr.am";
 }
 
+function isAmazonHost(host: string): boolean {
+  const h = host.toLowerCase();
+  return h.includes("amazon.") || h.includes("amzn.") || h === "a.co";
+}
+
 function parseRetryAfterMs(v: string | null): number | null {
   if (!v) return null;
   const num = Number(v);
@@ -59,11 +64,16 @@ async function safeFetch(
       if (!validateUrl(parsed)) throw new Error("blocked");
       if (!(await dnsCheck(parsed.hostname))) throw new Error("blocked");
 
+      // Amazon rejects bot UAs with 403/503 — use browser-like headers
+      const amazon = isAmazonHost(parsed.hostname);
       const res = await fetch(currentUrl, {
         headers: {
-          "User-Agent":
-            "Mozilla/5.0 (compatible; SHINEN-Bot/1.0; +https://shinen.app)",
-          Accept: "text/html,application/xhtml+xml",
+          "User-Agent": amazon
+            ? "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+            : "Mozilla/5.0 (compatible; SHINEN-Bot/1.0; +https://shinen.app)",
+          Accept: amazon
+            ? "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8"
+            : "text/html,application/xhtml+xml",
           "Accept-Language": "ja,en;q=0.8",
         },
         redirect: "manual",
