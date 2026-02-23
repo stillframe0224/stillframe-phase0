@@ -12,6 +12,7 @@ interface NavBarProps {
   onResetCamera: () => void;
   onToggleSearch: () => void;
   onSearchChange: (q: string) => void;
+  onExport: () => void;
 }
 
 export default function NavBar({
@@ -24,6 +25,7 @@ export default function NavBar({
   onResetCamera,
   onToggleSearch,
   onSearchChange,
+  onExport,
 }: NavBarProps) {
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -131,6 +133,44 @@ export default function NavBar({
             }}
           />
         )}
+
+        {/* Export button */}
+        <button
+          className="tb17"
+          data-testid="export-btn"
+          onClick={onExport}
+          aria-label="Export cards"
+          style={{
+            background: "rgba(0,0,0,0.03)",
+            border: "1px solid rgba(0,0,0,0.08)",
+            borderRadius: 8,
+            padding: "4px 8px",
+            minHeight: TAP_TARGET_MIN,
+            minWidth: TAP_TARGET_MIN,
+            fontSize: 10,
+            fontFamily: "'DM Sans',sans-serif",
+            color: "rgba(0,0,0,0.35)",
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <svg
+            width={12}
+            height={12}
+            viewBox="0 0 16 16"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M8 2v9" />
+            <polyline points="4 7 8 11 12 7" />
+            <line x1="3" y1="14" x2="13" y2="14" />
+          </svg>
+        </button>
 
         {/* ⌘K search toggle button */}
         <button
