@@ -172,12 +172,14 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
           // Ignore capture failures.
         }
       }
-      setReorderDrag({
+      const nextDrag: ReorderDragState = {
         fromId: cardId,
         pointerId: e.pointerId,
         lastClientX: e.clientX,
         lastClientY: e.clientY,
-      });
+      };
+      reorderDragRef.current = nextDrag;
+      setReorderDrag(nextDrag);
     },
     [],
   );
@@ -256,6 +258,7 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
           // Ignore URL update failures.
         }
       }
+      reorderDragRef.current = null;
       setReorderDrag(null);
     };
 
