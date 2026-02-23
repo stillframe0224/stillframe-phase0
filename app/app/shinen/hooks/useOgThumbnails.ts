@@ -14,6 +14,27 @@ const OG_CACHE_KEY = "shinen_og_v1";
 const DEFAULT_FAILURE_TTL = 5 * 60 * 1000; // 5 min
 const MAX_CACHE_SIZE = 200;
 
+// Domains where OG images are structurally unavailable (login walls, JS-only, etc.)
+// The server-side Jina fallback handles Twitter/X and Facebook — still allow them through.
+// These are truly unresolvable even via Jina.
+const SKIP_OG_HOSTS = new Set([
+  "docs.google.com",
+  "drive.google.com",
+  "mail.google.com",
+  "notion.so",
+  "www.notion.so",
+  "app.notion.so",
+]);
+
+function shouldSkipOg(url: string): boolean {
+  try {
+    const { hostname } = new URL(url);
+    return SKIP_OG_HOSTS.has(hostname.toLowerCase());
+  } catch {
+    return false;
+  }
+}
+
 interface OgCacheEntry {
   image: string | null;
   fetchedAt: number;
@@ -78,6 +99,8 @@ export function useOgThumbnails(
 
     for (const card of needsOg) {
       const url = card.source!.url;
+      // Skip domains where OG fetch is structurally futile
+      if (shouldSkipOg(url)) continue;
       const entry = cache[url];
       if (entry) {
         if (entry.image) {
