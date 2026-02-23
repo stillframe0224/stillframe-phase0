@@ -188,6 +188,7 @@ export default function InputBar({ onSubmit, onFileUpload, time }: InputBarProps
 
         {/* Clip icon button */}
         <button
+          data-testid="upload-btn"
           onClick={() => fileInputRef.current?.click()}
           title="attach file"
           style={{
@@ -215,6 +216,7 @@ export default function InputBar({ onSubmit, onFileUpload, time }: InputBarProps
 
         <input
           ref={fileInputRef}
+          data-testid="upload-input"
           type="file"
           accept={ACCEPT}
           onChange={handleFileChange}

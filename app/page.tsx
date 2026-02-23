@@ -183,6 +183,7 @@ export default function Home() {
         </p>
         <a
           href="#demo"
+          data-testid="cta-early-access"
           onClick={() => track("hero_cta_click")}
           aria-label={copy.hero.cta[lang]}
           style={{ textDecoration: "none" }}

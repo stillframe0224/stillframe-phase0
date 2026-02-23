@@ -143,6 +143,7 @@ export default function ThoughtCard({
         >
           <div style={{ width: 6, height: 6, borderRadius: "50%", background: t.glow, opacity: 0.7 }} />
           <span
+            data-testid={t.label.toLowerCase() === "memo" ? "chip-memo" : undefined}
             style={{
               fontSize: 9,
               fontFamily: "'DM Sans',sans-serif",
