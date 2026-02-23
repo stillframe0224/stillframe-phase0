@@ -1,3 +1,4 @@
+import { useRef, useEffect } from "react";
 import { TYPES, TAP_TARGET_MIN } from "./lib/constants";
 import type { ShinenCard } from "./lib/types";
 
@@ -5,11 +6,34 @@ interface NavBarProps {
   cards: ShinenCard[];
   layoutLabel: string;
   camIsRotated: boolean;
+  searchOpen: boolean;
+  searchQuery: string;
   onCycleLayout: () => void;
   onResetCamera: () => void;
+  onToggleSearch: () => void;
+  onSearchChange: (q: string) => void;
 }
 
-export default function NavBar({ cards, layoutLabel, camIsRotated, onCycleLayout, onResetCamera }: NavBarProps) {
+export default function NavBar({
+  cards,
+  layoutLabel,
+  camIsRotated,
+  searchOpen,
+  searchQuery,
+  onCycleLayout,
+  onResetCamera,
+  onToggleSearch,
+  onSearchChange,
+}: NavBarProps) {
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Focus input when search opens
+  useEffect(() => {
+    if (searchOpen) {
+      requestAnimationFrame(() => inputRef.current?.focus());
+    }
+  }, [searchOpen]);
+
   return (
     <div
       data-testid="tunnel-hud"
@@ -84,6 +108,67 @@ export default function NavBar({ cards, layoutLabel, camIsRotated, onCycleLayout
 
         {/* Card count */}
         <span style={{ fontSize: 10, color: "rgba(0,0,0,0.15)", fontWeight: 400 }}>{cards.length}</span>
+
+        {/* Search input (inline, animated) */}
+        {searchOpen && (
+          <input
+            ref={inputRef}
+            data-testid="search-input"
+            value={searchQuery}
+            onChange={(e) => onSearchChange(e.target.value)}
+            placeholder="search cards…"
+            style={{
+              width: 160,
+              height: TAP_TARGET_MIN,
+              padding: "0 10px",
+              background: "rgba(0,0,0,0.04)",
+              border: "1px solid rgba(0,0,0,0.12)",
+              borderRadius: 8,
+              fontSize: 11,
+              fontFamily: "'DM Sans',sans-serif",
+              color: "rgba(0,0,0,0.65)",
+              outline: "none",
+            }}
+          />
+        )}
+
+        {/* ⌘K search toggle button */}
+        <button
+          className="tb17"
+          data-testid="search-btn"
+          onClick={onToggleSearch}
+          aria-label="Search cards"
+          style={{
+            background: searchOpen ? "rgba(0,0,0,0.06)" : "rgba(0,0,0,0.03)",
+            border: `1px solid ${searchOpen ? "rgba(0,0,0,0.14)" : "rgba(0,0,0,0.08)"}`,
+            borderRadius: 8,
+            padding: "4px 10px",
+            minHeight: TAP_TARGET_MIN,
+            minWidth: TAP_TARGET_MIN,
+            fontSize: 10,
+            fontFamily: "'DM Sans',sans-serif",
+            color: searchOpen ? "rgba(0,0,0,0.55)" : "rgba(0,0,0,0.35)",
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 4,
+          }}
+        >
+          <svg
+            width={11}
+            height={11}
+            viewBox="0 0 16 16"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+          >
+            <circle cx="6.5" cy="6.5" r="4" />
+            <line x1="10" y1="10" x2="14" y2="14" />
+          </svg>
+          <span style={{ opacity: 0.35, fontSize: 9 }}>⌘K</span>
+        </button>
 
         {/* Layout button */}
         <button

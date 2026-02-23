@@ -105,6 +105,7 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
   const [memoById, setMemoById] = useState<Record<string, string>>({});
   const [memoModalCardId, setMemoModalCardId] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [searchOpen, setSearchOpen] = useState(false);
   const [filterHasMemo, setFilterHasMemo] = useState(false);
   const [reorderDrag, setReorderDrag] = useState<ReorderDragState | null>(null);
   const resizeStartRef = useRef<{ mx: number; my: number; w: number; h: number } | null>(null);
@@ -373,6 +374,11 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
           closeMemoModal();
           return;
         }
+        if (searchOpen) {
+          setSearchOpen(false);
+          setSearchQuery("");
+          return;
+        }
         if (playingId != null) {
           setPlayingId(null);
           return;
@@ -380,6 +386,15 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
         resetCamera();
         setZoom(0);
         clearSelection();
+        return;
+      }
+      // ⌘K / Ctrl+K — toggle search
+      if ((e.key === "k" || e.key === "K") && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        setSearchOpen((prev) => {
+          if (prev) setSearchQuery("");
+          return !prev;
+        });
         return;
       }
       if (tag === "INPUT" || tag === "TEXTAREA") return;
@@ -405,7 +420,7 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [cycleLayout, resetCamera, setZoom, clearSelection, deleteSelected, selected, playingId, cards, setSelected, memoModalCardId, closeMemoModal, hoveredId, handleDeleteCard]);
+  }, [cycleLayout, resetCamera, setZoom, clearSelection, deleteSelected, selected, playingId, cards, setSelected, memoModalCardId, closeMemoModal, hoveredId, handleDeleteCard, searchOpen]);
 
   // Pointer down on background: selection rect or camera drag (also stops media)
   const handleBgDown = useCallback(
@@ -759,8 +774,17 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
         cards={cards}
         layoutLabel={layoutLabel}
         camIsRotated={camIsRotated}
+        searchOpen={searchOpen}
+        searchQuery={searchQuery}
         onCycleLayout={cycleLayout}
         onResetCamera={handleResetAll}
+        onToggleSearch={() => {
+          setSearchOpen((prev) => {
+            if (prev) setSearchQuery("");
+            return !prev;
+          });
+        }}
+        onSearchChange={setSearchQuery}
       />
 
       {/* Hint */}
