@@ -268,6 +268,7 @@ export default function ThoughtCard({
             data-testid="drag-handle"
             data-no-drag
             onPointerDown={(e) => {
+              e.preventDefault();
               e.stopPropagation();
               onReorderDragStart?.(card.id, e);
             }}

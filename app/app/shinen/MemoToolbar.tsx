@@ -49,8 +49,10 @@ export default function MemoToolbar({
     const a = document.createElement("a");
     a.href = url;
     a.download = `shinen-memos-${Date.now()}.json`;
+    document.body.appendChild(a);
     a.click();
-    URL.revokeObjectURL(url);
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 0);
   }, [memoById]);
 
   const handleImportFile = useCallback(
