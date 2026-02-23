@@ -40,3 +40,6 @@ jobs:
 
       - name: tunnel arrange unit tests
         run: npm run test:unit
+
+      - name: Extension unit tests
+        run: node --test chrome-extension/tests/*.test.mjs

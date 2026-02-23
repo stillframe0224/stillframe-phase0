@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      width: 320px;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #fdfdfd;
+      color: #222;
+      padding: 16px;
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .header h1 {
+      font-size: 14px;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: rgba(0,0,0,0.5);
+    }
+    .preview {
+      background: rgba(0,0,0,0.03);
+      border: 1px solid rgba(0,0,0,0.08);
+      border-radius: 8px;
+      padding: 10px 12px;
+      margin-bottom: 12px;
+      font-size: 12px;
+      line-height: 1.5;
+      color: rgba(0,0,0,0.6);
+      max-height: 80px;
+      overflow: hidden;
+    }
+    .preview .title { font-weight: 500; color: #222; }
+    .preview .url { font-size: 11px; color: rgba(0,0,0,0.35); word-break: break-all; }
+    #save-btn {
+      width: 100%;
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      background: rgba(0,0,0,0.06);
+      color: rgba(0,0,0,0.5);
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      letter-spacing: 0.05em;
+    }
+    #save-btn:hover:not(:disabled) {
+      background: rgba(0,0,0,0.1);
+      color: rgba(0,0,0,0.7);
+    }
+    #save-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    #status {
+      margin-top: 8px;
+      font-size: 11px;
+      color: rgba(0,0,0,0.35);
+      text-align: center;
+    }
+    .restricted-msg {
+      background: rgba(200,50,50,0.06);
+      border: 1px solid rgba(200,50,50,0.15);
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 11px;
+      color: rgba(150,50,50,0.7);
+      line-height: 1.5;
+    }
+    .queue-count {
+      font-size: 10px;
+      color: rgba(0,0,0,0.25);
+      text-align: right;
+      margin-top: 6px;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Save to SHINEN</h1>
+  </div>
+  <div id="content"></div>
+  <script src="popup.js" type="module"></script>
+</body>
+</html>
