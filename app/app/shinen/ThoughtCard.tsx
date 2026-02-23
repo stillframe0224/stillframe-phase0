@@ -11,12 +11,15 @@ interface ThoughtCardProps {
   isSelected: boolean;
   isPlaying?: boolean;
   time: number;
+  memo?: string;
   onPointerDown: (e: React.PointerEvent) => void;
   onEnter: () => void;
   onLeave: () => void;
   onMediaClick?: () => void;
   onResizeStart?: (cardId: number, e: React.PointerEvent) => void;
   onDelete?: (cardId: number) => void;
+  onMemoClick?: (cardId: number) => void;
+  onReorderDragStart?: (cardId: number, e: React.PointerEvent) => void;
 }
 
 export default function ThoughtCard({
@@ -29,12 +32,15 @@ export default function ThoughtCard({
   isSelected,
   isPlaying = false,
   time,
+  memo,
   onPointerDown,
   onEnter,
   onLeave,
   onMediaClick,
   onResizeStart,
   onDelete,
+  onMemoClick,
+  onReorderDragStart,
 }: ThoughtCardProps) {
   const t = TYPES[card.type] ?? TYPES[0];
   const floatY = isDragging ? 0 : Math.sin(time * 0.0005 + card.id * 2.1) * 3;
@@ -60,6 +66,7 @@ export default function ThoughtCard({
     <div
       data-shinen-card={card.id}
       data-testid="card-item"
+      data-card-id={String(card.id)}
       onPointerDown={onPointerDown}
       onMouseEnter={onEnter}
       onMouseLeave={onLeave}
@@ -76,6 +83,34 @@ export default function ThoughtCard({
         touchAction: "none",
       }}
     >
+      {/* Drag handle for reorder (always rendered, visible on hover) */}
+      <div
+        data-no-drag
+        data-testid="drag-handle"
+        onPointerDown={(e) => {
+          e.stopPropagation();
+          onReorderDragStart?.(card.id, e);
+        }}
+        style={{
+          position: "absolute",
+          left: 4,
+          top: 4,
+          width: 14,
+          height: 14,
+          cursor: "grab",
+          opacity: isHovered ? 0.3 : 0,
+          transition: "opacity 0.15s",
+          fontSize: 10,
+          lineHeight: "14px",
+          textAlign: "center",
+          color: "rgba(0,0,0,0.5)",
+          zIndex: 10,
+          userSelect: "none",
+        }}
+      >
+        ⠿
+      </div>
+
       {/* Slab layers (3D thickness) */}
       {Array.from({ length: SLAB_N }, (_, i) => {
         const li = SLAB_N - i;
@@ -130,7 +165,27 @@ export default function ThoughtCard({
           {card.text}
         </div>
 
-        {/* Type label */}
+        {/* Memo snippet (shows saved memo text) */}
+        {memo && (
+          <div
+            data-testid="memo-snippet"
+            style={{
+              marginTop: 8,
+              padding: "6px 8px",
+              background: "rgba(0,0,0,0.03)",
+              borderRadius: 6,
+              fontSize: 11,
+              lineHeight: 1.5,
+              color: "rgba(0,0,0,0.4)",
+              fontFamily: "'DM Sans',sans-serif",
+              borderLeft: "2px solid rgba(0,0,0,0.1)",
+            }}
+          >
+            {memo.slice(0, 120)}
+          </div>
+        )}
+
+        {/* Type label + memo button */}
         <div
           style={{
             marginTop: 10,
@@ -143,7 +198,6 @@ export default function ThoughtCard({
         >
           <div style={{ width: 6, height: 6, borderRadius: "50%", background: t.glow, opacity: 0.7 }} />
           <span
-            data-testid={t.label.toLowerCase() === "memo" ? "chip-memo" : undefined}
             style={{
               fontSize: 9,
               fontFamily: "'DM Sans',sans-serif",
@@ -155,13 +209,41 @@ export default function ThoughtCard({
           >
             {t.label}
           </span>
+
+          {/* MEMO chip button — always visible, opens memo modal */}
+          <button
+            data-no-drag
+            data-testid="chip-memo"
+            onClick={(e) => {
+              e.stopPropagation();
+              e.preventDefault();
+              onMemoClick?.(card.id);
+            }}
+            onPointerDown={(e) => e.stopPropagation()}
+            style={{
+              marginLeft: "auto",
+              padding: "2px 6px",
+              background: memo ? "rgba(0,0,0,0.06)" : "none",
+              border: "1px solid rgba(0,0,0,0.12)",
+              borderRadius: 4,
+              cursor: "pointer",
+              fontSize: 8,
+              fontFamily: "'DM Sans',sans-serif",
+              color: "rgba(0,0,0,0.4)",
+              letterSpacing: "0.06em",
+              textTransform: "uppercase",
+              lineHeight: 1,
+            }}
+          >
+            memo
+          </button>
+
           {card.file && (
             <span
               style={{
                 fontSize: 8,
                 fontFamily: "'DM Sans',sans-serif",
                 color: "rgba(0,0,0,0.2)",
-                marginLeft: "auto",
               }}
             >
               {formatSize(card.file.size)}
@@ -481,7 +563,6 @@ function MediaPreview({
     );
   }
 
-  // PDF icon
   // PDF — click to open in new tab
   if (media.type === "pdf") {
     return (
