@@ -209,6 +209,13 @@ export default function ThoughtCard({
           >
             {t.label}
           </span>
+          {/* YouTube icon next to label */}
+          {card.media?.type === "youtube" && (
+            <svg width={14} height={10} viewBox="0 0 28 20" style={{ opacity: 0.4, flexShrink: 0 }}>
+              <rect width="28" height="20" rx="4" fill="#FF0000" />
+              <polygon points="11,4 11,16 21,10" fill="#fff" />
+            </svg>
+          )}
           {card.file && (
             <span
               style={{
@@ -428,8 +435,7 @@ function MediaPreview({
           alt={card.text}
           style={{
             width: "100%",
-            height: "auto",
-            maxHeight: 96,
+            height: 96,
             objectFit: "cover",
             display: "block",
           }}
@@ -471,38 +477,8 @@ function MediaPreview({
         <img
           src={media.thumbnail || `https://img.youtube.com/vi/${media.youtubeId}/hqdefault.jpg`}
           alt={card.text}
-          style={{ width: "100%", height: "auto", maxHeight: 96, objectFit: "cover", display: "block" }}
+          style={{ width: "100%", height: 96, objectFit: "cover", display: "block" }}
         />
-        {/* Play button overlay — visible on hover only */}
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            background: "rgba(0,0,0,0.2)",
-            opacity: isHovered ? 1 : 0,
-            transition: "opacity 0.25s ease",
-          }}
-        >
-          <div
-            style={{
-              width: 48,
-              height: 48,
-              borderRadius: "50%",
-              background: "rgba(255,255,255,0.9)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
-            }}
-          >
-            <svg width={20} height={20} viewBox="0 0 24 24" fill="rgba(0,0,0,0.7)">
-              <polygon points="8,5 19,12 8,19" />
-            </svg>
-          </div>
-        </div>
       </div>
     );
   }
