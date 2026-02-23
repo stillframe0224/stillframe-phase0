@@ -1,5 +1,6 @@
 import { TYPES, SLAB_N, SLAB_GAP, TAP_TARGET_MIN, getCardWidth } from "./lib/constants";
 import type { ShinenCard, Projection } from "./lib/types";
+import { toProxySrc } from "./lib/proxy";
 
 interface ThoughtCardProps {
   card: ShinenCard;
@@ -431,7 +432,7 @@ function MediaPreview({
         style={{ margin: "-16px -18px 0", borderRadius: "8px 8px 0 0", overflow: "hidden", cursor: "zoom-in" }}
       >
         <img
-          src={media.url}
+          src={toProxySrc(media.url)}
           alt={card.text}
           style={{
             width: "100%",
@@ -475,7 +476,7 @@ function MediaPreview({
         }}
       >
         <img
-          src={media.thumbnail || `https://img.youtube.com/vi/${media.youtubeId}/hqdefault.jpg`}
+          src={toProxySrc(media.thumbnail || `https://img.youtube.com/vi/${media.youtubeId}/hqdefault.jpg`)}
           alt={card.text}
           style={{ width: "100%", height: 96, objectFit: "cover", display: "block" }}
         />
