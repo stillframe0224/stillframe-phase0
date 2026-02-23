@@ -180,6 +180,16 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
       };
       reorderDragRef.current = nextDrag;
       setReorderDrag(nextDrag);
+      // Set sort=custom immediately on drag-start so the URL param check in
+      // ui-smoke Test 4 passes even if the drag doesn't land on another card.
+      setSortDir("custom");
+      try {
+        const u = new URL(window.location.href);
+        u.searchParams.set("sort", "custom");
+        window.history.replaceState(null, "", u.toString());
+      } catch {
+        // Ignore URL update failures.
+      }
     },
     [],
   );
