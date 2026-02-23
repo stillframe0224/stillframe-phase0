@@ -16,8 +16,17 @@ import SelectionOverlay from "./SelectionOverlay";
 import InputBar from "./InputBar";
 import NavBar from "./NavBar";
 import HintOverlay from "./HintOverlay";
+import MemoModal from "./MemoModal";
+import MemoToolbar from "./MemoToolbar";
 import { initClipReceiver } from "./lib/clip-receiver";
 import type { ClipData } from "./lib/clip-receiver";
+
+const MEMO_STORAGE_KEY = "shinen_memo_v1";
+
+interface ReorderDragState {
+  fromId: number;
+  pointerId: number;
+}
 
 /** Extract YouTube video ID from common URL formats. Returns null if not YouTube. */
 function extractYoutubeId(url: string): string | null {
@@ -34,6 +43,16 @@ function extractYoutubeId(url: string): string | null {
   return null;
 }
 
+function moveCardById(cards: ShinenCard[], fromId: number, toId: number): ShinenCard[] {
+  const fromIdx = cards.findIndex((c) => c.id === fromId);
+  const toIdx = cards.findIndex((c) => c.id === toId);
+  if (fromIdx < 0 || toIdx < 0 || fromIdx === toIdx) return cards;
+  const next = [...cards];
+  const [moved] = next.splice(fromIdx, 1);
+  next.splice(toIdx, 0, moved);
+  return next;
+}
+
 interface ShinenCanvasProps {
   initialCards?: ShinenCard[];
   e2eMode?: boolean;
@@ -45,10 +64,16 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
   );
   const [hoveredId, setHoveredId] = useState<number | null>(null);
   const [layoutIdx, setLayoutIdx] = useState(-1);
-  const [sortDir, setSortDir] = useState<"newest" | "oldest">("newest");
+  const [sortDir, setSortDir] = useState<"newest" | "oldest" | "custom">("newest");
   const [playingId, setPlayingId] = useState<number | null>(null);
   const [resizingId, setResizingId] = useState<number | null>(null);
+  const [memoById, setMemoById] = useState<Record<string, string>>({});
+  const [memoModalCardId, setMemoModalCardId] = useState<number | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterHasMemo, setFilterHasMemo] = useState(false);
+  const [reorderDrag, setReorderDrag] = useState<ReorderDragState | null>(null);
   const resizeStartRef = useRef<{ mx: number; my: number; w: number; h: number } | null>(null);
+  const reorderCaptureRef = useRef<{ el: HTMLElement; pointerId: number } | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
 
   // Animation loop (rAF + camera lerp)
@@ -71,6 +96,90 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
     rootRef, cards, setCards, targetCam, cam, zoom, setZoom,
     selected, hoveredId, setHoveredId, setLayoutIdx,
     startSelectionAt, moveSelectionTo, endSelectionAt, changeSelectedZ,
+  );
+
+  // Memos: localStorage-backed SSOT
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(MEMO_STORAGE_KEY);
+      if (!raw) return;
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === "object") {
+        const next: Record<string, string> = {};
+        for (const [k, v] of Object.entries(parsed as Record<string, unknown>)) {
+          if (typeof v === "string") next[k] = v;
+        }
+        setMemoById(next);
+      }
+    } catch {
+      // Ignore malformed memo cache.
+    }
+  }, []);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(MEMO_STORAGE_KEY, JSON.stringify(memoById));
+    } catch {
+      // Ignore storage failures.
+    }
+  }, [memoById]);
+
+  const closeMemoModal = useCallback(() => {
+    setMemoModalCardId(null);
+  }, []);
+
+  const openMemoModal = useCallback(
+    (cardId: number) => {
+      setMemoModalCardId(cardId);
+    },
+    [],
+  );
+
+  const handleMemoSave = useCallback((cardId: number, text: string) => {
+    const key = String(cardId);
+    const value = text.trim();
+    setMemoById((prev) => {
+      const next = { ...prev };
+      if (value) next[key] = value;
+      else delete next[key];
+      return next;
+    });
+  }, []);
+
+
+  const clearMemos = useCallback(() => {
+    setMemoById({});
+  }, []);
+
+  const handleImportMemos = useCallback((notes: Record<string, string>) => {
+    setMemoById((prev) => ({ ...prev, ...notes }));
+  }, []);
+
+  const startReorderDrag = useCallback(
+    (cardId: number, e: React.PointerEvent) => {
+      if (e.button === 1 || e.button === 2) return;
+      e.preventDefault();
+      e.stopPropagation();
+      const el = e.currentTarget as HTMLElement | null;
+      if (el?.setPointerCapture) {
+        try {
+          el.setPointerCapture(e.pointerId);
+          reorderCaptureRef.current = { el, pointerId: e.pointerId };
+        } catch {
+          // Ignore capture failures.
+        }
+      }
+      setSortDir("custom");
+      try {
+        const u = new URL(window.location.href);
+        u.searchParams.set("sort", "custom");
+        window.history.replaceState({}, "", u.toString());
+      } catch {
+        // Ignore URL update failures.
+      }
+      setReorderDrag({ fromId: cardId, pointerId: e.pointerId });
+    },
+    [],
   );
 
   // Wheel handler: card z-depth or background zoom
@@ -98,6 +207,41 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
     return () => el.removeEventListener("wheel", onWheel);
   }, [hoveredId, selected, changeSelectedZ, handleBgWheel]);
 
+  // Reorder drag lifecycle (drop target resolved via elementFromPoint -> closest)
+  useEffect(() => {
+    if (!reorderDrag) return;
+    const onEnd = (e: PointerEvent) => {
+      if (e.pointerId !== reorderDrag.pointerId) return;
+
+      const capture = reorderCaptureRef.current;
+      if (capture) {
+        reorderCaptureRef.current = null;
+        try {
+          if (!capture.el.hasPointerCapture || capture.el.hasPointerCapture(capture.pointerId)) {
+            capture.el.releasePointerCapture(capture.pointerId);
+          }
+        } catch {
+          // Ignore stale capture state.
+        }
+      }
+
+      const target = document.elementFromPoint(e.clientX, e.clientY) as HTMLElement | null;
+      const targetCard = target?.closest("[data-card-id]") as HTMLElement | null;
+      const toId = Number(targetCard?.dataset.cardId);
+      if (Number.isFinite(toId) && toId !== reorderDrag.fromId) {
+        setCards((prev) => moveCardById(prev, reorderDrag.fromId, toId));
+      }
+      setReorderDrag(null);
+    };
+
+    window.addEventListener("pointerup", onEnd);
+    window.addEventListener("pointercancel", onEnd);
+    return () => {
+      window.removeEventListener("pointerup", onEnd);
+      window.removeEventListener("pointercancel", onEnd);
+    };
+  }, [reorderDrag]);
+
   // Keyboard shortcuts
   const cycleLayout = useCallback(() => {
     const next = (layoutIdx + 1) % LAYOUTS.length;
@@ -107,7 +251,22 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if ((e.target as HTMLElement).tagName === "INPUT") return;
+      const tag = (e.target as HTMLElement).tagName;
+      if (e.key === "Escape") {
+        if (memoModalCardId != null) {
+          closeMemoModal();
+          return;
+        }
+        if (playingId != null) {
+          setPlayingId(null);
+          return;
+        }
+        resetCamera();
+        setZoom(0);
+        clearSelection();
+        return;
+      }
+      if (tag === "INPUT" || tag === "TEXTAREA") return;
       // Ctrl+A / Cmd+A → select all cards
       if ((e.key === "a" || e.key === "A") && (e.ctrlKey || e.metaKey)) {
         e.preventDefault();
@@ -119,29 +278,21 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
         resetCamera();
         setZoom(0);
       }
-      if (e.key === "Escape") {
-        if (playingId != null) {
-          setPlayingId(null);
-          return;
-        }
-        resetCamera();
-        setZoom(0);
-        clearSelection();
-      }
       if (e.key === "Delete" || e.key === "Backspace") {
-        if (selected.size > 0 && (e.target as HTMLElement).tagName !== "INPUT") {
+        if (selected.size > 0) {
           deleteSelected();
         }
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [cycleLayout, resetCamera, setZoom, clearSelection, deleteSelected, selected, playingId, cards, setSelected]);
+  }, [cycleLayout, resetCamera, setZoom, clearSelection, deleteSelected, selected, playingId, cards, setSelected, memoModalCardId, closeMemoModal]);
 
   // Pointer down on background: selection rect or camera drag (also stops media)
   const handleBgDown = useCallback(
     (e: React.PointerEvent) => {
       if (e.defaultPrevented) return;
+      if (memoModalCardId != null) return;
       const target = e.target as HTMLElement;
       if (target.closest("[data-shinen-card]")) return;
 
@@ -157,7 +308,7 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
         startSelection(e);
       }
     },
-    [startCamDrag, startSelection, playingId],
+    [startCamDrag, startSelection, playingId, memoModalCardId],
   );
 
   // Add new thought (text only)
@@ -216,6 +367,13 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
   // Delete single card
   const handleDeleteCard = useCallback((cardId: number) => {
     setCards((prev) => prev.filter((c) => c.id !== cardId));
+    setMemoById((prev) => {
+      const key = String(cardId);
+      if (!(key in prev)) return prev;
+      const next = { ...prev };
+      delete next[key];
+      return next;
+    });
     setHoveredId(null);
   }, []);
 
@@ -310,14 +468,28 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
     };
   }, [resizingId]);
 
-  // Project and z-sort cards
-  const projCards = useMemo(
-    () =>
-      cards
-        .map((card) => ({ card, p: proj(card.px, card.py, card.z + zoom, cam.rx, cam.ry) }))
-        .sort((a, b) => a.p.z2 - b.p.z2),
-    [cards, cam.rx, cam.ry, zoom],
-  );
+  // Filter cards by search and has-memo filter
+  const filteredCards = useMemo(() => {
+    let result = cards;
+    if (filterHasMemo) {
+      result = result.filter((c) => !!memoById[String(c.id)]);
+    }
+    if (searchQuery.trim()) {
+      const q = searchQuery.trim().toLowerCase();
+      result = result.filter((c) => {
+        const memo = memoById[String(c.id)] ?? "";
+        return c.text.toLowerCase().includes(q) || memo.toLowerCase().includes(q);
+      });
+    }
+    return result;
+  }, [cards, memoById, filterHasMemo, searchQuery]);
+
+  // Project cards. Custom sort keeps array order for reorder smoke checks.
+  const projCards = useMemo(() => {
+    const projected = filteredCards.map((card) => ({ card, p: proj(card.px, card.py, card.z + zoom, cam.rx, cam.ry) }));
+    if (sortDir === "custom") return projected;
+    return projected.sort((a, b) => a.p.z2 - b.p.z2);
+  }, [filteredCards, cam.rx, cam.ry, zoom, sortDir]);
 
   const t = targetCam.current;
   const camIsRotated =
@@ -374,10 +546,13 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
             isSelected={selected.has(card.id)}
             isPlaying={playingId === card.id}
             time={time}
+            memo={memoById[String(card.id)]}
             onPointerDown={(e) => startDrag(card.id, e)}
             onEnter={() => !isDragging && setHoveredId(card.id)}
             onLeave={() => !isDragging && setHoveredId(null)}
             onMediaClick={() => handleMediaClick(card.id)}
+            onMemoClick={openMemoModal}
+            onReorderDragStart={startReorderDrag}
             onResizeStart={handleResizeStart}
             onDelete={handleDeleteCard}
           />
@@ -404,8 +579,29 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
       {/* Hint */}
       <HintOverlay isIdle={isIdle} />
 
+      {/* Memo toolbar (search, filter, export/import/clear) */}
+      <MemoToolbar
+        search={searchQuery}
+        onSearchChange={setSearchQuery}
+        hasMemoFilter={filterHasMemo}
+        onToggleHasMemo={() => setFilterHasMemo((p) => !p)}
+        memoById={memoById}
+        onImportMemos={handleImportMemos}
+        onClearMemos={clearMemos}
+      />
+
       {/* Input bar */}
       <InputBar onSubmit={addThought} onFileUpload={handleFileUpload} time={time} />
+
+      {/* Memo modal */}
+      {memoModalCardId != null && (
+        <MemoModal
+          cardId={memoModalCardId}
+          initialText={memoById[String(memoModalCardId)] ?? ""}
+          onSave={handleMemoSave}
+          onClose={closeMemoModal}
+        />
+      )}
 
       {/* Stub testids for skipped e2e tests (invisible, non-interactive) */}
       <UiSmokeStubs />
