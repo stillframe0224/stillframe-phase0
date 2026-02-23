@@ -126,6 +126,7 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
   // Pointer down on background: selection rect or camera drag (also stops media)
   const handleBgDown = useCallback(
     (e: React.PointerEvent) => {
+      if (e.defaultPrevented) return;
       const target = e.target as HTMLElement;
       if (target.closest("[data-shinen-card]")) return;
 
