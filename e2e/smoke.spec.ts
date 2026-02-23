@@ -25,7 +25,7 @@ test("/app shinen canvas renders cards in e2e mode", async ({ page }) => {
   const root = page.getByTestId("shinen-root");
   await expect(root).toBeVisible();
 
-  const cards = page.getByTestId("shinen-card");
+  const cards = page.getByTestId("card-item");
   await expect(cards.first()).toBeVisible();
 
   const count = await cards.count();
