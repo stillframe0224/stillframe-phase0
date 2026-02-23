@@ -13,11 +13,13 @@ interface ThoughtCardProps {
   isPlaying?: boolean;
   time: number;
   memo?: string;
+  tag?: string;
   onPointerDown: (e: React.PointerEvent) => void;
   onEnter: () => void;
   onLeave: () => void;
   onMediaClick?: () => void;
   onMemoClick?: (cardId: number) => void;
+  onTagClick?: (cardId: number) => void;
   onReorderDragStart?: (cardId: number, e: React.PointerEvent) => void;
   onResizeStart?: (cardId: number, e: React.PointerEvent) => void;
   onDelete?: (cardId: number) => void;
@@ -34,11 +36,13 @@ export default function ThoughtCard({
   isPlaying = false,
   time,
   memo,
+  tag,
   onPointerDown,
   onEnter,
   onLeave,
   onMediaClick,
   onMemoClick,
+  onTagClick,
   onReorderDragStart,
   onResizeStart,
   onDelete,
@@ -276,6 +280,41 @@ export default function ThoughtCard({
               {formatSize(card.file.size)}
             </span>
           )}
+          {/* Tag chip — shown only when tag exists */}
+          {tag && (
+            <button
+              data-testid="chip-tag"
+              data-no-drag
+              onClick={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                onTagClick?.(card.id);
+              }}
+              onPointerDown={(e) => e.stopPropagation()}
+              style={{
+                position: "relative",
+                zIndex: 11,
+                marginLeft: card.file ? 0 : "auto",
+                padding: "2px 7px",
+                borderRadius: 6,
+                border: "1px solid rgba(45,143,80,0.25)",
+                background: "rgba(45,143,80,0.06)",
+                color: "rgba(45,143,80,0.65)",
+                fontSize: 8,
+                fontFamily: "'DM Sans',sans-serif",
+                fontWeight: 500,
+                letterSpacing: "0.04em",
+                cursor: "pointer",
+                lineHeight: 1,
+                maxWidth: 80,
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {tag}
+            </button>
+          )}
           <button
             data-testid="chip-memo"
             data-no-drag
@@ -288,7 +327,7 @@ export default function ThoughtCard({
             style={{
               position: "relative",
               zIndex: 11,
-              marginLeft: card.file ? 0 : "auto",
+              marginLeft: !tag && !card.file ? "auto" : 0,
               padding: "2px 7px",
               borderRadius: 6,
               border: memo ? "1px solid rgba(79,110,217,0.25)" : "1px solid rgba(0,0,0,0.08)",
