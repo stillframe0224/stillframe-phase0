@@ -125,6 +125,16 @@ export default function Pricing({ lang, gumroadUrl }: PricingProps) {
           {c.cta[lang]}
         </PrimaryButton>
       )}
+      <p
+        style={{
+          marginTop: 10,
+          fontSize: 12,
+          color: "#777",
+          fontFamily: "var(--font-dm)",
+        }}
+      >
+        {c.reassurance[lang]}
+      </p>
     </section>
   );
 }

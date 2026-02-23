@@ -84,6 +84,10 @@ const copy = {
       en: "Early-bird pricing: first 20 members keep this price forever",
       ja: "先着20名はこの価格をずっと維持できます",
     },
+    reassurance: {
+      en: "Cancel anytime. Your cards stay exportable.",
+      ja: "いつでも解約可能。カードはいつでもエクスポートできます。",
+    },
   },
   waitlist: {
     h2: { en: "Stay in the loop", ja: "最新情報を受け取る" },
