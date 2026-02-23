@@ -352,8 +352,16 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
       {/* Background (grid + sand) */}
       <Background cam={cam} zoom={zoom} time={time} />
 
+      {/* Build stamp — hidden, used by ui-smoke to verify deployment sha */}
+      <span
+        data-testid="build-stamp"
+        style={{ position: "absolute", width: 1, height: 1, overflow: "hidden", opacity: 0, pointerEvents: "none" }}
+      >
+        {`build: ${process.env.NEXT_PUBLIC_GIT_SHA ?? "unknown"}`}
+      </span>
+
       {/* Cards */}
-      <div style={{ position: "absolute", inset: 0, zIndex: 5 }}>
+      <div data-testid="cards-grid" style={{ position: "absolute", inset: 0, zIndex: 5, gap: "8px" }}>
         {projCards.map(({ card, p }) => (
           <ThoughtCard
             key={card.id}
