@@ -1,0 +1,27 @@
+# ui-smoke required testids (extracted from e2e/*.spec.ts)
+# Generated: 2026-02-23
+
+## Active tests (non-skipped)
+cta-early-access    app/page.tsx (hero CTA)
+cta-pricing         app/components/Pricing.tsx
+cta-waitlist        app/components/Waitlist.tsx
+shinen-root         app/app/shinen/ShinenCanvas.tsx (canvas root)
+card-item           app/app/shinen/ThoughtCard.tsx (each card)
+shinen-card-face    app/app/shinen/ThoughtCard.tsx (card face)
+
+## Added for real UI elements
+cards-grid          app/app/shinen/ShinenCanvas.tsx (card container)
+layout-pill         app/app/shinen/NavBar.tsx (layout cycle button)
+reset-btn           app/app/shinen/NavBar.tsx (reset camera button)
+tunnel-hud          app/app/shinen/NavBar.tsx (top bar / HUD)
+j7-logo             app/app/shinen/NavBar.tsx (logo area)
+upload-btn          app/app/shinen/InputBar.tsx (file upload button)
+upload-input        app/app/shinen/InputBar.tsx (file input element)
+chip-memo           app/app/shinen/ThoughtCard.tsx (memo type label)
+paper-grid          app/page.tsx (LP grid)
+
+## Stubs (skipped tests only, invisible 1×1 divs)
+tunnel-root         app/app/shinen/ShinenCanvas.tsx (UiSmokeStubs)
+tunnel-card         app/app/shinen/ShinenCanvas.tsx (UiSmokeStubs)
+arrange-btn         app/app/shinen/ShinenCanvas.tsx (UiSmokeStubs)
+e2e-app-card        app/app/shinen/ShinenCanvas.tsx (UiSmokeStubs)

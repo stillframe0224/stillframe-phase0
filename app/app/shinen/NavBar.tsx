@@ -12,6 +12,7 @@ interface NavBarProps {
 export default function NavBar({ cards, layoutLabel, camIsRotated, onCycleLayout, onResetCamera }: NavBarProps) {
   return (
     <div
+      data-testid="tunnel-hud"
       style={{
         position: "absolute",
         top: 0,
@@ -25,7 +26,7 @@ export default function NavBar({ cards, layoutLabel, camIsRotated, onCycleLayout
       }}
     >
       {/* Logo + title */}
-      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+      <div data-testid="j7-logo" style={{ display: "flex", alignItems: "center", gap: 12 }}>
         <svg width={36} height={36} viewBox="0 0 80 80">
           <path
             d="M40 14 A26 26 0 1 1 16 48 A26 26 0 0 1 40 14Z"
@@ -87,6 +88,7 @@ export default function NavBar({ cards, layoutLabel, camIsRotated, onCycleLayout
         {/* Layout button */}
         <button
           className="tb17"
+          data-testid="layout-pill"
           onClick={onCycleLayout}
           style={{
             background: "rgba(0,0,0,0.03)",
@@ -125,7 +127,7 @@ export default function NavBar({ cards, layoutLabel, camIsRotated, onCycleLayout
         {/* Reset button */}
         <button
           className="tb17"
-          data-testid="shinen-reset-btn"
+          data-testid="reset-btn"
           onClick={onResetCamera}
           style={{
             background: "rgba(0,0,0,0.03)",
