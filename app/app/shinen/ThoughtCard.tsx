@@ -59,7 +59,7 @@ export default function ThoughtCard({
   return (
     <div
       data-shinen-card={card.id}
-      data-testid="shinen-card"
+      data-testid="card-item"
       onPointerDown={onPointerDown}
       onMouseEnter={onEnter}
       onMouseLeave={onLeave}
