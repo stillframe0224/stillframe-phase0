@@ -274,6 +274,27 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
     setMemoById((prev) => ({ ...prev, ...notes }));
   }, []);
 
+  // Export all cards as JSONL (1 line per card, with memo + tag merged)
+  const handleExport = useCallback(() => {
+    const lines = cards.map((card) => {
+      const entry: Record<string, unknown> = { ...card };
+      const memo = memoById[String(card.id)];
+      const tag = tagById[String(card.id)];
+      if (memo) entry.memo = memo;
+      if (tag) entry.tag = tag;
+      return JSON.stringify(entry);
+    });
+    const blob = new Blob([lines.join("\n")], { type: "application/jsonl" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `shinen-export-${Date.now()}.jsonl`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 0);
+  }, [cards, memoById, tagById]);
+
   const startReorderDrag = useCallback(
     (cardId: number, e: React.PointerEvent) => {
       if (e.button === 1 || e.button === 2) return;
@@ -863,6 +884,7 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
           });
         }}
         onSearchChange={setSearchQuery}
+        onExport={handleExport}
       />
 
       {/* Hint */}
