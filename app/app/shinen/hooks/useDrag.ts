@@ -2,6 +2,9 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { proj } from "../lib/projection";
 import type { ShinenCard, DragState, GroupDragState, CameraState } from "../lib/types";
 
+const INTERACTIVE_SELECTOR =
+  "button, a, input, textarea, select, option, label, video, audio, iframe, [contenteditable='true'], [data-no-drag]";
+
 export function useDrag(
   cards: ShinenCard[],
   setCards: React.Dispatch<React.SetStateAction<ShinenCard[]>>,
@@ -18,13 +21,38 @@ export function useDrag(
   camRef.current = cam;
   const zoomRef = useRef(zoom);
   zoomRef.current = zoom;
+  const captureRef = useRef<{ el: HTMLElement; pointerId: number } | null>(null);
+
+  const releasePointerCaptureSafe = useCallback(() => {
+    const capture = captureRef.current;
+    if (!capture) return;
+    captureRef.current = null;
+    if (!capture.el.releasePointerCapture) return;
+    try {
+      if (capture.el.hasPointerCapture && !capture.el.hasPointerCapture(capture.pointerId)) return;
+      capture.el.releasePointerCapture(capture.pointerId);
+    } catch {
+      // Ignore browsers that throw if capture was already released.
+    }
+  }, []);
 
   // Single card drag
   const startDrag = useCallback(
     (cardId: number, e: React.PointerEvent) => {
       if (e.shiftKey || e.button === 1 || e.button === 2) return;
+      const target = e.target as HTMLElement | null;
+      if (target?.closest(INTERACTIVE_SELECTOR)) return;
       e.preventDefault();
       e.stopPropagation(); // Prevent background handler from firing
+      const el = e.currentTarget as HTMLElement | null;
+      if (el?.setPointerCapture) {
+        try {
+          el.setPointerCapture(e.pointerId);
+          captureRef.current = { el, pointerId: e.pointerId };
+        } catch {
+          // Ignore if browser denies capture for this pointer.
+        }
+      }
 
       // If card is in a multi-selection, start group drag
       if (selected.has(cardId) && selected.size > 1) {
@@ -66,14 +94,22 @@ export function useDrag(
         ),
       );
     };
-    const onUp = () => setDrag(null);
+    const onUp = (e: PointerEvent) => {
+      const capture = captureRef.current;
+      if (capture && capture.pointerId !== e.pointerId) return;
+      releasePointerCaptureSafe();
+      setDrag(null);
+    };
     window.addEventListener("pointermove", onMove);
     window.addEventListener("pointerup", onUp);
+    window.addEventListener("pointercancel", onUp);
     return () => {
       window.removeEventListener("pointermove", onMove);
       window.removeEventListener("pointerup", onUp);
+      window.removeEventListener("pointercancel", onUp);
+      releasePointerCaptureSafe();
     };
-  }, [drag, setCards]);
+  }, [drag, setCards, releasePointerCaptureSafe]);
 
   // Group drag pointermove/up
   useEffect(() => {
@@ -92,14 +128,24 @@ export function useDrag(
         }),
       );
     };
-    const onUp = () => setGroupDrag(null);
+    const onUp = (e: PointerEvent) => {
+      const capture = captureRef.current;
+      if (capture && capture.pointerId !== e.pointerId) return;
+      releasePointerCaptureSafe();
+      setGroupDrag(null);
+    };
     window.addEventListener("pointermove", onMove);
     window.addEventListener("pointerup", onUp);
+    window.addEventListener("pointercancel", onUp);
     return () => {
       window.removeEventListener("pointermove", onMove);
       window.removeEventListener("pointerup", onUp);
+      window.removeEventListener("pointercancel", onUp);
+      releasePointerCaptureSafe();
     };
-  }, [groupDrag, setCards]);
+  }, [groupDrag, setCards, releasePointerCaptureSafe]);
+
+  useEffect(() => () => releasePointerCaptureSafe(), [releasePointerCaptureSafe]);
 
   const isDragging = drag !== null || groupDrag !== null;
 
