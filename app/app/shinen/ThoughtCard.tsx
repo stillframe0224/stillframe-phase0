@@ -11,10 +11,13 @@ interface ThoughtCardProps {
   isSelected: boolean;
   isPlaying?: boolean;
   time: number;
+  memo?: string;
   onPointerDown: (e: React.PointerEvent) => void;
   onEnter: () => void;
   onLeave: () => void;
   onMediaClick?: () => void;
+  onMemoClick?: (cardId: number) => void;
+  onReorderDragStart?: (cardId: number, e: React.PointerEvent) => void;
   onResizeStart?: (cardId: number, e: React.PointerEvent) => void;
   onDelete?: (cardId: number) => void;
 }
@@ -29,10 +32,13 @@ export default function ThoughtCard({
   isSelected,
   isPlaying = false,
   time,
+  memo,
   onPointerDown,
   onEnter,
   onLeave,
   onMediaClick,
+  onMemoClick,
+  onReorderDragStart,
   onResizeStart,
   onDelete,
 }: ThoughtCardProps) {
@@ -60,6 +66,7 @@ export default function ThoughtCard({
     <div
       data-shinen-card={card.id}
       data-testid="card-item"
+      data-card-id={String(card.id)}
       onPointerDown={onPointerDown}
       onMouseEnter={onEnter}
       onMouseLeave={onLeave}
@@ -130,7 +137,29 @@ export default function ThoughtCard({
           {card.text}
         </div>
 
-        {/* Type label */}
+        {/* Memo snippet (if card has a memo) */}
+        {memo && (
+          <div
+            data-testid="memo-snippet"
+            style={{
+              marginTop: 8,
+              padding: "6px 8px",
+              background: "rgba(79,110,217,0.04)",
+              borderRadius: 6,
+              fontSize: 11,
+              fontFamily: "'DM Sans',sans-serif",
+              color: "rgba(0,0,0,0.35)",
+              lineHeight: 1.5,
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+            }}
+          >
+            {memo.length > 60 ? memo.slice(0, 57) + "..." : memo}
+          </div>
+        )}
+
+        {/* Type label + memo chip */}
         <div
           style={{
             marginTop: 10,
@@ -143,7 +172,6 @@ export default function ThoughtCard({
         >
           <div style={{ width: 6, height: 6, borderRadius: "50%", background: t.glow, opacity: 0.7 }} />
           <span
-            data-testid={t.label.toLowerCase() === "memo" ? "chip-memo" : undefined}
             style={{
               fontSize: 9,
               fontFamily: "'DM Sans',sans-serif",
@@ -167,6 +195,33 @@ export default function ThoughtCard({
               {formatSize(card.file.size)}
             </span>
           )}
+          <button
+            data-testid="chip-memo"
+            data-no-drag
+            onClick={(e) => {
+              e.stopPropagation();
+              e.preventDefault();
+              onMemoClick?.(card.id);
+            }}
+            onPointerDown={(e) => e.stopPropagation()}
+            style={{
+              marginLeft: card.file ? 0 : "auto",
+              padding: "2px 7px",
+              borderRadius: 6,
+              border: memo ? "1px solid rgba(79,110,217,0.25)" : "1px solid rgba(0,0,0,0.08)",
+              background: memo ? "rgba(79,110,217,0.06)" : "rgba(0,0,0,0.02)",
+              color: memo ? "rgba(79,110,217,0.6)" : "rgba(0,0,0,0.25)",
+              fontSize: 8,
+              fontFamily: "'DM Sans',sans-serif",
+              fontWeight: 500,
+              textTransform: "uppercase",
+              letterSpacing: "0.08em",
+              cursor: "pointer",
+              lineHeight: 1,
+            }}
+          >
+            memo
+          </button>
         </div>
 
         {/* Open link button (top-right, left of delete — only for cards with source URL) */}
@@ -205,6 +260,40 @@ export default function ThoughtCard({
           >
             ↗
           </button>
+        )}
+
+        {/* Drag handle (top-left corner) */}
+        {isHovered && (
+          <div
+            data-testid="drag-handle"
+            data-no-drag
+            onPointerDown={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onReorderDragStart?.(card.id, e);
+            }}
+            style={{
+              position: "absolute",
+              left: 4,
+              top: 4,
+              width: 16,
+              height: 16,
+              cursor: "grab",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              opacity: 0.2,
+            }}
+          >
+            <svg width={10} height={10} viewBox="0 0 10 10" fill="rgba(0,0,0,0.5)">
+              <circle cx="3" cy="2" r="1" />
+              <circle cx="7" cy="2" r="1" />
+              <circle cx="3" cy="5" r="1" />
+              <circle cx="7" cy="5" r="1" />
+              <circle cx="3" cy="8" r="1" />
+              <circle cx="7" cy="8" r="1" />
+            </svg>
+          </div>
         )}
 
         {/* Delete button (top-right corner) */}
