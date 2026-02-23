@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Save to SHINEN",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Save any page to SHINEN with one click",
   "permissions": [
     "tabs",
