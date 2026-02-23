@@ -10,8 +10,30 @@ const IG_RE =
   /(?:instagram\.com|instagr\.am)\/(?:p|reel|tv)\/([A-Za-z0-9_-]+)/;
 
 const MAX_REDIRECTS = 5;
-const FETCH_TIMEOUT = 4000;
-const MAX_EXTERNAL_FETCHES = 5; // Per-URL fetch limit (Jina + oEmbed + HEADs + safeFetch)
+const FETCH_TIMEOUT = 6000; // 4s→6s for slow sites (Substack etc.)
+const JINA_TIMEOUT = 7000;  // Jina needs a bit more headroom
+
+// Default Chrome-like UA — most sites allow Googlebot/Chrome; bot UAs are widely blocked.
+const UA_CHROME =
+  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36";
+const ACCEPT_HTML =
+  "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8";
+
+// Domains where direct HTTP fetch is always blocked/useless — skip safeFetch,
+// go straight to Jina fallback.
+const JINA_FIRST_HOSTS = new Set([
+  "twitter.com",
+  "x.com",
+  "t.co",
+  "facebook.com",
+  "www.facebook.com",
+  "fb.com",
+  "fb.me",
+  "linkedin.com",
+  "www.linkedin.com",
+  "tiktok.com",
+  "www.tiktok.com",
+]);
 
 function isInstagramHost(host: string): boolean {
   const h = host.toLowerCase();
@@ -21,6 +43,10 @@ function isInstagramHost(host: string): boolean {
 function isAmazonHost(host: string): boolean {
   const h = host.toLowerCase();
   return h.includes("amazon.") || h.includes("amzn.") || h === "a.co";
+}
+
+function isJinaFirstHost(host: string): boolean {
+  return JINA_FIRST_HOSTS.has(host.toLowerCase());
 }
 
 function parseRetryAfterMs(v: string | null): number | null {
@@ -49,6 +75,34 @@ function failureCacheHeader(status?: number, retryAfterHeader?: string | null): 
   )}`;
 }
 
+// --- Jina.ai universal fallback ---
+// Returns { image, title } or null on failure.
+async function fetchViaJina(
+  url: string,
+  origin: string,
+): Promise<{ image: string | null; title: string | null } | null> {
+  try {
+    const jinaUrl = `https://r.jina.ai/${encodeURIComponent(url)}`;
+    const res = await fetch(jinaUrl, {
+      headers: {
+        "User-Agent": UA_CHROME,
+        Accept: "text/html,application/xhtml+xml",
+        "Accept-Language": "ja,en;q=0.8",
+      },
+      signal: AbortSignal.timeout(JINA_TIMEOUT),
+    });
+    if (!res.ok) return null;
+    const html = await res.text();
+    const ogImage = extractMeta(html, "og:image");
+    const twImage = extractMeta(html, "twitter:image");
+    const image = resolveUrl(ogImage ?? twImage, origin);
+    const title = extractMeta(html, "og:title");
+    return { image, title };
+  } catch {
+    return null;
+  }
+}
+
 // --- Redirect-safe fetch with per-hop validation ---
 
 async function safeFetch(
@@ -64,17 +118,21 @@ async function safeFetch(
       if (!validateUrl(parsed)) throw new Error("blocked");
       if (!(await dnsCheck(parsed.hostname))) throw new Error("blocked");
 
-      // Amazon rejects bot UAs with 403/503 — use browser-like headers
+      // Amazon needs full browser headers to avoid 403/503
       const amazon = isAmazonHost(parsed.hostname);
       const res = await fetch(currentUrl, {
         headers: {
-          "User-Agent": amazon
-            ? "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-            : "Mozilla/5.0 (compatible; SHINEN-Bot/1.0; +https://shinen.app)",
+          "User-Agent": UA_CHROME,
           Accept: amazon
             ? "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8"
-            : "text/html,application/xhtml+xml",
+            : ACCEPT_HTML,
           "Accept-Language": "ja,en;q=0.8",
+          ...(amazon
+            ? {
+                "Accept-Encoding": "gzip, deflate, br",
+                "Upgrade-Insecure-Requests": "1",
+              }
+            : {}),
         },
         redirect: "manual",
         signal: controller.signal,
@@ -181,6 +239,27 @@ function normalizeInstagramUrl(raw: string): string {
   return raw;
 }
 
+// YouTube: maxresdefault may return a 404-placeholder (120×90).
+// Probe with HEAD; fall back to hqdefault (guaranteed 480×360).
+async function resolveYoutubeThumbnail(videoId: string): Promise<string> {
+  const maxres = `https://i.ytimg.com/vi/${videoId}/maxresdefault.jpg`;
+  const hq = `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
+  try {
+    const res = await fetch(maxres, {
+      method: "HEAD",
+      signal: AbortSignal.timeout(2000),
+    });
+    // maxresdefault returns 200 for real thumbnails, 404 for unavailable ones.
+    // ytimg always returns 200 even for placeholders — check content-length.
+    // Placeholder is ~1 KB; real thumbnails are >10 KB.
+    const len = Number(res.headers.get("content-length") ?? "0");
+    if (res.ok && len > 5000) return maxres;
+  } catch {
+    // HEAD failed — fall through to hqdefault
+  }
+  return hq;
+}
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const rawUrl = searchParams.get("url");
@@ -208,12 +287,9 @@ export async function GET(request: Request) {
   // YouTube shortcut — no HTML fetch needed
   const ytMatch = url.match(YT_RE);
   if (ytMatch) {
+    const image = await resolveYoutubeThumbnail(ytMatch[1]);
     return NextResponse.json(
-      {
-        image: `https://i.ytimg.com/vi/${ytMatch[1]}/maxresdefault.jpg`,
-        favicon: "https://www.youtube.com/favicon.ico",
-        title: null,
-      },
+      { image, favicon: "https://www.youtube.com/favicon.ico", title: null },
       { headers: { "Cache-Control": "public, max-age=86400" } }
     );
   }
@@ -245,11 +321,11 @@ export async function GET(request: Request) {
       const jinaUrl = `https://r.jina.ai/${encodeURIComponent(url)}`;
       const jinaRes = await guardedFetch(jinaUrl, {
         headers: {
-          "User-Agent": "Mozilla/5.0 (compatible; SHINEN-Bot/1.0)",
+          "User-Agent": UA_CHROME,
           Accept: "application/json",
           "X-Return-Format": "json",
         },
-        signal: AbortSignal.timeout(5000),
+        signal: AbortSignal.timeout(JINA_TIMEOUT),
       });
       if (jinaRes?.ok) {
         const jinaData = await jinaRes.json();
@@ -265,7 +341,7 @@ export async function GET(request: Request) {
       const oembedUrl = `https://www.instagram.com/oembed/?url=${encodeURIComponent(url)}&omitscript=true`;
       const oembedRes = await guardedFetch(oembedUrl, {
         headers: {
-          "User-Agent": "Mozilla/5.0 (compatible; SHINEN-Bot/1.0; +https://shinen.app)",
+          "User-Agent": UA_CHROME,
           "Accept-Language": "ja,en;q=0.8",
         },
         signal: AbortSignal.timeout(3000),
@@ -352,8 +428,7 @@ export async function GET(request: Request) {
         const oembedUrl = `https://www.instagram.com/oembed/?url=${encodeURIComponent(url)}`;
         const oembedRes = await fetch(oembedUrl, {
           headers: {
-            "User-Agent":
-              "Mozilla/5.0 (compatible; SHINEN-Bot/1.0; +https://shinen.app)",
+            "User-Agent": UA_CHROME,
             Accept: "application/json",
           },
           signal: AbortSignal.timeout(FETCH_TIMEOUT),
@@ -377,11 +452,10 @@ export async function GET(request: Request) {
         const jinaUrl = `https://r.jina.ai/http://${url.replace(/^https?:\/\//i, "")}`;
         const jinaRes = await fetch(jinaUrl, {
           headers: {
-            "User-Agent":
-              "Mozilla/5.0 (compatible; SHINEN-Bot/1.0; +https://shinen.app)",
+            "User-Agent": UA_CHROME,
             Accept: "text/html,application/xhtml+xml",
           },
-          signal: AbortSignal.timeout(FETCH_TIMEOUT),
+          signal: AbortSignal.timeout(JINA_TIMEOUT),
         });
         if (jinaRes.ok) {
           const jinaHtml = await jinaRes.text();
@@ -400,10 +474,37 @@ export async function GET(request: Request) {
       }
     }
 
+    // For domains that always block direct scraping, skip safeFetch and go straight to Jina.
+    if (isJinaFirstHost(parsed.hostname)) {
+      if (debug) console.log(JSON.stringify({ event: "link_preview_jina_first", url }));
+      const jina = await fetchViaJina(url, parsed.origin);
+      if (jina?.image) {
+        return NextResponse.json(
+          { image: jina.image, favicon: `${parsed.origin}/favicon.ico`, title: jina.title },
+          { headers: { "Cache-Control": "public, max-age=3600" } }
+        );
+      }
+      // Jina also failed for this domain — return null with a longer TTL to avoid hammering
+      return NextResponse.json(
+        { image: null, favicon: `${parsed.origin}/favicon.ico`, title: null, retryAfterMs: 30 * 60 * 1000 },
+        { headers: { "Cache-Control": "public, max-age=1800" } }
+      );
+    }
+
     const { res, finalUrl } = await safeFetch(url);
 
     if (!res.ok) {
       if (debug) console.log(JSON.stringify({ event: "link_preview_upstream", url, status: res.status }));
+
+      // Non-2xx from safeFetch — try Jina as fallback before giving up
+      const jina = await fetchViaJina(url, parsed.origin);
+      if (jina?.image) {
+        return NextResponse.json(
+          { image: jina.image, favicon: `${parsed.origin}/favicon.ico`, title: jina.title },
+          { headers: { "Cache-Control": "public, max-age=3600" } }
+        );
+      }
+
       const retryAfterMs = failureRetryAfterMs(res.status, res.headers.get("retry-after"));
       return NextResponse.json(
         { image: null, favicon: `${parsed.origin}/favicon.ico`, title: null, retryAfterMs },
@@ -422,6 +523,18 @@ export async function GET(request: Request) {
     const image = resolveUrl(ogImage ?? twImage ?? jsonLdImage, finalOrigin);
     const title = extractMeta(html, "og:title");
     const favicon = extractFavicon(html, finalOrigin);
+
+    // If direct HTML returned no OG image (e.g. JS-rendered SPA), try Jina as fallback
+    if (!image) {
+      if (debug) console.log(JSON.stringify({ event: "link_preview_no_og_try_jina", url }));
+      const jina = await fetchViaJina(url, finalOrigin);
+      if (jina?.image) {
+        return NextResponse.json(
+          { image: jina.image, favicon, title: title ?? jina.title },
+          { headers: { "Cache-Control": "public, max-age=3600" } }
+        );
+      }
+    }
 
     return NextResponse.json(
       { image, favicon, title },
