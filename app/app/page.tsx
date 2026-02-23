@@ -9,13 +9,23 @@ import "./shinen/shinen.css";
 function buildE2EMockCards() {
   const types = [0, 1, 2, 3, 6, 7]; // melody, idea, quote, task, fragment, dream
   const now = Date.now();
+  // Fixed non-overlapping positions so Playwright pointer events are not intercepted.
+  // Cards are spread across a 700×400 area at z=-80 (same depth = no 3D overlap).
+  const positions = [
+    { px: -300, py: -160 },
+    { px:   80, py: -160 },
+    { px:  360, py: -160 },
+    { px: -300, py:  120 },
+    { px:   80, py:  120 },
+    { px:  360, py:  120 },
+  ];
   return types.map((type, i) => ({
     id: now + i,
     type,
     text: `E2E mock card ${i + 1}`,
-    px: (Math.random() - 0.5) * 300,
-    py: (Math.random() - 0.5) * 200,
-    z: -80 - i * 30,
+    px: positions[i].px,
+    py: positions[i].py,
+    z: -80,
   }));
 }
 
