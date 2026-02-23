@@ -10,6 +10,7 @@ import { useCamera } from "./hooks/useCamera";
 import { useDrag } from "./hooks/useDrag";
 import { useSelection } from "./hooks/useSelection";
 import { useTouch } from "./hooks/useTouch";
+import { useOgThumbnails } from "./hooks/useOgThumbnails";
 import Background from "./Background";
 import ThoughtCard from "./ThoughtCard";
 import SelectionOverlay from "./SelectionOverlay";
@@ -100,6 +101,9 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
     selected, hoveredId, setHoveredId, setLayoutIdx,
     startSelectionAt, moveSelectionTo, endSelectionAt, changeSelectedZ,
   );
+
+  // Lazy-fetch OG thumbnails for clip cards without media
+  useOgThumbnails(cards, setCards);
 
   // Memos: localStorage-backed SSOT
   useEffect(() => {
@@ -459,6 +463,73 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
     });
     return cleanup;
   }, [layoutIdx]);
+
+  // Bookmarklet auto-capture: parse ?auto=1&url=... params on mount
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("auto") !== "1") return;
+    const url = params.get("url");
+    if (!url) return;
+
+    let parsedHost = "";
+    try { parsedHost = new URL(url).hostname; } catch { /* invalid url */ }
+    const title = params.get("title") || parsedHost || url;
+    const img = params.get("img") || undefined;
+    const site = params.get("site") || undefined;
+    const sel = params.get("s") || undefined;
+
+    const ytId = extractYoutubeId(url);
+    const cardText = sel ? `${title}\n\n${sel}` : title;
+
+    setCards((prev) => {
+      // Dedup: skip if a card with this URL already exists
+      if (prev.some((c) => c.source?.url === url)) return prev;
+      const next = [
+        ...prev,
+        {
+          id: Date.now(),
+          type: 8, // clip
+          text: cardText,
+          px: (Math.random() - 0.5) * 380,
+          py: (Math.random() - 0.5) * 200,
+          z: -20 - Math.random() * 100,
+          source: { url, site: site || parsedHost },
+          media: (() => {
+            if (ytId) {
+              return {
+                type: "youtube" as const,
+                url,
+                youtubeId: ytId,
+                thumbnail: `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`,
+              };
+            }
+            if (img) {
+              return { type: "image" as const, url: img };
+            }
+            return undefined;
+            // If undefined, useOgThumbnails will pick this up and fetch the OG image
+          })(),
+        },
+      ];
+      if (layoutIdx >= 0 && LAYOUTS[layoutIdx] !== "scatter") {
+        return applyLayout(LAYOUTS[layoutIdx], next);
+      }
+      return next;
+    });
+
+    // Clean auto-capture params from URL bar
+    try {
+      const cleanUrl = new URL(window.location.href);
+      for (const k of ["auto", "url", "title", "img", "site", "s"]) {
+        cleanUrl.searchParams.delete(k);
+      }
+      window.history.replaceState(null, "", cleanUrl.toString());
+    } catch {
+      // Ignore URL cleanup failures.
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Run once on mount only
 
   // Media click handler — toggle playback (single active at a time)
   const handleMediaClick = useCallback(
