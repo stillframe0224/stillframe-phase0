@@ -171,6 +171,7 @@ export default function ThoughtCard({
         {/* Delete button (top-right corner) */}
         {isHovered && (
           <button
+            data-no-drag
             onClick={(e) => {
               e.stopPropagation();
               e.preventDefault();
@@ -207,6 +208,7 @@ export default function ThoughtCard({
         {/* Resize grip (bottom-right corner) */}
         {isHovered && (
           <div
+            data-no-drag
             onPointerDown={(e) => {
               e.stopPropagation();
               e.preventDefault();
@@ -253,6 +255,8 @@ function MediaPreview({
   if (media.type === "image") {
     return (
       <div
+        data-no-drag
+        onPointerDown={(e) => e.stopPropagation()}
         onClick={(e) => { e.stopPropagation(); window.open(media.url, "_blank"); }}
         style={{ margin: "-16px -18px 0", borderRadius: "8px 8px 0 0", overflow: "hidden", cursor: "zoom-in" }}
       >
@@ -287,6 +291,8 @@ function MediaPreview({
     }
     return (
       <div
+        data-no-drag
+        onPointerDown={(e) => e.stopPropagation()}
         onClick={(e) => {
           e.stopPropagation();
           onMediaClick?.();
@@ -352,6 +358,8 @@ function MediaPreview({
     }
     return (
       <div
+        data-no-drag
+        onPointerDown={(e) => e.stopPropagation()}
         onClick={(e) => {
           e.stopPropagation();
           onMediaClick?.();
@@ -407,6 +415,8 @@ function MediaPreview({
           <audio src={media.url} autoPlay controls style={{ height: 28, flex: 1 }} />
         ) : (
           <div
+            data-no-drag
+            onPointerDown={(e) => e.stopPropagation()}
             onClick={(e) => { e.stopPropagation(); onMediaClick?.(); }}
             style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8, cursor: "pointer", width: "100%" }}
           >
@@ -437,6 +447,8 @@ function MediaPreview({
   if (media.type === "pdf") {
     return (
       <div
+        data-no-drag
+        onPointerDown={(e) => e.stopPropagation()}
         onClick={(e) => { e.stopPropagation(); window.open(media.url, "_blank"); }}
         style={{
           margin: "-16px -18px 0 -18px",
