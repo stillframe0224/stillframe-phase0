@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { TYPES, LAYOUTS, Z_MIN, Z_MAX, INITIAL_CARDS, getCardWidth } from "./lib/constants";
 import { proj } from "./lib/projection";
-import { applyLayout } from "./lib/layouts";
+import { applyLayout, findNonOverlappingPosition } from "./lib/layouts";
 import type { ShinenCard } from "./lib/types";
 import { useAnimationLoop } from "./hooks/useAnimationLoop";
 import { useCamera } from "./hooks/useCamera";
@@ -530,18 +530,20 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
   // Add new thought (text only)
   const addThought = useCallback((text: string) => {
     setCards((prev) => {
+      const pos = layoutIdx < 0 || LAYOUTS[layoutIdx] === "scatter"
+        ? findNonOverlappingPosition(prev)
+        : { px: (Math.random() - 0.5) * 380, py: (Math.random() - 0.5) * 200 };
       const next = [
         ...prev,
         {
           id: Date.now(),
           type: Math.floor(Math.random() * 8),
           text,
-          px: (Math.random() - 0.5) * 380,
-          py: (Math.random() - 0.5) * 200,
+          px: pos.px,
+          py: pos.py,
           z: -20 - Math.random() * 100,
         },
       ];
-      // Re-apply current layout if not free/scatter
       if (layoutIdx >= 0 && LAYOUTS[layoutIdx] !== "scatter") {
         return applyLayout(LAYOUTS[layoutIdx], next);
       }
@@ -558,14 +560,17 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
       file?: { name: string; size: number; mimeType: string };
     }) => {
       setCards((prev) => {
+        const pos = layoutIdx < 0 || LAYOUTS[layoutIdx] === "scatter"
+          ? findNonOverlappingPosition(prev)
+          : { px: (Math.random() - 0.5) * 380, py: (Math.random() - 0.5) * 200 };
         const next = [
           ...prev,
           {
             id: Date.now(),
             type: result.type,
             text: result.text,
-            px: (Math.random() - 0.5) * 380,
-            py: (Math.random() - 0.5) * 200,
+            px: pos.px,
+            py: pos.py,
             z: -20 - Math.random() * 100,
             media: result.media,
             file: result.file,
@@ -586,14 +591,17 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
   useEffect(() => {
     const cleanup = initClipReceiver((clipData: ClipData) => {
       setCards((prev) => {
+        const pos = layoutIdx < 0 || LAYOUTS[layoutIdx] === "scatter"
+          ? findNonOverlappingPosition(prev)
+          : { px: (Math.random() - 0.5) * 380, py: (Math.random() - 0.5) * 200 };
         const next = [
           ...prev,
           {
             id: Date.now(),
             type: 8, // clip type
             text: clipData.title || clipData.url || "Saved clip",
-            px: (Math.random() - 0.5) * 380,
-            py: (Math.random() - 0.5) * 200,
+            px: pos.px,
+            py: pos.py,
             z: -20 - Math.random() * 100,
             source: clipData.url ? {
               url: clipData.url,
@@ -651,14 +659,17 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
     setCards((prev) => {
       // Dedup: skip if a card with this URL already exists
       if (prev.some((c) => c.source?.url === url)) return prev;
+      const pos = layoutIdx < 0 || LAYOUTS[layoutIdx] === "scatter"
+        ? findNonOverlappingPosition(prev)
+        : { px: (Math.random() - 0.5) * 380, py: (Math.random() - 0.5) * 200 };
       const next = [
         ...prev,
         {
           id: Date.now(),
           type: 8, // clip
           text: cardText,
-          px: (Math.random() - 0.5) * 380,
-          py: (Math.random() - 0.5) * 200,
+          px: pos.px,
+          py: pos.py,
           z: -20 - Math.random() * 100,
           source: { url, site: site || parsedHost },
           media: (() => {

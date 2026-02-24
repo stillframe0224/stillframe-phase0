@@ -1,4 +1,4 @@
-import { TYPES, SLAB_N, SLAB_GAP, TAP_TARGET_MIN, getCardWidth } from "./lib/constants";
+import { SLAB_N, SLAB_GAP, TAP_TARGET_MIN, getCardWidth } from "./lib/constants";
 import type { ShinenCard, Projection } from "./lib/types";
 import { toProxySrc } from "./lib/proxy";
 
@@ -47,7 +47,6 @@ export default function ThoughtCard({
   onResizeStart,
   onDelete,
 }: ThoughtCardProps) {
-  const t = TYPES[card.type] ?? TYPES[0];
   const floatY = isDragging ? 0 : Math.sin(time * 0.0005 + card.id * 2.1) * 3;
 
   // When playing video/youtube, expand card width
@@ -151,9 +150,19 @@ export default function ThoughtCard({
           const parts = card.text ? card.text.split("\n\n") : [];
           const clipTitle = parts[0] ?? "";
           const clipDesc = parts.slice(1).join("\n\n").trim();
+          // Determine site icon: YouTube/Amazon fixed, others use fetched favicon
+          const siteIcon = (() => {
+            const url = card.source?.url ?? "";
+            try {
+              const h = new URL(url).hostname.toLowerCase();
+              if (h.includes("youtube.com") || h === "youtu.be") return "https://www.youtube.com/favicon.ico";
+              if (h.includes("amazon.") || h.includes("amzn.") || h === "a.co") return "https://www.amazon.com/favicon.ico";
+            } catch { /* ignore */ }
+            return card.source?.favicon ?? null;
+          })();
           return (
             <div style={{ marginTop: hasMedia ? 10 : 0 }}>
-              {/* Title — 2-line clamp, serif */}
+              {/* Title — 2-line clamp, serif, with site icon */}
               <div
                 style={{
                   fontFamily: "'Cormorant Garamond','Noto Serif JP',Georgia,serif",
@@ -161,13 +170,36 @@ export default function ThoughtCard({
                   lineHeight: 1.6,
                   color: "#111",
                   fontWeight: 500,
-                  display: "-webkit-box",
-                  WebkitLineClamp: 2,
-                  WebkitBoxOrient: "vertical" as const,
-                  overflow: "hidden",
+                  display: "flex",
+                  alignItems: "flex-start",
+                  gap: 5,
                 }}
               >
-                {clipTitle}
+                {siteIcon && (
+                  <img
+                    src={siteIcon}
+                    alt=""
+                    style={{
+                      width: 14,
+                      height: 14,
+                      flexShrink: 0,
+                      marginTop: 4,
+                      borderRadius: 2,
+                      objectFit: "contain",
+                    }}
+                  />
+                )}
+                <span
+                  style={{
+                    display: "-webkit-box",
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: "vertical" as const,
+                    overflow: "hidden",
+                    minWidth: 0,
+                  }}
+                >
+                  {clipTitle}
+                </span>
               </div>
               {/* Desc — 2-line clamp, sans-serif, muted */}
               {clipDesc ? (
@@ -235,7 +267,7 @@ export default function ThoughtCard({
           </div>
         )}
 
-        {/* Type label + memo chip */}
+        {/* Chip bar */}
         <div
           style={{
             position: "relative",
@@ -248,26 +280,6 @@ export default function ThoughtCard({
             paddingTop: 8,
           }}
         >
-          <div style={{ width: 6, height: 6, borderRadius: "50%", background: t.glow, opacity: 0.7 }} />
-          <span
-            style={{
-              fontSize: 9,
-              fontFamily: "'DM Sans',sans-serif",
-              color: "rgba(0,0,0,0.3)",
-              textTransform: "uppercase",
-              letterSpacing: "0.12em",
-              fontWeight: 500,
-            }}
-          >
-            {t.label}
-          </span>
-          {/* YouTube icon next to label */}
-          {card.media?.type === "youtube" && (
-            <svg width={14} height={10} viewBox="0 0 28 20" style={{ opacity: 0.4, flexShrink: 0 }}>
-              <rect width="28" height="20" rx="4" fill="#FF0000" />
-              <polygon points="11,4 11,16 21,10" fill="#fff" />
-            </svg>
-          )}
           {card.file && (
             <span
               style={{

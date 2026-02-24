@@ -37,11 +37,22 @@ function shouldSkipOg(url: string): boolean {
 
 interface OgCacheEntry {
   image: string | null;
+  favicon?: string | null;
   fetchedAt: number;
   retryAfterMs?: number;
 }
 
 type OgCache = Record<string, OgCacheEntry>;
+
+/** Domains where we still show OG thumbnails (YouTube handled separately via media.type=youtube). */
+function isImageAllowedHost(url: string): boolean {
+  try {
+    const h = new URL(url).hostname.toLowerCase();
+    return h.includes("amazon.") || h.includes("amzn.") || h === "a.co";
+  } catch {
+    return false;
+  }
+}
 
 function readCache(): OgCache {
   try {
@@ -78,38 +89,36 @@ export function useOgThumbnails(
 ) {
   const inflightRef = useRef<Set<string>>(new Set());
 
-  // Derive a stable dependency key from URLs that need fetching.
-  const needsOgKey = cards
-    .filter((c) => c.type === 8 && c.source?.url && !c.media)
+  // Derive a stable dependency key from clip cards that need fetching (no media, or missing favicon).
+  const needsFetchKey = cards
+    .filter((c) => c.type === 8 && c.source?.url && (!c.media || !c.source?.favicon))
     .map((c) => c.source!.url)
     .sort()
     .join("|");
 
   useEffect(() => {
-    if (!needsOgKey) return;
+    if (!needsFetchKey) return;
 
-    const needsOg = cards.filter(
-      (c) => c.type === 8 && c.source?.url && !c.media,
+    const needsFetch = cards.filter(
+      (c) => c.type === 8 && c.source?.url && (!c.media || !c.source?.favicon),
     );
-    if (needsOg.length === 0) return;
+    if (needsFetch.length === 0) return;
 
     const cache = readCache();
-    const cacheHits: Array<{ id: number; imageUrl: string }> = [];
+    const cacheHits: Array<{ id: number; imageUrl: string | null; favicon: string | null }> = [];
     const toFetch: Array<{ id: number; url: string }> = [];
 
-    for (const card of needsOg) {
+    for (const card of needsFetch) {
       const url = card.source!.url;
-      // Skip domains where OG fetch is structurally futile
       if (shouldSkipOg(url)) continue;
       const entry = cache[url];
       if (entry) {
-        if (entry.image) {
-          cacheHits.push({ id: card.id, imageUrl: entry.image });
+        if (entry.image || entry.favicon) {
+          cacheHits.push({ id: card.id, imageUrl: entry.image, favicon: entry.favicon ?? null });
         } else {
-          // Failure entry — check TTL
           const ttl = entry.retryAfterMs ?? DEFAULT_FAILURE_TTL;
-          if (Date.now() - entry.fetchedAt < ttl) continue; // still within TTL
-          toFetch.push({ id: card.id, url }); // expired, retry
+          if (Date.now() - entry.fetchedAt < ttl) continue;
+          toFetch.push({ id: card.id, url });
         }
       } else {
         toFetch.push({ id: card.id, url });
@@ -118,17 +127,25 @@ export function useOgThumbnails(
 
     // Apply cache hits in one batch
     if (cacheHits.length > 0) {
-      const hitMap = new Map(cacheHits.map((h) => [h.id, h.imageUrl]));
+      const hitMap = new Map(cacheHits.map((h) => [h.id, h]));
       setCards((prev) =>
         prev.map((c) => {
-          const img = hitMap.get(c.id);
-          if (!img || c.media) return c;
-          return { ...c, media: { type: "image" as const, url: img } };
+          const hit = hitMap.get(c.id);
+          if (!hit) return c;
+          const updates: Partial<typeof c> = {};
+          // Only set media for Amazon hosts (YouTube already has media)
+          if (hit.imageUrl && !c.media && c.source?.url && isImageAllowedHost(c.source.url)) {
+            updates.media = { type: "image" as const, url: hit.imageUrl };
+          }
+          // Always apply favicon
+          if (hit.favicon && c.source && !c.source.favicon) {
+            updates.source = { ...c.source, favicon: hit.favicon };
+          }
+          return Object.keys(updates).length > 0 ? { ...c, ...updates } : c;
         }),
       );
     }
 
-    // Fetch cache misses
     if (toFetch.length === 0) return;
 
     const controller = new AbortController();
@@ -142,32 +159,34 @@ export function useOgThumbnails(
       })
         .then((res) => res.json())
         .then(
-          (data: { image?: string | null; retryAfterMs?: number }) => {
+          (data: { image?: string | null; favicon?: string | null; retryAfterMs?: number }) => {
             inflightRef.current.delete(url);
             const currentCache = readCache();
-            if (data.image) {
-              currentCache[url] = {
-                image: data.image,
-                fetchedAt: Date.now(),
-              };
-              writeCache(currentCache);
+            currentCache[url] = {
+              image: data.image ?? null,
+              favicon: data.favicon ?? null,
+              fetchedAt: Date.now(),
+              ...(data.image ? {} : { retryAfterMs: data.retryAfterMs }),
+            };
+            writeCache(currentCache);
+
+            const showImage = data.image && isImageAllowedHost(url);
+            const favicon = data.favicon ?? null;
+
+            if (showImage || favicon) {
               setCards((prev) =>
-                prev.map((c) =>
-                  c.id === id && !c.media
-                    ? {
-                        ...c,
-                        media: { type: "image" as const, url: data.image! },
-                      }
-                    : c,
-                ),
+                prev.map((c) => {
+                  if (c.id !== id) return c;
+                  const updates: Partial<typeof c> = {};
+                  if (showImage && !c.media) {
+                    updates.media = { type: "image" as const, url: data.image! };
+                  }
+                  if (favicon && c.source && !c.source.favicon) {
+                    updates.source = { ...c.source, favicon };
+                  }
+                  return Object.keys(updates).length > 0 ? { ...c, ...updates } : c;
+                }),
               );
-            } else {
-              currentCache[url] = {
-                image: null,
-                fetchedAt: Date.now(),
-                retryAfterMs: data.retryAfterMs,
-              };
-              writeCache(currentCache);
             }
           },
         )
@@ -183,5 +202,5 @@ export function useOgThumbnails(
       controller.abort();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [needsOgKey, setCards]);
+  }, [needsFetchKey, setCards]);
 }
