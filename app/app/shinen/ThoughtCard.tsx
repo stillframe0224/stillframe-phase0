@@ -26,6 +26,17 @@ interface ThoughtCardProps {
   onDelete?: (cardId: number) => void;
 }
 
+function buildCardSnapshot(card: ShinenCard, linkUrl: string | null, thumbnailUrl: string | null) {
+  return {
+    cardId: card.id,
+    domain: inferDomain(linkUrl ?? thumbnailUrl ?? card.source?.url ?? card.media?.url ?? null),
+    link_url: linkUrl,
+    thumbnail_url: thumbnailUrl,
+    title: (card.text ?? "").split("\n")[0]?.slice(0, 160) ?? "",
+    kind: card.media?.type ?? `type-${card.type}`,
+  };
+}
+
 export default function ThoughtCard({
   card,
   p,
@@ -374,16 +385,19 @@ export default function ThoughtCard({
             onClickCapture={(e) => {
               const pointerDownPrevented =
                 (e.currentTarget as HTMLAnchorElement).dataset.pointerDownPrevented === "1";
+              const linkUrl = card.source?.url ?? card.media?.url ?? null;
+              const thumbUrl = card.media?.thumbnail ?? (card.media?.type === "image" ? card.media.url : null);
               logDiagEvent({
                 type: "open_click",
                 cardId: card.id,
-                domain: inferDomain(card.source?.url ?? card.media?.url ?? null),
-                link_url: card.source?.url ?? card.media?.url ?? null,
-                thumbnail_url: card.media?.thumbnail ?? (card.media?.type === "image" ? card.media.url : null),
+                domain: inferDomain(linkUrl ?? thumbUrl),
+                link_url: linkUrl,
+                thumbnail_url: thumbUrl,
                 extra: {
                   clickDefaultPrevented: e.defaultPrevented,
                   pointerDownDefaultPrevented: pointerDownPrevented,
                   isHovered,
+                  cardSnapshot: buildCardSnapshot(card, linkUrl, thumbUrl),
                 },
               });
             }}
@@ -559,16 +573,19 @@ function MediaPreview({
           src={proxiedSrc}
           alt={card.text}
           onError={(e) => {
+            const linkUrl = card.source?.url ?? media.url;
+            const thumbUrl = media.url;
             logDiagEvent({
               type: "thumb_error",
               cardId: card.id,
-              domain: inferDomain(card.source?.url ?? media.url),
-              link_url: card.source?.url ?? media.url,
-              thumbnail_url: media.url,
+              domain: inferDomain(linkUrl),
+              link_url: linkUrl,
+              thumbnail_url: thumbUrl,
               extra: {
                 src: e.currentTarget.currentSrc || proxiedSrc,
                 proxy_url: proxiedSrc,
                 mediaType: media.type,
+                cardSnapshot: buildCardSnapshot(card, linkUrl, thumbUrl),
               },
             });
           }}
@@ -620,16 +637,18 @@ function MediaPreview({
           onError={(e) => {
             const thumb = media.thumbnail || `https://img.youtube.com/vi/${media.youtubeId}/hqdefault.jpg`;
             const proxyUrl = toProxySrc(thumb);
+            const linkUrl = card.source?.url ?? media.url;
             logDiagEvent({
               type: "thumb_error",
               cardId: card.id,
-              domain: inferDomain(card.source?.url ?? media.url),
-              link_url: card.source?.url ?? media.url,
+              domain: inferDomain(linkUrl),
+              link_url: linkUrl,
               thumbnail_url: thumb,
               extra: {
                 src: e.currentTarget.currentSrc || proxyUrl,
                 proxy_url: proxyUrl,
                 mediaType: media.type,
+                cardSnapshot: buildCardSnapshot(card, linkUrl, thumb),
               },
             });
           }}

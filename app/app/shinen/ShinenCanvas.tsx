@@ -22,7 +22,7 @@ import TagModal from "./TagModal";
 import MemoToolbar from "./MemoToolbar";
 import { initClipReceiver } from "./lib/clip-receiver";
 import type { ClipData } from "./lib/clip-receiver";
-import { downloadDiagnosticsJSONL, isDebugModeEnabled } from "./lib/diag";
+import { downloadDebugBundleJSONL, downloadDiagnosticsJSONL, isDebugModeEnabled } from "./lib/diag";
 import appPackage from "../../../package.json";
 
 const MEMO_STORAGE_KEY = "shinen_memo_v1";
@@ -108,6 +108,7 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
   const [resizingId, setResizingId] = useState<number | null>(null);
   const [debugMode, setDebugMode] = useState(false);
   const [debugBuildLabel, setDebugBuildLabel] = useState(`v${appPackage.version}`);
+  const [debugExportError, setDebugExportError] = useState<string | null>(null);
   const [memoById, setMemoById] = useState<Record<string, string>>({});
   const [memoModalCardId, setMemoModalCardId] = useState<number | null>(null);
   const [tagById, setTagById] = useState<Record<string, string>>({});
@@ -312,27 +313,39 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
 
   // Export all cards as JSONL (1 line per card, with memo + tag merged)
   const handleExport = useCallback(() => {
-    const lines = cards.map((card) => {
+    const cardRows = cards.map((card) => {
       const entry: Record<string, unknown> = { ...card };
       const memo = memoById[String(card.id)];
       const tag = tagById[String(card.id)];
       if (memo) entry.memo = memo;
       if (tag) entry.tag = tag;
-      return JSON.stringify(entry);
+      return entry;
     });
-    const blob = new Blob([lines.join("\n")], { type: "application/jsonl" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `shinen-export-${Date.now()}.jsonl`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 0);
-    if (debugMode) {
-      downloadDiagnosticsJSONL("diagnostics.jsonl");
+    try {
+      if (debugMode) {
+        downloadDebugBundleJSONL(
+          cardRows,
+          `shinen-export-bundle-${Date.now()}.jsonl`,
+          { commit: debugBuildLabel, version: appPackage.version },
+        );
+      } else {
+        const lines = cardRows.map((row) => JSON.stringify(row));
+        const blob = new Blob([lines.join("\n")], { type: "application/jsonl" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `shinen-export-${Date.now()}.jsonl`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 0);
+      }
+      setDebugExportError(null);
+    } catch (error) {
+      console.error("export_failed", error);
+      setDebugExportError(error instanceof Error ? error.message : "unknown_error");
     }
-  }, [cards, memoById, tagById, debugMode]);
+  }, [cards, memoById, tagById, debugMode, debugBuildLabel]);
 
   const startReorderDrag = useCallback(
     (cardId: number, e: React.PointerEvent) => {
@@ -901,7 +914,16 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
             onPointerDown={(e) => e.stopPropagation()}
             onClick={(e) => {
               e.stopPropagation();
-              downloadDiagnosticsJSONL("diagnostics.jsonl");
+              try {
+                downloadDiagnosticsJSONL(
+                  `shinen-diagnostics-${Date.now()}.jsonl`,
+                  { commit: debugBuildLabel, debug: true, version: appPackage.version },
+                );
+                setDebugExportError(null);
+              } catch (error) {
+                console.error("diagnostics_export_failed", error);
+                setDebugExportError(error instanceof Error ? error.message : "unknown_error");
+              }
             }}
             style={{
               border: "1px solid rgba(0,0,0,0.14)",
@@ -915,6 +937,11 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
           >
             export diagnostics
           </button>
+          {debugExportError && (
+            <span data-testid="debug-export-error" style={{ color: "rgba(173,33,33,0.9)" }}>
+              {`export failed: ${debugExportError}`}
+            </span>
+          )}
         </div>
       )}
 

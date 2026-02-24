@@ -34,6 +34,10 @@ function normalizeEvent(input, now) {
   };
 }
 
+function makeNow(now) {
+  return typeof now === "function" ? now : () => new Date().toISOString();
+}
+
 export function createDiagStore(opts = {}) {
   const key = opts.key ?? DIAG_STORAGE_KEY;
   const max = opts.max ?? DIAG_MAX_EVENTS;
@@ -103,8 +107,49 @@ export function readDiagEvents() {
   return defaultStore.read();
 }
 
-export function exportDiagJSONL() {
-  return defaultStore.exportJSONL();
+export function buildDiagnosticsRecords(opts = {}) {
+  const now = makeNow(opts.now);
+  const events = (opts.events ?? readDiagEvents()).map((event) => normalizeEvent(event, now));
+  const meta = {
+    kind: "diag_meta",
+    ts: now(),
+    events: events.length,
+    debug: Boolean(opts.debug),
+    commit: opts.commit ? String(opts.commit) : null,
+    source: "local",
+    ...(opts.error ? { error: String(opts.error) } : {}),
+  };
+  const rows = events.map((event) => ({ kind: "diag", ...event }));
+  return [meta, ...rows];
+}
+
+export function buildDiagnosticsJSONL(opts = {}) {
+  return buildDiagnosticsRecords(opts).map((row) => JSON.stringify(row)).join("\n");
+}
+
+export function buildDebugBundleJSONL(opts = {}) {
+  const now = makeNow(opts.now);
+  const ts = now();
+  const cards = Array.isArray(opts.cards) ? opts.cards : [];
+  const meta = {
+    kind: "meta",
+    ts,
+    debug: true,
+    commit: opts.commit ? String(opts.commit) : null,
+    version: opts.version ? String(opts.version) : null,
+  };
+  const cardRows = cards.map((card) => ({ kind: "card", ...card }));
+  const diagRows = buildDiagnosticsRecords({
+    events: opts.diagEvents,
+    commit: opts.commit,
+    debug: true,
+    now: () => ts,
+  });
+  return [meta, ...cardRows, ...diagRows].map((row) => JSON.stringify(row)).join("\n");
+}
+
+export function exportDiagJSONL(opts = {}) {
+  return buildDiagnosticsJSONL(opts);
 }
 
 export function clearDiagEvents() {
@@ -130,9 +175,13 @@ export function isDebugModeEnabled(opts = {}) {
   }
 }
 
-export function downloadDiagnosticsJSONL(filename = "diagnostics.jsonl") {
-  if (typeof document === "undefined") return;
-  const jsonl = exportDiagJSONL();
+function downloadJSONLString(jsonl, filename) {
+  if (typeof document === "undefined") {
+    throw new Error("document_unavailable");
+  }
+  if (typeof Blob === "undefined" || typeof URL === "undefined") {
+    throw new Error("blob_unavailable");
+  }
   const blob = new Blob([jsonl], { type: "application/jsonl" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
@@ -142,6 +191,17 @@ export function downloadDiagnosticsJSONL(filename = "diagnostics.jsonl") {
   a.click();
   a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 0);
+  return { filename, bytes: jsonl.length };
+}
+
+export function downloadDiagnosticsJSONL(filename = `shinen-diagnostics-${Date.now()}.jsonl`, opts = {}) {
+  const jsonl = exportDiagJSONL(opts);
+  return downloadJSONLString(jsonl, filename);
+}
+
+export function downloadDebugBundleJSONL(cards, filename = `shinen-export-bundle-${Date.now()}.jsonl`, opts = {}) {
+  const jsonl = buildDebugBundleJSONL({ ...opts, cards });
+  return downloadJSONLString(jsonl, filename);
 }
 
 export function inferDomain(url) {
