@@ -226,6 +226,44 @@ function extractJsonLdImage(html: string): string | null {
   return null;
 }
 
+/** Extract product image from Amazon's data-a-dynamic-image attribute (JSON of url→[w,h]). */
+function extractAmazonDynamicImage(html: string): string | null {
+  const match = html.match(/data-a-dynamic-image=["'](\{[^"']+\})["']/);
+  if (!match?.[1]) return null;
+  try {
+    const obj = JSON.parse(match[1].replace(/&quot;/g, '"'));
+    const urls = Object.keys(obj);
+    // Pick the first https URL
+    return urls.find((u) => u.startsWith("https://")) ?? urls[0] ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/** Amazon-specific JSON-LD Product image extraction (more targeted than generic). */
+function extractAmazonJsonLdImage(html: string): string | null {
+  const jsonLdPattern = /<script[^>]+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi;
+  const matches = [...html.matchAll(jsonLdPattern)];
+  for (const match of matches) {
+    try {
+      const json = JSON.parse(match[1]);
+      const items = Array.isArray(json) ? json : [json];
+      for (const item of items) {
+        if (item["@type"] === "Product" && item.image) {
+          if (typeof item.image === "string") return item.image;
+          if (Array.isArray(item.image) && item.image[0]) {
+            return typeof item.image[0] === "string" ? item.image[0] : item.image[0].url;
+          }
+          if (item.image.url) return item.image.url;
+        }
+      }
+    } catch {
+      // skip
+    }
+  }
+  return null;
+}
+
 // --- Route handler ---
 
 // Normalize scheme-less or malformed Instagram URLs before URL parsing.
@@ -512,7 +550,8 @@ export async function GET(request: Request) {
       );
     }
 
-    const finalOrigin = new URL(finalUrl).origin;
+    const finalParsed = new URL(finalUrl);
+    const finalOrigin = finalParsed.origin;
     const html = await res.text();
 
     // Try OGP first, then Twitter Card, then JSON-LD fallback
@@ -520,7 +559,15 @@ export async function GET(request: Request) {
     const twImage = extractMeta(html, "twitter:image");
     const jsonLdImage = extractJsonLdImage(html);
 
-    const image = resolveUrl(ogImage ?? twImage ?? jsonLdImage, finalOrigin);
+    let image = resolveUrl(ogImage ?? twImage ?? jsonLdImage, finalOrigin);
+
+    // Amazon-specific fallback: if OG/Twitter/JSON-LD all failed, try Amazon-specific selectors
+    if (!image && isAmazonHost(finalParsed.hostname)) {
+      const amazonJsonLd = extractAmazonJsonLdImage(html);
+      const amazonDynamic = extractAmazonDynamicImage(html);
+      image = resolveUrl(amazonJsonLd ?? amazonDynamic, finalOrigin);
+    }
+
     const title = extractMeta(html, "og:title");
     const favicon = extractFavicon(html, finalOrigin);
 
