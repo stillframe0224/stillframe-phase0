@@ -3,6 +3,9 @@
 Deterministic index of `reports/triad/*.md`. Do not add timestamps here.
 
 - [INDEX_ig_preview_pipeline: INDEX: IG Preview Pipeline](INDEX_ig_preview_pipeline.md)
+- [20260224_regression_autodiag: SHINEN triad report — 2026-02-24 (autodiag)](20260224_regression_autodiag.md)
+- [20260224_link_open_amazon: SHINEN triad report — 2026-02-24](20260224_link_open_amazon.md)
+- [20260224_diag_export_hardening: SHINEN triad report — 2026-02-24 (diag export hardening)](20260224_diag_export_hardening.md)
 - [20260221_phase0_kpi_scoreboard: Phase0 KPI Scoreboard — Adoption Note](20260221_phase0_kpi_scoreboard.md)
 - [20260221_hard_gate_canary: Hard Gate Canary](20260221_hard_gate_canary.md)
 - [20260221_docs_pr_autopilot: Triad Report: Docs PR Autopilot Adoption](20260221_docs_pr_autopilot.md)
