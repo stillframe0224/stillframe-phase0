@@ -189,6 +189,56 @@ export function layoutTriangle(cards: ShinenCard[]): ShinenCard[] {
   });
 }
 
+/**
+ * Find a non-overlapping position for a new card among existing cards.
+ * Uses spiral search outward from a random starting point.
+ */
+export function findNonOverlappingPosition(
+  existingCards: ShinenCard[],
+): { px: number; py: number } {
+  const cw = getCardWidth() + 20; // gap
+  const ch = CARD_HEIGHT_DEFAULT + 20;
+
+  if (existingCards.length === 0) {
+    return { px: 0, py: 0 };
+  }
+
+  // Start from a position near center, spiral outward
+  const startPx = (Math.random() - 0.5) * 200;
+  const startPy = (Math.random() - 0.5) * 100;
+
+  const collides = (px: number, py: number) =>
+    existingCards.some(
+      (c) => Math.abs(c.px - px) < cw && Math.abs(c.py - py) < ch,
+    );
+
+  // Try the starting position first
+  if (!collides(startPx, startPy)) return { px: startPx, py: startPy };
+
+  // Spiral search: check positions in expanding rings
+  for (let ring = 1; ring <= 20; ring++) {
+    const stepX = cw * ring;
+    const stepY = ch * ring;
+    // Check positions around the ring
+    for (let dx = -ring; dx <= ring; dx++) {
+      for (let dy = -ring; dy <= ring; dy++) {
+        if (Math.abs(dx) !== ring && Math.abs(dy) !== ring) continue; // only perimeter
+        const px = startPx + dx * cw;
+        const py = startPy + dy * ch;
+        if (!collides(px, py)) return { px, py };
+      }
+    }
+    void stepX;
+    void stepY;
+  }
+
+  // Fallback: place far away
+  return {
+    px: existingCards.length * cw,
+    py: 0,
+  };
+}
+
 const LAYOUT_FNS = [layoutScatter, layoutGrid, layoutCircle, layoutTiles, layoutTriangle] as const;
 
 export function applyLayout(name: string, cards: ShinenCard[]): ShinenCard[] {
