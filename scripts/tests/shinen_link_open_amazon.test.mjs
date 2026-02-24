@@ -5,7 +5,12 @@ import test from "node:test";
 import { fileURLToPath } from "node:url";
 import { pickBestImageFromHtml } from "../../app/api/link-preview/imageExtract.mjs";
 import { buildAmazonImageHeaders, isAmazonCdnHost } from "../../app/api/image-proxy/amazonHeaders.mjs";
-import { createDiagStore, isDebugModeEnabled } from "../../app/app/shinen/lib/diag.mjs";
+import {
+  buildDebugBundleJSONL,
+  buildDiagnosticsJSONL,
+  createDiagStore,
+  isDebugModeEnabled,
+} from "../../app/app/shinen/lib/diag.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -22,6 +27,7 @@ test("ThoughtCard open link anchor keeps target/rel hardening", () => {
   assert.match(src, /↗ open/);
   assert.match(src, /type:\s*"open_click"/);
   assert.match(src, /type:\s*"thumb_error"/);
+  assert.match(src, /cardSnapshot/);
 });
 
 test("Amazon extraction prefers landingImage data-old-hires", () => {
@@ -109,10 +115,11 @@ test("diag store keeps ring buffer cap and exports JSONL", () => {
 });
 
 test("diag open_click event persists required fields", () => {
+  const now = () => "2026-02-24T00:00:00.000Z";
   const store = createDiagStore({
     key: "diag_click",
     storage: createMemoryStorage(),
-    now: () => "2026-02-24T00:00:00.000Z",
+    now,
   });
   store.log({
     type: "open_click",
@@ -120,7 +127,16 @@ test("diag open_click event persists required fields", () => {
     domain: "example.com",
     link_url: "https://example.com/page",
     thumbnail_url: "https://example.com/thumb.jpg",
-    extra: { clickDefaultPrevented: false, pointerDownDefaultPrevented: false },
+    extra: {
+      clickDefaultPrevented: false,
+      pointerDownDefaultPrevented: false,
+      cardSnapshot: {
+        cardId: 42,
+        domain: "example.com",
+        link_url: "https://example.com/page",
+        thumbnail_url: "https://example.com/thumb.jpg",
+      },
+    },
   });
 
   const [event] = store.read();
@@ -128,6 +144,13 @@ test("diag open_click event persists required fields", () => {
   assert.equal(event.cardId, 42);
   assert.equal(event.link_url, "https://example.com/page");
   assert.equal(event.thumbnail_url, "https://example.com/thumb.jpg");
+
+  const lines = buildDiagnosticsJSONL({ events: store.read(), debug: true, commit: "abc1234", now })
+    .split("\n")
+    .map((line) => JSON.parse(line));
+  assert.equal(lines[1].kind, "diag");
+  assert.equal(lines[1].type, "open_click");
+  assert.equal(lines[1].extra.cardSnapshot.link_url, "https://example.com/page");
 });
 
 test("debug flag detection accepts query or storage flag", () => {
@@ -136,4 +159,71 @@ test("debug flag detection accepts query or storage flag", () => {
   const storage = createMemoryStorage();
   storage.setItem("shinen_debug", "1");
   assert.equal(isDebugModeEnabled({ search: "", storage }), true);
+});
+
+test("diagnostics export emits diag_meta even when no events", () => {
+  const jsonl = buildDiagnosticsJSONL({
+    events: [],
+    debug: true,
+    commit: "1234567",
+    now: () => "2026-02-24T00:00:00.000Z",
+  });
+  const lines = jsonl.split("\n").map((line) => JSON.parse(line));
+  assert.equal(lines.length, 1);
+  assert.equal(lines[0].kind, "diag_meta");
+  assert.equal(lines[0].events, 0);
+  assert.equal(lines[0].commit, "1234567");
+});
+
+test("thumb_error export keeps cardSnapshot.thumbnail_url", () => {
+  const now = () => "2026-02-24T00:00:01.000Z";
+  const store = createDiagStore({
+    key: "diag_thumb",
+    storage: createMemoryStorage(),
+    now,
+  });
+  store.log({
+    type: "thumb_error",
+    cardId: 7,
+    link_url: "https://www.amazon.co.jp/dp/B000000000",
+    thumbnail_url: "https://m.media-amazon.com/images/I/demo.jpg",
+    extra: {
+      proxy_url: "/api/image-proxy?url=x",
+      cardSnapshot: {
+        cardId: 7,
+        domain: "www.amazon.co.jp",
+        link_url: "https://www.amazon.co.jp/dp/B000000000",
+        thumbnail_url: "https://m.media-amazon.com/images/I/demo.jpg",
+      },
+    },
+  });
+  const lines = buildDiagnosticsJSONL({ events: store.read(), debug: true, now })
+    .split("\n")
+    .map((line) => JSON.parse(line));
+  assert.equal(lines[1].type, "thumb_error");
+  assert.equal(lines[1].extra.cardSnapshot.thumbnail_url, "https://m.media-amazon.com/images/I/demo.jpg");
+});
+
+test("debug bundle export is single JSONL with meta/card/diag order", () => {
+  const jsonl = buildDebugBundleJSONL({
+    cards: [{ id: 1, type: 8, text: "hello", source: { url: "https://example.com", site: "example.com" } }],
+    diagEvents: [
+      {
+        ts: "2026-02-24T00:00:02.000Z",
+        type: "open_click",
+        cardId: 1,
+        link_url: "https://example.com",
+        thumbnail_url: null,
+        extra: { cardSnapshot: { link_url: "https://example.com" } },
+      },
+    ],
+    commit: "7654321",
+    version: "1.0.0",
+    now: () => "2026-02-24T00:00:02.000Z",
+  });
+  const rows = jsonl.split("\n").map((line) => JSON.parse(line));
+  assert.equal(rows[0].kind, "meta");
+  assert.equal(rows[1].kind, "card");
+  assert.equal(rows[2].kind, "diag_meta");
+  assert.equal(rows[3].kind, "diag");
 });
