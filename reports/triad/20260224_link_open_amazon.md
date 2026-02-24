@@ -41,8 +41,8 @@
 
 ## Tests
 - 追加テスト:
-  - `scripts/tests/shinen_link_open_amazon.test.tsx`
-    - `ThoughtCard` の open 導線が `<a target="_blank" rel="noopener noreferrer">` で描画されること
+  - `scripts/tests/shinen_link_open_amazon.test.mjs`
+    - `ThoughtCard.tsx` の open 導線定義が `<a target="_blank" rel="noopener noreferrer">` を保持すること
     - Amazon `landingImage(data-old-hires)` 抽出
     - Amazon `data-a-dynamic-image` の最大解像度選択
     - Amazon CDN ヘッダ生成/ホスト判定
@@ -52,8 +52,7 @@
   - `npm run build` → PASS
   - `bash scripts/tests/test_codex_headings.sh` → PASS
   - `bash scripts/tests/test_design_tokens.sh` → PASS
-  - `node --test scripts/tests/test_tunnel_arrange_nonoverlap.mjs` → PASS (skip expected)
-  - `npx tsx --test scripts/tests/shinen_link_open_amazon.test.tsx` → PASS
+  - `node --test scripts/tests/test_tunnel_arrange_nonoverlap.mjs scripts/tests/shinen_link_open_amazon.test.mjs` → PASS (legacy test skip expected)
 
 ## Risk & rollback
 - リスク:

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { validateUrl, dnsCheck } from "@/lib/ssrf";
-import { extractMeta, isAmazonHost, pickBestImageFromHtml } from "./imageExtract";
+import { extractMeta, isAmazonHost, pickBestImageFromHtml } from "./imageExtract.mjs";
 
 export const dynamic = "force-dynamic";
 

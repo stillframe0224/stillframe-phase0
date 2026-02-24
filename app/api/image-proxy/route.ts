@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { validateUrl, dnsCheck } from "@/lib/ssrf";
-import { buildAmazonImageHeaders, isAmazonCdnHost } from "./amazonHeaders";
+import { buildAmazonImageHeaders, isAmazonCdnHost } from "./amazonHeaders.mjs";
 
 export const dynamic = "force-dynamic";
 

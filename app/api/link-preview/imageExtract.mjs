@@ -1,9 +1,9 @@
-export function isAmazonHost(host: string): boolean {
+export function isAmazonHost(host) {
   const h = host.toLowerCase();
   return h.includes("amazon.") || h.includes("amzn.") || h === "a.co";
 }
 
-export function extractMeta(html: string, property: string): string | null {
+export function extractMeta(html, property) {
   const re1 = new RegExp(
     `<meta[^>]+(?:property|name)=["']${property}["'][^>]+content=["']([^"']+)["']`,
     "i",
@@ -15,7 +15,7 @@ export function extractMeta(html: string, property: string): string | null {
   return html.match(re1)?.[1] ?? html.match(re2)?.[1] ?? null;
 }
 
-function decodeHtmlAttr(raw: string): string {
+function decodeHtmlAttr(raw) {
   return raw
     .replace(/&amp;/gi, "&")
     .replace(/&quot;/gi, "\"")
@@ -23,7 +23,7 @@ function decodeHtmlAttr(raw: string): string {
     .trim();
 }
 
-function normalizeImageUrl(src: string | null | undefined, origin: string): string | null {
+function normalizeImageUrl(src, origin) {
   if (!src) return null;
   const decoded = decodeHtmlAttr(src);
   if (!decoded) return null;
@@ -39,7 +39,7 @@ function normalizeImageUrl(src: string | null | undefined, origin: string): stri
   }
 }
 
-function extractAttr(tag: string, name: string): string | null {
+function extractAttr(tag, name) {
   const reQuoted = new RegExp(`${name}\\s*=\\s*(["'])([\\s\\S]*?)\\1`, "i");
   const quoted = tag.match(reQuoted)?.[2];
   if (quoted) return quoted;
@@ -47,7 +47,7 @@ function extractAttr(tag: string, name: string): string | null {
   return tag.match(reBare)?.[1] ?? null;
 }
 
-function extractLinkImageSrc(html: string): string | null {
+function extractLinkImageSrc(html) {
   const patterns = [
     /<link[^>]+rel=["'][^"']*image_src[^"']*["'][^>]+href=["']([^"']+)["']/i,
     /<link[^>]+href=["']([^"']+)["'][^>]+rel=["'][^"']*image_src[^"']*["']/i,
@@ -59,7 +59,7 @@ function extractLinkImageSrc(html: string): string | null {
   return null;
 }
 
-function extractJsonLdImage(html: string): string | null {
+function extractJsonLdImage(html) {
   const jsonLdPattern = /<script[^>]+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi;
   const matches = [...html.matchAll(jsonLdPattern)];
   for (const match of matches) {
@@ -88,9 +88,9 @@ function extractJsonLdImage(html: string): string | null {
   return null;
 }
 
-function extractRepresentativeImg(html: string): string | null {
+function extractRepresentativeImg(html) {
   const tags = html.match(/<img\b[^>]*>/gi) ?? [];
-  let best: { src: string; score: number } | null = null;
+  let best = null;
   for (const tag of tags) {
     const src =
       extractAttr(tag, "src") ??
@@ -106,7 +106,7 @@ function extractRepresentativeImg(html: string): string | null {
   return best?.src ?? null;
 }
 
-function extractLandingImage(html: string): string | null {
+function extractLandingImage(html) {
   const tags = html.match(/<img\b[^>]*>/gi) ?? [];
   for (const tag of tags) {
     if (!/\bid\s*=\s*["']landingImage["']/i.test(tag)) continue;
@@ -115,7 +115,7 @@ function extractLandingImage(html: string): string | null {
   return null;
 }
 
-function extractWrapperImage(html: string): string | null {
+function extractWrapperImage(html) {
   const wrapper = html.match(/id=["']imgTagWrapperId["'][^>]*>[\s\S]{0,5000}?<img\b[^>]*>/i)?.[0];
   if (!wrapper) return null;
   const imgTag = wrapper.match(/<img\b[^>]*>/i)?.[0];
@@ -123,7 +123,7 @@ function extractWrapperImage(html: string): string | null {
   return extractAttr(imgTag, "data-old-hires") ?? extractAttr(imgTag, "src");
 }
 
-function parseAmazonDynamicMap(value: string): Array<{ url: string; area: number }> {
+function parseAmazonDynamicMap(value) {
   try {
     const parsed = JSON.parse(decodeHtmlAttr(value));
     if (!parsed || typeof parsed !== "object") return [];
@@ -141,16 +141,16 @@ function parseAmazonDynamicMap(value: string): Array<{ url: string; area: number
   }
 }
 
-export function extractAmazonDynamicImage(html: string): string | null {
-  const values: string[] = [];
+export function extractAmazonDynamicImage(html) {
+  const values = [];
   const re = /data-a-dynamic-image\s*=\s*(["'])([\s\S]*?)\1/gi;
-  let match: RegExpExecArray | null;
+  let match;
   while ((match = re.exec(html)) !== null) {
     values.push(match[2]);
   }
   if (values.length === 0) return null;
 
-  let bestUrl: string | null = null;
+  let bestUrl = null;
   let bestArea = -1;
   for (const value of values) {
     const parsed = parseAmazonDynamicMap(value);
@@ -164,11 +164,7 @@ export function extractAmazonDynamicImage(html: string): string | null {
   return bestUrl;
 }
 
-export function pickBestImageFromHtml(
-  html: string,
-  origin: string,
-  hostname: string,
-): string | null {
+export function pickBestImageFromHtml(html, origin, hostname) {
   const baseCandidates = [
     extractMeta(html, "og:image"),
     extractMeta(html, "twitter:image"),

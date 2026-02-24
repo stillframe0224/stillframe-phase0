@@ -8,18 +8,18 @@ const AMAZON_CDN_HOSTS = new Set([
   "images-fe.ssl-images-amazon.com",
 ]);
 
-function isAmazonHost(hostname: string): boolean {
+function isAmazonHost(hostname) {
   const h = hostname.toLowerCase();
   return h.includes("amazon.") || h.includes("amzn.") || h === "a.co";
 }
 
-export function isAmazonCdnHost(hostname: string): boolean {
+export function isAmazonCdnHost(hostname) {
   const h = hostname.toLowerCase();
   if (AMAZON_CDN_HOSTS.has(h)) return true;
   return h.startsWith("image.amazon.");
 }
 
-function normalizeAmazonReferer(referrerUrl: string | null | undefined): string | null {
+function normalizeAmazonReferer(referrerUrl) {
   if (!referrerUrl) return null;
   try {
     const parsed = new URL(referrerUrl);
@@ -31,7 +31,7 @@ function normalizeAmazonReferer(referrerUrl: string | null | undefined): string 
   }
 }
 
-export function buildAmazonImageHeaders(referrerUrl?: string | null): HeadersInit {
+export function buildAmazonImageHeaders(referrerUrl) {
   return {
     "User-Agent": BROWSER_UA,
     Accept: "image/avif,image/webp,image/apng,image/*,*/*;q=0.8",
