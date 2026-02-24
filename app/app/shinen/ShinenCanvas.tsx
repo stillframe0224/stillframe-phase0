@@ -22,6 +22,8 @@ import TagModal from "./TagModal";
 import MemoToolbar from "./MemoToolbar";
 import { initClipReceiver } from "./lib/clip-receiver";
 import type { ClipData } from "./lib/clip-receiver";
+import { downloadDiagnosticsJSONL, isDebugModeEnabled } from "./lib/diag";
+import appPackage from "../../../package.json";
 
 const MEMO_STORAGE_KEY = "shinen_memo_v1";
 const TAG_STORAGE_KEY = "shinen_tags_v1";
@@ -104,6 +106,8 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
   const [sortDir, setSortDir] = useState<"newest" | "oldest" | "custom">("newest");
   const [playingId, setPlayingId] = useState<number | null>(null);
   const [resizingId, setResizingId] = useState<number | null>(null);
+  const [debugMode, setDebugMode] = useState(false);
+  const [debugBuildLabel, setDebugBuildLabel] = useState(`v${appPackage.version}`);
   const [memoById, setMemoById] = useState<Record<string, string>>({});
   const [memoModalCardId, setMemoModalCardId] = useState<number | null>(null);
   const [tagById, setTagById] = useState<Record<string, string>>({});
@@ -211,6 +215,38 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
     };
   }, [cards, e2eMode]);
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    setDebugMode(isDebugModeEnabled());
+  }, []);
+
+  useEffect(() => {
+    if (!debugMode) return;
+    let cancelled = false;
+
+    fetch("/api/version", { cache: "no-store" })
+      .then(async (res) => {
+        if (!res.ok) return null;
+        return res.json() as Promise<{ sha?: string }>;
+      })
+      .then((data) => {
+        if (cancelled) return;
+        const sha = typeof data?.sha === "string" ? data.sha : "";
+        if (sha && sha !== "unknown") {
+          setDebugBuildLabel(sha.slice(0, 7));
+        } else {
+          setDebugBuildLabel(`v${appPackage.version}`);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setDebugBuildLabel(`v${appPackage.version}`);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [debugMode]);
+
   // Persist layout index (non-e2e only)
   useEffect(() => {
     if (e2eMode) return;
@@ -293,7 +329,10 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
     a.click();
     a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 0);
-  }, [cards, memoById, tagById]);
+    if (debugMode) {
+      downloadDiagnosticsJSONL("diagnostics.jsonl");
+    }
+  }, [cards, memoById, tagById, debugMode]);
 
   const startReorderDrag = useCallback(
     (cardId: number, e: React.PointerEvent) => {
@@ -834,6 +873,50 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
       >
         {`build: ${process.env.NEXT_PUBLIC_GIT_SHA ?? "unknown"}`}
       </span>
+
+      {debugMode && (
+        <div
+          data-testid="debug-build-info"
+          style={{
+            position: "absolute",
+            right: 8,
+            bottom: 8,
+            zIndex: 30,
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            padding: "4px 8px",
+            borderRadius: 8,
+            border: "1px solid rgba(0,0,0,0.12)",
+            background: "rgba(255,255,255,0.92)",
+            color: "rgba(0,0,0,0.65)",
+            fontSize: 10,
+            fontFamily: "'DM Sans',sans-serif",
+          }}
+        >
+          <span>{`build ${debugBuildLabel}`}</span>
+          <button
+            data-testid="debug-export-diagnostics"
+            data-no-drag
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              e.stopPropagation();
+              downloadDiagnosticsJSONL("diagnostics.jsonl");
+            }}
+            style={{
+              border: "1px solid rgba(0,0,0,0.14)",
+              borderRadius: 6,
+              background: "#fff",
+              fontSize: 10,
+              lineHeight: 1.4,
+              padding: "2px 6px",
+              cursor: "pointer",
+            }}
+          >
+            export diagnostics
+          </button>
+        </div>
+      )}
 
       {/* Cards */}
       <div data-testid="cards-grid" style={{ position: "absolute", inset: 0, zIndex: 5, gap: "8px" }}>
