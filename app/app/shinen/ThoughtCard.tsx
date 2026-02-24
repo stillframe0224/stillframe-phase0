@@ -358,16 +358,15 @@ export default function ThoughtCard({
           </button>
         </div>
 
-        {/* Open link button (top-right, left of delete — only for cards with source URL) */}
-        {isHovered && card.source?.url && (
-          <button
+        {/* Open link anchor (top-right, left of delete — only for cards with http(s) source URL) */}
+        {isHovered && card.source?.url && /^https?:\/\//.test(card.source.url) && (
+          <a
             data-no-drag
-            onClick={(e) => {
-              e.stopPropagation();
-              e.preventDefault();
-              window.open(card.source!.url, "_blank", "noopener,noreferrer");
-            }}
+            href={card.source.url}
+            target="_blank"
+            rel="noopener noreferrer"
             onPointerDown={(e) => e.stopPropagation()}
+            onClick={(e) => e.stopPropagation()}
             title="Open in new tab"
             style={{
               position: "absolute",
@@ -387,13 +386,14 @@ export default function ThoughtCard({
               lineHeight: 1,
               color: "#000",
               fontFamily: "'DM Sans',sans-serif",
+              textDecoration: "none",
               transition: "opacity 0.15s",
             }}
             onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.opacity = "0.6")}
             onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.opacity = "0.2")}
           >
             ↗
-          </button>
+          </a>
         )}
 
         {/* Drag handle (top-left corner) — always in DOM so Playwright count works pre-hover */}
