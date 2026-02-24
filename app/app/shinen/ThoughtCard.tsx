@@ -358,9 +358,10 @@ export default function ThoughtCard({
           </button>
         </div>
 
-        {/* Open link anchor (top-right, left of delete — only for cards with http(s) source URL) */}
-        {isHovered && card.source?.url && /^https?:\/\//.test(card.source.url) && (
+        {/* Open link anchor (top-right, left of delete). Keep visible on touch devices without hover. */}
+        {card.source?.url && /^https?:\/\//.test(card.source.url) && (
           <a
+            data-testid="card-open-link"
             data-no-drag
             href={card.source.url}
             target="_blank"
@@ -371,28 +372,29 @@ export default function ThoughtCard({
             style={{
               position: "absolute",
               right: 32,
-              top: 4,
-              width: 16,
+              top: 6,
+              minWidth: 34,
               height: 16,
-              padding: 0,
-              background: "none",
+              padding: "0 2px",
+              background: "rgba(255,255,255,0.7)",
               border: "none",
+              borderRadius: 4,
               cursor: "pointer",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              opacity: 0.2,
-              fontSize: 11,
+              opacity: isHovered ? 0.55 : 0.26,
+              fontSize: 9,
               lineHeight: 1,
               color: "#000",
               fontFamily: "'DM Sans',sans-serif",
               textDecoration: "none",
               transition: "opacity 0.15s",
             }}
-            onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.opacity = "0.6")}
-            onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.opacity = "0.2")}
+            onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.opacity = "0.75")}
+            onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.opacity = isHovered ? "0.55" : "0.26")}
           >
-            ↗
+            ↗ open
           </a>
         )}
 
@@ -523,14 +525,17 @@ function MediaPreview({
   // Image thumbnail — click to open full image
   if (media.type === "image") {
     return (
-      <div
+      <a
         data-no-drag
+        href={media.url}
+        target="_blank"
+        rel="noopener noreferrer"
         onPointerDown={(e) => e.stopPropagation()}
-        onClick={(e) => { e.stopPropagation(); window.open(media.url, "_blank"); }}
+        onClick={(e) => e.stopPropagation()}
         style={{ margin: "-16px -18px 0", borderRadius: "8px 8px 0 0", overflow: "hidden", cursor: "zoom-in" }}
       >
         <img
-          src={toProxySrc(media.url)}
+          src={toProxySrc(media.url, card.source?.url)}
           alt={card.text}
           style={{
             width: "100%",
@@ -539,7 +544,7 @@ function MediaPreview({
             display: "block",
           }}
         />
-      </div>
+      </a>
     );
   }
 
@@ -686,10 +691,13 @@ function MediaPreview({
   // PDF — click to open in new tab
   if (media.type === "pdf") {
     return (
-      <div
+      <a
         data-no-drag
+        href={media.url}
+        target="_blank"
+        rel="noopener noreferrer"
         onPointerDown={(e) => e.stopPropagation()}
-        onClick={(e) => { e.stopPropagation(); window.open(media.url, "_blank"); }}
+        onClick={(e) => e.stopPropagation()}
         style={{
           margin: "-16px -18px 0 -18px",
           padding: "16px 18px",
@@ -699,6 +707,7 @@ function MediaPreview({
           alignItems: "center",
           gap: 10,
           cursor: "pointer",
+          textDecoration: "none",
         }}
       >
         <svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke="rgba(0,0,0,0.35)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -715,7 +724,7 @@ function MediaPreview({
           <polyline points="15 3 21 3 21 9" />
           <line x1="10" y1="14" x2="21" y2="3" />
         </svg>
-      </div>
+      </a>
     );
   }
 
