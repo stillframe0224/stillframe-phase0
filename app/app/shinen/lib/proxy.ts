@@ -8,7 +8,7 @@
  *   - http:// (not https)                    → return as-is (proxy rejects anyway)
  *   - External https://                      → proxy
  */
-export function toProxySrc(src: string | undefined | null): string {
+export function toProxySrc(src: string | undefined | null, referrerUrl?: string | null): string {
   if (!src) return "";
 
   // Already proxied or local
@@ -32,5 +32,7 @@ export function toProxySrc(src: string | undefined | null): string {
     return src; // unparseable — return as-is
   }
 
-  return `/api/image-proxy?url=${encodeURIComponent(src)}`;
+  const params = new URLSearchParams({ url: src });
+  if (referrerUrl) params.set("ref", referrerUrl);
+  return `/api/image-proxy?${params.toString()}`;
 }
