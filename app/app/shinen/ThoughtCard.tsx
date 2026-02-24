@@ -1,6 +1,7 @@
 import { SLAB_N, SLAB_GAP, TAP_TARGET_MIN, getCardWidth } from "./lib/constants";
 import type { ShinenCard, Projection } from "./lib/types";
 import { toProxySrc } from "./lib/proxy";
+import { inferDomain, logDiagEvent } from "./lib/diag";
 
 interface ThoughtCardProps {
   card: ShinenCard;
@@ -366,7 +367,26 @@ export default function ThoughtCard({
             href={card.source.url}
             target="_blank"
             rel="noopener noreferrer"
+            onPointerDownCapture={(e) => {
+              (e.currentTarget as HTMLAnchorElement).dataset.pointerDownPrevented = e.defaultPrevented ? "1" : "0";
+            }}
             onPointerDown={(e) => e.stopPropagation()}
+            onClickCapture={(e) => {
+              const pointerDownPrevented =
+                (e.currentTarget as HTMLAnchorElement).dataset.pointerDownPrevented === "1";
+              logDiagEvent({
+                type: "open_click",
+                cardId: card.id,
+                domain: inferDomain(card.source?.url ?? card.media?.url ?? null),
+                link_url: card.source?.url ?? card.media?.url ?? null,
+                thumbnail_url: card.media?.thumbnail ?? (card.media?.type === "image" ? card.media.url : null),
+                extra: {
+                  clickDefaultPrevented: e.defaultPrevented,
+                  pointerDownDefaultPrevented: pointerDownPrevented,
+                  isHovered,
+                },
+              });
+            }}
             onClick={(e) => e.stopPropagation()}
             title="Open in new tab"
             style={{
@@ -524,6 +544,7 @@ function MediaPreview({
 
   // Image thumbnail — click to open full image
   if (media.type === "image") {
+    const proxiedSrc = toProxySrc(media.url, card.source?.url);
     return (
       <a
         data-no-drag
@@ -535,8 +556,22 @@ function MediaPreview({
         style={{ margin: "-16px -18px 0", borderRadius: "8px 8px 0 0", overflow: "hidden", cursor: "zoom-in" }}
       >
         <img
-          src={toProxySrc(media.url, card.source?.url)}
+          src={proxiedSrc}
           alt={card.text}
+          onError={(e) => {
+            logDiagEvent({
+              type: "thumb_error",
+              cardId: card.id,
+              domain: inferDomain(card.source?.url ?? media.url),
+              link_url: card.source?.url ?? media.url,
+              thumbnail_url: media.url,
+              extra: {
+                src: e.currentTarget.currentSrc || proxiedSrc,
+                proxy_url: proxiedSrc,
+                mediaType: media.type,
+              },
+            });
+          }}
           style={{
             width: "100%",
             height: 96,
@@ -563,6 +598,7 @@ function MediaPreview({
       );
     }
     return (
+      // Thumbnail click toggles inline playback; still track thumbnail load failures.
       <div
         data-no-drag
         onPointerDown={(e) => e.stopPropagation()}
@@ -581,6 +617,22 @@ function MediaPreview({
         <img
           src={toProxySrc(media.thumbnail || `https://img.youtube.com/vi/${media.youtubeId}/hqdefault.jpg`)}
           alt={card.text}
+          onError={(e) => {
+            const thumb = media.thumbnail || `https://img.youtube.com/vi/${media.youtubeId}/hqdefault.jpg`;
+            const proxyUrl = toProxySrc(thumb);
+            logDiagEvent({
+              type: "thumb_error",
+              cardId: card.id,
+              domain: inferDomain(card.source?.url ?? media.url),
+              link_url: card.source?.url ?? media.url,
+              thumbnail_url: thumb,
+              extra: {
+                src: e.currentTarget.currentSrc || proxyUrl,
+                proxy_url: proxyUrl,
+                mediaType: media.type,
+              },
+            });
+          }}
           style={{ width: "100%", height: 96, objectFit: "cover", display: "block" }}
         />
       </div>
