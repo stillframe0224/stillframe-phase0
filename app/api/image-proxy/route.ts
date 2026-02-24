@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { validateUrl, dnsCheck } from "@/lib/ssrf";
+import { buildAmazonImageHeaders, isAmazonCdnHost } from "./amazonHeaders";
 
 export const dynamic = "force-dynamic";
 
@@ -15,7 +16,7 @@ function isInstagramCdnHost(hostname: string): boolean {
   return h.endsWith(".cdninstagram.com") || h.endsWith(".fbcdn.net");
 }
 
-async function safeFetchImage(urlStr: string): Promise<Response> {
+async function safeFetchImage(urlStr: string, sourcePageUrl?: string | null): Promise<Response> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
 
@@ -26,13 +27,13 @@ async function safeFetchImage(urlStr: string): Promise<Response> {
       if (!validateUrl(hop)) throw new Error("blocked");
       if (!(await dnsCheck(hop.hostname))) throw new Error("blocked");
       const igCdn = isInstagramCdnHost(hop.hostname);
+      const amazonCdn = isAmazonCdnHost(hop.hostname);
 
       const fetchInit: RequestInit = {
         redirect: "manual",
         signal: controller.signal,
       };
-      // Only inject browser-like headers for IG CDN hosts.
-      // Non-IG hosts omit the headers option entirely.
+      // Only inject browser-like headers for known CDNs with anti-bot checks.
       if (igCdn) {
         fetchInit.headers = {
           "User-Agent": BROWSER_UA,
@@ -40,6 +41,8 @@ async function safeFetchImage(urlStr: string): Promise<Response> {
           "Accept-Language": "en-US,en;q=0.9,ja;q=0.8",
           Referer: "https://www.instagram.com/",
         };
+      } else if (amazonCdn) {
+        fetchInit.headers = buildAmazonImageHeaders(sourcePageUrl);
       }
 
       const res = await fetch(currentUrl, fetchInit);
@@ -54,6 +57,15 @@ async function safeFetchImage(urlStr: string): Promise<Response> {
         continue;
       }
 
+      if (!res.ok && amazonCdn) {
+        console.warn(
+          JSON.stringify({
+            event: "image_proxy_amazon_upstream_error",
+            host: hop.hostname,
+            status: res.status,
+          }),
+        );
+      }
       return res;
     }
     throw new Error("too_many_redirects");
@@ -65,6 +77,7 @@ async function safeFetchImage(urlStr: string): Promise<Response> {
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const url = searchParams.get("url");
+  const ref = searchParams.get("ref");
 
   if (!url) {
     return NextResponse.json({ error: "url required" }, { status: 400 });
@@ -87,7 +100,7 @@ export async function GET(request: Request) {
   }
 
   try {
-    const res = await safeFetchImage(url);
+    const res = await safeFetchImage(url, ref);
 
     if (!res.ok) return new Response(null, { status: 502 });
 
@@ -137,6 +150,13 @@ export async function GET(request: Request) {
     if (e instanceof Error && e.message === "blocked") {
       return NextResponse.json({ error: "blocked_url" }, { status: 400 });
     }
+    console.warn(
+      JSON.stringify({
+        event: "image_proxy_error",
+        reason: e instanceof Error ? e.message : "unknown",
+        host: parsed.hostname,
+      }),
+    );
     return new Response(null, { status: 502 });
   }
 }

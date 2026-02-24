@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { validateUrl, dnsCheck } from "@/lib/ssrf";
+import { extractMeta, isAmazonHost, pickBestImageFromHtml } from "./imageExtract";
 
 export const dynamic = "force-dynamic";
 
@@ -38,11 +39,6 @@ const JINA_FIRST_HOSTS = new Set([
 function isInstagramHost(host: string): boolean {
   const h = host.toLowerCase();
   return h === "instagram.com" || h.endsWith(".instagram.com") || h === "instagr.am";
-}
-
-function isAmazonHost(host: string): boolean {
-  const h = host.toLowerCase();
-  return h.includes("amazon.") || h.includes("amzn.") || h === "a.co";
 }
 
 function isJinaFirstHost(host: string): boolean {
@@ -155,18 +151,6 @@ async function safeFetch(
 
 // --- Meta extraction helpers ---
 
-function extractMeta(html: string, property: string): string | null {
-  const re1 = new RegExp(
-    `<meta[^>]+(?:property|name)=["']${property}["'][^>]+content=["']([^"']+)["']`,
-    "i"
-  );
-  const re2 = new RegExp(
-    `<meta[^>]+content=["']([^"']+)["'][^>]+(?:property|name)=["']${property}["']`,
-    "i"
-  );
-  return html.match(re1)?.[1] ?? html.match(re2)?.[1] ?? null;
-}
-
 function extractFavicon(html: string, origin: string): string {
   const match =
     html.match(
@@ -192,76 +176,6 @@ function resolveUrl(src: string | null, origin: string): string | null {
   } catch {
     return null;
   }
-}
-
-function extractJsonLdImage(html: string): string | null {
-  // Extract all JSON-LD script blocks
-  const jsonLdPattern = /<script[^>]+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi;
-  const matches = [...html.matchAll(jsonLdPattern)];
-
-  for (const match of matches) {
-    try {
-      const json = JSON.parse(match[1]);
-      // Handle single object or array
-      const items = Array.isArray(json) ? json : [json];
-
-      for (const item of items) {
-        // Check for image field (Product, Article, etc.)
-        if (item.image) {
-          if (typeof item.image === "string") return item.image;
-          if (item.image.url) return item.image.url;
-          if (Array.isArray(item.image) && item.image[0]) {
-            return typeof item.image[0] === "string" ? item.image[0] : item.image[0].url;
-          }
-        }
-        // Check for thumbnailUrl
-        if (item.thumbnailUrl) {
-          return typeof item.thumbnailUrl === "string" ? item.thumbnailUrl : item.thumbnailUrl.url;
-        }
-      }
-    } catch {
-      // Invalid JSON, skip
-    }
-  }
-  return null;
-}
-
-/** Extract product image from Amazon's data-a-dynamic-image attribute (JSON of url→[w,h]). */
-function extractAmazonDynamicImage(html: string): string | null {
-  const match = html.match(/data-a-dynamic-image=["'](\{[^"']+\})["']/);
-  if (!match?.[1]) return null;
-  try {
-    const obj = JSON.parse(match[1].replace(/&quot;/g, '"'));
-    const urls = Object.keys(obj);
-    // Pick the first https URL
-    return urls.find((u) => u.startsWith("https://")) ?? urls[0] ?? null;
-  } catch {
-    return null;
-  }
-}
-
-/** Amazon-specific JSON-LD Product image extraction (more targeted than generic). */
-function extractAmazonJsonLdImage(html: string): string | null {
-  const jsonLdPattern = /<script[^>]+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi;
-  const matches = [...html.matchAll(jsonLdPattern)];
-  for (const match of matches) {
-    try {
-      const json = JSON.parse(match[1]);
-      const items = Array.isArray(json) ? json : [json];
-      for (const item of items) {
-        if (item["@type"] === "Product" && item.image) {
-          if (typeof item.image === "string") return item.image;
-          if (Array.isArray(item.image) && item.image[0]) {
-            return typeof item.image[0] === "string" ? item.image[0] : item.image[0].url;
-          }
-          if (item.image.url) return item.image.url;
-        }
-      }
-    } catch {
-      // skip
-    }
-  }
-  return null;
 }
 
 // --- Route handler ---
@@ -554,19 +468,7 @@ export async function GET(request: Request) {
     const finalOrigin = finalParsed.origin;
     const html = await res.text();
 
-    // Try OGP first, then Twitter Card, then JSON-LD fallback
-    const ogImage = extractMeta(html, "og:image");
-    const twImage = extractMeta(html, "twitter:image");
-    const jsonLdImage = extractJsonLdImage(html);
-
-    let image = resolveUrl(ogImage ?? twImage ?? jsonLdImage, finalOrigin);
-
-    // Amazon-specific fallback: if OG/Twitter/JSON-LD all failed, try Amazon-specific selectors
-    if (!image && isAmazonHost(finalParsed.hostname)) {
-      const amazonJsonLd = extractAmazonJsonLdImage(html);
-      const amazonDynamic = extractAmazonDynamicImage(html);
-      image = resolveUrl(amazonJsonLd ?? amazonDynamic, finalOrigin);
-    }
+    const image = pickBestImageFromHtml(html, finalOrigin, finalParsed.hostname);
 
     const title = extractMeta(html, "og:title");
     const favicon = extractFavicon(html, finalOrigin);

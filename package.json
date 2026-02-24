@@ -12,7 +12,7 @@
     "test:e2e:ci": "CI=1 playwright test",
     "test:e2e:guard": "playwright test --config playwright.guard.config.ts",
     "test:smoke": "playwright test e2e/smoke.spec.ts e2e/tunnel.spec.ts",
-    "test:unit": "node --test scripts/tests/test_tunnel_arrange_nonoverlap.mjs",
+    "test:unit": "node --test scripts/tests/test_tunnel_arrange_nonoverlap.mjs && tsx --test scripts/tests/shinen_link_open_amazon.test.tsx",
     "notify:smoke": "node scripts/notify_smoke.mjs",
     "codex:run": "bash scripts/codex-run-notify",
     "subframe:sync": "npx @subframe/cli@latest sync",
