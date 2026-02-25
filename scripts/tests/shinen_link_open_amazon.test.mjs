@@ -11,6 +11,10 @@ import {
   createDiagStore,
   isDebugModeEnabled,
 } from "../../app/app/shinen/lib/diag.mjs";
+import {
+  shouldSkipPreventDefaultForOpenLink,
+  stopOpenLinkEventPropagation,
+} from "../../app/app/shinen/lib/openLinkGuards.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -23,11 +27,22 @@ test("ThoughtCard open link anchor keeps target/rel hardening", () => {
   const local = split[1].slice(0, 4000);
   assert.match(local, /target="_blank"/);
   assert.match(local, /rel="noopener noreferrer"/);
+  assert.match(local, /data-open-link="1"/);
   assert.match(local, /onClickCapture/);
+  assert.match(local, /onAuxClick/);
   assert.match(src, /↗ open/);
   assert.match(src, /type:\s*"open_click"/);
   assert.match(src, /type:\s*"thumb_error"/);
   assert.match(src, /cardSnapshot/);
+});
+
+test("drag and touch handlers skip preventDefault for open-link targets", () => {
+  const useDragPath = path.resolve(__dirname, "../../app/app/shinen/hooks/useDrag.ts");
+  const useTouchPath = path.resolve(__dirname, "../../app/app/shinen/hooks/useTouch.ts");
+  const dragSrc = fs.readFileSync(useDragPath, "utf8");
+  const touchSrc = fs.readFileSync(useTouchPath, "utf8");
+  assert.match(dragSrc, /shouldSkipPreventDefaultForOpenLink\(\{ target \}\)/);
+  assert.match(touchSrc, /shouldSkipPreventDefaultForOpenLink\(\{ target \}\)/);
 });
 
 test("Amazon extraction prefers landingImage data-old-hires", () => {
@@ -226,4 +241,56 @@ test("debug bundle export is single JSONL with meta/card/diag order", () => {
   assert.equal(rows[1].kind, "card");
   assert.equal(rows[2].kind, "diag_meta");
   assert.equal(rows[3].kind, "diag");
+});
+
+test("parent capture guard skips preventDefault for open-link targets", () => {
+  const openLinkTarget = {
+    closest(selector) {
+      return selector === '[data-open-link="1"]' ? {} : null;
+    },
+  };
+  const plainTarget = {
+    closest() {
+      return null;
+    },
+  };
+  const createEvent = (target) => ({
+    target,
+    defaultPrevented: false,
+    preventDefault() {
+      this.defaultPrevented = true;
+    },
+    composedPath() {
+      return [target];
+    },
+  });
+  const parentCaptureHandler = (event) => {
+    if (shouldSkipPreventDefaultForOpenLink(event)) return;
+    event.preventDefault();
+  };
+
+  const openEvent = createEvent(openLinkTarget);
+  parentCaptureHandler(openEvent);
+  assert.equal(openEvent.defaultPrevented, false);
+
+  const plainEvent = createEvent(plainTarget);
+  parentCaptureHandler(plainEvent);
+  assert.equal(plainEvent.defaultPrevented, true);
+});
+
+test("open-link propagation helper stops bubble and immediate propagation", () => {
+  let stopped = false;
+  let immediateStopped = false;
+  stopOpenLinkEventPropagation({
+    stopPropagation() {
+      stopped = true;
+    },
+    nativeEvent: {
+      stopImmediatePropagation() {
+        immediateStopped = true;
+      },
+    },
+  });
+  assert.equal(stopped, true);
+  assert.equal(immediateStopped, true);
 });

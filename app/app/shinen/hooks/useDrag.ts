@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { proj } from "../lib/projection";
 import type { ShinenCard, DragState, GroupDragState, CameraState } from "../lib/types";
+import { shouldSkipPreventDefaultForOpenLink } from "../lib/openLinkGuards";
 
 const INTERACTIVE_SELECTOR =
   "button, a, input, textarea, select, option, label, video, audio, iframe, [contenteditable='true'], [data-no-drag]";
@@ -41,6 +42,7 @@ export function useDrag(
     (cardId: number, e: React.PointerEvent) => {
       if (e.shiftKey || e.button === 1 || e.button === 2) return;
       const target = e.target as HTMLElement | null;
+      if (shouldSkipPreventDefaultForOpenLink({ target })) return;
       if (target?.closest(INTERACTIVE_SELECTOR)) return;
       e.preventDefault();
       e.stopPropagation(); // Prevent background handler from firing
