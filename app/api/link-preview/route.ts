@@ -41,6 +41,15 @@ const UA_CHROME =
 const ACCEPT_HTML =
   "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8";
 
+function summarizeUrlForLog(rawUrl: string): string {
+  try {
+    const parsed = new URL(rawUrl);
+    return `${parsed.hostname}${parsed.pathname}`;
+  } catch {
+    return "invalid_url";
+  }
+}
+
 // Domains where direct HTTP fetch is always blocked/useless — skip safeFetch,
 // go straight to Jina fallback.
 const JINA_FIRST_HOSTS = new Set([
@@ -169,10 +178,27 @@ async function fetchInstagramEmbedPosterFromUrl(url: string): Promise<string | n
       },
       signal: AbortSignal.timeout(FETCH_TIMEOUT),
     });
-    if (!res.ok) return null;
+    if (!res.ok) {
+      console.info("[link-preview] ig_embed_broken", {
+        url: summarizeUrlForLog(url),
+        status: res.status,
+      });
+      return null;
+    }
     const html = await res.text();
-    return parseLargestSrcsetImage(html, embedUrl);
+    const poster = parseLargestSrcsetImage(html, embedUrl);
+    if (!poster) {
+      console.info("[link-preview] ig_embed_broken", {
+        url: summarizeUrlForLog(url),
+        reason: "poster_missing",
+      });
+    }
+    return poster;
   } catch {
+    console.info("[link-preview] ig_embed_broken", {
+      url: summarizeUrlForLog(url),
+      reason: "fetch_failed",
+    });
     return null;
   }
 }
@@ -358,7 +384,21 @@ export async function GET(request: Request) {
     if (provider === "x") {
       const tweetId = extractTweetId(url);
       const syndication = tweetId ? await fetchSyndicationTweet(tweetId) : null;
+      if (tweetId && syndication && Object.keys(syndication).length === 0) {
+        console.info("[link-preview] x_syndication_empty", {
+          url: summarizeUrlForLog(url),
+          tweetId,
+          reason: "empty_payload",
+        });
+      }
       const parsedMedia = syndication ? parseSyndicationTweetMedia(syndication) : null;
+      if (tweetId && !parsedMedia) {
+        console.info("[link-preview] x_syndication_empty", {
+          url: summarizeUrlForLog(url),
+          tweetId,
+          reason: syndication ? "media_missing" : "fetch_failed",
+        });
+      }
       if (parsedMedia?.mediaKind === "image" && parsedMedia.imageUrl) {
         return NextResponse.json(
           {
