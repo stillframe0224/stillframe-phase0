@@ -306,18 +306,35 @@ export default function ThoughtCard({
             paddingTop: 8,
           }}
         >
-          {card.file && (
-            <span
-              style={{
-                fontSize: 8,
-                fontFamily: "'DM Sans',sans-serif",
-                color: "rgba(0,0,0,0.2)",
-                marginLeft: "auto",
-              }}
-            >
-              {formatSize(card.file.size)}
-            </span>
-          )}
+          <button
+            data-testid="chip-memo"
+            data-no-drag
+            onClick={(e) => {
+              e.stopPropagation();
+              e.preventDefault();
+              onMemoClick?.(card.id);
+            }}
+            onPointerDown={(e) => e.stopPropagation()}
+            style={{
+              position: "relative",
+              zIndex: 11,
+              marginLeft: 0,
+              padding: "2px 7px",
+              borderRadius: 6,
+              border: memo ? "1px solid rgba(79,110,217,0.25)" : "1px solid rgba(0,0,0,0.08)",
+              background: memo ? "rgba(79,110,217,0.06)" : "rgba(0,0,0,0.02)",
+              color: memo ? "rgba(79,110,217,0.6)" : "rgba(0,0,0,0.25)",
+              fontSize: 8,
+              fontFamily: "'DM Sans',sans-serif",
+              fontWeight: 500,
+              textTransform: "uppercase",
+              letterSpacing: "0.08em",
+              cursor: "pointer",
+              lineHeight: 1,
+            }}
+          >
+            memo
+          </button>
           {/* Tag chip — shown only when tag exists */}
           {tag && (
             <button
@@ -332,7 +349,7 @@ export default function ThoughtCard({
               style={{
                 position: "relative",
                 zIndex: 11,
-                marginLeft: card.file ? 0 : "auto",
+                marginLeft: 0,
                 padding: "2px 7px",
                 borderRadius: 6,
                 border: "1px solid rgba(45,143,80,0.25)",
@@ -353,35 +370,18 @@ export default function ThoughtCard({
               {tag}
             </button>
           )}
-          <button
-            data-testid="chip-memo"
-            data-no-drag
-            onClick={(e) => {
-              e.stopPropagation();
-              e.preventDefault();
-              onMemoClick?.(card.id);
-            }}
-            onPointerDown={(e) => e.stopPropagation()}
-            style={{
-              position: "relative",
-              zIndex: 11,
-              marginLeft: !tag && !card.file ? "auto" : 0,
-              padding: "2px 7px",
-              borderRadius: 6,
-              border: memo ? "1px solid rgba(79,110,217,0.25)" : "1px solid rgba(0,0,0,0.08)",
-              background: memo ? "rgba(79,110,217,0.06)" : "rgba(0,0,0,0.02)",
-              color: memo ? "rgba(79,110,217,0.6)" : "rgba(0,0,0,0.25)",
-              fontSize: 8,
-              fontFamily: "'DM Sans',sans-serif",
-              fontWeight: 500,
-              textTransform: "uppercase",
-              letterSpacing: "0.08em",
-              cursor: "pointer",
-              lineHeight: 1,
-            }}
-          >
-            memo
-          </button>
+          {card.file && (
+            <span
+              style={{
+                fontSize: 8,
+                fontFamily: "'DM Sans',sans-serif",
+                color: "rgba(0,0,0,0.2)",
+                marginLeft: "auto",
+              }}
+            >
+              {formatSize(card.file.size)}
+            </span>
+          )}
         </div>
 
         {/* Drag handle (top-left corner) — always in DOM so Playwright count works pre-hover */}
