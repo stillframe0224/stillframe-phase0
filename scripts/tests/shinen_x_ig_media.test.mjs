@@ -6,7 +6,10 @@ import {
   buildEmbedMedia,
   collectImageCandidatesFromHtml,
   detectVideoFromHtml,
+  extractTweetId,
   isLoginWallHtml,
+  parseLargestSrcsetImage,
+  parseSyndicationTweetMedia,
   selectBestImageCandidate,
 } from "../../app/api/link-preview/xigMedia.mjs";
 import { normalizeOnSave } from "../../app/app/shinen/lib/selfHealMigration.mjs";
@@ -60,6 +63,58 @@ test("Instagram reel with og:video is treated as embed media", () => {
   assert.equal(embed?.kind, "embed");
   assert.equal(embed?.embedUrl, "https://www.instagram.com/reel/CODE123/embed/");
   assert.equal(embed?.posterUrl, "https://scontent.cdninstagram.com/v/t51.2885-15/reel.jpg");
+});
+
+test("Instagram srcset parser chooses largest width candidate", () => {
+  const html = `
+    <img src="https://scontent.cdninstagram.com/v/t51.2885-15/p320x320/a.jpg"
+         srcset="
+          https://scontent.cdninstagram.com/v/t51.2885-15/p320x320/a.jpg 320w,
+          https://scontent.cdninstagram.com/v/t51.2885-15/p640x640/a.jpg 640w,
+          https://scontent.cdninstagram.com/v/t51.2885-15/p1080x1080/a.jpg 1080w
+         " />
+  `;
+  const best = parseLargestSrcsetImage(html, "https://www.instagram.com/p/ABC123/embed/");
+  assert.equal(best, "https://scontent.cdninstagram.com/v/t51.2885-15/p1080x1080/a.jpg");
+});
+
+test("Instagram srcset parser falls back to og:image when srcset missing", () => {
+  const html = `<meta property="og:image" content="https://scontent.cdninstagram.com/v/t51.2885-15/fallback.jpg" />`;
+  const best = parseLargestSrcsetImage(html, "https://www.instagram.com/p/ABC123/embed/");
+  assert.equal(best, "https://scontent.cdninstagram.com/v/t51.2885-15/fallback.jpg");
+});
+
+test("X syndication parser returns high-quality image media for photo tweets", () => {
+  const payload = {
+    mediaDetails: [
+      {
+        type: "photo",
+        media_url_https: "https://pbs.twimg.com/media/AbCdEfGh.jpg?format=jpg&name=small",
+      },
+    ],
+  };
+  const parsed = parseSyndicationTweetMedia(payload);
+  assert.equal(parsed?.mediaKind, "image");
+  assert.match(parsed?.imageUrl || "", /name=large/);
+});
+
+test("X syndication parser keeps embed kind and poster for video tweets", () => {
+  const payload = {
+    mediaDetails: [
+      {
+        type: "video",
+        thumbnail_url: "https://pbs.twimg.com/ext_tw_video_thumb/1890/pu/img/Poster.jpg?name=small",
+      },
+    ],
+  };
+  const parsed = parseSyndicationTweetMedia(payload);
+  assert.equal(parsed?.mediaKind, "embed");
+  assert.match(parsed?.posterUrl || "", /name=large/);
+});
+
+test("extractTweetId parses status id from x.com URL", () => {
+  const id = extractTweetId("https://x.com/NASA/status/1879211234567890123");
+  assert.equal(id, "1879211234567890123");
 });
 
 test("URL input path upgrades plain URL text to clip card with source+type8", () => {
@@ -134,4 +189,15 @@ test("normalizeOnSave is idempotent", () => {
   const once = normalizeOnSave(draft);
   const twice = normalizeOnSave(once.card);
   assert.deepEqual(twice.card, once.card);
+});
+
+test("MEMO chip is anchored on the left side in card footer", () => {
+  const thoughtCardPath = path.resolve("app/app/shinen/ThoughtCard.tsx");
+  const src = fs.readFileSync(thoughtCardPath, "utf8");
+  const memoIdx = src.indexOf('data-testid="chip-memo"');
+  const tagIdx = src.indexOf('data-testid="chip-tag"');
+  assert.ok(memoIdx >= 0, "chip-memo should exist");
+  assert.ok(tagIdx >= 0, "chip-tag should exist");
+  assert.ok(memoIdx < tagIdx, "memo chip should be rendered before tag chip");
+  assert.match(src, /data-testid="chip-memo"[\s\S]*?marginLeft:\s*0/s);
 });

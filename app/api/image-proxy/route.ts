@@ -141,11 +141,14 @@ export async function GET(request: Request) {
       offset += chunk.byteLength;
     }
 
+    const igHost = isInstagramCdnHost(parsed.hostname);
     return new Response(combined, {
       headers: {
         "Content-Type": contentType,
         "Content-Length": String(total),
-        "Cache-Control": "public, s-maxage=86400, stale-while-revalidate=604800",
+        "Cache-Control": igHost
+          ? "public, s-maxage=86400, stale-while-revalidate=604800, no-transform"
+          : "public, s-maxage=86400, stale-while-revalidate=604800",
       },
     });
   } catch (e) {

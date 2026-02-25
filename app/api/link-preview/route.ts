@@ -12,9 +12,13 @@ import {
   buildEmbedMedia,
   collectImageCandidatesFromHtml,
   detectVideoFromHtml,
+  extractTweetId,
   isInstagramHost,
   isLoginWallHtml,
   isXHost,
+  makeInstagramEmbedUrl,
+  parseLargestSrcsetImage,
+  parseSyndicationTweetMedia,
   selectBestImageCandidate,
 } from "./xigMedia.mjs";
 
@@ -29,6 +33,7 @@ const IG_RE =
 const MAX_REDIRECTS = 5;
 const FETCH_TIMEOUT = 6000; // 4s→6s for slow sites (Substack etc.)
 const JINA_TIMEOUT = 7000;  // Jina needs a bit more headroom
+const SYNDICATION_TIMEOUT = 4500;
 
 // Default Chrome-like UA — most sites allow Googlebot/Chrome; bot UAs are widely blocked.
 const UA_CHROME =
@@ -147,6 +152,46 @@ async function fetchViaJinaHtml(url: string): Promise<string | null> {
     });
     if (!res.ok) return null;
     return await res.text();
+  } catch {
+    return null;
+  }
+}
+
+async function fetchInstagramEmbedPosterFromUrl(url: string): Promise<string | null> {
+  const embedUrl = makeInstagramEmbedUrl(url);
+  if (!embedUrl) return null;
+  try {
+    const res = await fetch(embedUrl, {
+      headers: {
+        "User-Agent": UA_CHROME,
+        Accept: "text/html,application/xhtml+xml",
+        "Accept-Language": "en-US,en;q=0.9,ja;q=0.8",
+      },
+      signal: AbortSignal.timeout(FETCH_TIMEOUT),
+    });
+    if (!res.ok) return null;
+    const html = await res.text();
+    return parseLargestSrcsetImage(html, embedUrl);
+  } catch {
+    return null;
+  }
+}
+
+async function fetchSyndicationTweet(tweetId: string): Promise<Record<string, unknown> | null> {
+  if (!/^\d+$/.test(tweetId)) return null;
+  const endpoint = `https://cdn.syndication.twimg.com/tweet-result?id=${tweetId}&lang=en`;
+  try {
+    const res = await fetch(endpoint, {
+      headers: {
+        "User-Agent": UA_CHROME,
+        Accept: "application/json,text/plain;q=0.9,*/*;q=0.8",
+        "Accept-Language": "en-US,en;q=0.9",
+      },
+      signal: AbortSignal.timeout(SYNDICATION_TIMEOUT),
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data && typeof data === "object" ? data as Record<string, unknown> : null;
   } catch {
     return null;
   }
@@ -301,9 +346,50 @@ export async function GET(request: Request) {
     const html = await fetchViaJinaHtml(url);
     const loginWall = html ? isLoginWallHtml(url, html) : false;
     const isVideo = detectVideoFromHtml(url, html ?? "") || (provider === "instagram" && igMatch && /\/(reel|tv)\//i.test(url));
-    const xigBestImage = !html || loginWall
+    let xigBestImage = !html || loginWall
       ? null
       : selectBestImageCandidate(collectImageCandidatesFromHtml(html, parsed.origin));
+
+    if (provider === "instagram") {
+      const embedPoster = await fetchInstagramEmbedPosterFromUrl(url);
+      if (embedPoster) xigBestImage = embedPoster;
+    }
+
+    if (provider === "x") {
+      const tweetId = extractTweetId(url);
+      const syndication = tweetId ? await fetchSyndicationTweet(tweetId) : null;
+      const parsedMedia = syndication ? parseSyndicationTweetMedia(syndication) : null;
+      if (parsedMedia?.mediaKind === "image" && parsedMedia.imageUrl) {
+        return NextResponse.json(
+          {
+            image: parsedMedia.imageUrl,
+            posterUrl: parsedMedia.posterUrl ?? parsedMedia.imageUrl,
+            mediaKind: "image",
+            provider: "x",
+            favicon: "https://x.com/favicon.ico",
+            title: null,
+          },
+          { headers: { "Cache-Control": "public, max-age=3600" } },
+        );
+      }
+      if (parsedMedia?.mediaKind === "embed") {
+        const embed = buildEmbedMedia(url, html ?? "", parsedMedia.posterUrl ?? xigBestImage);
+        if (embed) {
+          return NextResponse.json(
+            {
+              image: embed.posterUrl,
+              posterUrl: embed.posterUrl,
+              mediaKind: "embed",
+              embedUrl: embed.embedUrl,
+              provider: "x",
+              favicon: "https://x.com/favicon.ico",
+              title: null,
+            },
+            { headers: { "Cache-Control": "public, max-age=3600" } },
+          );
+        }
+      }
+    }
     if (isVideo) {
       const embed = buildEmbedMedia(url, html ?? "", xigBestImage);
       if (embed) {
