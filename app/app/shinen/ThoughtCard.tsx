@@ -2,6 +2,7 @@ import { SLAB_N, SLAB_GAP, TAP_TARGET_MIN, getCardWidth } from "./lib/constants"
 import type { ShinenCard, Projection } from "./lib/types";
 import { toProxySrc } from "./lib/proxy";
 import { inferDomain, logDiagEvent } from "./lib/diag";
+import { stopOpenLinkEventPropagation } from "./lib/openLinkGuards";
 
 interface ThoughtCardProps {
   card: ShinenCard;
@@ -375,13 +376,15 @@ export default function ThoughtCard({
           <a
             data-testid="card-open-link"
             data-no-drag
+            data-open-link="1"
             href={card.source.url}
             target="_blank"
             rel="noopener noreferrer"
             onPointerDownCapture={(e) => {
               (e.currentTarget as HTMLAnchorElement).dataset.pointerDownPrevented = e.defaultPrevented ? "1" : "0";
             }}
-            onPointerDown={(e) => e.stopPropagation()}
+            onPointerDown={(e) => stopOpenLinkEventPropagation(e)}
+            onMouseDown={(e) => stopOpenLinkEventPropagation(e)}
             onClickCapture={(e) => {
               const pointerDownPrevented =
                 (e.currentTarget as HTMLAnchorElement).dataset.pointerDownPrevented === "1";
@@ -401,7 +404,8 @@ export default function ThoughtCard({
                 },
               });
             }}
-            onClick={(e) => e.stopPropagation()}
+            onClick={(e) => stopOpenLinkEventPropagation(e)}
+            onAuxClick={(e) => stopOpenLinkEventPropagation(e)}
             title="Open in new tab"
             style={{
               position: "absolute",

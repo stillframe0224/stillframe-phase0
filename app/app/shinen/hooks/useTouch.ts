@@ -1,6 +1,7 @@
 import { useEffect, useRef, useCallback, type MutableRefObject } from "react";
 import { ZOOM_MIN, ZOOM_MAX, Z_MIN, Z_MAX } from "../lib/constants";
 import type { CameraState, ShinenCard } from "../lib/types";
+import { shouldSkipPreventDefaultForOpenLink } from "../lib/openLinkGuards";
 
 interface TouchState {
   mode: "none" | "card-drag" | "selection" | "camera" | "pinch";
@@ -100,6 +101,9 @@ export function useTouch(
       if (touches.length === 1 && state.mode === "none") {
         const touch = touches[0];
         const target = document.elementFromPoint(touch.clientX, touch.clientY) as HTMLElement | null;
+        if (shouldSkipPreventDefaultForOpenLink({ target })) {
+          return;
+        }
         const cardEl = target?.closest("[data-shinen-card]") as HTMLElement | null;
 
         if (cardEl) {
