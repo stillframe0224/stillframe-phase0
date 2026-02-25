@@ -697,6 +697,10 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
     try { parsedHost = new URL(url).hostname; } catch { /* invalid url */ }
     const title = params.get("title") || parsedHost || url;
     const img = params.get("img") || undefined;
+    const poster = params.get("poster") || undefined;
+    const mediaKind = params.get("mk") || undefined;
+    const embedUrl = params.get("embed") || undefined;
+    const provider = params.get("provider") as ("youtube" | "x" | "instagram" | null) || null;
     const site = params.get("site") || undefined;
     const sel = params.get("s") || undefined;
     const desc = params.get("desc") || undefined;
@@ -733,8 +737,18 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
                 thumbnail: `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`,
               };
             }
+            if (mediaKind === "embed" && embedUrl) {
+              return {
+                type: "embed" as const,
+                kind: "embed" as const,
+                url,
+                embedUrl,
+                posterUrl: poster || img,
+                provider: provider || undefined,
+              };
+            }
             if (img) {
-              return { type: "image" as const, url: img };
+              return { type: "image" as const, kind: "image" as const, url: img };
             }
             return undefined;
             // If undefined, useOgThumbnails will pick this up and fetch the OG image
@@ -750,7 +764,7 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
     // Clean auto-capture params from URL bar
     try {
       const cleanUrl = new URL(window.location.href);
-      for (const k of ["auto", "url", "title", "desc", "img", "site", "s"]) {
+      for (const k of ["auto", "url", "title", "desc", "img", "poster", "mk", "embed", "provider", "site", "s"]) {
         cleanUrl.searchParams.delete(k);
       }
       window.history.replaceState(null, "", cleanUrl.toString());

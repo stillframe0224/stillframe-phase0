@@ -37,6 +37,10 @@ function shouldSkipOg(url: string): boolean {
 
 interface OgCacheEntry {
   image: string | null;
+  mediaKind?: "image" | "embed";
+  embedUrl?: string | null;
+  posterUrl?: string | null;
+  provider?: "youtube" | "x" | "instagram" | null;
   favicon?: string | null;
   fetchedAt: number;
   retryAfterMs?: number;
@@ -48,7 +52,18 @@ type OgCache = Record<string, OgCacheEntry>;
 function isImageAllowedHost(url: string): boolean {
   try {
     const h = new URL(url).hostname.toLowerCase();
-    return h.includes("amazon.") || h.includes("amzn.") || h === "a.co";
+    return (
+      h.includes("amazon.") ||
+      h.includes("amzn.") ||
+      h === "a.co" ||
+      h === "x.com" ||
+      h.endsWith(".x.com") ||
+      h === "twitter.com" ||
+      h.endsWith(".twitter.com") ||
+      h === "instagram.com" ||
+      h.endsWith(".instagram.com") ||
+      h === "instagr.am"
+    );
   } catch {
     return false;
   }
@@ -105,7 +120,15 @@ export function useOgThumbnails(
     if (needsFetch.length === 0) return;
 
     const cache = readCache();
-    const cacheHits: Array<{ id: number; imageUrl: string | null; favicon: string | null }> = [];
+    const cacheHits: Array<{
+      id: number;
+      imageUrl: string | null;
+      mediaKind?: "image" | "embed";
+      embedUrl?: string | null;
+      posterUrl?: string | null;
+      provider?: "youtube" | "x" | "instagram" | null;
+      favicon: string | null;
+    }> = [];
     const toFetch: Array<{ id: number; url: string }> = [];
 
     for (const card of needsFetch) {
@@ -113,8 +136,16 @@ export function useOgThumbnails(
       if (shouldSkipOg(url)) continue;
       const entry = cache[url];
       if (entry) {
-        if (entry.image || entry.favicon) {
-          cacheHits.push({ id: card.id, imageUrl: entry.image, favicon: entry.favicon ?? null });
+        if (entry.image || entry.favicon || (entry.mediaKind === "embed" && entry.embedUrl)) {
+          cacheHits.push({
+            id: card.id,
+            imageUrl: entry.image,
+            mediaKind: entry.mediaKind,
+            embedUrl: entry.embedUrl ?? null,
+            posterUrl: entry.posterUrl ?? null,
+            provider: entry.provider ?? null,
+            favicon: entry.favicon ?? null,
+          });
         } else {
           const ttl = entry.retryAfterMs ?? DEFAULT_FAILURE_TTL;
           if (Date.now() - entry.fetchedAt < ttl) continue;
@@ -134,8 +165,19 @@ export function useOgThumbnails(
           if (!hit) return c;
           const updates: Partial<typeof c> = {};
           // Only set media for Amazon hosts (YouTube already has media)
-          if (hit.imageUrl && !c.media && c.source?.url && isImageAllowedHost(c.source.url)) {
-            updates.media = { type: "image" as const, url: hit.imageUrl };
+          if (!c.media) {
+            if (hit.mediaKind === "embed" && hit.embedUrl) {
+              updates.media = {
+                type: "embed" as const,
+                kind: "embed" as const,
+                url: c.source?.url ?? hit.embedUrl,
+                embedUrl: hit.embedUrl,
+                posterUrl: hit.posterUrl ?? hit.imageUrl ?? undefined,
+                provider: hit.provider ?? undefined,
+              };
+            } else if (hit.imageUrl && c.source?.url && isImageAllowedHost(c.source.url)) {
+              updates.media = { type: "image" as const, kind: "image" as const, url: hit.imageUrl };
+            }
           }
           // Always apply favicon
           if (hit.favicon && c.source && !c.source.favicon) {
@@ -159,27 +201,51 @@ export function useOgThumbnails(
       })
         .then((res) => res.json())
         .then(
-          (data: { image?: string | null; favicon?: string | null; retryAfterMs?: number }) => {
+          (data: {
+            image?: string | null;
+            favicon?: string | null;
+            retryAfterMs?: number;
+            mediaKind?: "image" | "embed";
+            embedUrl?: string | null;
+            posterUrl?: string | null;
+            provider?: "youtube" | "x" | "instagram";
+          }) => {
             inflightRef.current.delete(url);
             const currentCache = readCache();
             currentCache[url] = {
               image: data.image ?? null,
+              mediaKind: data.mediaKind ?? (data.embedUrl ? "embed" : "image"),
+              embedUrl: data.embedUrl ?? null,
+              posterUrl: data.posterUrl ?? data.image ?? null,
+              provider: data.provider ?? null,
               favicon: data.favicon ?? null,
               fetchedAt: Date.now(),
               ...(data.image ? {} : { retryAfterMs: data.retryAfterMs }),
             };
             writeCache(currentCache);
 
-            const showImage = data.image && isImageAllowedHost(url);
+            const embed = data.mediaKind === "embed" && data.embedUrl ? data : null;
+            const showImage = !embed && data.image && isImageAllowedHost(url);
             const favicon = data.favicon ?? null;
 
-            if (showImage || favicon) {
+            if (embed || showImage || favicon) {
               setCards((prev) =>
                 prev.map((c) => {
                   if (c.id !== id) return c;
                   const updates: Partial<typeof c> = {};
-                  if (showImage && !c.media) {
-                    updates.media = { type: "image" as const, url: data.image! };
+                  if (!c.media) {
+                    if (embed) {
+                      updates.media = {
+                        type: "embed" as const,
+                        kind: "embed" as const,
+                        url: c.source?.url ?? embed.embedUrl!,
+                        embedUrl: embed.embedUrl!,
+                        posterUrl: embed.posterUrl ?? embed.image ?? undefined,
+                        provider: embed.provider,
+                      };
+                    } else if (showImage) {
+                      updates.media = { type: "image" as const, kind: "image" as const, url: data.image! };
+                    }
                   }
                   if (favicon && c.source && !c.source.favicon) {
                     updates.source = { ...c.source, favicon };

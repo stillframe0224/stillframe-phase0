@@ -100,16 +100,47 @@ export default function BookmarkletPage() {
         }
         return null;
       }
+      function detectEmbed() {
+        var host = (location.hostname || "").toLowerCase();
+        var path = location.pathname || "";
+        if (host === "x.com" || host.endsWith(".x.com") || host === "twitter.com" || host.endsWith(".twitter.com")) {
+          var m = path.match(/^\\/([^/]+)\\/status(?:es)?\\/(\\d+)/i);
+          if (m) {
+            var tweetUrl = location.origin + "/" + m[1] + "/status/" + m[2];
+            return {
+              mk: "embed",
+              provider: "x",
+              embed: "https://platform.twitter.com/embed/Tweet.html?dnt=1&url=" + encodeURIComponent(tweetUrl),
+            };
+          }
+        }
+        if (host === "instagram.com" || host.endsWith(".instagram.com") || host === "instagr.am") {
+          var ig = path.match(/^\\/(p|reel|tv)\\/([A-Za-z0-9_-]+)/i);
+          if (ig) {
+            return {
+              mk: "embed",
+              provider: "instagram",
+              embed: "https://www.instagram.com/" + ig[1].toLowerCase() + "/" + ig[2] + "/embed/",
+            };
+          }
+        }
+        return null;
+      }
       var t = (mc('meta[property="og:title"]') || mc('meta[name="twitter:title"]') || document.title || "").slice(0, 200);
       var desc = (mc('meta[property="og:description"]') || mc('meta[name="description"]') || mc('meta[name="twitter:description"]') || "").replace(/[\\r\\n]+/g, " ").slice(0, 300);
       var s = mc('meta[property="og:site_name"]');
       var sel = (window.getSelection() || "").toString().slice(0, 1200);
       var img = getImg() || "";
+      var embed = detectEmbed();
       window.open(
         "https://stillframe-phase0.vercel.app/app?auto=1&url=" + encodeURIComponent(u) +
           "&title=" + encodeURIComponent(t) +
           (desc ? "&desc=" + encodeURIComponent(desc) : "") +
           (img ? "&img=" + encodeURIComponent(img) : "") +
+          (img ? "&poster=" + encodeURIComponent(img) : "") +
+          (embed && embed.mk ? "&mk=" + encodeURIComponent(embed.mk) : "") +
+          (embed && embed.embed ? "&embed=" + encodeURIComponent(embed.embed) : "") +
+          (embed && embed.provider ? "&provider=" + encodeURIComponent(embed.provider) : "") +
           (s ? "&site=" + encodeURIComponent(s.slice(0, 100)) : "") +
           (sel ? "&s=" + encodeURIComponent(sel) : ""),
         "_blank"
