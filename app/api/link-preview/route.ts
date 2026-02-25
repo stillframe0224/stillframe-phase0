@@ -1,6 +1,13 @@
 import { NextResponse } from "next/server";
 import { validateUrl, dnsCheck } from "@/lib/ssrf";
 import { extractMeta, isAmazonHost, pickBestImageFromHtml } from "./imageExtract.mjs";
+import {
+  chooseCoverByProbe,
+  extractCid,
+  isAgeGateHtml,
+  isDmmLikeHost,
+  isLikelySharedDmmImage,
+} from "./fanzaThumb.mjs";
 
 export const dynamic = "force-dynamic";
 
@@ -467,6 +474,20 @@ export async function GET(request: Request) {
     if (!res.ok) {
       if (debug) console.log(JSON.stringify({ event: "link_preview_upstream", url, status: res.status }));
 
+      if (isDmmLikeHost(parsed.hostname)) {
+        const cid = extractCid(url);
+        if (cid) {
+          const inferred = await chooseCoverByProbe(cid);
+          if (inferred) {
+            if (debug) console.log(JSON.stringify({ event: "link_preview_fanza_cid_cover", url, cid, inferred }));
+            return NextResponse.json(
+              { image: inferred, favicon: `${parsed.origin}/favicon.ico`, title: null },
+              { headers: { "Cache-Control": "public, max-age=3600" } }
+            );
+          }
+        }
+      }
+
       // Non-2xx from safeFetch — try Jina as fallback before giving up
       const jina = await fetchViaJina(url, parsed.origin);
       if (jina?.image) {
@@ -487,13 +508,53 @@ export async function GET(request: Request) {
     const finalOrigin = finalParsed.origin;
     const html = await res.text();
 
-    const image = pickBestImageFromHtml(html, finalOrigin, finalParsed.hostname);
+    const dmmLike = isDmmLikeHost(parsed.hostname) || isDmmLikeHost(finalParsed.hostname);
+    let image = pickBestImageFromHtml(html, finalOrigin, finalParsed.hostname);
+    let dmmAgeGate = false;
+    let dmmSharedImage = false;
+
+    if (dmmLike) {
+      dmmAgeGate = isAgeGateHtml(html, finalUrl);
+      dmmSharedImage = isLikelySharedDmmImage(image);
+      if (dmmAgeGate || dmmSharedImage || !image) {
+        const cid = extractCid(url) ?? extractCid(finalUrl);
+        if (cid) {
+          const inferred = await chooseCoverByProbe(cid);
+          if (inferred) {
+            image = inferred;
+            if (debug) {
+              console.log(
+                JSON.stringify({
+                  event: "link_preview_fanza_cover_inferred",
+                  url,
+                  finalUrl,
+                  cid,
+                  ageGate: dmmAgeGate,
+                  sharedMetaImage: dmmSharedImage,
+                  inferred,
+                }),
+              );
+            }
+          } else if (dmmAgeGate || dmmSharedImage) {
+            image = null;
+          }
+        } else if (dmmAgeGate || dmmSharedImage) {
+          image = null;
+        }
+      }
+    }
 
     const title = extractMeta(html, "og:title");
     const favicon = extractFavicon(html, finalOrigin);
 
     // If direct HTML returned no OG image (e.g. JS-rendered SPA), try Jina as fallback
     if (!image) {
+      if (dmmLike && (dmmAgeGate || dmmSharedImage)) {
+        return NextResponse.json(
+          { image: null, favicon, title },
+          { headers: { "Cache-Control": "public, max-age=3600" } }
+        );
+      }
       if (debug) console.log(JSON.stringify({ event: "link_preview_no_og_try_jina", url }));
       const jina = await fetchViaJina(url, finalOrigin);
       if (jina?.image) {
