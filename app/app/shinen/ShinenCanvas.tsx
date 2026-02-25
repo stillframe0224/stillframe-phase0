@@ -935,29 +935,59 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
         const pos = layoutIdx < 0 || LAYOUTS[layoutIdx] === "scatter"
           ? findNonOverlappingPosition(prev)
           : { px: (Math.random() - 0.5) * 380, py: (Math.random() - 0.5) * 200 };
+        const sourceUrl = normalizeMaybeUrl(clipData.url || "") ?? clipData.url;
+        let sourceHost = "";
+        try {
+          sourceHost = sourceUrl ? new URL(sourceUrl).hostname : "";
+        } catch {
+          sourceHost = "";
+        }
         const cardDraft: ShinenCard = {
           id: Date.now(),
           type: 8, // clip type
-          text: clipData.title || clipData.url || "Saved clip",
+          text: clipData.title || sourceUrl || "Saved clip",
           px: pos.px,
           py: pos.py,
           z: -20 - Math.random() * 100,
-          source: clipData.url ? {
-            url: clipData.url,
-            site: clipData.site || new URL(clipData.url).hostname,
+          source: sourceUrl ? {
+            url: sourceUrl,
+            site: clipData.site || sourceHost,
           } : undefined,
           media: (() => {
-            const ytId = clipData.url ? extractYoutubeId(clipData.url) : null;
+            const ytId = sourceUrl ? extractYoutubeId(sourceUrl) : null;
             if (ytId) {
               return {
                 type: "youtube" as const,
-                url: clipData.url,
+                url: sourceUrl,
                 youtubeId: ytId,
                 thumbnail: `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`,
               };
             }
+            if (clipData.mediaKind === "embed" && clipData.embedUrl) {
+              return {
+                type: "embed" as const,
+                kind: "embed" as const,
+                url: sourceUrl || clipData.embedUrl,
+                embedUrl: clipData.embedUrl,
+                posterUrl: clipData.poster || clipData.img || undefined,
+                provider: (clipData.provider || undefined) as "x" | "instagram" | undefined,
+              };
+            }
+            if (clipData.mediaKind === "image" && clipData.img) {
+              return { type: "image" as const, kind: "image" as const, url: clipData.img };
+            }
+            if (clipData.embedUrl && clipData.provider) {
+              return {
+                type: "embed" as const,
+                kind: "embed" as const,
+                url: sourceUrl || clipData.embedUrl,
+                embedUrl: clipData.embedUrl,
+                posterUrl: clipData.poster || clipData.img || undefined,
+                provider: clipData.provider as "x" | "instagram",
+              };
+            }
             if (clipData.img) {
-              return { type: "image" as const, url: clipData.img };
+              return { type: "image" as const, kind: "image" as const, url: clipData.img };
             }
             return undefined;
           })(),

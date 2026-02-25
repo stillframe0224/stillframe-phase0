@@ -37,9 +37,18 @@ chrome.action.onClicked.addListener(async (tab) => {
     });
 
     const extracted = results[0]?.result || {};
-    const { site = '', img = '', sel = '' } = extracted;
+    const {
+      canonicalUrl = url,
+      site = '',
+      img = '',
+      poster = '',
+      mk = '',
+      embed = '',
+      provider = '',
+      sel = '',
+    } = extracted;
 
-    const shinenUrl = buildShinenUrl(url, title, img, site, sel);
+    const shinenUrl = buildShinenUrl(canonicalUrl, title, img, poster, mk, embed, provider, site, sel);
     await chrome.tabs.create({ url: shinenUrl });
 
   } catch (error) {
@@ -54,6 +63,18 @@ chrome.action.onClicked.addListener(async (tab) => {
  * Content extraction function (runs in page context)
  */
 function extractPageData() {
+  function canonicalUrl(raw) {
+    try {
+      const p = new URL(raw);
+      p.hash = '';
+      const drop = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content', 'utm_id', 'fbclid', 'gclid'];
+      for (const key of drop) p.searchParams.delete(key);
+      return p.toString();
+    } catch {
+      return raw;
+    }
+  }
+
   function norm(raw) {
     if (!raw) return null;
     let x = raw.trim();
@@ -87,6 +108,105 @@ function extractPageData() {
     }
 
     return x.slice(0, 2000);
+  }
+
+  function upgradeInstagram(raw) {
+    if (!raw) return raw;
+    let host = '';
+    try {
+      host = new URL(raw, location.href).hostname.toLowerCase();
+    } catch {
+      return raw;
+    }
+    if (!(host.includes('instagram.') || host.includes('cdninstagram.com') || host.includes('fbcdn.net'))) return raw;
+    return raw.replace(/([/_])(p|s)(150|240|320|480|540|640|720|750)x\3(?=([/_\\.-]|$))/gi, '$1$21080x1080');
+  }
+
+  function upgradeXOrig(raw) {
+    const abs = norm(raw);
+    if (!abs) return null;
+    try {
+      const p = new URL(abs);
+      if (!p.hostname.toLowerCase().includes('twimg.com')) return p.toString();
+      p.pathname = p.pathname.replace(/:(small|medium|large|orig)$/i, ':orig');
+      const name = (p.searchParams.get('name') || '').toLowerCase();
+      if (!name || name === 'small' || name === 'medium' || name === 'large' || name === 'thumb') {
+        p.searchParams.set('name', 'orig');
+      }
+      return p.toString();
+    } catch {
+      return abs;
+    }
+  }
+
+  function isUiAsset(src) {
+    const low = String(src || '').toLowerCase();
+    if (!low) return true;
+    if (low.startsWith('data:')) return true;
+    if (/\.svg(\?|$)/i.test(low)) return true;
+    return /(favicon|sprite|emoji|icon|avatar|profile)/i.test(low);
+  }
+
+  function parseSrcsetMax(raw) {
+    if (!raw) return null;
+    let best = null;
+    let bestW = 0;
+    for (const entry of String(raw).split(',')) {
+      const part = entry.trim();
+      if (!part) continue;
+      const bits = part.split(/\s+/).filter(Boolean);
+      if (!bits.length) continue;
+      const src = norm(bits[0]);
+      if (!src || isUiAsset(src)) continue;
+      const descriptor = bits[bits.length - 1] || '';
+      const w = /^\d+w$/i.test(descriptor) ? Number(descriptor.slice(0, -1)) : 1;
+      if (!best || w > bestW) {
+        best = { src, w };
+        bestW = w;
+      }
+    }
+    return best;
+  }
+
+  function pickLargestNatural(matchFn) {
+    let best = null;
+    const imgs = document.querySelectorAll('img');
+    imgs.forEach((im) => {
+      const src = im.currentSrc || im.src || im.getAttribute('data-src') || im.getAttribute('data-original') || '';
+      const n = norm(src);
+      if (!n || isUiAsset(n)) return;
+      if (typeof matchFn === 'function' && !matchFn(n, im)) return;
+      const area = Number(im.naturalWidth || 0) * Number(im.naturalHeight || 0);
+      if (!best || area > best.area) best = { src: n, area };
+    });
+    return best ? best.src : null;
+  }
+
+  function detectXEmbed(sourceUrl) {
+    try {
+      const p = new URL(sourceUrl);
+      const host = p.hostname.toLowerCase();
+      if (!(host === 'x.com' || host.endsWith('.x.com') || host === 'twitter.com' || host.endsWith('.twitter.com'))) return null;
+      const m = p.pathname.match(/^\/([^/]+)\/status(?:es)?\/(\d+)/i);
+      if (!m) return null;
+      const tweetUrl = 'https://x.com/' + m[1] + '/status/' + m[2];
+      return 'https://platform.twitter.com/embed/Tweet.html?dnt=1&url=' + encodeURIComponent(tweetUrl);
+    } catch {
+      return null;
+    }
+  }
+
+  function detectInstagramEmbed(sourceUrl) {
+    try {
+      const p = new URL(sourceUrl);
+      const host = p.hostname.toLowerCase();
+      if (!(host === 'instagram.com' || host.endsWith('.instagram.com') || host === 'instagr.am')) return null;
+      const m = p.pathname.match(/^\/(p|reel|tv)\/([A-Za-z0-9_-]+)/i);
+      if (!m) return null;
+      return 'https://www.instagram.com/' + m[1].toLowerCase() + '/' + m[2] + '/embed/';
+    } catch {
+      return null;
+    }
   }
 
   const siteMeta = document.querySelector('meta[property="og:site_name"]');
@@ -195,22 +315,86 @@ function extractPageData() {
   });
   if (fanzaBest) candidates.unshift(fanzaBest);
 
+  const sourceUrl = canonicalUrl(location.href);
+  const host = (location.hostname || '').toLowerCase();
+  let mk = '';
+  let embed = '';
+  let provider = '';
+  let poster = '';
   let img = '';
-  for (const c of candidates) {
-    const n = norm(c);
-    if (n) {
-      img = n;
-      break;
+
+  if (host === 'x.com' || host.endsWith('.x.com') || host === 'twitter.com' || host.endsWith('.twitter.com')) {
+    embed = detectXEmbed(sourceUrl) || '';
+    provider = embed ? 'x' : '';
+    mk = embed ? 'embed' : '';
+    let bestPoster = '';
+    let bestVideoArea = 0;
+    const videos = document.querySelectorAll('video');
+    videos.forEach((video) => {
+      const next = upgradeXOrig(video.poster || video.getAttribute('poster') || '');
+      if (!next) return;
+      const area = Number(video.videoWidth || video.width || 0) * Number(video.videoHeight || video.height || 0);
+      if (!bestPoster || area >= bestVideoArea) {
+        bestPoster = next;
+        bestVideoArea = area;
+      }
+    });
+    const bestImage = pickLargestNatural((src) => {
+      try {
+        const p = new URL(src);
+        return p.hostname.includes('pbs.twimg.com') && /\/media\//i.test(p.pathname);
+      } catch {
+        return false;
+      }
+    });
+    img = bestImage ? upgradeXOrig(bestImage) : '';
+    poster = bestPoster || img || '';
+  } else if (host === 'instagram.com' || host.endsWith('.instagram.com') || host === 'instagr.am') {
+    const srcsetNodes = document.querySelectorAll('img[srcset]');
+    let bestSrcset = '';
+    let bestW = 0;
+    srcsetNodes.forEach((node) => {
+      const candidate = parseSrcsetMax(node.getAttribute('srcset') || node.srcset || '');
+      if (!candidate) return;
+      const w = Number(candidate.w || 1);
+      if (!bestSrcset || w > bestW) {
+        bestSrcset = candidate.src;
+        bestW = w;
+      }
+    });
+    const natural = pickLargestNatural();
+    img = upgradeInstagram(bestSrcset || natural || '');
+    poster = img || '';
+    const isReel = /\/(reel|tv)\//i.test(location.pathname || '');
+    if (isReel) {
+      embed = detectInstagramEmbed(sourceUrl) || '';
+      provider = embed ? 'instagram' : '';
+      mk = embed ? 'embed' : '';
     }
   }
 
-  return { site, img, sel };
+  const isXLikeHost = host === 'x.com' || host.endsWith('.x.com') || host === 'twitter.com' || host.endsWith('.twitter.com');
+  const isInstagramLikeHost = host === 'instagram.com' || host.endsWith('.instagram.com') || host === 'instagr.am';
+  const skipGenericFallback = Boolean(isXLikeHost || isInstagramLikeHost);
+  if (!img && !skipGenericFallback) {
+    for (const c of candidates) {
+      const n = norm(c);
+      if (n) {
+        img = n;
+        break;
+      }
+    }
+  }
+  if (!poster) poster = img || '';
+  if (img && host.includes('instagram')) img = upgradeInstagram(img);
+
+  return { canonicalUrl: sourceUrl, site, img, poster, mk, embed, provider, sel };
 }
 
 /**
  * Build SHINEN URL with proper encoding
  */
-function buildShinenUrl(url, title, img, site, sel) {
+function buildShinenUrl(url, title, img, poster, mk, embed, provider, site, sel) {
   const base = 'https://stillframe-phase0.vercel.app/app';
   const params = new URLSearchParams();
 
@@ -219,6 +403,10 @@ function buildShinenUrl(url, title, img, site, sel) {
   params.set('title', title.slice(0, 200));
 
   if (img) params.set('img', img.slice(0, 2000));
+  if (poster) params.set('poster', poster.slice(0, 2000));
+  if (mk) params.set('mk', mk);
+  if (embed) params.set('embed', embed.slice(0, 2000));
+  if (provider) params.set('provider', provider);
   if (site) params.set('site', site.slice(0, 100));
   if (sel) params.set('s', sel.slice(0, 1200));
 
