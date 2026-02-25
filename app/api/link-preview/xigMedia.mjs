@@ -110,14 +110,15 @@ export function selectBestImageCandidate(candidates) {
     const score = scoreImage(candidate.url);
     if (!best || score > best.score) best = { ...candidate, score };
   }
-  return best?.url ?? null;
+  if (!best) return null;
+  return best.score > 0 ? best.url : null;
 }
 
 export function isLoginWallHtml(url, html) {
   const host = getHost(url);
   const text = String(html || "");
   if (isXHost(host)) {
-    return /Log in to X|Sign in to X|To continue, log in|Log in to Twitter|Sign in/i.test(text);
+    return /Log in to X|Sign in to X|To continue, log in|Log in to Twitter|Sign in|See what's happening|Join X today/i.test(text);
   }
   if (isInstagramHost(host)) {
     return /Log in|Sign up to see photos|See Instagram photos and videos|login/i.test(text);

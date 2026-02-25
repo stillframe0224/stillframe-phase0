@@ -1,4 +1,6 @@
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import path from "node:path";
 import test from "node:test";
 import {
   buildEmbedMedia,
@@ -25,6 +27,8 @@ test("X login wall rejects shared logo image and still builds embed", () => {
     <meta property="og:image" content="https://abs.twimg.com/responsive-web/client-web/icon-default.522d363a.png" />
   `;
   assert.equal(isLoginWallHtml("https://x.com/user/status/123", html), true);
+  const candidates = collectImageCandidatesFromHtml(html, "https://x.com/user/status/123");
+  assert.equal(selectBestImageCandidate(candidates), null);
   const embed = buildEmbedMedia("https://x.com/user/status/123", html, null);
   assert.equal(embed?.kind, "embed");
   assert.match(embed?.embedUrl || "", /platform\.twitter\.com\/embed\/Tweet\.html/);
@@ -55,4 +59,13 @@ test("Instagram reel with og:video is treated as embed media", () => {
   assert.equal(embed?.kind, "embed");
   assert.equal(embed?.embedUrl, "https://www.instagram.com/reel/CODE123/embed/");
   assert.equal(embed?.posterUrl, "https://scontent.cdninstagram.com/v/t51.2885-15/reel.jpg");
+});
+
+test("URL input path upgrades plain URL text to clip card with source+type8", () => {
+  const canvasPath = path.resolve("app/app/shinen/ShinenCanvas.tsx");
+  const src = fs.readFileSync(canvasPath, "utf8");
+  assert.match(src, /normalizeMaybeUrl/);
+  assert.match(src, /type:\s*8/);
+  assert.match(src, /source:\s*\{\s*url:\s*normalizedUrl,\s*site/s);
+  assert.match(src, /const normalizedUrl = normalizeMaybeUrl\(text\)/);
 });

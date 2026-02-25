@@ -53,6 +53,46 @@ function extractYoutubeId(url: string): string | null {
   return null;
 }
 
+function normalizeMaybeUrl(input: string): string | null {
+  const raw = String(input || "").trim();
+  if (!raw) return null;
+  let candidate = raw;
+  if (candidate.startsWith("//")) candidate = `https:${candidate}`;
+  if (!/^https?:\/\//i.test(candidate)) {
+    if (/^(?:www\.)?[a-z0-9-]+(?:\.[a-z0-9-]+)+(?:\/[^\s]*)?$/i.test(candidate)) {
+      candidate = `https://${candidate.replace(/^www\./i, "www.")}`;
+    } else {
+      return null;
+    }
+  }
+  try {
+    const parsed = new URL(candidate);
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return null;
+    return parsed.href;
+  } catch {
+    return null;
+  }
+}
+
+function inferEmbedFromUrl(url: string): { provider: "instagram"; embedUrl: string } | null {
+  try {
+    const u = new URL(url);
+    const host = u.hostname.toLowerCase();
+    if (host === "instagram.com" || host.endsWith(".instagram.com") || host === "instagr.am") {
+      const ig = u.pathname.match(/^\/(reel|tv)\/([A-Za-z0-9_-]+)/i);
+      if (ig) {
+        return {
+          provider: "instagram",
+          embedUrl: `https://www.instagram.com/${ig[1].toLowerCase()}/${ig[2]}/embed/`,
+        };
+      }
+    }
+  } catch {
+    // Ignore malformed URL
+  }
+  return null;
+}
+
 function moveCardById(cards: ShinenCard[], fromId: number, toId: number): ShinenCard[] {
   const fromIdx = cards.findIndex((c) => c.id === fromId);
   const toIdx = cards.findIndex((c) => c.id === toId);
@@ -585,6 +625,50 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
       const pos = layoutIdx < 0 || LAYOUTS[layoutIdx] === "scatter"
         ? findNonOverlappingPosition(prev)
         : { px: (Math.random() - 0.5) * 380, py: (Math.random() - 0.5) * 200 };
+      const normalizedUrl = normalizeMaybeUrl(text);
+      if (normalizedUrl) {
+        const ytId = extractYoutubeId(normalizedUrl);
+        const embed = inferEmbedFromUrl(normalizedUrl);
+        const site = (() => {
+          try { return new URL(normalizedUrl).hostname; } catch { return normalizedUrl; }
+        })();
+        const next = [
+          ...prev,
+          {
+            id: Date.now(),
+            type: 8,
+            text: normalizedUrl,
+            px: pos.px,
+            py: pos.py,
+            z: -20 - Math.random() * 100,
+            source: { url: normalizedUrl, site },
+            media: (() => {
+              if (ytId) {
+                return {
+                  type: "youtube" as const,
+                  url: normalizedUrl,
+                  youtubeId: ytId,
+                  thumbnail: `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`,
+                };
+              }
+              if (embed) {
+                return {
+                  type: "embed" as const,
+                  kind: "embed" as const,
+                  url: normalizedUrl,
+                  embedUrl: embed.embedUrl,
+                  provider: embed.provider,
+                };
+              }
+              return undefined;
+            })(),
+          },
+        ];
+        if (layoutIdx >= 0 && LAYOUTS[layoutIdx] !== "scatter") {
+          return applyLayout(LAYOUTS[layoutIdx], next);
+        }
+        return next;
+      }
       const next = [
         ...prev,
         {
