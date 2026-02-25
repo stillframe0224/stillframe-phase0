@@ -9,6 +9,7 @@ import {
   isLoginWallHtml,
   selectBestImageCandidate,
 } from "../../app/api/link-preview/xigMedia.mjs";
+import { normalizeOnSave } from "../../app/app/shinen/lib/selfHealMigration.mjs";
 
 test("X tweet photo prefers pbs media over logos/icons", () => {
   const html = `
@@ -68,4 +69,69 @@ test("URL input path upgrades plain URL text to clip card with source+type8", ()
   assert.match(src, /type:\s*8/);
   assert.match(src, /source:\s*\{\s*url:\s*normalizedUrl,\s*site/s);
   assert.match(src, /const normalizedUrl = normalizeMaybeUrl\(text\)/);
+});
+
+test("normalizeOnSave upgrades URL-only plain note into clip card", () => {
+  const draft = {
+    id: 1,
+    type: 2,
+    text: "https://example.com/path?q=1",
+    px: 0,
+    py: 0,
+    z: -10,
+  };
+  const result = normalizeOnSave(draft);
+  assert.equal(result.card.type, 8);
+  assert.equal(result.card.source?.url, "https://example.com/path?q=1");
+  assert.equal(result.reasons.includes("guard:type8_source"), true);
+});
+
+test("normalizeOnSave upgrades source.url card to clip type", () => {
+  const draft = {
+    id: 2,
+    type: 4,
+    text: "legacy",
+    px: 0,
+    py: 0,
+    z: -10,
+    source: { url: "https://x.com/user/status/123", site: "x.com" },
+  };
+  const result = normalizeOnSave(draft);
+  assert.equal(result.card.type, 8);
+  assert.equal(result.card.source?.url, "https://x.com/user/status/123");
+  assert.equal(result.reasons.includes("guard:type8_source"), true);
+});
+
+test("normalizeOnSave drops generic X login-wall thumbnail", () => {
+  const draft = {
+    id: 3,
+    type: 8,
+    text: "x card",
+    px: 0,
+    py: 0,
+    z: -10,
+    source: { url: "https://x.com/user/status/123", site: "x.com" },
+    media: {
+      type: "image",
+      kind: "image",
+      url: "https://abs.twimg.com/responsive-web/client-web/og/image.png",
+    },
+  };
+  const result = normalizeOnSave(draft);
+  assert.equal(result.card.media, undefined);
+  assert.equal(result.reasons.includes("guard:drop_generic_x_thumb"), true);
+});
+
+test("normalizeOnSave is idempotent", () => {
+  const draft = {
+    id: 4,
+    type: 2,
+    text: "https://example.com",
+    px: 0,
+    py: 0,
+    z: -10,
+  };
+  const once = normalizeOnSave(draft);
+  const twice = normalizeOnSave(once.card);
+  assert.deepEqual(twice.card, once.card);
 });
