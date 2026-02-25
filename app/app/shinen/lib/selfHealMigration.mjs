@@ -129,6 +129,80 @@ export function isGenericXLoginThumb(url) {
   return GENERIC_X_THUMB_PATTERNS.some((pattern) => pattern.test(normalized));
 }
 
+export function normalizeOnSave(cardDraft) {
+  const next = {
+    ...cardDraft,
+    ...(cardDraft.source ? { source: { ...cardDraft.source } } : {}),
+    ...(cardDraft.media ? { media: { ...cardDraft.media } } : {}),
+  };
+  const reasons = [];
+  let changed = false;
+
+  const sourceUrl = normalizeMaybeUrl(next.source?.url || "");
+  const textUrl = extractUrlOnlyText(next.text);
+  const canonicalUrl = sourceUrl ?? textUrl;
+
+  // Guard A: URL-only note / source.url card must be clip(type=8)+source.url.
+  if (canonicalUrl && next.type !== 8) {
+    next.type = 8;
+    next.source = {
+      ...(next.source || {}),
+      url: canonicalUrl,
+      site: next.source?.site || hostFromUrl(canonicalUrl) || canonicalUrl,
+    };
+    reasons.push("guard:type8_source");
+    changed = true;
+  }
+
+  // Guard B: Drop known generic X/Twitter login-wall thumbnails.
+  let droppedGenericXThumb = false;
+  if (
+    Object.prototype.hasOwnProperty.call(next, "thumbnail_url") &&
+    isGenericXLoginThumb(next.thumbnail_url)
+  ) {
+    next.thumbnail_url = null;
+    droppedGenericXThumb = true;
+    changed = true;
+  }
+  if (next.media) {
+    const media = { ...next.media };
+    const badMediaUrl = isGenericXLoginThumb(media.url);
+    const badThumb = isGenericXLoginThumb(media.thumbnail);
+    const badPoster = isGenericXLoginThumb(media.posterUrl);
+    if (badMediaUrl || badThumb || badPoster) {
+      if (media.type === "image" && badMediaUrl) {
+        next.media = undefined;
+      } else {
+        if (badThumb) delete media.thumbnail;
+        if (badPoster) delete media.posterUrl;
+        if (badMediaUrl && (media.type === "embed" || media.kind === "embed")) {
+          media.url = canonicalUrl ?? media.embedUrl ?? media.url;
+        }
+        next.media = media;
+      }
+      droppedGenericXThumb = true;
+      changed = true;
+    }
+  }
+  if (droppedGenericXThumb) {
+    reasons.push("guard:drop_generic_x_thumb");
+  }
+
+  // Guard C: Embed without embedUrl is kept as-is, but explicitly marked.
+  const media = next.media;
+  if (media && (media.kind === "embed" || media.type === "embed")) {
+    const embedUrl = normalizeMaybeUrl(media.embedUrl || "");
+    if (!embedUrl) {
+      reasons.push("guard:embed_missing_url");
+    }
+  }
+
+  return {
+    card: changed ? next : cardDraft,
+    reasons,
+  };
+}
+
 export function migrateCard(card) {
   const source = card.source ? { ...card.source } : undefined;
   let media = card.media ? { ...card.media } : undefined;
