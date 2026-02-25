@@ -10,6 +10,10 @@ function getHost(rawUrl) {
   }
 }
 
+function decodeHtmlEntities(input) {
+  return String(input || "").replace(/&amp;/gi, "&").replace(/&quot;/gi, "\"");
+}
+
 export function isXHost(rawUrlOrHost) {
   const host = normalize(rawUrlOrHost).includes("://")
     ? getHost(rawUrlOrHost)
@@ -32,7 +36,7 @@ function extractAttr(tag, name) {
 
 function normalizeUrl(src, baseUrl) {
   if (!src) return null;
-  const raw = String(src).trim().replace(/^['"]|['"]$/g, "");
+  const raw = decodeHtmlEntities(String(src)).trim().replace(/^['"]|['"]$/g, "");
   if (!raw) return null;
   try {
     const normalized = raw.startsWith("//") ? `https:${raw}` : raw;
@@ -49,6 +53,32 @@ function parseImageSizeHints(url) {
   if (/(?:^|[\/_.-])(?:s|p)?(32|48|64|72|96|120|150|180|200)x\1(?:[\/_.-]|$)/.test(low)) return "small";
   if (/1x1|avatar|profile_images|emoji|icon|logo|sprite|favicon|apple-touch-icon|\/svg\//.test(low)) return "icon";
   return "normal";
+}
+
+function firstString(...values) {
+  for (const value of values) {
+    if (typeof value === "string" && value.trim()) return value;
+  }
+  return null;
+}
+
+function normalizeXMediaUrl(rawUrl) {
+  const parsedRaw = normalizeUrl(rawUrl, "https://x.com/");
+  if (!parsedRaw) return null;
+  try {
+    const parsed = new URL(parsedRaw);
+    const host = parsed.hostname.toLowerCase();
+    if (host === "pbs.twimg.com" || host.endsWith(".pbs.twimg.com")) {
+      parsed.pathname = parsed.pathname.replace(/:(small|medium|orig|large)$/i, ":large");
+      const currentName = (parsed.searchParams.get("name") || "").toLowerCase();
+      if (!currentName || currentName === "small" || currentName === "medium" || currentName === "thumb") {
+        parsed.searchParams.set("name", "large");
+      }
+    }
+    return parsed.toString();
+  } catch {
+    return parsedRaw;
+  }
 }
 
 export function collectImageCandidatesFromHtml(html, baseUrl) {
@@ -132,6 +162,16 @@ function extractMetaValue(html, property) {
   return html.match(re1)?.[1] ?? html.match(re2)?.[1] ?? null;
 }
 
+export function extractTweetId(inputUrl) {
+  try {
+    const u = new URL(inputUrl);
+    const match = u.pathname.match(/^\/[^/]+\/status(?:es)?\/(\d+)/i);
+    return match?.[1] ?? null;
+  } catch {
+    return null;
+  }
+}
+
 function extractXStatusUrl(inputUrl) {
   try {
     const u = new URL(inputUrl);
@@ -152,6 +192,101 @@ function extractInstagramPathParts(inputUrl) {
   } catch {
     return null;
   }
+}
+
+export function makeInstagramEmbedUrl(inputUrl) {
+  const parts = extractInstagramPathParts(inputUrl);
+  if (!parts) return null;
+  return `https://www.instagram.com/${parts.kind}/${parts.code}/embed/`;
+}
+
+export function parseLargestSrcsetImage(html, baseUrl) {
+  const srcsetRe = /\bsrcset\s*=\s*(["'])([\s\S]*?)\1/gi;
+  let best = null;
+  for (const match of html.matchAll(srcsetRe)) {
+    const entries = decodeHtmlEntities(match[2])
+      .split(",")
+      .map((entry) => entry.trim())
+      .filter(Boolean);
+    for (const entry of entries) {
+      const parts = entry.split(/\s+/).filter(Boolean);
+      if (parts.length === 0) continue;
+      const url = normalizeUrl(parts[0], baseUrl);
+      if (!url) continue;
+      const descriptor = parts[parts.length - 1];
+      const width = descriptor?.endsWith("w") ? Number(descriptor.slice(0, -1)) : 0;
+      const score = Number.isFinite(width) && width > 0 ? width : 1;
+      if (!best || score > best.score) best = { url, score };
+    }
+  }
+  if (best?.url) return best.url;
+  const fallbackMeta = extractMetaValue(html, "og:image") ?? extractMetaValue(html, "twitter:image");
+  return normalizeUrl(fallbackMeta, baseUrl);
+}
+
+function collectMediaNodes(payload) {
+  const arrays = [
+    payload?.mediaDetails,
+    payload?.media_details,
+    payload?.media,
+    payload?.entities?.media,
+    payload?.extended_entities?.media,
+    payload?.photos,
+  ];
+  const out = [];
+  for (const list of arrays) {
+    if (!Array.isArray(list)) continue;
+    for (const item of list) {
+      if (item && typeof item === "object") out.push(item);
+    }
+  }
+  return out;
+}
+
+export function parseSyndicationTweetMedia(payload) {
+  if (!payload || typeof payload !== "object") return null;
+  const nodes = collectMediaNodes(payload);
+  if (nodes.length === 0) return null;
+
+  let photoUrl = null;
+  let videoPoster = null;
+  let hasVideo = false;
+
+  for (const node of nodes) {
+    const type = String(node.type ?? node.media_type ?? node.kind ?? "").toLowerCase();
+    const normalizedPhoto = normalizeXMediaUrl(
+      firstString(
+        node.media_url_https,
+        node.media_url,
+        node.image?.url,
+        node.url,
+      ),
+    );
+    const normalizedPoster = normalizeXMediaUrl(
+      firstString(
+        node.thumbnail_url,
+        node.preview_image_url,
+        node.poster_image_url,
+        node.media_url_https,
+        node.media_url,
+        node.image?.url,
+      ),
+    );
+
+    const videoLike = type === "video" || type === "animated_gif" || Boolean(node.video_info || node.video);
+    if (videoLike) {
+      hasVideo = true;
+      if (!videoPoster && normalizedPoster) videoPoster = normalizedPoster;
+      continue;
+    }
+    if (type === "photo" && normalizedPhoto && !photoUrl) {
+      photoUrl = normalizedPhoto;
+    }
+  }
+
+  if (hasVideo) return { mediaKind: "embed", posterUrl: videoPoster ?? null };
+  if (photoUrl) return { mediaKind: "image", imageUrl: photoUrl, posterUrl: photoUrl };
+  return null;
 }
 
 export function detectVideoFromHtml(url, html) {
