@@ -22,13 +22,28 @@ import TagModal from "./TagModal";
 import MemoToolbar from "./MemoToolbar";
 import { initClipReceiver } from "./lib/clip-receiver";
 import type { ClipData } from "./lib/clip-receiver";
-import { downloadDebugBundleJSONL, downloadDiagnosticsJSONL, isDebugModeEnabled } from "./lib/diag";
+import {
+  downloadDebugBundleJSONL,
+  downloadDiagnosticsJSONL,
+  inferDomain,
+  isDebugModeEnabled,
+  logDiagEvent,
+} from "./lib/diag";
+import {
+  applyUnfurlResultToCard,
+  runSelfHealMigration,
+  SELFHEAL_MIGRATION_FORCE_KEY,
+  SELFHEAL_MIGRATION_MAX_PER_RUN,
+  SELFHEAL_MIGRATION_STORAGE_KEY,
+  SELFHEAL_MIGRATION_VERSION,
+} from "./lib/selfHealMigration.mjs";
 import appPackage from "../../../package.json";
 
 const MEMO_STORAGE_KEY = "shinen_memo_v1";
 const TAG_STORAGE_KEY = "shinen_tags_v1";
 const CARDS_STORAGE_KEY = "shinen_cards_v1";
 const LAYOUT_STORAGE_KEY = "shinen_layout_v1";
+const OG_CACHE_KEY = "shinen_og_v1";
 const CARDS_SAVE_DEBOUNCE = 400; // ms
 
 interface ReorderDragState {
@@ -103,6 +118,31 @@ function moveCardById(cards: ShinenCard[], fromId: number, toId: number): Shinen
   return next;
 }
 
+function invalidateOgCacheEntries(urls: string[]): number {
+  if (typeof window === "undefined") return 0;
+  if (!Array.isArray(urls) || urls.length === 0) return 0;
+  try {
+    const raw = localStorage.getItem(OG_CACHE_KEY);
+    if (!raw) return 0;
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== "object") return 0;
+    let changed = 0;
+    for (const url of urls) {
+      if (!url || typeof url !== "string") continue;
+      if (Object.prototype.hasOwnProperty.call(parsed, url)) {
+        delete parsed[url];
+        changed += 1;
+      }
+    }
+    if (changed > 0) {
+      localStorage.setItem(OG_CACHE_KEY, JSON.stringify(parsed));
+    }
+    return changed;
+  } catch {
+    return 0;
+  }
+}
+
 interface ShinenCanvasProps {
   initialCards?: ShinenCard[];
   e2eMode?: boolean;
@@ -161,6 +201,7 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
   const reorderCaptureRef = useRef<{ el: HTMLElement; pointerId: number } | null>(null);
   const reorderDragRef = useRef<ReorderDragState | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
+  const selfHealRanRef = useRef(false);
 
   // Animation loop (rAF + camera lerp)
   const { cam, targetCam, time, resetCamera } = useAnimationLoop(e2eMode);
@@ -260,6 +301,126 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
     if (typeof window === "undefined") return;
     setDebugMode(isDebugModeEnabled());
   }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || e2eMode || initialCards) return;
+    if (selfHealRanRef.current) return;
+    selfHealRanRef.current = true;
+
+    let alreadyMigrated = false;
+    let forceRerun = false;
+    try {
+      alreadyMigrated = localStorage.getItem(SELFHEAL_MIGRATION_STORAGE_KEY) === "1";
+      forceRerun = isDebugModeEnabled() && localStorage.getItem(SELFHEAL_MIGRATION_FORCE_KEY) === "1";
+    } catch {
+      // Ignore localStorage failures.
+    }
+    if (alreadyMigrated && !forceRerun) return;
+
+    const migration = runSelfHealMigration(cards, { limit: SELFHEAL_MIGRATION_MAX_PER_RUN });
+    const queueActions = migration.actions.filter((action) => action.type === "enqueue_unfurl" && action.url);
+    const queueUrls = Array.from(new Set(queueActions.map((action) => String(action.url))));
+    const invalidatedOg = invalidateOgCacheEntries(queueUrls);
+
+    logDiagEvent({
+      type: "migration_start",
+      cardId: null,
+      domain: null,
+      link_url: null,
+      thumbnail_url: null,
+      extra: {
+        version: SELFHEAL_MIGRATION_VERSION,
+        totalCards: cards.length,
+        limit: SELFHEAL_MIGRATION_MAX_PER_RUN,
+        forceRerun,
+      },
+    });
+
+    for (const fix of migration.fixes) {
+      logDiagEvent({
+        type: "migration_fix",
+        cardId: fix.cardId,
+        domain: inferDomain(fix.after.sourceUrl ?? fix.before.sourceUrl ?? null),
+        link_url: fix.after.sourceUrl ?? fix.before.sourceUrl ?? null,
+        thumbnail_url: fix.after.mediaUrl ?? fix.before.mediaUrl ?? null,
+        extra: {
+          reasons: fix.reasons,
+          before: fix.before,
+          after: fix.after,
+          actions: fix.actions,
+        },
+      });
+    }
+
+    for (const action of migration.actions) {
+      logDiagEvent({
+        type: "migration_action_enqueued",
+        cardId: action.cardId ?? null,
+        domain: inferDomain(action.url ?? null),
+        link_url: action.url ?? null,
+        thumbnail_url: null,
+        extra: {
+          actionType: action.type,
+          reason: action.reason ?? null,
+        },
+      });
+    }
+
+    if (migration.changedCount > 0) {
+      setCards(migration.cards);
+    }
+
+    try {
+      localStorage.setItem(SELFHEAL_MIGRATION_STORAGE_KEY, "1");
+      if (forceRerun) localStorage.removeItem(SELFHEAL_MIGRATION_FORCE_KEY);
+    } catch {
+      // Ignore localStorage failures.
+    }
+
+    let cancelled = false;
+    const runQueue = async () => {
+      for (const action of queueActions) {
+        if (cancelled) break;
+        const targetUrl = String(action.url || "");
+        const targetCardId = Number(action.cardId);
+        if (!targetUrl || !Number.isFinite(targetCardId)) continue;
+        try {
+          const res = await fetch(`/api/link-preview?url=${encodeURIComponent(targetUrl)}`);
+          if (!res.ok) continue;
+          const data = await res.json();
+          if (cancelled) break;
+          setCards((prev) =>
+            prev.map((card) => (card.id === targetCardId ? applyUnfurlResultToCard(card, data) : card)),
+          );
+        } catch {
+          // Keep migration safe; queue failures are non-fatal.
+        }
+      }
+    };
+
+    void runQueue();
+    logDiagEvent({
+      type: "migration_done",
+      cardId: null,
+      domain: null,
+      link_url: null,
+      thumbnail_url: null,
+      extra: {
+        version: SELFHEAL_MIGRATION_VERSION,
+        changedCount: migration.changedCount,
+        appliedCount: migration.appliedCount,
+        candidateCount: migration.candidateCount,
+        remainingCount: migration.remainingCount,
+        actionCount: migration.actions.length,
+        queueCount: queueActions.length,
+        invalidatedOgCache: invalidatedOg,
+      },
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [cards, e2eMode, initialCards]);
 
   useEffect(() => {
     if (!debugMode) return;
