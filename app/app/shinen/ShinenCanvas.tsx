@@ -31,6 +31,7 @@ import {
 } from "./lib/diag";
 import {
   applyUnfurlResultToCard,
+  normalizeOnSave,
   runSelfHealMigration,
   SELFHEAL_MIGRATION_FORCE_KEY,
   SELFHEAL_MIGRATION_MAX_PER_RUN,
@@ -143,6 +144,16 @@ function invalidateOgCacheEntries(urls: string[]): number {
   }
 }
 
+function summarizeUrlForDiag(rawUrl: string | null | undefined): string | null {
+  if (!rawUrl) return null;
+  try {
+    const parsed = new URL(rawUrl);
+    return `${parsed.origin}${parsed.pathname}`;
+  } catch {
+    return String(rawUrl).slice(0, 140);
+  }
+}
+
 interface ShinenCanvasProps {
   initialCards?: ShinenCard[];
   e2eMode?: boolean;
@@ -202,6 +213,36 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
   const reorderDragRef = useRef<ReorderDragState | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
   const selfHealRanRef = useRef(false);
+
+  const applySaveGuards = useCallback(
+    (cardDraft: ShinenCard): ShinenCard => {
+      const guarded = normalizeOnSave(cardDraft);
+      if (debugMode && guarded.reasons.length > 0) {
+        const linkUrl = guarded.card.source?.url ?? null;
+        const thumbUrl =
+          (guarded.card as { thumbnail_url?: string | null }).thumbnail_url ??
+          guarded.card.media?.posterUrl ??
+          guarded.card.media?.thumbnail ??
+          (guarded.card.media?.type === "image" ? guarded.card.media?.url : null) ??
+          null;
+        logDiagEvent({
+          type: "save_guard_applied",
+          cardId: guarded.card.id ?? null,
+          domain: inferDomain(linkUrl ?? thumbUrl),
+          link_url: linkUrl,
+          thumbnail_url: thumbUrl,
+          extra: {
+            reasons: guarded.reasons,
+            urlSummary: summarizeUrlForDiag(linkUrl),
+            mediaType: guarded.card.media?.type ?? null,
+            mediaKind: guarded.card.media?.kind ?? null,
+          },
+        });
+      }
+      return guarded.card as ShinenCard;
+    },
+    [debugMode],
+  );
 
   // Animation loop (rAF + camera lerp)
   const { cam, targetCam, time, resetCamera } = useAnimationLoop(e2eMode);
@@ -793,60 +834,62 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
         const site = (() => {
           try { return new URL(normalizedUrl).hostname; } catch { return normalizedUrl; }
         })();
+        const cardDraft: ShinenCard = {
+          id: Date.now(),
+          type: 8,
+          text: normalizedUrl,
+          px: pos.px,
+          py: pos.py,
+          z: -20 - Math.random() * 100,
+          source: { url: normalizedUrl, site },
+          media: (() => {
+            if (ytId) {
+              return {
+                type: "youtube" as const,
+                url: normalizedUrl,
+                youtubeId: ytId,
+                thumbnail: `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`,
+              };
+            }
+            if (embed) {
+              return {
+                type: "embed" as const,
+                kind: "embed" as const,
+                url: normalizedUrl,
+                embedUrl: embed.embedUrl,
+                provider: embed.provider,
+              };
+            }
+            return undefined;
+          })(),
+        };
         const next = [
           ...prev,
-          {
-            id: Date.now(),
-            type: 8,
-            text: normalizedUrl,
-            px: pos.px,
-            py: pos.py,
-            z: -20 - Math.random() * 100,
-            source: { url: normalizedUrl, site },
-            media: (() => {
-              if (ytId) {
-                return {
-                  type: "youtube" as const,
-                  url: normalizedUrl,
-                  youtubeId: ytId,
-                  thumbnail: `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`,
-                };
-              }
-              if (embed) {
-                return {
-                  type: "embed" as const,
-                  kind: "embed" as const,
-                  url: normalizedUrl,
-                  embedUrl: embed.embedUrl,
-                  provider: embed.provider,
-                };
-              }
-              return undefined;
-            })(),
-          },
+          applySaveGuards(cardDraft),
         ];
         if (layoutIdx >= 0 && LAYOUTS[layoutIdx] !== "scatter") {
           return applyLayout(LAYOUTS[layoutIdx], next);
         }
         return next;
       }
+      const plainCard: ShinenCard = {
+        id: Date.now(),
+        type: Math.floor(Math.random() * 8),
+        text,
+        px: pos.px,
+        py: pos.py,
+        z: -20 - Math.random() * 100,
+      };
       const next = [
         ...prev,
-        {
-          id: Date.now(),
-          type: Math.floor(Math.random() * 8),
-          text,
-          px: pos.px,
-          py: pos.py,
-          z: -20 - Math.random() * 100,
-        },
+        applySaveGuards(plainCard),
       ];
       if (layoutIdx >= 0 && LAYOUTS[layoutIdx] !== "scatter") {
         return applyLayout(LAYOUTS[layoutIdx], next);
       }
       return next;
     });
-  }, [layoutIdx]);
+  }, [applySaveGuards, layoutIdx]);
 
   // File upload handler
   const handleFileUpload = useCallback(
@@ -860,18 +903,19 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
         const pos = layoutIdx < 0 || LAYOUTS[layoutIdx] === "scatter"
           ? findNonOverlappingPosition(prev)
           : { px: (Math.random() - 0.5) * 380, py: (Math.random() - 0.5) * 200 };
+        const cardDraft: ShinenCard = {
+          id: Date.now(),
+          type: result.type,
+          text: result.text,
+          px: pos.px,
+          py: pos.py,
+          z: -20 - Math.random() * 100,
+          media: result.media,
+          file: result.file,
+        };
         const next = [
           ...prev,
-          {
-            id: Date.now(),
-            type: result.type,
-            text: result.text,
-            px: pos.px,
-            py: pos.py,
-            z: -20 - Math.random() * 100,
-            media: result.media,
-            file: result.file,
-          },
+          applySaveGuards(cardDraft),
         ];
         if (layoutIdx >= 0 && LAYOUTS[layoutIdx] !== "scatter") {
           return applyLayout(LAYOUTS[layoutIdx], next);
@@ -879,7 +923,7 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
         return next;
       });
     },
-    [layoutIdx],
+    [applySaveGuards, layoutIdx],
   );
 
 
@@ -891,35 +935,36 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
         const pos = layoutIdx < 0 || LAYOUTS[layoutIdx] === "scatter"
           ? findNonOverlappingPosition(prev)
           : { px: (Math.random() - 0.5) * 380, py: (Math.random() - 0.5) * 200 };
+        const cardDraft: ShinenCard = {
+          id: Date.now(),
+          type: 8, // clip type
+          text: clipData.title || clipData.url || "Saved clip",
+          px: pos.px,
+          py: pos.py,
+          z: -20 - Math.random() * 100,
+          source: clipData.url ? {
+            url: clipData.url,
+            site: clipData.site || new URL(clipData.url).hostname,
+          } : undefined,
+          media: (() => {
+            const ytId = clipData.url ? extractYoutubeId(clipData.url) : null;
+            if (ytId) {
+              return {
+                type: "youtube" as const,
+                url: clipData.url,
+                youtubeId: ytId,
+                thumbnail: `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`,
+              };
+            }
+            if (clipData.img) {
+              return { type: "image" as const, url: clipData.img };
+            }
+            return undefined;
+          })(),
+        };
         const next = [
           ...prev,
-          {
-            id: Date.now(),
-            type: 8, // clip type
-            text: clipData.title || clipData.url || "Saved clip",
-            px: pos.px,
-            py: pos.py,
-            z: -20 - Math.random() * 100,
-            source: clipData.url ? {
-              url: clipData.url,
-              site: clipData.site || new URL(clipData.url).hostname,
-            } : undefined,
-            media: (() => {
-              const ytId = clipData.url ? extractYoutubeId(clipData.url) : null;
-              if (ytId) {
-                return {
-                  type: "youtube" as const,
-                  url: clipData.url,
-                  youtubeId: ytId,
-                  thumbnail: `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`,
-                };
-              }
-              if (clipData.img) {
-                return { type: "image" as const, url: clipData.img };
-              }
-              return undefined;
-            })(),
-          },
+          applySaveGuards(cardDraft),
         ];
         if (layoutIdx >= 0 && LAYOUTS[layoutIdx] !== "scatter") {
           return applyLayout(LAYOUTS[layoutIdx], next);
@@ -928,7 +973,7 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
       });
     });
     return cleanup;
-  }, [layoutIdx]);
+  }, [applySaveGuards, layoutIdx]);
 
   // Bookmarklet auto-capture: parse ?auto=1&url=... params on mount
   useEffect(() => {
@@ -963,42 +1008,43 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
       const pos = layoutIdx < 0 || LAYOUTS[layoutIdx] === "scatter"
         ? findNonOverlappingPosition(prev)
         : { px: (Math.random() - 0.5) * 380, py: (Math.random() - 0.5) * 200 };
+      const cardDraft: ShinenCard = {
+        id: Date.now(),
+        type: 8, // clip
+        text: cardText,
+        px: pos.px,
+        py: pos.py,
+        z: -20 - Math.random() * 100,
+        source: { url, site: site || parsedHost },
+        media: (() => {
+          if (ytId) {
+            return {
+              type: "youtube" as const,
+              url,
+              youtubeId: ytId,
+              thumbnail: `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`,
+            };
+          }
+          if (mediaKind === "embed" && embedUrl) {
+            return {
+              type: "embed" as const,
+              kind: "embed" as const,
+              url,
+              embedUrl,
+              posterUrl: poster || img,
+              provider: provider || undefined,
+            };
+          }
+          if (img) {
+            return { type: "image" as const, kind: "image" as const, url: img };
+          }
+          return undefined;
+          // If undefined, useOgThumbnails will pick this up and fetch the OG image
+        })(),
+      };
       const next = [
         ...prev,
-        {
-          id: Date.now(),
-          type: 8, // clip
-          text: cardText,
-          px: pos.px,
-          py: pos.py,
-          z: -20 - Math.random() * 100,
-          source: { url, site: site || parsedHost },
-          media: (() => {
-            if (ytId) {
-              return {
-                type: "youtube" as const,
-                url,
-                youtubeId: ytId,
-                thumbnail: `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`,
-              };
-            }
-            if (mediaKind === "embed" && embedUrl) {
-              return {
-                type: "embed" as const,
-                kind: "embed" as const,
-                url,
-                embedUrl,
-                posterUrl: poster || img,
-                provider: provider || undefined,
-              };
-            }
-            if (img) {
-              return { type: "image" as const, kind: "image" as const, url: img };
-            }
-            return undefined;
-            // If undefined, useOgThumbnails will pick this up and fetch the OG image
-          })(),
-        },
+        applySaveGuards(cardDraft),
       ];
       if (layoutIdx >= 0 && LAYOUTS[layoutIdx] !== "scatter") {
         return applyLayout(LAYOUTS[layoutIdx], next);
@@ -1017,7 +1063,7 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
       // Ignore URL cleanup failures.
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Run once on mount only
+  }, [applySaveGuards, layoutIdx]); // Run on mount and when save guard callback changes
 
   // Media click handler — toggle playback (single active at a time)
   const handleMediaClick = useCallback(
