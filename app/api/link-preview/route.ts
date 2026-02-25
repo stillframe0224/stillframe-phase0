@@ -8,6 +8,15 @@ import {
   isDmmLikeHost,
   isLikelySharedDmmImage,
 } from "./fanzaThumb.mjs";
+import {
+  buildEmbedMedia,
+  collectImageCandidatesFromHtml,
+  detectVideoFromHtml,
+  isInstagramHost,
+  isLoginWallHtml,
+  isXHost,
+  selectBestImageCandidate,
+} from "./xigMedia.mjs";
 
 export const dynamic = "force-dynamic";
 
@@ -42,11 +51,6 @@ const JINA_FIRST_HOSTS = new Set([
   "tiktok.com",
   "www.tiktok.com",
 ]);
-
-function isInstagramHost(host: string): boolean {
-  const h = host.toLowerCase();
-  return h === "instagram.com" || h.endsWith(".instagram.com") || h === "instagr.am";
-}
 
 function isJinaFirstHost(host: string): boolean {
   return JINA_FIRST_HOSTS.has(host.toLowerCase());
@@ -126,6 +130,23 @@ async function fetchViaJina(
     const image = resolveUrl(ogImage ?? twImage, origin);
     const title = extractMeta(html, "og:title");
     return { image, title };
+  } catch {
+    return null;
+  }
+}
+
+async function fetchViaJinaHtml(url: string): Promise<string | null> {
+  try {
+    const jinaUrl = `https://r.jina.ai/${encodeURIComponent(url)}`;
+    const res = await fetch(jinaUrl, {
+      headers: {
+        "User-Agent": UA_CHROME,
+        Accept: "text/html,application/xhtml+xml",
+      },
+      signal: AbortSignal.timeout(JINA_TIMEOUT),
+    });
+    if (!res.ok) return null;
+    return await res.text();
   } catch {
     return null;
   }
@@ -275,7 +296,62 @@ export async function GET(request: Request) {
   // Instagram shortcut — OG image primary (via Jina), oEmbed fallback
   // OG images are full-resolution; oEmbed thumbnails are typically 150-320px
   const igMatch = url.match(IG_RE);
-  if (igMatch) {
+  if (igMatch || isXHost(parsed.hostname)) {
+    const provider = isXHost(parsed.hostname) ? "x" : "instagram";
+    const html = await fetchViaJinaHtml(url);
+    const loginWall = html ? isLoginWallHtml(url, html) : false;
+    const isVideo = detectVideoFromHtml(url, html ?? "") || (provider === "instagram" && igMatch && /\/(reel|tv)\//i.test(url));
+    const xigBestImage = !html || loginWall
+      ? null
+      : selectBestImageCandidate(collectImageCandidatesFromHtml(html, parsed.origin));
+    if (isVideo) {
+      const embed = buildEmbedMedia(url, html ?? "", xigBestImage);
+      if (embed) {
+        return NextResponse.json(
+          {
+            image: embed.posterUrl,
+            posterUrl: embed.posterUrl,
+            mediaKind: "embed",
+            embedUrl: embed.embedUrl,
+            provider: embed.provider,
+            favicon: provider === "x" ? "https://x.com/favicon.ico" : "https://www.instagram.com/favicon.ico",
+            title: null,
+          },
+          { headers: { "Cache-Control": "public, max-age=3600" } },
+        );
+      }
+    }
+    if (xigBestImage) {
+      return NextResponse.json(
+        {
+          image: xigBestImage,
+          posterUrl: xigBestImage,
+          mediaKind: "image",
+          provider,
+          favicon: provider === "x" ? "https://x.com/favicon.ico" : "https://www.instagram.com/favicon.ico",
+          title: null,
+        },
+        { headers: { "Cache-Control": "public, max-age=3600" } },
+      );
+    }
+    if (provider === "x") {
+      const embed = buildEmbedMedia(url, html ?? "", null);
+      if (embed) {
+        return NextResponse.json(
+          {
+            image: null,
+            posterUrl: null,
+            mediaKind: "embed",
+            embedUrl: embed.embedUrl,
+            provider: embed.provider,
+            favicon: "https://x.com/favicon.ico",
+            title: null,
+          },
+          { headers: { "Cache-Control": "public, max-age=600" } },
+        );
+      }
+    }
+
     let jinaImage: string | null = null;
     let jinaTitle: string | null = null;
     let oembedImage: string | null = null;

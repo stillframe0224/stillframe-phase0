@@ -64,7 +64,10 @@ export default function ThoughtCard({
   const floatY = isDragging ? 0 : Math.sin(time * 0.0005 + card.id * 2.1) * 3;
 
   // When playing video/youtube, expand card width
-  const isVideoPlaying = isPlaying && card.media && (card.media.type === "video" || card.media.type === "youtube");
+  const isVideoPlaying =
+    isPlaying &&
+    card.media &&
+    (card.media.type === "video" || card.media.type === "youtube" || card.media.type === "embed" || card.media.kind === "embed");
   const baseWidth = card.w ?? getCardWidth();
   const cardWidth = isVideoPlaying ? Math.max(420, baseWidth * 2) : baseWidth;
 
@@ -493,9 +496,10 @@ function MediaPreview({
 }) {
   const media = card.media;
   if (!media) return null;
+  const isEmbedMedia = media.type === "embed" || media.kind === "embed";
 
   // Image thumbnail — click to open full image
-  if (media.type === "image") {
+  if (media.type === "image" && !isEmbedMedia) {
     const proxiedSrc = toProxySrc(media.url, card.source?.url);
     const linkUrl = card.source?.url ?? media.url;
     const thumbUrl = media.url;
@@ -655,6 +659,78 @@ function MediaPreview({
           }}
           style={{ width: "100%", height: 96, objectFit: "cover", display: "block" }}
         />
+      </div>
+    );
+  }
+
+  // Generic embed player (X / Instagram / future providers)
+  if (isEmbedMedia && media.embedUrl) {
+    if (isPlaying) {
+      return (
+        <div style={{ margin: "-16px -18px 0", borderRadius: "8px 8px 0 0", overflow: "hidden" }}>
+          <iframe
+            src={media.embedUrl}
+            loading="lazy"
+            sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-presentation"
+            style={{ width: "100%", aspectRatio: "16/9", border: "none", display: "block", background: "#000" }}
+            allow="autoplay; encrypted-media; picture-in-picture; clipboard-write"
+            allowFullScreen
+          />
+        </div>
+      );
+    }
+    const poster = media.posterUrl || media.thumbnail || null;
+    return (
+      <div
+        data-no-drag
+        onPointerDown={(e) => e.stopPropagation()}
+        onClick={(e) => {
+          e.stopPropagation();
+          onMediaClick?.();
+        }}
+        style={{
+          margin: "-16px -18px 0",
+          borderRadius: "8px 8px 0 0",
+          overflow: "hidden",
+          position: "relative",
+          cursor: "pointer",
+          height: 96,
+          background: "rgba(0,0,0,0.08)",
+        }}
+      >
+        {poster ? (
+          <img
+            src={toProxySrc(poster, card.source?.url)}
+            alt={card.text}
+            style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+          />
+        ) : null}
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: poster ? "rgba(0,0,0,0.18)" : "transparent",
+          }}
+        >
+          <div
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: "50%",
+              background: "rgba(255,255,255,0.9)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <svg width={18} height={18} viewBox="0 0 24 24" fill="rgba(0,0,0,0.55)">
+              <polygon points="8,5 19,12 8,19" />
+            </svg>
+          </div>
+        </div>
       </div>
     );
   }

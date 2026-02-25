@@ -17,9 +17,13 @@ export interface ShinenCard {
     favicon?: string;
   };
   media?: {
-    type: "image" | "video" | "audio" | "youtube" | "pdf";
+    type: "image" | "video" | "audio" | "youtube" | "pdf" | "embed";
+    kind?: "image" | "embed";
     url: string;
     thumbnail?: string;
+    posterUrl?: string;
+    embedUrl?: string;
+    provider?: "youtube" | "x" | "instagram";
     duration?: number;
     youtubeId?: string;
   };
@@ -81,7 +85,17 @@ export interface DbCard {
   py: number;
   z: number;
   source: { url: string; site: string; favicon?: string } | null;
-  media: { type: string; url: string; thumbnail?: string; duration?: number; youtubeId?: string } | null;
+  media: {
+    type: string;
+    kind?: string;
+    url: string;
+    thumbnail?: string;
+    posterUrl?: string;
+    embedUrl?: string;
+    provider?: string;
+    duration?: number;
+    youtubeId?: string;
+  } | null;
   file: { name: string; size: number; mimeType: string } | null;
   created_at: string;
   updated_at: string;
