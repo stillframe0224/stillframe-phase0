@@ -21,12 +21,84 @@ TS="$(date +%Y%m%d_%H%M%S)"
 RUN_AT="$(date +%Y-%m-%dT%H:%M:%S%z)"
 OUT="${OUT:-$ROOT/reports/triad/${TS}_pr${PR}_merge.md}"
 mkdir -p "$(dirname "$OUT")"
-REPO_SLUG="$(gh repo view --json nameWithOwner -q .nameWithOwner)"
 
 # Global flag set by ensure_codex_headings:
 #   ENSURE_CODEX_CHANGED=1 -> body edited
 #   ENSURE_CODEX_CHANGED=0 -> no change needed
 ENSURE_CODEX_CHANGED=0
+CHECKS_CONFIRMED=0
+
+git_remote_repo_slug() {
+  local remote
+  remote="$(git remote get-url origin 2>/dev/null || true)"
+  if [[ -z "$remote" ]]; then
+    return 1
+  fi
+  remote="${remote%.git}"
+  if [[ "$remote" =~ github.com[:/]([^/]+/[^/]+)$ ]]; then
+    printf '%s\n' "${BASH_REMATCH[1]}"
+    return 0
+  fi
+  return 1
+}
+
+is_gh_connectivity_error_text() {
+  local text="${1:-}"
+  printf '%s' "$text" | grep -Eiq \
+    'error connecting to api\.github\.com|Could not resolve host|Temporary failure|connection reset|Connection refused|timed out|timeout|EOF|TLS handshake timeout|Network is unreachable'
+}
+
+is_gh_connectivity_error_file() {
+  local file="${1:-}"
+  [[ -n "$file" && -f "$file" ]] || return 1
+  grep -Eiq \
+    'error connecting to api\.github\.com|Could not resolve host|Temporary failure|connection reset|Connection refused|timed out|timeout|EOF|TLS handshake timeout|Network is unreachable' \
+    "$file"
+}
+
+required_checks_green() {  # args: PR, REPO
+  local pr="${1:?pr required}" repo="${2:?repo required}"
+  local out rc
+  set +e
+  out="$(gh pr checks "$pr" --repo "$repo" --required 2>&1)"
+  rc=$?
+  set -e
+  printf '%s\n' "$out" | tee -a "$OUT" >/dev/null
+  [[ "$rc" -eq 0 ]]
+}
+
+run_checks_watch_with_connectivity_fallback() {  # args: PR, REPO, LABEL
+  local pr="${1:?pr required}" repo="${2:?repo required}" label="${3:-checks --watch}"
+  local log rc
+  log="$(mktemp)"
+  echo "Action: ${label}" | tee -a "$OUT"
+  set +e
+  gh pr checks "$pr" --repo "$repo" --watch 2>&1 | tee -a "$OUT" | tee "$log"
+  rc=${PIPESTATUS[0]}
+  set -e
+  if [[ "$rc" -eq 0 ]]; then
+    CHECKS_CONFIRMED=1
+    rm -f "$log"
+    return 0
+  fi
+  if is_gh_connectivity_error_file "$log" && required_checks_green "$pr" "$repo"; then
+    echo "WARN: gh connectivity error during checks watch, but required checks are PASS; continuing." | tee -a "$OUT"
+    CHECKS_CONFIRMED=1
+    rm -f "$log"
+    return 0
+  fi
+  rm -f "$log"
+  return "$rc"
+}
+
+REPO_SLUG="$(gh repo view --json nameWithOwner -q .nameWithOwner 2>/dev/null || true)"
+if [[ -z "$REPO_SLUG" ]]; then
+  REPO_SLUG="$(git_remote_repo_slug || true)"
+fi
+if [[ -z "$REPO_SLUG" ]]; then
+  echo "STOP: unable to resolve repository slug from gh or git remote."
+  exit 1
+fi
 
 codex_check_is_failing() {  # args: PR, REPO
   local pr="${1:?pr required}" repo="${2:?repo required}" s=""
@@ -167,8 +239,7 @@ if codex_check_is_failing "$PR" "$REPO_SLUG"; then
     exit 2
   fi
   if [[ "${ENSURE_CODEX_CHANGED:-0}" == "1" ]]; then
-    echo "Action: gh pr checks $PR --watch (after body edit)" | tee -a "$OUT"
-    if ! gh pr checks "$PR" --repo "$REPO_SLUG" --watch 2>&1 | tee -a "$OUT"; then
+    if ! run_checks_watch_with_connectivity_fallback "$PR" "$REPO_SLUG" "gh pr checks $PR --watch (after body edit)"; then
       echo "STOP: checks failed after PR body edit. See $OUT" | tee -a "$OUT"
       exit 2
     fi
@@ -181,8 +252,7 @@ fi
 
 # --- Final watch gate (skip if already watched after body edit) ---
 if [[ "$CHECKS_WATCHED" == "0" ]]; then
-  echo "Action: gh pr checks $PR --watch" | tee -a "$OUT"
-  if ! gh pr checks "$PR" --repo "$REPO_SLUG" --watch 2>&1 | tee -a "$OUT"; then
+  if ! run_checks_watch_with_connectivity_fallback "$PR" "$REPO_SLUG" "gh pr checks $PR --watch"; then
     echo "STOP: checks failed. See $OUT" | tee -a "$OUT"
     exit 2
   fi
@@ -200,18 +270,29 @@ if [[ "$REVIEW_DECISION" == "REVIEW_REQUIRED" || "$REVIEW_DECISION" == "REQUIRED
 fi
 
 echo "Action: gh pr merge $PR --squash --delete-branch" | tee -a "$OUT"
+MERGE_LOG="$(mktemp)"
 set +e
-gh pr merge "$PR" --repo "$REPO_SLUG" --squash --delete-branch 2>&1 | tee -a "$OUT"
+gh pr merge "$PR" --repo "$REPO_SLUG" --squash --delete-branch 2>&1 | tee -a "$OUT" | tee "$MERGE_LOG"
 RC=${PIPESTATUS[0]}
 set -e
+
+if [[ "$RC" -ne 0 && "$CHECKS_CONFIRMED" == "1" ]] && is_gh_connectivity_error_file "$MERGE_LOG"; then
+  echo "Fallback: checks confirmed PASS and merge failed due to connectivity; retrying standard squash merge." | tee -a "$OUT"
+  set +e
+  gh pr merge "$PR" --repo "$REPO_SLUG" --squash --delete-branch 2>&1 | tee -a "$OUT" | tee -a "$MERGE_LOG"
+  RC=${PIPESTATUS[0]}
+  set -e
+fi
 
 if [[ "$RC" -ne 0 && "$ADMIN_FALLBACK" == "1" ]]; then
   echo "Retry: gh pr merge $PR --squash --delete-branch --admin" | tee -a "$OUT"
   set +e
-  gh pr merge "$PR" --repo "$REPO_SLUG" --squash --delete-branch --admin 2>&1 | tee -a "$OUT"
+  gh pr merge "$PR" --repo "$REPO_SLUG" --squash --delete-branch --admin 2>&1 | tee -a "$OUT" | tee -a "$MERGE_LOG"
   RC=${PIPESTATUS[0]}
   set -e
 fi
+
+rm -f "$MERGE_LOG"
 
 if [[ "$RC" -ne 0 ]]; then
   echo "STOP: merge blocked. See $OUT" | tee -a "$OUT"
