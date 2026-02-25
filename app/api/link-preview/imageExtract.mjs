@@ -165,27 +165,28 @@ export function extractAmazonDynamicImage(html) {
 }
 
 export function pickBestImageFromHtml(html, origin, hostname) {
-  const baseCandidates = [
+  const strongMetaCandidates = [
     extractMeta(html, "og:image"),
     extractMeta(html, "twitter:image"),
     extractLinkImageSrc(html),
     extractJsonLdImage(html),
-    extractRepresentativeImg(html),
   ];
-  for (const candidate of baseCandidates) {
+  for (const candidate of strongMetaCandidates) {
     const normalized = normalizeImageUrl(candidate, origin);
     if (normalized) return normalized;
   }
 
-  if (!isAmazonHost(hostname)) return null;
-  const amazonCandidates = [
-    extractLandingImage(html),
-    extractWrapperImage(html),
-    extractAmazonDynamicImage(html),
-  ];
-  for (const candidate of amazonCandidates) {
-    const normalized = normalizeImageUrl(candidate, origin);
-    if (normalized) return normalized;
+  if (isAmazonHost(hostname)) {
+    const amazonCandidates = [
+      extractLandingImage(html),
+      extractWrapperImage(html),
+      extractAmazonDynamicImage(html),
+    ];
+    for (const candidate of amazonCandidates) {
+      const normalized = normalizeImageUrl(candidate, origin);
+      if (normalized) return normalized;
+    }
   }
-  return null;
+
+  return normalizeImageUrl(extractRepresentativeImg(html), origin);
 }

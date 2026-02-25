@@ -155,7 +155,7 @@ export default function ThoughtCard({
           }}
         >
         {/* Media preview / playback area */}
-        {hasMedia && <MediaPreview card={card} isPlaying={isPlaying} isHovered={isHovered} onMediaClick={onMediaClick} />}
+        {hasMedia && <MediaPreview card={card} isPlaying={isPlaying} onMediaClick={onMediaClick} />}
 
         {/* Text content */}
         {card.type === 8 ? (() => {
@@ -371,71 +371,6 @@ export default function ThoughtCard({
           </button>
         </div>
 
-        {/* Open link anchor (top-right, left of delete). Keep visible on touch devices without hover. */}
-        {card.source?.url && /^https?:\/\//.test(card.source.url) && (
-          <a
-            data-testid="card-open-link"
-            data-no-drag
-            data-open-link="1"
-            href={card.source.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            onPointerDownCapture={(e) => {
-              (e.currentTarget as HTMLAnchorElement).dataset.pointerDownPrevented = e.defaultPrevented ? "1" : "0";
-            }}
-            onPointerDown={(e) => stopOpenLinkEventPropagation(e)}
-            onMouseDown={(e) => stopOpenLinkEventPropagation(e)}
-            onClickCapture={(e) => {
-              const pointerDownPrevented =
-                (e.currentTarget as HTMLAnchorElement).dataset.pointerDownPrevented === "1";
-              const linkUrl = card.source?.url ?? card.media?.url ?? null;
-              const thumbUrl = card.media?.thumbnail ?? (card.media?.type === "image" ? card.media.url : null);
-              logDiagEvent({
-                type: "open_click",
-                cardId: card.id,
-                domain: inferDomain(linkUrl ?? thumbUrl),
-                link_url: linkUrl,
-                thumbnail_url: thumbUrl,
-                extra: {
-                  clickDefaultPrevented: e.defaultPrevented,
-                  pointerDownDefaultPrevented: pointerDownPrevented,
-                  isHovered,
-                  cardSnapshot: buildCardSnapshot(card, linkUrl, thumbUrl),
-                },
-              });
-            }}
-            onClick={(e) => stopOpenLinkEventPropagation(e)}
-            onAuxClick={(e) => stopOpenLinkEventPropagation(e)}
-            title="Open in new tab"
-            style={{
-              position: "absolute",
-              right: 32,
-              top: 6,
-              minWidth: 34,
-              height: 16,
-              padding: "0 2px",
-              background: "rgba(255,255,255,0.7)",
-              border: "none",
-              borderRadius: 4,
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              opacity: isHovered ? 0.55 : 0.26,
-              fontSize: 9,
-              lineHeight: 1,
-              color: "#000",
-              fontFamily: "'DM Sans',sans-serif",
-              textDecoration: "none",
-              transition: "opacity 0.15s",
-            }}
-            onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.opacity = "0.75")}
-            onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.opacity = isHovered ? "0.55" : "0.26")}
-          >
-            ↗ open
-          </a>
-        )}
-
         {/* Drag handle (top-left corner) — always in DOM so Playwright count works pre-hover */}
         <div
           data-testid="drag-handle"
@@ -549,12 +484,10 @@ export default function ThoughtCard({
 function MediaPreview({
   card,
   isPlaying,
-  isHovered,
   onMediaClick,
 }: {
   card: ShinenCard;
   isPlaying: boolean;
-  isHovered: boolean;
   onMediaClick?: () => void;
 }) {
   const media = card.media;
@@ -563,22 +496,56 @@ function MediaPreview({
   // Image thumbnail — click to open full image
   if (media.type === "image") {
     const proxiedSrc = toProxySrc(media.url, card.source?.url);
+    const linkUrl = card.source?.url ?? media.url;
+    const thumbUrl = media.url;
     return (
       <a
+        data-testid="card-image-link"
         data-no-drag
-        href={media.url}
+        data-open-link="1"
+        href={linkUrl}
         target="_blank"
         rel="noopener noreferrer"
-        onPointerDown={(e) => e.stopPropagation()}
-        onClick={(e) => e.stopPropagation()}
-        style={{ margin: "-16px -18px 0", borderRadius: "8px 8px 0 0", overflow: "hidden", cursor: "zoom-in" }}
+        onPointerDownCapture={(e) => {
+          (e.currentTarget as HTMLAnchorElement).dataset.pointerDownPrevented = e.defaultPrevented ? "1" : "0";
+        }}
+        onPointerDown={(e) => stopOpenLinkEventPropagation(e)}
+        onMouseDown={(e) => stopOpenLinkEventPropagation(e)}
+        onClickCapture={(e) => {
+          const pointerDownPrevented =
+            (e.currentTarget as HTMLAnchorElement).dataset.pointerDownPrevented === "1";
+          logDiagEvent({
+            type: "open_click",
+            cardId: card.id,
+            domain: inferDomain(linkUrl ?? thumbUrl),
+            link_url: linkUrl,
+            thumbnail_url: thumbUrl,
+            extra: {
+              clickDefaultPrevented: e.defaultPrevented,
+              pointerDownDefaultPrevented: pointerDownPrevented,
+              cardSnapshot: buildCardSnapshot(card, linkUrl, thumbUrl),
+            },
+          });
+        }}
+        onClick={(e) => stopOpenLinkEventPropagation(e)}
+        onAuxClick={(e) => stopOpenLinkEventPropagation(e)}
+        style={{
+          margin: "-16px -18px 0 -18px",
+          borderRadius: "10px 10px 0 0",
+          overflow: "hidden",
+          cursor: "pointer",
+          padding: 0,
+          background: "transparent",
+          border: "none",
+          display: "block",
+          lineHeight: 0,
+          textDecoration: "none",
+        }}
       >
         <img
           src={proxiedSrc}
           alt={card.text}
           onError={(e) => {
-            const linkUrl = card.source?.url ?? media.url;
-            const thumbUrl = media.url;
             logDiagEvent({
               type: "thumb_error",
               cardId: card.id,
@@ -598,6 +565,10 @@ function MediaPreview({
             height: 96,
             objectFit: "cover",
             display: "block",
+            background: "transparent",
+            border: "none",
+            margin: 0,
+            padding: 0,
           }}
         />
       </a>
