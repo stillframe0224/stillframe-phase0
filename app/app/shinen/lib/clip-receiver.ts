@@ -19,6 +19,10 @@ export interface ClipData {
   url: string;
   title: string;
   img?: string;
+  poster?: string;
+  mediaKind?: "image" | "embed" | "";
+  embedUrl?: string;
+  provider?: "youtube" | "x" | "instagram" | "";
   site?: string;
   sel?: string;
   savedAt?: number;
