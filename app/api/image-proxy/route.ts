@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { validateUrl, dnsCheck } from "@/lib/ssrf";
 import { buildAmazonImageHeaders, isAmazonCdnHost } from "./amazonHeaders.mjs";
+import { upgradeInstagramUrl } from "../link-preview/instagramImage.mjs";
 
 export const dynamic = "force-dynamic";
 
@@ -76,12 +77,13 @@ async function safeFetchImage(urlStr: string, sourcePageUrl?: string | null): Pr
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const url = searchParams.get("url");
+  const rawUrl = searchParams.get("url");
   const ref = searchParams.get("ref");
 
-  if (!url) {
+  if (!rawUrl) {
     return NextResponse.json({ error: "url required" }, { status: 400 });
   }
+  const url = upgradeInstagramUrl(rawUrl);
 
   let parsed: URL;
   try {

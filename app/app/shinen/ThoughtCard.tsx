@@ -3,6 +3,7 @@ import type { ShinenCard, Projection } from "./lib/types";
 import { toProxySrc } from "./lib/proxy";
 import { inferDomain, logDiagEvent } from "./lib/diag";
 import { stopOpenLinkEventPropagation } from "./lib/openLinkGuards";
+import { getThumbRenderMode } from "./lib/thumbRender.mjs";
 
 interface ThoughtCardProps {
   card: ShinenCard;
@@ -498,6 +499,7 @@ function MediaPreview({
     const proxiedSrc = toProxySrc(media.url, card.source?.url);
     const linkUrl = card.source?.url ?? media.url;
     const thumbUrl = media.url;
+    const renderMode = getThumbRenderMode(card.source?.url ?? media.url);
     return (
       <a
         data-testid="card-image-link"
@@ -540,8 +542,31 @@ function MediaPreview({
           display: "block",
           lineHeight: 0,
           textDecoration: "none",
+          position: "relative",
+          height: 96,
         }}
       >
+        {renderMode === "contain_blur" && (
+          <img
+            src={proxiedSrc}
+            alt=""
+            aria-hidden
+            style={{
+              position: "absolute",
+              inset: 0,
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+              filter: "blur(14px)",
+              transform: "scale(1.08)",
+              opacity: 0.9,
+              pointerEvents: "none",
+              border: "none",
+              margin: 0,
+              padding: 0,
+            }}
+          />
+        )}
         <img
           src={proxiedSrc}
           alt={card.text}
@@ -561,9 +586,10 @@ function MediaPreview({
             });
           }}
           style={{
+            position: "relative",
             width: "100%",
-            height: 96,
-            objectFit: "cover",
+            height: "100%",
+            objectFit: renderMode === "contain_blur" ? "contain" : "cover",
             display: "block",
             background: "transparent",
             border: "none",
