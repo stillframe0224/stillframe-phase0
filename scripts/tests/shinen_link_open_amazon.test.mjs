@@ -36,6 +36,9 @@ test("ThoughtCard open link anchor keeps target/rel hardening", () => {
   assert.match(src, /type:\s*"open_click"/);
   assert.match(src, /type:\s*"thumb_error"/);
   assert.match(src, /cardSnapshot/);
+  assert.match(src, /getThumbRenderMode/);
+  assert.match(src, /renderMode === "contain_blur"/);
+  assert.match(src, /filter:\s*"blur\(14px\)"/);
 });
 
 test("drag and touch handlers skip preventDefault for open-link targets", () => {
@@ -108,6 +111,9 @@ test("bookmarklet script keeps Amazon DOM selectors and img forwarding", () => {
   assert.match(src, /data-a-dynamic-image/);
   assert.match(src, /#imgTagWrapperId/);
   assert.match(src, /&img=/);
+  assert.match(src, /pickInstagramLargest/);
+  assert.match(src, /im\.currentSrc/);
+  assert.match(src, /naturalWidth/);
 });
 
 test("link-preview route applies strengthened Amazon page headers", () => {

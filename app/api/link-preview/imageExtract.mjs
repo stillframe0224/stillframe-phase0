@@ -1,3 +1,5 @@
+import { upgradeInstagramUrl } from "./instagramImage.mjs";
+
 export function isAmazonHost(host) {
   const h = host.toLowerCase();
   return h.includes("amazon.") || h.includes("amzn.") || h === "a.co";
@@ -33,7 +35,7 @@ function normalizeImageUrl(src, origin) {
     const normalized = trimmed.startsWith("//") ? `https:${trimmed}` : trimmed;
     const url = new URL(normalized, origin);
     if (url.protocol !== "http:" && url.protocol !== "https:") return null;
-    return url.href;
+    return upgradeInstagramUrl(url.href);
   } catch {
     return null;
   }
