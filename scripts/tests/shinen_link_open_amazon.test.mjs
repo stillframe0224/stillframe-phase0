@@ -22,15 +22,17 @@ const __dirname = path.dirname(__filename);
 test("ThoughtCard open link anchor keeps target/rel hardening", () => {
   const thoughtCardPath = path.resolve(__dirname, "../../app/app/shinen/ThoughtCard.tsx");
   const src = fs.readFileSync(thoughtCardPath, "utf8");
-  const split = src.split('data-testid="card-open-link"');
-  assert.ok(split.length > 1, "card-open-link test id not found");
+  const split = src.split('data-testid="card-image-link"');
+  assert.ok(split.length > 1, "card-image-link test id not found");
   const local = split[1].slice(0, 4000);
   assert.match(local, /target="_blank"/);
   assert.match(local, /rel="noopener noreferrer"/);
   assert.match(local, /data-open-link="1"/);
   assert.match(local, /onClickCapture/);
   assert.match(local, /onAuxClick/);
-  assert.match(src, /↗ open/);
+  assert.doesNotMatch(src, /↗ open/);
+  assert.doesNotMatch(src, /data-testid="card-open-link"/);
+  assert.doesNotMatch(src, /zoom-in/);
   assert.match(src, /type:\s*"open_click"/);
   assert.match(src, /type:\s*"thumb_error"/);
   assert.match(src, /cardSnapshot/);
@@ -55,6 +57,19 @@ test("Amazon extraction prefers landingImage data-old-hires", () => {
   assert.equal(image, "https://m.media-amazon.com/images/I/abc123._SL1500_.jpg?foo=1&bar=2");
 });
 
+test("bookmarklet-equivalent DOM snapshot extraction returns Amazon thumbnail", () => {
+  const html = `
+    <html><head></head><body>
+      <div id="imgTagWrapperId">
+        <img src="https://m.media-amazon.com/images/I/wrapper.jpg" />
+      </div>
+      <img data-a-dynamic-image='{"https://m.media-amazon.com/images/I/a.jpg":[300,300],"https://m.media-amazon.com/images/I/b.jpg":[1800,1800]}' />
+    </body></html>
+  `;
+  const image = pickBestImageFromHtml(html, "https://www.amazon.co.jp", "www.amazon.co.jp");
+  assert.equal(image, "https://m.media-amazon.com/images/I/wrapper.jpg");
+});
+
 test("Amazon extraction picks largest data-a-dynamic-image candidate", () => {
   const html = `
     <html><head></head><body>
@@ -76,6 +91,32 @@ test("Amazon CDN headers use provided Amazon referer and host detection", () => 
 
   const fallback = buildAmazonImageHeaders("https://example.com/nope");
   assert.equal(fallback.Referer, "https://www.amazon.co.jp/");
+});
+
+test("capture route uses DOM snapshot extraction and forwards img param", () => {
+  const capturePath = path.resolve(__dirname, "../../app/capture/page.tsx");
+  const src = fs.readFileSync(capturePath, "utf8");
+  assert.match(src, /pickBestImageFromHtml/);
+  assert.match(src, /document\.documentElement\?\.outerHTML/);
+  assert.match(src, /&img=\$\{encodeURIComponent/);
+});
+
+test("bookmarklet script keeps Amazon DOM selectors and img forwarding", () => {
+  const bookmarkletPath = path.resolve(__dirname, "../../app/bookmarklet/page.tsx");
+  const src = fs.readFileSync(bookmarkletPath, "utf8");
+  assert.match(src, /#landingImage/);
+  assert.match(src, /data-a-dynamic-image/);
+  assert.match(src, /#imgTagWrapperId/);
+  assert.match(src, /&img=/);
+});
+
+test("link-preview route applies strengthened Amazon page headers", () => {
+  const routePath = path.resolve(__dirname, "../../app/api/link-preview/route.ts");
+  const src = fs.readFileSync(routePath, "utf8");
+  assert.match(src, /buildAmazonPageHeaders/);
+  assert.match(src, /"Sec-Fetch-Mode": "navigate"/);
+  assert.match(src, /"Sec-Fetch-User": "\?1"/);
+  assert.match(src, /Referer:/);
 });
 
 function createMemoryStorage() {

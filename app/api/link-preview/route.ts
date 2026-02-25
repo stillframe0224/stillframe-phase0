@@ -45,6 +45,31 @@ function isJinaFirstHost(host: string): boolean {
   return JINA_FIRST_HOSTS.has(host.toLowerCase());
 }
 
+function buildAmazonPageHeaders(currentUrl: string): HeadersInit {
+  let referer = "https://www.amazon.co.jp/";
+  try {
+    const parsed = new URL(currentUrl);
+    if (isAmazonHost(parsed.hostname)) {
+      referer = `${parsed.origin}/`;
+    }
+  } catch {
+    // Fallback referer remains amazon.co.jp
+  }
+  return {
+    "User-Agent": UA_CHROME,
+    Accept: ACCEPT_HTML,
+    "Accept-Language": "ja,en-US;q=0.9,en;q=0.8",
+    Referer: referer,
+    "Upgrade-Insecure-Requests": "1",
+    "Sec-Fetch-Dest": "document",
+    "Sec-Fetch-Mode": "navigate",
+    "Sec-Fetch-Site": "none",
+    "Sec-Fetch-User": "?1",
+    "Cache-Control": "no-cache",
+    Pragma: "no-cache",
+  };
+}
+
 function parseRetryAfterMs(v: string | null): number | null {
   if (!v) return null;
   const num = Number(v);
@@ -117,19 +142,13 @@ async function safeFetch(
       // Amazon needs full browser headers to avoid 403/503
       const amazon = isAmazonHost(parsed.hostname);
       const res = await fetch(currentUrl, {
-        headers: {
-          "User-Agent": UA_CHROME,
-          Accept: amazon
-            ? "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8"
-            : ACCEPT_HTML,
-          "Accept-Language": "ja,en;q=0.8",
-          ...(amazon
-            ? {
-                "Accept-Encoding": "gzip, deflate, br",
-                "Upgrade-Insecure-Requests": "1",
-              }
-            : {}),
-        },
+        headers: amazon
+          ? buildAmazonPageHeaders(currentUrl)
+          : {
+              "User-Agent": UA_CHROME,
+              Accept: ACCEPT_HTML,
+              "Accept-Language": "ja,en;q=0.8",
+            },
         redirect: "manual",
         signal: controller.signal,
       });
