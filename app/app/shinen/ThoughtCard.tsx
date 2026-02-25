@@ -1,9 +1,18 @@
+import { useCallback, useEffect, useRef, useState } from "react";
 import { SLAB_N, SLAB_GAP, TAP_TARGET_MIN, getCardWidth } from "./lib/constants";
 import type { ShinenCard, Projection } from "./lib/types";
 import { toProxySrc } from "./lib/proxy";
 import { inferDomain, logDiagEvent } from "./lib/diag";
 import { stopOpenLinkEventPropagation } from "./lib/openLinkGuards";
 import { getThumbRenderMode } from "./lib/thumbRender.mjs";
+import {
+  createEmbedLoadState,
+  EMBED_WATCHDOG_TIMEOUT_MS,
+  completeEmbedLoad,
+  isEmbedTimedOut,
+  startEmbedLoad,
+  timeoutEmbedLoad,
+} from "./lib/embedWatchdog.mjs";
 
 interface ThoughtCardProps {
   card: ShinenCard;
@@ -497,6 +506,79 @@ function MediaPreview({
   const media = card.media;
   if (!media) return null;
   const isEmbedMedia = media.type === "embed" || media.kind === "embed";
+  const [embedLoadState, setEmbedLoadState] = useState(() => createEmbedLoadState());
+  const embedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const embedSessionKeyRef = useRef<string | null>(null);
+  const embedLinkUrl = card.source?.url ?? media.url ?? media.embedUrl ?? null;
+  const embedPosterUrl = media.posterUrl || media.thumbnail || null;
+
+  const clearEmbedWatchdog = useCallback(() => {
+    if (embedTimerRef.current) {
+      clearTimeout(embedTimerRef.current);
+      embedTimerRef.current = null;
+    }
+  }, []);
+
+  const startEmbedWatchdog = useCallback(
+    (reason: "start" | "retry") => {
+      if (!isEmbedMedia || !media.embedUrl) return;
+      clearEmbedWatchdog();
+      const startedAtMs = Date.now();
+      setEmbedLoadState((prev) => startEmbedLoad(prev, startedAtMs));
+      logDiagEvent({
+        type: reason === "start" ? "embed_load_start" : "embed_retry",
+        cardId: card.id,
+        domain: inferDomain(embedLinkUrl ?? media.embedUrl),
+        link_url: embedLinkUrl,
+        thumbnail_url: embedPosterUrl,
+        extra: {
+          provider: media.provider ?? "embed",
+          embedUrl: media.embedUrl,
+          timeoutMs: EMBED_WATCHDOG_TIMEOUT_MS,
+          cardSnapshot: buildCardSnapshot(card, embedLinkUrl, embedPosterUrl),
+        },
+      });
+      embedTimerRef.current = setTimeout(() => {
+        const nowMs = Date.now();
+        setEmbedLoadState((prev) => {
+          if (!isEmbedTimedOut(prev, nowMs)) return prev;
+          const next = timeoutEmbedLoad(prev, nowMs);
+          logDiagEvent({
+            type: "embed_load_timeout",
+            cardId: card.id,
+            domain: inferDomain(embedLinkUrl ?? media.embedUrl),
+            link_url: embedLinkUrl,
+            thumbnail_url: embedPosterUrl,
+            extra: {
+              provider: media.provider ?? "embed",
+              embedUrl: media.embedUrl,
+              elapsedMs: next.elapsedMs,
+              timeoutMs: EMBED_WATCHDOG_TIMEOUT_MS,
+              cardSnapshot: buildCardSnapshot(card, embedLinkUrl, embedPosterUrl),
+            },
+          });
+          return next;
+        });
+      }, EMBED_WATCHDOG_TIMEOUT_MS);
+    },
+    [card, clearEmbedWatchdog, embedLinkUrl, embedPosterUrl, isEmbedMedia, media],
+  );
+
+  useEffect(() => {
+    if (!isEmbedMedia || !media.embedUrl || !isPlaying) {
+      embedSessionKeyRef.current = null;
+      clearEmbedWatchdog();
+      setEmbedLoadState(createEmbedLoadState());
+      return;
+    }
+    const sessionKey = `${card.id}:${media.embedUrl}`;
+    if (embedSessionKeyRef.current === sessionKey) return;
+    embedSessionKeyRef.current = sessionKey;
+    startEmbedWatchdog("start");
+    return () => {
+      clearEmbedWatchdog();
+    };
+  }, [card.id, clearEmbedWatchdog, isEmbedMedia, isPlaying, media.embedUrl, startEmbedWatchdog]);
 
   // Image thumbnail — click to open full image
   if (media.type === "image" && !isEmbedMedia) {
@@ -665,21 +747,170 @@ function MediaPreview({
 
   // Generic embed player (X / Instagram / future providers)
   if (isEmbedMedia && media.embedUrl) {
+    const poster = embedPosterUrl;
+    const showTimeoutFallback = isPlaying && embedLoadState.status === "timeout";
     if (isPlaying) {
       return (
         <div style={{ margin: "-16px -18px 0", borderRadius: "8px 8px 0 0", overflow: "hidden" }}>
-          <iframe
-            src={media.embedUrl}
-            loading="lazy"
-            sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-presentation"
-            style={{ width: "100%", aspectRatio: "16/9", border: "none", display: "block", background: "#000" }}
-            allow="autoplay; encrypted-media; picture-in-picture; clipboard-write"
-            allowFullScreen
-          />
+          {!showTimeoutFallback ? (
+            <iframe
+              src={media.embedUrl}
+              loading="lazy"
+              sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-presentation"
+              onLoad={() => {
+                clearEmbedWatchdog();
+                const nowMs = Date.now();
+                setEmbedLoadState((prev) => {
+                  const next = completeEmbedLoad(prev, nowMs);
+                  if (prev.status === "loading" && next.status === "loaded") {
+                    logDiagEvent({
+                      type: "embed_load_ok",
+                      cardId: card.id,
+                      domain: inferDomain(embedLinkUrl ?? media.embedUrl),
+                      link_url: embedLinkUrl,
+                      thumbnail_url: poster,
+                      extra: {
+                        provider: media.provider ?? "embed",
+                        embedUrl: media.embedUrl,
+                        elapsedMs: next.elapsedMs,
+                        cardSnapshot: buildCardSnapshot(card, embedLinkUrl, poster),
+                      },
+                    });
+                  }
+                  return next;
+                });
+              }}
+              style={{ width: "100%", aspectRatio: "16/9", border: "none", display: "block", background: "#000" }}
+              allow="autoplay; encrypted-media; picture-in-picture; clipboard-write"
+              allowFullScreen
+            />
+          ) : (
+            <div
+              data-testid="embed-timeout-fallback"
+              style={{
+                position: "relative",
+                width: "100%",
+                aspectRatio: "16/9",
+                background: "rgba(0,0,0,0.08)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                overflow: "hidden",
+              }}
+            >
+              {poster ? (
+                <img
+                  src={toProxySrc(poster, card.source?.url)}
+                  alt={card.text}
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                    display: "block",
+                  }}
+                />
+              ) : null}
+              <div
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  background: "rgba(0,0,0,0.38)",
+                }}
+              />
+              <div
+                style={{
+                  position: "relative",
+                  zIndex: 1,
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  gap: 8,
+                  padding: "8px 10px",
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: 11,
+                    fontFamily: "'DM Sans',sans-serif",
+                    color: "rgba(255,255,255,0.95)",
+                    letterSpacing: "0.02em",
+                  }}
+                >
+                  読み込みできませんでした
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  {embedLinkUrl ? (
+                    <a
+                      data-testid="embed-open-external"
+                      data-open-link="1"
+                      href={embedLinkUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onPointerDown={(e) => stopOpenLinkEventPropagation(e)}
+                      onClickCapture={(e) => {
+                        logDiagEvent({
+                          type: "embed_open_external",
+                          cardId: card.id,
+                          domain: inferDomain(embedLinkUrl),
+                          link_url: embedLinkUrl,
+                          thumbnail_url: poster,
+                          extra: {
+                            provider: media.provider ?? "embed",
+                            embedUrl: media.embedUrl,
+                            status: embedLoadState.status,
+                            elapsedMs: embedLoadState.elapsedMs,
+                            cardSnapshot: buildCardSnapshot(card, embedLinkUrl, poster),
+                          },
+                        });
+                      }}
+                      onClick={(e) => stopOpenLinkEventPropagation(e)}
+                      onAuxClick={(e) => stopOpenLinkEventPropagation(e)}
+                      style={{
+                        textDecoration: "none",
+                        background: "rgba(255,255,255,0.95)",
+                        color: "rgba(0,0,0,0.75)",
+                        borderRadius: 6,
+                        border: "1px solid rgba(0,0,0,0.12)",
+                        fontSize: 11,
+                        fontFamily: "'DM Sans',sans-serif",
+                        padding: "6px 10px",
+                        lineHeight: 1,
+                      }}
+                    >
+                      外部で開く
+                    </a>
+                  ) : null}
+                  <button
+                    data-testid="embed-retry"
+                    data-no-drag
+                    onPointerDown={(e) => e.stopPropagation()}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      startEmbedWatchdog("retry");
+                    }}
+                    style={{
+                      background: "rgba(255,255,255,0.95)",
+                      color: "rgba(0,0,0,0.75)",
+                      borderRadius: 6,
+                      border: "1px solid rgba(0,0,0,0.12)",
+                      fontSize: 11,
+                      fontFamily: "'DM Sans',sans-serif",
+                      padding: "6px 10px",
+                      lineHeight: 1,
+                      cursor: "pointer",
+                    }}
+                  >
+                    再試行
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       );
     }
-    const poster = media.posterUrl || media.thumbnail || null;
     return (
       <div
         data-no-drag
