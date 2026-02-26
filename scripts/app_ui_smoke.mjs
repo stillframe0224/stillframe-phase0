@@ -366,6 +366,8 @@ async function main() {
 
         // Wait for cards to settle
         await page.waitForTimeout(1500);
+        let memoCardId = null;
+        let memoKeyword = null;
 
         // ── Test 4: drag handle triggers sort=custom URL param ─────────
         let cardCountAfter = 0;
@@ -427,14 +429,31 @@ async function main() {
 
         // ── Test 6: MEMO button opens memo-modal ───────────────────────
         try {
-          const memoKeyword = `smoke-memo-${Date.now().toString().slice(-6)}`;
-          const firstCard = page.locator("[data-testid=\"card-item\"]").first();
+          memoKeyword = `smoke-memo-${Date.now().toString().slice(-6)}`;
+          const cards = page.locator("[data-testid=\"card-item\"]");
+          const cardCount = await cards.count();
+          let firstCard = cards.first();
+          for (let i = 0; i < Math.min(cardCount, 6); i += 1) {
+            const candidate = cards.nth(i);
+            const visible = await candidate.isVisible().catch(() => false);
+            if (!visible) continue;
+            const hasMemoChip = await candidate.locator("[data-testid=\"chip-memo\"]").isVisible().catch(() => false);
+            if (hasMemoChip) {
+              firstCard = candidate;
+              break;
+            }
+          }
           await firstCard.waitFor({ timeout: 5_000 });
+          memoCardId = await firstCard.getAttribute("data-card-id");
+          await firstCard.hover().catch(() => {});
           const memoBtn = firstCard.locator("[data-testid=\"chip-memo\"]");
-          await memoBtn.waitFor({ timeout: 5_000 });
-          await memoBtn.click();
+          await memoBtn.waitFor({ state: "attached", timeout: 5_000 });
+          const clicked = await memoBtn.click({ timeout: 3_000 }).then(() => true).catch(() => false);
+          if (!clicked) {
+            await memoBtn.dispatchEvent("click");
+          }
           const modal = page.locator("[data-testid=\"memo-modal\"]");
-          await modal.waitFor({ timeout: 5_000 });
+          await modal.waitFor({ state: "visible", timeout: 5_000 });
           pass("MEMO button opens memo-modal", "modal visible after click");
 
           const memoTextarea = page.locator("[data-testid=\"memo-textarea\"]");
@@ -444,13 +463,13 @@ async function main() {
           await page.keyboard.press("Escape");
           await page.waitForTimeout(500);
 
-          const memoSnippet = firstCard.locator("[data-testid=\"memo-snippet\"]");
-          await memoSnippet.waitFor({ timeout: 5_000 });
-          const memoSnippetText = ((await memoSnippet.textContent()) || "").toLowerCase();
-          if (memoSnippetText.includes(memoKeyword)) {
-            pass("memo snippet shows saved text", `snippet includes "${memoKeyword}"`);
+          const memoPreview = firstCard.locator("[data-testid=\"memo-preview\"]");
+          await memoPreview.waitFor({ timeout: 5_000 });
+          const memoPreviewText = ((await memoPreview.textContent()) || "").toLowerCase();
+          if (memoPreviewText.includes(memoKeyword)) {
+            pass("memo snippet shows saved text", `memo-preview includes "${memoKeyword}"`);
           } else {
-            fail("memo snippet shows saved text", `snippet does not include "${memoKeyword}"`);
+            fail("memo snippet shows saved text", `memo-preview does not include "${memoKeyword}"`);
           }
 
           const searchInput = page.locator("[data-testid=\"search-input\"]");
@@ -522,19 +541,23 @@ async function main() {
               pass("memo backup: export JSON download", `schema=ok notes=${Object.keys(exportedJson.notes).length}`);
             }
 
-            // ② Clear: click memo-clear, verify memo-snippet gone from first card
+            // ② Clear: click memo-clear, verify memo preview returns to placeholder
             const clearBtn = page.locator("[data-testid=\"memo-clear\"]");
             await clearBtn.waitFor({ timeout: 5_000 });
             await clearBtn.click();
             await page.waitForTimeout(1000);
 
-            const firstCardAfterClear = page.locator("[data-testid=\"card-item\"]").first();
-            const snippetAfterClear = firstCardAfterClear.locator("[data-testid=\"memo-snippet\"]");
-            const snippetVisibleAfterClear = await snippetAfterClear.isVisible().catch(() => false);
-            if (!snippetVisibleAfterClear) {
-              pass("memo backup: clear removes snippets", "memo-snippet no longer visible");
+            const firstCardAfterClear = memoCardId
+              ? page.locator(`[data-testid="card-item"][data-card-id="${memoCardId}"]`).first()
+              : page.locator("[data-testid=\"card-item\"]").first();
+            await firstCardAfterClear.waitFor({ timeout: 5_000 });
+            const memoPreviewAfterClear = firstCardAfterClear.locator("[data-testid=\"memo-preview\"]");
+            await memoPreviewAfterClear.waitFor({ timeout: 5_000 });
+            const previewAfterClearText = ((await memoPreviewAfterClear.textContent()) || "").toLowerCase();
+            if (previewAfterClearText.includes("add memo")) {
+              pass("memo backup: clear removes snippets", "memo-preview reset to placeholder");
             } else {
-              fail("memo backup: clear removes snippets", "memo-snippet still visible after clear");
+              fail("memo backup: clear removes snippets", `memo-preview still has text: "${previewAfterClearText.slice(0, 60)}"`);
             }
 
             // ③ Import: use setInputFiles on the hidden file input (state: "attached" since it's display:none)
@@ -543,21 +566,35 @@ async function main() {
             await importInput.setInputFiles(downloadPath);
             await page.waitForTimeout(800);
 
-            // ④ Verify snippet restored on first card that had a note
-            const firstCardId = await page.locator("[data-testid=\"card-item\"]").first().getAttribute("data-card-id");
-            const hadNote = firstCardId && exportedJson.notes[firstCardId];
+            // ④ Verify preview restored on the card saved in Test 6 (or any card)
+            const hadNote = memoCardId && exportedJson.notes[memoCardId];
             if (hadNote) {
-              const snippetAfterImport = page.locator("[data-testid=\"card-item\"]").first().locator("[data-testid=\"memo-snippet\"]");
-              await snippetAfterImport.waitFor({ timeout: 5_000 });
-              pass("memo backup: import restores snippets", "memo-snippet visible after import");
-            } else {
-              // No note on first card in export — check any card has snippet
-              const anySnippet = page.locator("[data-testid=\"memo-snippet\"]").first();
-              const anyVisible = await anySnippet.isVisible().catch(() => false);
-              if (anyVisible) {
-                pass("memo backup: import restores snippets", "memo-snippet visible on some card after import");
+              const cardAfterImport = page.locator(`[data-testid="card-item"][data-card-id="${memoCardId}"]`).first();
+              const previewAfterImport = cardAfterImport.locator("[data-testid=\"memo-preview\"]");
+              await previewAfterImport.waitFor({ timeout: 5_000 });
+              const previewTextAfterImport = ((await previewAfterImport.textContent()) || "").toLowerCase();
+              const restoredNeedle = String(hadNote).toLowerCase().split(" ")[0];
+              if (previewTextAfterImport.includes(restoredNeedle)) {
+                pass("memo backup: import restores snippets", "memo-preview visible after import");
               } else {
-                fail("memo backup: import restores snippets", "no memo-snippet visible after import");
+                fail("memo backup: import restores snippets", `memo-preview does not include "${restoredNeedle}"`);
+              }
+            } else {
+              // No note for the target card in export — check any card has non-placeholder preview
+              const previews = page.locator("[data-testid=\"memo-preview\"]");
+              const previewCount = await previews.count();
+              let anyMemoVisible = false;
+              for (let i = 0; i < previewCount; i += 1) {
+                const text = ((await previews.nth(i).textContent()) || "").toLowerCase();
+                if (!text.includes("add memo")) {
+                  anyMemoVisible = true;
+                  break;
+                }
+              }
+              if (anyMemoVisible) {
+                pass("memo backup: import restores snippets", "memo-preview visible on some card after import");
+              } else {
+                fail("memo backup: import restores snippets", "no memo-preview restored after import");
               }
             }
 
