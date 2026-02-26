@@ -91,6 +91,8 @@ export default function ThoughtCard({
   const selectedGlow = isSelected ? "0 0 12px 2px rgba(79,110,217,0.2)" : "";
 
   const hasMedia = card.media != null;
+  const memoPreview = memo?.trim() ?? "";
+  const hasMemo = memoPreview.length > 0;
 
   return (
     <div
@@ -269,30 +271,6 @@ export default function ThoughtCard({
           </div>
         )}
 
-        {/* Memo snippet (if card has a memo) */}
-        {memo && (
-          <div
-            data-testid="memo-snippet"
-            style={{
-              position: "relative",
-              zIndex: 10,
-              marginTop: 8,
-              padding: "6px 8px",
-              background: "rgba(79,110,217,0.04)",
-              borderRadius: 6,
-              fontSize: 11,
-              fontFamily: "'DM Sans',sans-serif",
-              color: "rgba(0,0,0,0.35)",
-              lineHeight: 1.5,
-              whiteSpace: "nowrap",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-            }}
-          >
-            {memo.length > 60 ? memo.slice(0, 57) + "..." : memo}
-          </div>
-        )}
-
         {/* Chip bar */}
         <div
           style={{
@@ -301,49 +279,25 @@ export default function ThoughtCard({
             marginTop: 10,
             display: "flex",
             alignItems: "center",
-            gap: 6,
+            gap: 8,
             borderTop: "1px solid rgba(0,0,0,0.07)",
             paddingTop: 8,
+            minWidth: 0,
           }}
         >
-          <button
-            data-testid="chip-memo"
+          <div
+            data-testid="memo-pill"
             data-no-drag
-            onClick={(e) => {
-              e.stopPropagation();
-              e.preventDefault();
-              onMemoClick?.(card.id);
-            }}
             onPointerDown={(e) => e.stopPropagation()}
-            style={{
-              position: "relative",
-              zIndex: 11,
-              marginLeft: 0,
-              padding: "2px 7px",
-              borderRadius: 6,
-              border: memo ? "1px solid rgba(79,110,217,0.25)" : "1px solid rgba(0,0,0,0.08)",
-              background: memo ? "rgba(79,110,217,0.06)" : "rgba(0,0,0,0.02)",
-              color: memo ? "rgba(79,110,217,0.6)" : "rgba(0,0,0,0.25)",
-              fontSize: 8,
-              fontFamily: "'DM Sans',sans-serif",
-              fontWeight: 500,
-              textTransform: "uppercase",
-              letterSpacing: "0.08em",
-              cursor: "pointer",
-              lineHeight: 1,
-            }}
+            style={{ flexShrink: 0 }}
           >
-            memo
-          </button>
-          {/* Tag chip — shown only when tag exists */}
-          {tag && (
             <button
-              data-testid="chip-tag"
+              data-testid="chip-memo"
               data-no-drag
               onClick={(e) => {
                 e.stopPropagation();
                 e.preventDefault();
-                onTagClick?.(card.id);
+                onMemoClick?.(card.id);
               }}
               onPointerDown={(e) => e.stopPropagation()}
               style={{
@@ -352,23 +306,99 @@ export default function ThoughtCard({
                 marginLeft: 0,
                 padding: "2px 7px",
                 borderRadius: 6,
-                border: "1px solid rgba(45,143,80,0.25)",
-                background: "rgba(45,143,80,0.06)",
-                color: "rgba(45,143,80,0.65)",
+                border: hasMemo ? "1px solid rgba(79,110,217,0.25)" : "1px solid rgba(0,0,0,0.08)",
+                background: hasMemo ? "rgba(79,110,217,0.06)" : "rgba(0,0,0,0.02)",
+                color: hasMemo ? "rgba(79,110,217,0.6)" : "rgba(0,0,0,0.25)",
                 fontSize: 8,
                 fontFamily: "'DM Sans',sans-serif",
                 fontWeight: 500,
-                letterSpacing: "0.04em",
+                textTransform: "uppercase",
+                letterSpacing: "0.08em",
                 cursor: "pointer",
                 lineHeight: 1,
-                maxWidth: 80,
-                overflow: "hidden",
-                textOverflow: "ellipsis",
+              }}
+            >
+              memo
+            </button>
+          </div>
+          <button
+            type="button"
+            data-testid="memo-preview"
+            data-no-drag
+            onClick={(e) => {
+              e.stopPropagation();
+              e.preventDefault();
+              onMemoClick?.(card.id);
+            }}
+            onPointerDown={(e) => e.stopPropagation()}
+            style={{
+              border: "none",
+              background: "transparent",
+              padding: 0,
+              margin: 0,
+              cursor: "pointer",
+              textAlign: "left",
+              flex: 1,
+              minWidth: 0,
+              fontSize: 11,
+              lineHeight: 1.35,
+              fontFamily: "'DM Sans',sans-serif",
+              color: hasMemo ? "rgba(0,0,0,0.42)" : "rgba(0,0,0,0.28)",
+              whiteSpace: "pre-wrap",
+              wordBreak: "break-word",
+              display: "-webkit-box",
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: "vertical" as const,
+              overflow: "hidden",
+              maxHeight: 30,
+            }}
+          >
+            {hasMemo ? memoPreview : "Add memo..."}
+          </button>
+          {/* Tag chip — shown only when tag exists */}
+          {tag && (
+            <div
+              data-testid="card-tag"
+              data-no-drag
+              onPointerDown={(e) => e.stopPropagation()}
+              style={{
+                maxWidth: "40%",
+                flexShrink: 0,
+                overflowX: "auto",
+                overflowY: "hidden",
                 whiteSpace: "nowrap",
               }}
             >
-              {tag}
-            </button>
+              <button
+                data-testid="chip-tag"
+                data-no-drag
+                onClick={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  onTagClick?.(card.id);
+                }}
+                onPointerDown={(e) => e.stopPropagation()}
+                style={{
+                  position: "relative",
+                  zIndex: 11,
+                  marginLeft: 0,
+                  padding: "2px 7px",
+                  borderRadius: 6,
+                  border: "1px solid rgba(45,143,80,0.25)",
+                  background: "rgba(45,143,80,0.06)",
+                  color: "rgba(45,143,80,0.65)",
+                  fontSize: 8,
+                  fontFamily: "'DM Sans',sans-serif",
+                  fontWeight: 500,
+                  letterSpacing: "0.04em",
+                  cursor: "pointer",
+                  lineHeight: 1,
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {tag}
+              </button>
+            </div>
           )}
           {card.file && (
             <span

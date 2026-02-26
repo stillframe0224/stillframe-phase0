@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useCallback, useState, useEffect, useRef } from "react";
 import { TAP_TARGET_MIN } from "./lib/constants";
 
 interface MemoModalProps {
@@ -11,6 +11,10 @@ interface MemoModalProps {
 export default function MemoModal({ cardId, initialText, onSave, onClose }: MemoModalProps) {
   const [text, setText] = useState(initialText);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const handleSave = useCallback(() => {
+    onSave(cardId, text);
+    onClose();
+  }, [cardId, onClose, onSave, text]);
 
   useEffect(() => {
     textareaRef.current?.focus();
@@ -30,6 +34,7 @@ export default function MemoModal({ cardId, initialText, onSave, onClose }: Memo
   return (
     <div
       data-testid="memo-modal"
+      onPointerDown={(e) => e.stopPropagation()}
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
@@ -48,6 +53,7 @@ export default function MemoModal({ cardId, initialText, onSave, onClose }: Memo
       <div
         role="dialog"
         aria-label="Edit memo"
+        onPointerDown={(e) => e.stopPropagation()}
         style={{
           background: "#fff",
           borderRadius: 14,
@@ -78,11 +84,18 @@ export default function MemoModal({ cardId, initialText, onSave, onClose }: Memo
           data-testid="memo-textarea"
           value={text}
           onChange={(e) => setText(e.target.value)}
+          onPointerDown={(e) => e.stopPropagation()}
+          onKeyDown={(e) => {
+            if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+              e.preventDefault();
+              e.stopPropagation();
+              handleSave();
+            }
+          }}
           placeholder="Add a note..."
           style={{
-            flex: 1,
-            minHeight: 120,
-            maxHeight: "50vh",
+            flex: "0 0 auto",
+            height: 160,
             padding: "12px 14px",
             borderRadius: 8,
             border: "1px solid rgba(0,0,0,0.1)",
@@ -90,9 +103,10 @@ export default function MemoModal({ cardId, initialText, onSave, onClose }: Memo
             fontSize: 14,
             lineHeight: 1.7,
             color: "#111",
-            resize: "vertical",
+            resize: "none",
             outline: "none",
             background: "rgba(0,0,0,0.015)",
+            overflowY: "auto",
           }}
         />
         <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
@@ -114,10 +128,7 @@ export default function MemoModal({ cardId, initialText, onSave, onClose }: Memo
           </button>
           <button
             data-testid="memo-save"
-            onClick={() => {
-              onSave(cardId, text);
-              onClose();
-            }}
+            onClick={handleSave}
             style={{
               padding: "6px 14px",
               minHeight: TAP_TARGET_MIN,
