@@ -1,0 +1,40 @@
+name: e2e-gate
+on:
+  pull_request:
+permissions:
+  actions: read
+  contents: read
+jobs:
+  gate:
+    name: e2e-gate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wait for e2e.yml conclusion
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          wf="e2e.yml"
+          echo "Waiting for workflow '$wf' (head_sha=$SHA)"
+          for i in $(seq 1 60); do
+            resp="$(gh api "repos/$REPO/actions/workflows/$wf/runs?event=pull_request&head_sha=$SHA&per_page=1")"
+            status="$(echo "$resp" | jq -r '.workflow_runs[0].status // empty')"
+            concl="$(echo "$resp" | jq -r '.workflow_runs[0].conclusion // empty')"
+            url="$(echo "$resp" | jq -r '.workflow_runs[0].html_url // empty')"
+            echo "[$i] status=${status:-NA} conclusion=${concl:-NA} url=${url:-NA}"
+            # まだ走ってない/見つからない場合は待つ
+            if [ -z "${status:-}" ]; then sleep 10; continue; fi
+            if [ "$status" = "completed" ]; then
+              if [ "$concl" = "success" ]; then
+                echo "OK: $wf succeeded: $url"
+                exit 0
+              fi
+              echo "FAIL: $wf did not succeed: status=$status conclusion=$concl url=$url"
+              exit 1
+            fi
+            sleep 10
+          done
+          echo "TIMEOUT waiting for $wf to complete"
+          exit 1
