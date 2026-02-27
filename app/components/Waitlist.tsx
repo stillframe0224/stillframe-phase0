@@ -33,6 +33,7 @@ export default function Waitlist({
     setLoading(true);
     setErrorMessage(null);
 
+    let httpStatus = "";
     try {
       if (postUrl) {
         const res = await fetch(postUrl, {
@@ -41,15 +42,15 @@ export default function Waitlist({
           body: JSON.stringify({ email: normalizedEmail }),
         });
 
-        track("waitlist_submit_result", {
-          email: normalizedEmail,
-          destination,
-          status: String(res.status),
-          ok: String(res.ok),
-        });
-
+        httpStatus = String(res.status);
         if (!res.ok) throw new Error(`waitlist_submit_failed_${res.status}`);
+
+        track("waitlist_submit_success", {
+          destination,
+          status: httpStatus,
+        });
       } else if (fallbackEmail) {
+        track("waitlist_submit_success", { destination });
         window.location.href = `mailto:${fallbackEmail}?subject=SHINEN Waitlist&body=Please add ${normalizedEmail} to the waitlist.`;
       } else {
         throw new Error("waitlist_destination_missing");
@@ -59,8 +60,8 @@ export default function Waitlist({
     } catch (error) {
       setErrorMessage(c.error[lang]);
       track("waitlist_submit_failed", {
-        email: normalizedEmail,
         destination,
+        status: httpStatus,
         reason: error instanceof Error ? error.message : "unknown_error",
       });
     } finally {
