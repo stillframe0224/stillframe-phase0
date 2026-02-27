@@ -23,6 +23,19 @@ export default function Waitlist({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const c = copy.waitlist;
 
+  const openFallbackEmail = () => {
+    const normalizedEmail = email.trim().toLowerCase();
+    const body = normalizedEmail
+      ? `Please add ${normalizedEmail} to the waitlist.`
+      : "Please add me to the waitlist.";
+
+    window.location.href = `mailto:${fallbackEmail}?subject=SHINEN Waitlist&body=${encodeURIComponent(body)}`;
+    track("waitlist_fallback_email_click", {
+      email: normalizedEmail || "empty",
+      destination: "mailto",
+    });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const normalizedEmail = email.trim().toLowerCase();
@@ -50,7 +63,7 @@ export default function Waitlist({
 
         if (!res.ok) throw new Error(`waitlist_submit_failed_${res.status}`);
       } else if (fallbackEmail) {
-        window.location.href = `mailto:${fallbackEmail}?subject=SHINEN Waitlist&body=Please add ${normalizedEmail} to the waitlist.`;
+        openFallbackEmail();
       } else {
         throw new Error("waitlist_destination_missing");
       }
@@ -155,17 +168,48 @@ export default function Waitlist({
         </PrimaryButton>
       </form>
       {errorMessage && (
-        <p
-          style={{
-            marginTop: 10,
-            fontSize: 13,
-            color: "#b42318",
-            fontFamily: "var(--font-dm)",
-            textAlign: "center",
-          }}
-        >
-          {errorMessage}
-        </p>
+        <>
+          <p
+            style={{
+              marginTop: 10,
+              fontSize: 13,
+              color: "#b42318",
+              fontFamily: "var(--font-dm)",
+              textAlign: "center",
+            }}
+          >
+            {errorMessage}
+          </p>
+          {fallbackEmail && postUrl && (
+            <div style={{ marginTop: 10, textAlign: "center" }}>
+              <button
+                type="button"
+                onClick={openFallbackEmail}
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  color: "#2a2a2a",
+                  textDecoration: "underline",
+                  fontFamily: "var(--font-dm)",
+                  fontSize: 13,
+                  cursor: "pointer",
+                }}
+              >
+                {c.fallbackCta[lang]}
+              </button>
+              <p
+                style={{
+                  marginTop: 6,
+                  fontSize: 12,
+                  color: "#8a8a8a",
+                  fontFamily: "var(--font-dm)",
+                }}
+              >
+                {c.fallbackHint[lang]}
+              </p>
+            </div>
+          )}
+        </>
       )}
       <p
         style={{

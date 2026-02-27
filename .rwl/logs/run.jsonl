@@ -5,3 +5,8 @@
 {"ts":"2026-02-13T05:24:00.000Z","step":"create_ops","status":"ok","detail":"OPS/deploy.md, .env.example created"}
 {"ts":"2026-02-13T05:25:00.000Z","step":"build_fix","status":"ok","detail":"Fixed package.json type: commonjs -> module"}
 {"ts":"2026-02-13T05:26:00.000Z","step":"build_pages","status":"ok","detail":"next build succeeded — static: /, /_not-found; dynamic: /api/track"}
+{"event":"page_view","ts":"2026-02-22T06:09:01.847Z","props":{},"url":"/","_server_ts":"2026-02-22T06:09:02.413Z"}
+{"event":"page_view","ts":"2026-02-22T06:12:01.361Z","props":{},"url":"/","_server_ts":"2026-02-22T06:12:01.429Z"}
+{"event":"page_view","ts":"2026-02-22T06:15:51.229Z","props":{},"url":"/","_server_ts":"2026-02-22T06:15:51.344Z"}
+{"event":"page_view","ts":"2026-02-22T06:16:04.732Z","props":{},"url":"/","_server_ts":"2026-02-22T06:16:04.761Z"}
+{"event":"page_view","ts":"2026-02-22T06:16:05.338Z","props":{},"url":"/","_server_ts":"2026-02-22T06:16:05.372Z"}

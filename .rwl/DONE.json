@@ -43,5 +43,13 @@
     "session": "nightly",
     "pr_url": "https://github.com/stillframe0224/stillframe-phase0/pull/83",
     "evidence": "/Users/array0224/stillframe-phase0/reports/triad/20260219-230000-lp-no-manual-image-copy.md"
+  },
+  {
+    "id": "20260222-230123-waitlist-fallback-cta",
+    "goal": "Waitlist送信失敗時にメール代替CTAを表示し、登録導線を維持する",
+    "completed_at": "2026-02-22T14:08:30Z",
+    "session": "nightly",
+    "pr_url": "https://github.com/stillframe0224/stillframe-phase0/pull/146",
+    "evidence": "/Users/array0224/stillframe-phase0/reports/triad/20260222-230123-waitlist-fallback-cta.md"
   }
 ]
