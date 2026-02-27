@@ -81,8 +81,8 @@ const copy = {
     },
     cta: { en: "Get Early Access", ja: "早期アクセスを取得" },
     urgency: {
-      en: "Early-bird pricing: first 20 members keep this price forever",
-      ja: "先着20名はこの価格をずっと維持できます",
+      en: "Early-bird pricing ends soon: only 20 founder slots at this lifetime price",
+      ja: "早割はまもなく終了：先着20名限定でこの価格を固定できます",
     },
   },
   waitlist: {
@@ -101,6 +101,10 @@ const copy = {
     error: {
       en: "Could not submit. Please try again.",
       ja: "送信できませんでした。もう一度お試しください。",
+    },
+    invalidEmail: {
+      en: "Please enter a valid email address.",
+      ja: "有効なメールアドレスを入力してください。",
     },
   },
   footer: {

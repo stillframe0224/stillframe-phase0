@@ -43,5 +43,13 @@
     "session": "nightly",
     "pr_url": "https://github.com/stillframe0224/stillframe-phase0/pull/83",
     "evidence": "/Users/array0224/stillframe-phase0/reports/triad/20260219-230000-lp-no-manual-image-copy.md"
+  },
+  {
+    "id": "20260221-230806-waitlist-email-validation",
+    "goal": "Waitlistフォームにメール形式バリデーションと明確なエラーメッセージを追加して送信失敗を減らす",
+    "completed_at": "2026-02-21T14:10:00Z",
+    "session": "nightly",
+    "pr_url": "https://github.com/stillframe0224/stillframe-phase0/pull/138",
+    "evidence": "/Users/array0224/stillframe-phase0/reports/triad/20260221-230806-waitlist-email-validation.md"
   }
 ]
