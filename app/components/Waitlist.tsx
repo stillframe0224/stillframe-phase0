@@ -33,6 +33,7 @@ export default function Waitlist({
     setLoading(true);
     setErrorMessage(null);
 
+    let httpStatus = "";
     try {
       if (postUrl) {
         const res = await fetch(postUrl, {
@@ -41,15 +42,15 @@ export default function Waitlist({
           body: JSON.stringify({ email: normalizedEmail }),
         });
 
-        track("waitlist_submit_result", {
-          email: normalizedEmail,
-          destination,
-          status: String(res.status),
-          ok: String(res.ok),
-        });
-
+        httpStatus = String(res.status);
         if (!res.ok) throw new Error(`waitlist_submit_failed_${res.status}`);
+
+        track("waitlist_submit_success", {
+          destination,
+          status: httpStatus,
+        });
       } else if (fallbackEmail) {
+        track("waitlist_submit_success", { destination });
         window.location.href = `mailto:${fallbackEmail}?subject=SHINEN Waitlist&body=Please add ${normalizedEmail} to the waitlist.`;
       } else {
         throw new Error("waitlist_destination_missing");
@@ -59,8 +60,8 @@ export default function Waitlist({
     } catch (error) {
       setErrorMessage(c.error[lang]);
       track("waitlist_submit_failed", {
-        email: normalizedEmail,
         destination,
+        status: httpStatus,
         reason: error instanceof Error ? error.message : "unknown_error",
       });
     } finally {
@@ -109,11 +110,7 @@ export default function Waitlist({
     <div style={{ maxWidth: 440, margin: "0 auto" }}>
       <form
         onSubmit={handleSubmit}
-        style={{
-          display: "flex",
-          gap: 10,
-          flexWrap: "wrap",
-        }}
+        className="flex flex-col sm:flex-row gap-2.5"
       >
         <input
           type="email"
@@ -128,9 +125,8 @@ export default function Waitlist({
           inputMode="email"
           autoCapitalize="none"
           autoCorrect="off"
+          className="w-full sm:flex-1 sm:min-w-0"
           style={{
-            flex: "1 1 240px",
-            minWidth: 0,
             padding: "12px 18px",
             borderRadius: 999,
             border: "1px solid #ddd",
@@ -145,10 +141,9 @@ export default function Waitlist({
           aria-label={loading ? c.submitting[lang] : c.cta[lang]}
           type="submit"
           disabled={loading}
-          className="rounded-full px-6 py-3 text-sm whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[var(--accent-strong)]"
+          className="w-full sm:w-auto rounded-full px-6 py-3 text-sm whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[var(--accent-strong)]"
           style={{
             cursor: loading ? "wait" : undefined,
-            flex: "1 0 auto",
           }}
         >
           {loading ? c.submitting[lang] : c.cta[lang]}
