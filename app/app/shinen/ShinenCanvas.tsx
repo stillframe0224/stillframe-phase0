@@ -1176,7 +1176,7 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
       }}
     >
       {/* Background (flat grid) */}
-      <Background time={time} />
+      <Background />
 
       {/* Build stamp — hidden, used by ui-smoke to verify deployment sha */}
       <span
