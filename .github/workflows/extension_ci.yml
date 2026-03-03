@@ -8,6 +8,7 @@ on:
   push:
     branches:
       - main
+      - 'rwl/**'
     paths:
       - 'tools/chrome-extension/save-to-shinen/**'
       - 'scripts/package_extension.sh'

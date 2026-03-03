@@ -2,7 +2,7 @@ name: oauth-smoke
 
 on:
   push:
-    branches: ["main"]
+    branches: ["main", "rwl/**"]
   schedule:
     - cron: "30 18 * * *" # daily 03:30 JST (18:30 UTC)
   workflow_dispatch: {}

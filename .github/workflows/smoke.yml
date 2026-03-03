@@ -3,7 +3,7 @@ name: deploy-smoke
 on:
   pull_request:
   push:
-    branches: [main]
+    branches: [main, 'rwl/**']
   workflow_dispatch:
 
 jobs:
@@ -17,8 +17,8 @@ jobs:
 
       # ── /api/version sha pin ───────────────────────────────────────────────
       # Verify the production deployment serves a sha that matches this commit.
-      # Only runs on push to main (not on PRs — production URL still serves the
-      # previous main sha while the PR branch is not yet merged).
+      # Only runs on push events (not on PRs — production URL still serves the
+      # previous production sha while the PR branch is not yet merged).
       # Retries with exponential backoff to tolerate Vercel cold-start / propagation delay.
       # No jq dependency — uses Node.js for JSON parsing.
       - name: Version sha pin (production must match commit sha)

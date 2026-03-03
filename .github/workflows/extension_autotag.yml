@@ -2,7 +2,7 @@ name: extension-autotag
 
 on:
   push:
-    branches: [main]
+    branches: [main, 'rwl/**']
     paths:
       - 'tools/chrome-extension/save-to-shinen/manifest.json'
 
