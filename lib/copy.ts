@@ -81,8 +81,8 @@ const copy = {
     },
     cta: { en: "Get Early Access", ja: "早期アクセスを取得" },
     urgency: {
-      en: "Early-bird pricing: first 20 members keep this price forever",
-      ja: "先着20名はこの価格をずっと維持できます",
+      en: "🔥 Limited offer: First 20 members lock in $10/mo forever",
+      ja: "🔥 限定オファー: 先着20名は永久に$10/月",
     },
   },
   waitlist: {
