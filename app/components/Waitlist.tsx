@@ -32,6 +32,7 @@ export default function Waitlist({
     track("waitlist_submit", { email: normalizedEmail, destination });
     setLoading(true);
     setErrorMessage(null);
+    let httpStatus: number | null = null;
 
     try {
       if (postUrl) {
@@ -41,10 +42,11 @@ export default function Waitlist({
           body: JSON.stringify({ email: normalizedEmail }),
         });
 
-        track("waitlist_submit_result", {
+        httpStatus = res.status;
+        track("waitlist_submit_success", {
           email: normalizedEmail,
           destination,
-          status: String(res.status),
+          status: httpStatus !== null ? String(httpStatus) : "unknown",
           ok: String(res.ok),
         });
 
@@ -61,6 +63,7 @@ export default function Waitlist({
       track("waitlist_submit_failed", {
         email: normalizedEmail,
         destination,
+        status: httpStatus !== null ? String(httpStatus) : "network_error",
         reason: error instanceof Error ? error.message : "unknown_error",
       });
     } finally {
