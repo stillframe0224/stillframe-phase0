@@ -1,13 +1,10 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { proj } from "../lib/projection";
-import { getCardWidth, Z_MIN, Z_MAX } from "../lib/constants";
-import type { ShinenCard, SelectionRect, CameraState } from "../lib/types";
+import { getCardWidth } from "../lib/constants";
+import type { ShinenCard, SelectionRect } from "../lib/types";
 
 export function useSelection(
   cards: ShinenCard[],
   setCards: React.Dispatch<React.SetStateAction<ShinenCard[]>>,
-  cam: CameraState,
-  zoom: number,
 ) {
   const [selected, setSelected] = useState<Set<number>>(new Set());
   const [selRect, setSelRect] = useState<SelectionRect | null>(null);
@@ -16,10 +13,6 @@ export function useSelection(
   const selStartRef = useRef<{ x: number; y: number } | null>(null);
   const cardsRef = useRef(cards);
   cardsRef.current = cards;
-  const camRef = useRef(cam);
-  camRef.current = cam;
-  const zoomRef = useRef(zoom);
-  zoomRef.current = zoom;
 
   const startSelection = useCallback((e: React.PointerEvent) => {
     const start = { x: e.clientX, y: e.clientY };
@@ -49,20 +42,17 @@ export function useSelection(
         if (rect.w < 5 && rect.h < 5) {
           setSelected(new Set());
         } else {
-          // Hit-test cards against the selection rect
+          // Hit-test cards against the selection rect using direct px/py
           const hits = new Set<number>();
           const cx = window.innerWidth / 2;
           const cy = window.innerHeight / 2;
           const currentCards = cardsRef.current;
-          const currentCam = camRef.current;
-          const currentZoom = zoomRef.current;
+          const halfW = getCardWidth() / 2;
+          const halfH = halfW * 0.7;
 
           currentCards.forEach((card) => {
-            const p = proj(card.px, card.py, card.z + currentZoom, currentCam.rx, currentCam.ry);
-            const cardCenterX = cx + p.sx;
-            const cardCenterY = cy + p.sy;
-            const halfW = (getCardWidth() * p.s) / 2;
-            const halfH = halfW * 0.7;
+            const cardCenterX = cx + card.px;
+            const cardCenterY = cy + card.py;
             if (
               cardCenterX + halfW > rect.x &&
               cardCenterX - halfW < rect.x + rect.w &&
@@ -96,15 +86,12 @@ export function useSelection(
     setSelected(new Set());
   }, [selected, setCards]);
 
+  // changeSelectedZ is a no-op since Z-axis is removed
   const changeSelectedZ = useCallback(
-    (delta: number) => {
-      setCards((prev) =>
-        prev.map((c) =>
-          selected.has(c.id) ? { ...c, z: Math.max(Z_MIN, Math.min(Z_MAX, c.z - delta * 0.8)) } : c,
-        ),
-      );
+    (_delta: number) => {
+      // no-op: Z-axis removed
     },
-    [selected, setCards],
+    [],
   );
 
   // Touch-compatible selection methods (called from useTouch)
@@ -128,14 +115,11 @@ export function useSelection(
         const cx = window.innerWidth / 2;
         const cy = window.innerHeight / 2;
         const currentCards = cardsRef.current;
-        const currentCam = camRef.current;
-        const currentZoom = zoomRef.current;
+        const halfW = getCardWidth() / 2;
+        const halfH = halfW * 0.7;
         currentCards.forEach((card) => {
-          const p = proj(card.px, card.py, card.z + currentZoom, currentCam.rx, currentCam.ry);
-          const cardCenterX = cx + p.sx;
-          const cardCenterY = cy + p.sy;
-          const halfW = (getCardWidth() * p.s) / 2;
-          const halfH = halfW * 0.7;
+          const cardCenterX = cx + card.px;
+          const cardCenterY = cy + card.py;
           if (
             cardCenterX + halfW > rect.x &&
             cardCenterX - halfW < rect.x + rect.w &&

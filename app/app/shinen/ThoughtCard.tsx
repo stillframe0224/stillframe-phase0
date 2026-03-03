@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { SLAB_N, SLAB_GAP, TAP_TARGET_MIN, getCardWidth } from "./lib/constants";
-import type { ShinenCard, Projection } from "./lib/types";
+import { TAP_TARGET_MIN, getCardWidth } from "./lib/constants";
+import type { ShinenCard } from "./lib/types";
 import { toProxySrc } from "./lib/proxy";
 import { inferDomain, logDiagEvent } from "./lib/diag";
 import { stopOpenLinkEventPropagation } from "./lib/openLinkGuards";
@@ -16,14 +16,10 @@ import {
 
 interface ThoughtCardProps {
   card: ShinenCard;
-  p: Projection;
-  camRx: number;
-  camRy: number;
   isDragging: boolean;
   isHovered: boolean;
   isSelected: boolean;
   isPlaying?: boolean;
-  time: number;
   memo?: string;
   tag?: string;
   onPointerDown: (e: React.PointerEvent) => void;
@@ -50,14 +46,10 @@ function buildCardSnapshot(card: ShinenCard, linkUrl: string | null, thumbnailUr
 
 export default function ThoughtCard({
   card,
-  p,
-  camRx,
-  camRy,
   isDragging,
   isHovered,
   isSelected,
   isPlaying = false,
-  time,
   memo,
   tag,
   onPointerDown,
@@ -70,8 +62,6 @@ export default function ThoughtCard({
   onResizeStart,
   onDelete,
 }: ThoughtCardProps) {
-  const floatY = isDragging ? 0 : Math.sin(time * 0.0005 + card.id * 2.1) * 3;
-
   // When playing video/youtube, expand card width
   const isVideoPlaying =
     isPlaying &&
@@ -80,12 +70,12 @@ export default function ThoughtCard({
   const baseWidth = card.w ?? getCardWidth();
   const cardWidth = isVideoPlaying ? Math.max(420, baseWidth * 2) : baseWidth;
 
-  const sc = isDragging ? p.s * 1.05 : isHovered ? p.s * 1.02 : p.s;
-  const edgeX = camRy * 0.035;
-  const edgeY = -camRx * 0.025;
-  const liftY = isDragging ? 28 : isHovered ? 18 : 11;
-  const liftBlur = isDragging ? 42 : isHovered ? 28 : 18;
-  const liftA = isDragging ? 0.15 : isHovered ? 0.1 : 0.07;
+  const sc = isDragging ? 1.03 : isHovered ? 1.01 : 1;
+  const boxShadow = isDragging
+    ? "0 24px 48px -8px rgba(0,0,0,0.22)"
+    : isHovered
+    ? "0 14px 36px -8px rgba(0,0,0,0.16)"
+    : "0 8px 24px -6px rgba(0,0,0,0.12)";
 
   const selectedBorder = isSelected ? "2px solid rgba(79,110,217,0.5)" : "1.5px solid rgba(0,0,0,0.3)";
   const selectedGlow = isSelected ? "0 0 12px 2px rgba(79,110,217,0.2)" : "";
@@ -107,34 +97,14 @@ export default function ThoughtCard({
         left: "50%",
         top: "50%",
         width: cardWidth,
-        transform: `translate(-50%,-50%) translate(${p.sx}px,${p.sy + floatY}px) scale(${sc})`,
+        transform: `translate(-50%,-50%) translate(${card.px}px,${card.py}px) scale(${sc})`,
         transition: isDragging ? "none" : "transform 0.4s cubic-bezier(0.22,0.61,0.36,1), width 0.3s ease",
         cursor: isDragging ? "grabbing" : "grab",
-        zIndex: isPlaying ? 10000 : isDragging ? 9999 : Math.round(1000 + p.z2),
+        zIndex: isPlaying ? 10000 : isDragging ? 9999 : 1,
         userSelect: "none",
         touchAction: "none",
       }}
     >
-      {/* Slab layers (3D thickness) */}
-      {Array.from({ length: SLAB_N }, (_, i) => {
-        const li = SLAB_N - i;
-        const shade = 218 - li * 12;
-        return (
-          <div
-            key={i}
-            style={{
-              position: "absolute",
-              inset: 0,
-              borderRadius: 10,
-              background: `rgb(${shade},${shade},${shade})`,
-              border: "1.5px solid rgba(0,0,0,0.22)",
-              transform: `translate(${edgeX * li * SLAB_GAP}px,${edgeY * li * SLAB_GAP}px)`,
-              transition: isDragging ? "none" : "transform 0.4s cubic-bezier(0.22,0.61,0.36,1)",
-              zIndex: -li,
-            }}
-          />
-        );
-      })}
 
       {/* Main card shell: decorative face is below, controls/content above */}
       <div
@@ -155,7 +125,7 @@ export default function ThoughtCard({
             background: "#fff",
             borderRadius: 10,
             border: selectedBorder,
-            boxShadow: `0 ${liftY}px ${liftBlur}px -${Math.round(liftBlur * 0.3)}px rgba(0,0,0,${liftA})${selectedGlow ? `, ${selectedGlow}` : ""}`,
+            boxShadow: `${boxShadow}${selectedGlow ? `, ${selectedGlow}` : ""}`,
             transition: isDragging ? "none" : "box-shadow 0.35s",
           }}
         />

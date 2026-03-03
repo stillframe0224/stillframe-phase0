@@ -6,7 +6,6 @@ export interface ShinenCard {
   text: string;
   px: number;
   py: number;
-  z: number;
   /** Custom card width (overrides default). Set by resize grip. */
   w?: number;
   /** Custom card height (overrides auto). Set by resize grip. */
@@ -56,23 +55,11 @@ export interface GroupDragState {
   origins: Map<number, { px: number; py: number }>;
 }
 
-export interface CamDragState {
-  startMX: number;
-  startMY: number;
-  origRx: number;
-  origRy: number;
-}
-
 export interface SelectionRect {
   startX: number;
   startY: number;
   curX: number;
   curY: number;
-}
-
-export interface CameraState {
-  rx: number;
-  ry: number;
 }
 
 // DB上のカード型（Supabase返却値）

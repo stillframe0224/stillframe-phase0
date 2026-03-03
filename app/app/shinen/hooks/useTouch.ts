@@ -1,18 +1,13 @@
-import { useEffect, useRef, useCallback, type MutableRefObject } from "react";
-import { ZOOM_MIN, ZOOM_MAX, Z_MIN, Z_MAX } from "../lib/constants";
-import type { CameraState, ShinenCard } from "../lib/types";
+import { useEffect, useRef } from "react";
+import type { ShinenCard } from "../lib/types";
 import { shouldSkipPreventDefaultForOpenLink } from "../lib/openLinkGuards";
 
 interface TouchState {
-  mode: "none" | "card-drag" | "selection" | "camera" | "pinch";
+  mode: "none" | "card-drag" | "selection";
   startTouches: { x: number; y: number }[];
   cardId: number | null;
   origPX: number;
   origPY: number;
-  origCamRx: number;
-  origCamRy: number;
-  origZoom: number;
-  startDist: number;
 }
 
 const INITIAL_STATE: TouchState = {
@@ -21,34 +16,17 @@ const INITIAL_STATE: TouchState = {
   cardId: null,
   origPX: 0,
   origPY: 0,
-  origCamRx: 0,
-  origCamRy: 0,
-  origZoom: 0,
-  startDist: 0,
 };
-
-function touchDist(t1: Touch, t2: Touch): number {
-  return Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
-}
-
-function touchCenter(t1: Touch, t2: Touch): { x: number; y: number } {
-  return { x: (t1.clientX + t2.clientX) / 2, y: (t1.clientY + t2.clientY) / 2 };
-}
 
 /**
  * Unified touch handler for mobile.
  * - 1 finger on card → drag
  * - 1 finger on background → selection rect
- * - 2 fingers → camera rotation (drag) + pinch zoom
  */
 export function useTouch(
   rootRef: React.RefObject<HTMLDivElement | null>,
   cards: ShinenCard[],
   setCards: React.Dispatch<React.SetStateAction<ShinenCard[]>>,
-  targetCam: MutableRefObject<CameraState>,
-  cam: CameraState,
-  zoom: number,
-  setZoom: (z: number | ((z: number) => number)) => void,
   selected: Set<number>,
   hoveredId: number | null,
   setHoveredId: (id: number | null) => void,
@@ -56,15 +34,10 @@ export function useTouch(
   onSelectionStart: (x: number, y: number) => void,
   onSelectionMove: (x: number, y: number) => void,
   onSelectionEnd: (x: number, y: number) => void,
-  changeSelectedZ: (delta: number) => void,
 ) {
   const stateRef = useRef<TouchState>({ ...INITIAL_STATE });
   const cardsRef = useRef(cards);
   cardsRef.current = cards;
-  const camRef = useRef(cam);
-  camRef.current = cam;
-  const zoomRef = useRef(zoom);
-  zoomRef.current = zoom;
   const selectedRef = useRef(selected);
   selectedRef.current = selected;
   const hoveredIdRef = useRef(hoveredId);
@@ -77,26 +50,6 @@ export function useTouch(
     const onTouchStart = (e: TouchEvent) => {
       const touches = e.touches;
       const state = stateRef.current;
-
-      if (touches.length === 2) {
-        // Upgrade to 2-finger mode — cancel any 1-finger operation
-        e.preventDefault();
-        const dist = touchDist(touches[0], touches[1]);
-        const center = touchCenter(touches[0], touches[1]);
-        stateRef.current = {
-          ...INITIAL_STATE,
-          mode: "pinch",
-          startTouches: [
-            { x: center.x, y: center.y },
-          ],
-          origCamRx: targetCam.current.rx,
-          origCamRy: targetCam.current.ry,
-          origZoom: zoomRef.current,
-          startDist: dist,
-          cardId: state.cardId, // keep cardId for z-depth pinch
-        };
-        return;
-      }
 
       if (touches.length === 1 && state.mode === "none") {
         const touch = touches[0];
@@ -145,12 +98,10 @@ export function useTouch(
         const touch = touches[0];
         const dx = touch.clientX - state.startTouches[0].x;
         const dy = touch.clientY - state.startTouches[0].y;
-        // Simple 1:1 drag for mobile (no projection compensation needed at default zoom)
-        const invScale = 1;
         setCards((prev) =>
           prev.map((c) =>
             c.id === state.cardId
-              ? { ...c, px: state.origPX + dx * invScale, py: state.origPY + dy * invScale }
+              ? { ...c, px: state.origPX + dx, py: state.origPY + dy }
               : c,
           ),
         );
@@ -161,43 +112,6 @@ export function useTouch(
       if (state.mode === "selection" && touches.length === 1) {
         const touch = touches[0];
         onSelectionMove(touch.clientX, touch.clientY);
-        return;
-      }
-
-      if (state.mode === "pinch" && touches.length === 2) {
-        e.preventDefault();
-        const dist = touchDist(touches[0], touches[1]);
-        const center = touchCenter(touches[0], touches[1]);
-        const startCenter = state.startTouches[0];
-
-        // Camera rotation from 2-finger drag (center movement)
-        const dx = center.x - startCenter.x;
-        const dy = center.y - startCenter.y;
-        targetCam.current = {
-          rx: Math.max(-50, Math.min(50, state.origCamRx + dy * -0.35)),
-          ry: Math.max(-60, Math.min(60, state.origCamRy + dx * 0.4)),
-        };
-
-        // Pinch zoom (or z-depth if card hovered)
-        const scale = dist / state.startDist;
-        const zoomDelta = (scale - 1) * 500;
-
-        if (hoveredIdRef.current != null && selectedRef.current.has(hoveredIdRef.current) && selectedRef.current.size > 1) {
-          // Pinch on selected group → z-depth
-          changeSelectedZ(-zoomDelta * 0.5);
-        } else if (hoveredIdRef.current != null) {
-          // Pinch on single card → z-depth
-          const hid = hoveredIdRef.current;
-          setCards((prev) =>
-            prev.map((c) =>
-              c.id === hid ? { ...c, z: Math.max(Z_MIN, Math.min(Z_MAX, c.z + zoomDelta * 0.5)) } : c,
-            ),
-          );
-          setLayoutIdx(-1);
-        } else {
-          // Background pinch → zoom
-          setZoom(Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, state.origZoom + zoomDelta)));
-        }
         return;
       }
     };
@@ -227,5 +141,5 @@ export function useTouch(
       el.removeEventListener("touchmove", onTouchMove);
       el.removeEventListener("touchend", onTouchEnd);
     };
-  }, [rootRef, setCards, targetCam, setZoom, setHoveredId, setLayoutIdx, onSelectionStart, onSelectionMove, onSelectionEnd, changeSelectedZ]);
+  }, [rootRef, setCards, setHoveredId, setLayoutIdx, onSelectionStart, onSelectionMove, onSelectionEnd]);
 }

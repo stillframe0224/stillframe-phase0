@@ -1,8 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
-import { TYPES, LAYOUTS, Z_MIN, Z_MAX, INITIAL_CARDS, getCardWidth } from "./lib/constants";
-import { proj } from "./lib/projection";
+import { TYPES, LAYOUTS, INITIAL_CARDS, getCardWidth } from "./lib/constants";
 import { applyLayout, findNonOverlappingPosition } from "./lib/layouts";
 import type { ShinenCard } from "./lib/types";
 import { useAnimationLoop } from "./hooks/useAnimationLoop";
@@ -244,26 +243,26 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
     [debugMode],
   );
 
-  // Animation loop (rAF + camera lerp)
-  const { cam, targetCam, time, resetCamera } = useAnimationLoop(e2eMode);
+  // Animation loop (time=0 stub, no rAF)
+  const { time } = useAnimationLoop(e2eMode);
 
-  // Camera rotation + zoom
-  const { zoom, camDrag, startCamDrag, handleBgWheel, setZoom } = useCamera(targetCam);
+  // Camera stub (no-op)
+  useCamera();
 
   // Selection
   const {
-    selected, selRect, startSelection, clearSelection, deleteSelected, changeSelectedZ, setSelected,
+    selected, selRect, startSelection, clearSelection, deleteSelected, setSelected,
     startSelectionAt, moveSelectionTo, endSelectionAt,
-  } = useSelection(cards, setCards, cam, zoom);
+  } = useSelection(cards, setCards);
 
   // Drag (single + group)
-  const { drag, groupDrag, startDrag, isDragging } = useDrag(cards, setCards, selected, setLayoutIdx, cam, zoom);
+  const { drag, groupDrag, startDrag, isDragging } = useDrag(cards, setCards, selected, setLayoutIdx);
 
   // Touch gestures (mobile)
   useTouch(
-    rootRef, cards, setCards, targetCam, cam, zoom, setZoom,
+    rootRef, cards, setCards,
     selected, hoveredId, setHoveredId, setLayoutIdx,
-    startSelectionAt, moveSelectionTo, endSelectionAt, changeSelectedZ,
+    startSelectionAt, moveSelectionTo, endSelectionAt,
   );
 
   // Lazy-fetch OG thumbnails for clip cards without media
@@ -625,30 +624,16 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
     [],
   );
 
-  // Wheel handler: card z-depth or background zoom
+  // Wheel handler: no-op (Z-axis removed)
   useEffect(() => {
     const el = rootRef.current;
     if (!el) return;
     const onWheel = (e: WheelEvent) => {
       e.preventDefault();
-      if (hoveredId != null) {
-        if (selected.has(hoveredId) && selected.size > 1) {
-          changeSelectedZ(e.deltaY);
-        } else {
-          setCards((prev) =>
-            prev.map((c) =>
-              c.id === hoveredId ? { ...c, z: Math.max(Z_MIN, Math.min(Z_MAX, c.z - e.deltaY * 0.8)) } : c,
-            ),
-          );
-        }
-        setLayoutIdx(-1);
-      } else {
-        handleBgWheel(e.deltaY);
-      }
     };
     el.addEventListener("wheel", onWheel, { passive: false });
     return () => el.removeEventListener("wheel", onWheel);
-  }, [hoveredId, selected, changeSelectedZ, handleBgWheel]);
+  }, []);
 
   useEffect(() => {
     reorderDragRef.current = reorderDrag;
@@ -750,8 +735,6 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
           setPlayingId(null);
           return;
         }
-        resetCamera();
-        setZoom(0);
         clearSelection();
         return;
       }
@@ -772,10 +755,7 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
         return;
       }
       if (e.key === "a" || e.key === "A") cycleLayout();
-      if (e.key === "r" || e.key === "R") {
-        resetCamera();
-        setZoom(0);
-      }
+      // 'r' key no-op (camera reset removed)
       // T → open tag modal for hovered or first selected card
       if (e.key === "t" || e.key === "T") {
         if (memoModalCardId != null || tagModalCardId != null) return;
@@ -796,9 +776,9 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [cycleLayout, resetCamera, setZoom, clearSelection, deleteSelected, selected, playingId, cards, setSelected, memoModalCardId, closeMemoModal, hoveredId, handleDeleteCard, searchOpen, tagModalCardId, openTagModal]);
+  }, [cycleLayout, clearSelection, deleteSelected, selected, playingId, cards, setSelected, memoModalCardId, closeMemoModal, hoveredId, handleDeleteCard, searchOpen, tagModalCardId, openTagModal]);
 
-  // Pointer down on background: selection rect or camera drag (also stops media)
+  // Pointer down on background: selection rect (also stops media)
   const handleBgDown = useCallback(
     (e: React.PointerEvent) => {
       if (e.defaultPrevented) return;
@@ -812,13 +792,9 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
         return;
       }
 
-      if (e.shiftKey || e.button === 1 || e.button === 2) {
-        startCamDrag(e);
-      } else {
-        startSelection(e);
-      }
+      startSelection(e);
     },
-    [startCamDrag, startSelection, playingId, memoModalCardId],
+    [startSelection, playingId, memoModalCardId],
   );
 
   // Add new thought (text only)
@@ -840,7 +816,6 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
           text: normalizedUrl,
           px: pos.px,
           py: pos.py,
-          z: -20 - Math.random() * 100,
           source: { url: normalizedUrl, site },
           media: (() => {
             if (ytId) {
@@ -878,7 +853,6 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
         text,
         px: pos.px,
         py: pos.py,
-        z: -20 - Math.random() * 100,
       };
       const next = [
         ...prev,
@@ -909,7 +883,6 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
           text: result.text,
           px: pos.px,
           py: pos.py,
-          z: -20 - Math.random() * 100,
           media: result.media,
           file: result.file,
         };
@@ -948,7 +921,6 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
           text: clipData.title || sourceUrl || "Saved clip",
           px: pos.px,
           py: pos.py,
-          z: -20 - Math.random() * 100,
           source: sourceUrl ? {
             url: sourceUrl,
             site: clipData.site || sourceHost,
@@ -1044,7 +1016,6 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
         text: cardText,
         px: pos.px,
         py: pos.py,
-        z: -20 - Math.random() * 100,
         source: { url, site: site || parsedHost },
         media: (() => {
           if (ytId) {
@@ -1174,26 +1145,19 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
     return result;
   }, [cards, memoById, tagById, filterHasMemo, searchQuery]);
 
-  // Project cards. Custom sort keeps array order for reorder smoke checks.
+  // Flat 2D card list (no projection).
   const projCards = useMemo(() => {
-    const projected = filteredCards.map((card) => ({ card, p: proj(card.px, card.py, card.z + zoom, cam.rx, cam.ry) }));
-    if (sortDir === "custom") return projected;
-    return projected.sort((a, b) => a.p.z2 - b.p.z2);
-  }, [filteredCards, cam.rx, cam.ry, zoom, sortDir]);
+    return filteredCards;
+  }, [filteredCards]);
 
-  const t = targetCam.current;
-  const camIsRotated =
-    Math.abs(cam.rx) > 0.3 || Math.abs(cam.ry) > 0.3 ||
-    Math.abs(t.rx) > 0.3 || Math.abs(t.ry) > 0.3 ||
-    Math.abs(zoom) > 3;
+  const camIsRotated = false;
 
   const handleResetAll = useCallback(() => {
-    resetCamera();
-    setZoom(0);
-  }, [resetCamera, setZoom]);
+    // no-op: camera removed
+  }, []);
 
   const layoutLabel = layoutIdx >= 0 ? LAYOUTS[layoutIdx] : "free";
-  const isIdle = !isDragging && hoveredId == null && !camDrag;
+  const isIdle = !isDragging && hoveredId == null;
 
   return (
     <div
@@ -1211,8 +1175,8 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
         touchAction: "none",
       }}
     >
-      {/* Background (grid + sand) */}
-      <Background cam={cam} zoom={zoom} time={time} />
+      {/* Background (flat grid) */}
+      <Background time={time} />
 
       {/* Build stamp — hidden, used by ui-smoke to verify deployment sha */}
       <span
@@ -1282,13 +1246,10 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
 
       {/* Cards */}
       <div data-testid="cards-grid" style={{ position: "absolute", inset: 0, zIndex: 5, gap: "8px" }}>
-        {projCards.map(({ card, p }) => (
+        {projCards.map((card) => (
           <ThoughtCard
             key={card.id}
             card={card}
-            p={p}
-            camRx={cam.rx}
-            camRy={cam.ry}
             isDragging={
               drag?.id === card.id ||
               (groupDrag != null && selected.has(card.id)) ||
@@ -1297,7 +1258,6 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
             isHovered={hoveredId === card.id}
             isSelected={selected.has(card.id)}
             isPlaying={playingId === card.id}
-            time={time}
             memo={memoById[String(card.id)]}
             tag={tagById[String(card.id)]}
             onPointerDown={(e) => {

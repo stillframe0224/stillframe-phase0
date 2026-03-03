@@ -5,7 +5,7 @@ import type { ShinenCard } from "./types";
 
 /** Normalize card dimensions to layout defaults (removes manual resize). */
 function resetCardSize(c: ShinenCard, cw: number, ch: number): ShinenCard {
-  const next = { ...c, px: c.px, py: c.py, z: c.z };
+  const next = { ...c, px: c.px, py: c.py };
   // Unset custom w/h so ThoughtCard uses getCardWidth() — matching layout math
   if (next.w !== undefined) delete next.w;
   if (next.h !== undefined) delete next.h;
@@ -51,7 +51,6 @@ export function layoutScatter(cards: ShinenCard[]): ShinenCard[] {
     ...c,
     px: (Math.random() - 0.5) * 1200,
     py: (Math.random() - 0.5) * 600,
-    z: -20 - Math.random() * 460,
   }));
 }
 
@@ -81,7 +80,6 @@ export function layoutGrid(cards: ShinenCard[]): ShinenCard[] {
         ...c,
         px: col * cellW + cw / 2 - totalW / 2,
         py: row * cellH + ch / 2 - totalH / 2,
-        z: -80,
       },
       cw,
       ch,
@@ -112,7 +110,6 @@ export function layoutCircle(cards: ShinenCard[]): ShinenCard[] {
         ...c,
         px: Math.cos(a) * rad,
         py: Math.sin(a) * rad * 0.55,
-        z: -120 + Math.sin(a) * 80,
       },
       cw,
       ch,
@@ -143,7 +140,6 @@ export function layoutTiles(cards: ShinenCard[]): ShinenCard[] {
         ...c,
         px: col * cellW + cw / 2 - totalW / 2,
         py: row * cellH + ch / 2 - totalH / 2,
-        z: -300,
       },
       cw,
       ch,
@@ -181,7 +177,6 @@ export function layoutTriangle(cards: ShinenCard[]): ShinenCard[] {
         ...c,
         px: x1 + (x2 - x1) * frac,
         py: y1 + (y2 - y1) * frac,
-        z: -200 + Math.sin((i / n) * Math.PI * 2) * 100,
       },
       cw,
       ch,
