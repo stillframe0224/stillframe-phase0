@@ -256,10 +256,16 @@ export function useOgThumbnails(
             }
           },
         )
-        .catch(() => {
+        .catch((error) => {
           inflightRef.current.delete(url);
+          const reason = error instanceof Error ? error.message : "fetch_failed";
+          console.warn(`[useOgThumbnails] Failed to fetch OG image for ${url}:`, reason);
           const currentCache = readCache();
-          currentCache[url] = { image: null, fetchedAt: Date.now() };
+          currentCache[url] = {
+            image: null,
+            fetchedAt: Date.now(),
+            retryAfterMs: DEFAULT_FAILURE_TTL,
+          };
           writeCache(currentCache);
         });
     }
