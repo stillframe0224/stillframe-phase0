@@ -8,12 +8,12 @@ const copy = {
   },
   hero: {
     h1: {
-      en: "Every thought gets a picture.",
-      ja: "すべての思考に、画像がつく。",
+      en: "Think it. See it.",
+      ja: "考えた瞬間、画になる。",
     },
     sub: {
-      en: "Paste a URL and the image appears. Drop a photo and it becomes a card. Even if you do nothing, a gentle illustration fills the space — no manual image hunting, no empty thoughts.",
-      ja: "URLを貼れば画像を自動取得。写真をドロップすればそのままカードに。何もしなくても、やさしいイラストが空白を埋める。画像探しの手作業を減らし、思考を止めない。",
+      en: "Paste a link — the image appears. Drop a photo — it becomes a card. Do nothing — AI fills the canvas. No hunting for images. No empty thoughts.",
+      ja: "リンクを貼れば画像が現れる。写真を落とせばカードになる。何もしなくてもAIが埋める。画像を探す手間なし。空白の思考なし。",
     },
     cta: {
       en: "Try Quick Capture",
