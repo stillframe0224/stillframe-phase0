@@ -16,8 +16,8 @@ const copy = {
       ja: "リンクを貼れば画像が現れる。写真を落とせばカードになる。何もしなくてもAIが埋める。画像を探す手間なし。空白の思考なし。",
     },
     cta: {
-      en: "Try Quick Capture",
-      ja: "Quick Capture を試す",
+      en: "Join the First 20 — Lock Your Price",
+      ja: "先着20名 — 価格を固定",
     },
   },
   demo: {
