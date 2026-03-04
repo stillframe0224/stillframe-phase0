@@ -26,6 +26,7 @@ const nextConfig: NextConfig = {
     NEXT_PUBLIC_GIT_SHA: BUILD_SHA,
     NEXT_PUBLIC_BUILD_TIME: BUILD_TIME,
   },
+  serverExternalPackages: ["onnxruntime-web"],
   images: {
     remotePatterns: [
       // Instagram / Facebook CDN thumbnails (oEmbed, Jina fallback)
