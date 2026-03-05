@@ -190,23 +190,25 @@ export default function Home() {
         >
           <button
             style={{
-              padding: "10px 28px",
+              padding: "12px 32px",
               borderRadius: 999,
-              border: "1.5px solid rgba(0,0,0,0.75)",
-              background: "transparent",
-              color: "rgba(0,0,0,0.8)",
+              border: "none",
+              background: "#2a2a2a",
+              color: "#fff",
               fontSize: 14,
-              fontWeight: 500,
+              fontWeight: 600,
               letterSpacing: "0.04em",
               fontFamily: "var(--font-dm), system-ui, sans-serif",
               cursor: "pointer",
-              transition: "background 0.15s, color 0.15s",
+              transition: "background 0.2s ease, transform 0.15s ease",
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = "rgba(0,0,0,0.06)";
+              e.currentTarget.style.background = "#444";
+              e.currentTarget.style.transform = "translateY(-1px)";
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.background = "transparent";
+              e.currentTarget.style.background = "#2a2a2a";
+              e.currentTarget.style.transform = "translateY(0)";
             }}
           >
             {copy.hero.cta[lang]}
