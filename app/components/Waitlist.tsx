@@ -12,6 +12,14 @@ interface WaitlistProps {
   fallbackEmail: string;
 }
 
+// Simple email validation (RFC 5322 subset)
+function isValidEmail(email: string): boolean {
+  const trimmed = email.trim();
+  if (!trimmed) return false;
+  // Basic pattern: something@something.something
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed);
+}
+
 export default function Waitlist({
   lang,
   postUrl,
@@ -27,6 +35,16 @@ export default function Waitlist({
     e.preventDefault();
     const normalizedEmail = email.trim().toLowerCase();
     if (!normalizedEmail) return;
+
+    // Client-side validation before submitting
+    if (!isValidEmail(normalizedEmail)) {
+      setErrorMessage(c.error[lang]);
+      track("waitlist_submit_failed", {
+        destination: "validation",
+        reason: "invalid_email_format",
+      });
+      return;
+    }
 
     const destination = postUrl ? "webhook" : fallbackEmail ? "mailto" : "none";
     track("waitlist_submit", { email: normalizedEmail, destination });
@@ -106,6 +124,8 @@ export default function Waitlist({
     );
   }
 
+  const isEmailValid = isValidEmail(email);
+
   return (
     <div style={{ maxWidth: 440, margin: "0 auto" }}>
       <form
@@ -140,10 +160,11 @@ export default function Waitlist({
           data-testid="cta-waitlist"
           aria-label={loading ? c.submitting[lang] : c.cta[lang]}
           type="submit"
-          disabled={loading}
+          disabled={loading || !isEmailValid}
           className="w-full sm:w-auto rounded-full px-6 py-3 text-sm whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[var(--accent-strong)]"
           style={{
-            cursor: loading ? "wait" : undefined,
+            cursor: loading ? "wait" : !isEmailValid ? "not-allowed" : undefined,
+            opacity: !isEmailValid ? 0.5 : undefined,
           }}
         >
           {loading ? c.submitting[lang] : c.cta[lang]}
