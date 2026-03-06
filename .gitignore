@@ -80,3 +80,6 @@ test-results/
 .rwl/logs/slack_runner.*.log
 reports/transcribe/
 scripts/transcribe_youtube_long.sh
+
+# ONNX models (too large for git)
+public/models/*.onnx
