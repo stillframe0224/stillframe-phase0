@@ -64,6 +64,7 @@ const copy = {
   pricing: {
     h2: { en: "Simple pricing", ja: "シンプルな料金" },
     price: "$10",
+    regularPrice: "$19",
     period: { en: "/mo", ja: "/月" },
     features: {
       en: [
@@ -84,6 +85,10 @@ const copy = {
     urgency: {
       en: "First 20 members lock in this price forever — limited spots left",
       ja: "先着20名限定 — この価格をずっと維持。残りわずか",
+    },
+    founderNote: {
+      en: "Founding members keep this rate even after prices go up",
+      ja: "創業メンバーは値上げ後もこの価格を永久適用",
     },
     guarantee: {
       en: "Cancel anytime. 7-day money-back guarantee.",

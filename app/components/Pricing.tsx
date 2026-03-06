@@ -57,6 +57,18 @@ export default function Pricing({ lang, gumroadUrl }: PricingProps) {
       <div style={{ marginBottom: 24 }}>
         <span
           style={{
+            fontSize: 20,
+            fontWeight: 400,
+            color: "#bbb",
+            fontFamily: "var(--font-dm)",
+            textDecoration: "line-through",
+            marginRight: 8,
+          }}
+        >
+          {c.regularPrice}
+        </span>
+        <span
+          style={{
             fontSize: 56,
             fontWeight: 300,
             color: "#2a2a2a",
@@ -145,6 +157,18 @@ export default function Pricing({ lang, gumroadUrl }: PricingProps) {
       <p
         style={{
           marginTop: 14,
+          marginBottom: 0,
+          fontSize: 13,
+          color: "#c04000",
+          fontWeight: 500,
+          fontFamily: "var(--font-dm)",
+        }}
+      >
+        {c.founderNote[lang]}
+      </p>
+      <p
+        style={{
+          marginTop: 8,
           marginBottom: 0,
           fontSize: 12,
           color: "#999",
