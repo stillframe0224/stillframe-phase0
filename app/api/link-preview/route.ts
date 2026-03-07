@@ -24,6 +24,28 @@ import {
 
 export const dynamic = "force-dynamic";
 
+// Default fallback image when OGP fetch fails
+const DEFAULT_OG_IMAGE = "/enso.png";
+
+// Helper to build absolute URL for default image
+function getDefaultImage(origin: string): string {
+  try {
+    return new URL(DEFAULT_OG_IMAGE, origin).href;
+  } catch {
+    return origin + DEFAULT_OG_IMAGE;
+  }
+}
+
+// Structured logging helper
+function logLinkPreviewEvent(event: string, data: Record<string, unknown>) {
+  console.log(JSON.stringify({ 
+    event: `link_preview_${event}`, 
+    ...data, 
+    timestamp: new Date().toISOString() 
+  }));
+}
+
+
 const YT_RE =
   /(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([\w-]{11})/;
 
@@ -766,6 +788,10 @@ export async function GET(request: Request) {
         );
       }
     }
+    if (!image) {
+      logLinkPreviewEvent("fallback_to_default", { url: summarizeUrlForLog(url), reason: "no_og_after_jina" });
+      image = getDefaultImage(finalOrigin);
+    }
 
     return NextResponse.json(
       { image, favicon, title },
@@ -777,8 +803,9 @@ export async function GET(request: Request) {
     if (reason === "blocked") {
       return NextResponse.json({ error: "blocked_url" }, { status: 400 });
     }
+    logLinkPreviewEvent("fallback_to_default", { url: summarizeUrlForLog(url), reason });
     return NextResponse.json(
-      { image: null, favicon: `${parsed.origin}/favicon.ico`, title: null, retryAfterMs: 5 * 60 * 1000 },
+      { image: getDefaultImage(parsed.origin), favicon: `${parsed.origin}/favicon.ico`, title: null, retryAfterMs: 5 * 60 * 1000 },
       { headers: { "Cache-Control": "public, max-age=300" } }
     );
   }

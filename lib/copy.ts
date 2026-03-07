@@ -64,6 +64,7 @@ const copy = {
   pricing: {
     h2: { en: "Simple pricing", ja: "シンプルな料金" },
     price: "$10",
+    regularPrice: "$19",
     period: { en: "/mo", ja: "/月" },
     features: {
       en: [
@@ -79,10 +80,24 @@ const copy = {
         "エクスポート & API",
       ],
     },
+    badge: { en: "Launch Offer", ja: "ローンチ特別価格" },
+    discount: { en: "47% OFF", ja: "47% OFF" },
     cta: { en: "Get Early Access", ja: "早期アクセスを取得" },
+    ctaSub: {
+      en: "Lock in $10/mo — price goes up after launch",
+      ja: "$10/月を確保 — ローンチ後に値上げ予定",
+    },
     urgency: {
-      en: "Early-bird pricing: first 20 members keep this price forever",
-      ja: "先着20名はこの価格をずっと維持できます",
+      en: "Only a few founding spots remain at this price",
+      ja: "この価格の創業メンバー枠は残りわずか",
+    },
+    founderNote: {
+      en: "Founding members keep this rate forever, even after prices go up",
+      ja: "創業メンバーは値上げ後もこの価格を永久適用",
+    },
+    guarantee: {
+      en: "Cancel anytime. 7-day money-back guarantee.",
+      ja: "いつでも解約可。7日間返金保証。",
     },
   },
   waitlist: {
