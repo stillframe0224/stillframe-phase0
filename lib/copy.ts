@@ -81,13 +81,18 @@ const copy = {
       ],
     },
     badge: { en: "Launch Offer", ja: "ローンチ特別価格" },
+    discount: { en: "47% OFF", ja: "47% OFF" },
     cta: { en: "Get Early Access", ja: "早期アクセスを取得" },
+    ctaSub: {
+      en: "Lock in $10/mo — price goes up after launch",
+      ja: "$10/月を確保 — ローンチ後に値上げ予定",
+    },
     urgency: {
-      en: "First 20 members lock in this price forever — limited spots left",
-      ja: "先着20名限定 — この価格をずっと維持。残りわずか",
+      en: "Only a few founding spots remain at this price",
+      ja: "この価格の創業メンバー枠は残りわずか",
     },
     founderNote: {
-      en: "Founding members keep this rate even after prices go up",
+      en: "Founding members keep this rate forever, even after prices go up",
       ja: "創業メンバーは値上げ後もこの価格を永久適用",
     },
     guarantee: {

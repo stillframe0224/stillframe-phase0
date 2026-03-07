@@ -86,6 +86,23 @@ export default function Pricing({ lang, gumroadUrl }: PricingProps) {
         >
           {c.period[lang]}
         </span>
+        <span
+          style={{
+            display: "inline-block",
+            fontSize: 11,
+            fontWeight: 700,
+            letterSpacing: "0.04em",
+            color: "#fff",
+            background: "#2D8F50",
+            borderRadius: 6,
+            padding: "3px 8px",
+            marginLeft: 8,
+            verticalAlign: "super",
+            fontFamily: "var(--font-dm)",
+          }}
+        >
+          {c.discount[lang]}
+        </span>
       </div>
       <ul
         style={{
@@ -154,6 +171,17 @@ export default function Pricing({ lang, gumroadUrl }: PricingProps) {
           {c.cta[lang]}
         </PrimaryButton>
       )}
+      <p
+        style={{
+          marginTop: 10,
+          marginBottom: 0,
+          fontSize: 12,
+          color: "#888",
+          fontFamily: "var(--font-dm)",
+        }}
+      >
+        {c.ctaSub[lang]}
+      </p>
       <p
         style={{
           marginTop: 14,
