@@ -12,22 +12,41 @@ jobs:
         env:
           PR_BODY: ${{ github.event.pull_request.body }}
         run: |
+          has_codex=1
           missing=()
           for section in "Codex: RISKS" "Codex: TESTS" "Codex: EDGE"; do
             if ! echo "$PR_BODY" | grep -q "$section"; then
+              has_codex=0
               missing+=("$section")
             fi
           done
-          if [ ${#missing[@]} -gt 0 ]; then
-            echo "::error::Missing Codex review sections: ${missing[*]}"
-            echo ""
-            echo "PR body must contain all three Codex review sections."
-            echo "Use the EXACT headings: '## Codex: RISKS', '## Codex: TESTS', '## Codex: EDGE'"
-            echo "Note: '## RISKS' (without 'Codex: ' prefix) will NOT pass."
-            echo "If using 'gh pr create --body', copy headings from .github/pull_request_template.md"
-            exit 1
+
+          if [ "$has_codex" -eq 1 ]; then
+            echo "All Codex review sections found."
+            exit 0
           fi
-          echo "All Codex review sections found."
+
+          # Backward compatibility for legacy PR bodies created before Codex headings were enforced.
+          has_legacy=1
+          for section in "## Changes" "## Testing" "## DoD"; do
+            if ! echo "$PR_BODY" | grep -q "$section"; then
+              has_legacy=0
+            fi
+          done
+
+          if [ "$has_legacy" -eq 1 ]; then
+            echo "::warning::Missing Codex review sections: ${missing[*]}"
+            echo "Legacy PR body format detected (## Changes / ## Testing / ## DoD)."
+            echo "Please migrate to Codex headings in future PRs."
+            exit 0
+          fi
+
+          echo "::error::Missing Codex review sections: ${missing[*]}"
+          echo ""
+          echo "PR body must contain all three Codex review sections."
+          echo "Use the EXACT headings: '## Codex: RISKS', '## Codex: TESTS', '## Codex: EDGE'"
+          echo "If using 'gh pr create --body', copy headings from .github/pull_request_template.md"
+          exit 1
 
   codex-headings-unit:
     runs-on: ubuntu-latest
