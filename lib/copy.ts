@@ -95,6 +95,10 @@ const copy = {
       en: "Founding members keep this rate forever, even after prices go up",
       ja: "創業メンバーは値上げ後もこの価格を永久適用",
     },
+    limitedBanner: {
+      en: "First 50 founding members only",
+      ja: "創業メンバー先着50名限定",
+    },
     guarantee: {
       en: "Cancel anytime. 7-day money-back guarantee.",
       ja: "いつでも解約可。7日間返金保証。",
