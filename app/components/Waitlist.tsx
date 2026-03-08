@@ -12,6 +12,14 @@ interface WaitlistProps {
   fallbackEmail: string;
 }
 
+// Simple email validation (RFC 5322 subset)
+function isValidEmail(email: string): boolean {
+  const trimmed = email.trim();
+  if (!trimmed) return false;
+  // Basic pattern: something@something.something
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed);
+}
+
 export default function Waitlist({
   lang,
   postUrl,
@@ -28,11 +36,22 @@ export default function Waitlist({
     const normalizedEmail = email.trim().toLowerCase();
     if (!normalizedEmail) return;
 
+    // Client-side validation before submitting
+    if (!isValidEmail(normalizedEmail)) {
+      setErrorMessage(c.error[lang]);
+      track("waitlist_submit_failed", {
+        destination: "validation",
+        reason: "invalid_email_format",
+      });
+      return;
+    }
+
     const destination = postUrl ? "webhook" : fallbackEmail ? "mailto" : "none";
     track("waitlist_submit", { email: normalizedEmail, destination });
     setLoading(true);
     setErrorMessage(null);
 
+    let httpStatus = "";
     try {
       if (postUrl) {
         const res = await fetch(postUrl, {
@@ -41,15 +60,15 @@ export default function Waitlist({
           body: JSON.stringify({ email: normalizedEmail }),
         });
 
-        track("waitlist_submit_result", {
-          email: normalizedEmail,
-          destination,
-          status: String(res.status),
-          ok: String(res.ok),
-        });
-
+        httpStatus = String(res.status);
         if (!res.ok) throw new Error(`waitlist_submit_failed_${res.status}`);
+
+        track("waitlist_submit_success", {
+          destination,
+          status: httpStatus,
+        });
       } else if (fallbackEmail) {
+        track("waitlist_submit_success", { destination });
         window.location.href = `mailto:${fallbackEmail}?subject=SHINEN Waitlist&body=Please add ${normalizedEmail} to the waitlist.`;
       } else {
         throw new Error("waitlist_destination_missing");
@@ -59,8 +78,8 @@ export default function Waitlist({
     } catch (error) {
       setErrorMessage(c.error[lang]);
       track("waitlist_submit_failed", {
-        email: normalizedEmail,
         destination,
+        status: httpStatus,
         reason: error instanceof Error ? error.message : "unknown_error",
       });
     } finally {
@@ -105,15 +124,13 @@ export default function Waitlist({
     );
   }
 
+  const isEmailValid = isValidEmail(email);
+
   return (
     <div style={{ maxWidth: 440, margin: "0 auto" }}>
       <form
         onSubmit={handleSubmit}
-        style={{
-          display: "flex",
-          gap: 10,
-          flexWrap: "wrap",
-        }}
+        className="flex flex-col sm:flex-row gap-2.5"
       >
         <input
           type="email"
@@ -128,9 +145,8 @@ export default function Waitlist({
           inputMode="email"
           autoCapitalize="none"
           autoCorrect="off"
+          className="w-full sm:flex-1 sm:min-w-0"
           style={{
-            flex: "1 1 240px",
-            minWidth: 0,
             padding: "12px 18px",
             borderRadius: 999,
             border: "1px solid #ddd",
@@ -144,11 +160,11 @@ export default function Waitlist({
           data-testid="cta-waitlist"
           aria-label={loading ? c.submitting[lang] : c.cta[lang]}
           type="submit"
-          disabled={loading}
-          className="rounded-full px-6 py-3 text-sm whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[var(--accent-strong)]"
+          disabled={loading || !isEmailValid}
+          className="w-full sm:w-auto rounded-full px-6 py-3 text-sm whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[var(--accent-strong)]"
           style={{
-            cursor: loading ? "wait" : undefined,
-            flex: "1 0 auto",
+            cursor: loading ? "wait" : !isEmailValid ? "not-allowed" : undefined,
+            opacity: !isEmailValid ? 0.5 : undefined,
           }}
         >
           {loading ? c.submitting[lang] : c.cta[lang]}
