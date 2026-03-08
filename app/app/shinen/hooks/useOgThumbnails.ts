@@ -224,6 +224,15 @@ export function useOgThumbnails(
             };
             writeCache(currentCache);
 
+            // Log OGP fetch failures for observability
+            if (!data.image && !data.embedUrl && !data.favicon) {
+              console.warn("[useOgThumbnails] OGP fetch returned no media:", {
+                url: url.slice(0, 100),
+                cardId: id,
+                retryAfterMs: data.retryAfterMs,
+              });
+            }
+
             const embed = data.mediaKind === "embed" && data.embedUrl ? data : null;
             const showImage = !embed && data.image && isImageAllowedHost(url);
             const favicon = data.favicon ?? null;
@@ -256,11 +265,18 @@ export function useOgThumbnails(
             }
           },
         )
-        .catch(() => {
+        .catch((error) => {
           inflightRef.current.delete(url);
           const currentCache = readCache();
           currentCache[url] = { image: null, fetchedAt: Date.now() };
           writeCache(currentCache);
+
+          // Log OGP fetch errors for debugging
+          console.error("[useOgThumbnails] OGP fetch failed:", {
+            url: url.slice(0, 100),
+            cardId: id,
+            error: error instanceof Error ? error.message : String(error),
+          });
         });
     }
 
