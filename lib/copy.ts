@@ -16,8 +16,8 @@ const copy = {
       ja: "URLを貼れば画像を自動取得。写真をドロップすればそのままカードに。何もしなくても、やさしいイラストが空白を埋める。画像探しの手作業を減らし、思考を止めない。",
     },
     cta: {
-      en: "Try Quick Capture",
-      ja: "Quick Capture を試す",
+      en: "Get Early Access",
+      ja: "早期アクセスに申し込む",
     },
   },
   demo: {
