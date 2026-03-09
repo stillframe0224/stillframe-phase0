@@ -103,6 +103,18 @@ const copy = {
       en: "Cancel anytime. 7-day money-back guarantee.",
       ja: "いつでも解約可。7日間返金保証。",
     },
+    savings: {
+      en: "You save $108/year vs regular price",
+      ja: "通常価格より年間$108お得",
+    },
+    deadline: {
+      en: "Launch pricing ends when 50 spots fill",
+      ja: "50名到達で早期価格を終了",
+    },
+    riskFree: {
+      en: "Try risk-free for 7 days",
+      ja: "7日間リスクなしでお試し",
+    },
   },
   waitlist: {
     h2: { en: "Stay in the loop", ja: "最新情報を受け取る" },

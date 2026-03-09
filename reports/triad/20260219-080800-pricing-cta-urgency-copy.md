@@ -1,21 +1,24 @@
 # Triad Report: Pricing CTA Urgency Copy
 
 **ID**: 20260219-080800-pricing-cta-urgency-copy
-**Date**: 2026-03-08
+**Date**: 2026-03-09
 **Status**: Complete
 
 ## Summary
-Pricingカードに「先着50名限定」バナーを追加し、Gumroad購入導線のスカーシティを強化。
+Pricingカードに限定オファー文言を追加し、Gumroad購入導線を強化。具体的な節約額・締切・リスクフリー表記で購買意欲を高める。
 
 ## Changes
 
 ### `lib/copy.ts`
-- `limitedBanner` 追加: "First 50 founding members only" / "創業メンバー先着50名限定"
-- 具体的な人数制限により、曖昧な「残りわずか」より強いスカーシティを実現
+- `savings` 追加: "You save $108/year vs regular price" — 割引の具体額を明示
+- `deadline` 追加: "Launch pricing ends when 50 spots fill" — 枠制限による締切感
+- `riskFree` 追加: "Try risk-free for 7 days" — CTA直下でリスク軽減
 
 ### `app/components/Pricing.tsx`
-- urgency pill と CTA ボタンの間に限定バナーを追加
-- `#c04000` テキスト、uppercase、letter-spacing で視覚的に目立たせる
+- 価格ブロック直下に年間節約額（`savings`）を緑文字で追加
+- 限定バナー下に枠制限デッドライン（`deadline`）を追加
+- CTA下に「リスクフリー」テキスト（`riskFree`）を緑文字で追加
+- urgency → limitedBanner → deadline の3段構成で段階的にスカーシティを強化
 
 ## Build
 - `npm run build` — pass (zero errors)

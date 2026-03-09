@@ -54,7 +54,7 @@ export default function Pricing({ lang, gumroadUrl }: PricingProps) {
       >
         {c.h2[lang]}
       </h2>
-      <div style={{ marginBottom: 24 }}>
+      <div style={{ marginBottom: 8 }}>
         <span
           style={{
             fontSize: 20,
@@ -104,6 +104,17 @@ export default function Pricing({ lang, gumroadUrl }: PricingProps) {
           {c.discount[lang]}
         </span>
       </div>
+      <p
+        style={{
+          margin: "0 0 24px",
+          fontSize: 13,
+          color: "#2D8F50",
+          fontWeight: 500,
+          fontFamily: "var(--font-dm)",
+        }}
+      >
+        {c.savings[lang]}
+      </p>
       <ul
         style={{
           listStyle: "none",
@@ -130,7 +141,7 @@ export default function Pricing({ lang, gumroadUrl }: PricingProps) {
       </ul>
       <p
         style={{
-          margin: "0 0 14px",
+          margin: "0 0 8px",
           fontSize: 13,
           color: "#8a5a00",
           fontFamily: "var(--font-dm)",
@@ -145,7 +156,7 @@ export default function Pricing({ lang, gumroadUrl }: PricingProps) {
       </p>
       <p
         style={{
-          margin: "0 0 18px",
+          margin: "0 0 6px",
           fontSize: 12,
           fontWeight: 600,
           letterSpacing: "0.06em",
@@ -155,6 +166,17 @@ export default function Pricing({ lang, gumroadUrl }: PricingProps) {
         }}
       >
         {c.limitedBanner[lang]}
+      </p>
+      <p
+        style={{
+          margin: "0 0 18px",
+          fontSize: 12,
+          color: "#c04000",
+          fontFamily: "var(--font-dm)",
+          fontWeight: 500,
+        }}
+      >
+        {c.deadline[lang]}
       </p>
       {hasCheckoutUrl ? (
         <a
@@ -194,6 +216,18 @@ export default function Pricing({ lang, gumroadUrl }: PricingProps) {
         }}
       >
         {c.ctaSub[lang]}
+      </p>
+      <p
+        style={{
+          marginTop: 6,
+          marginBottom: 0,
+          fontSize: 12,
+          color: "#2D8F50",
+          fontWeight: 500,
+          fontFamily: "var(--font-dm)",
+        }}
+      >
+        {c.riskFree[lang]}
       </p>
       <p
         style={{
