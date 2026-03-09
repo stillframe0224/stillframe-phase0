@@ -16,8 +16,8 @@ const copy = {
       ja: "URLを貼れば画像を自動取得。写真をドロップすればそのままカードに。何もしなくても、やさしいイラストが空白を埋める。画像探しの手作業を減らし、思考を止めない。",
     },
     cta: {
-      en: "Try Quick Capture",
-      ja: "Quick Capture を試す",
+      en: "Get Early Access",
+      ja: "早期アクセスに申し込む",
     },
   },
   demo: {
@@ -64,6 +64,7 @@ const copy = {
   pricing: {
     h2: { en: "Simple pricing", ja: "シンプルな料金" },
     price: "$10",
+    regularPrice: "$19",
     period: { en: "/mo", ja: "/月" },
     features: {
       en: [
@@ -79,10 +80,40 @@ const copy = {
         "エクスポート & API",
       ],
     },
+    badge: { en: "Launch Offer", ja: "ローンチ特別価格" },
+    discount: { en: "47% OFF", ja: "47% OFF" },
     cta: { en: "Get Early Access", ja: "早期アクセスを取得" },
+    ctaSub: {
+      en: "Lock in $10/mo — price goes up after launch",
+      ja: "$10/月を確保 — ローンチ後に値上げ予定",
+    },
     urgency: {
-      en: "Early-bird pricing: first 20 members keep this price forever",
-      ja: "先着20名はこの価格をずっと維持できます",
+      en: "Only a few founding spots remain at this price",
+      ja: "この価格の創業メンバー枠は残りわずか",
+    },
+    founderNote: {
+      en: "Founding members keep this rate forever, even after prices go up",
+      ja: "創業メンバーは値上げ後もこの価格を永久適用",
+    },
+    limitedBanner: {
+      en: "First 50 founding members only",
+      ja: "創業メンバー先着50名限定",
+    },
+    guarantee: {
+      en: "Cancel anytime. 7-day money-back guarantee.",
+      ja: "いつでも解約可。7日間返金保証。",
+    },
+    savings: {
+      en: "You save $108/year vs regular price",
+      ja: "通常価格より年間$108お得",
+    },
+    deadline: {
+      en: "Launch pricing ends when 50 spots fill",
+      ja: "50名到達で早期価格を終了",
+    },
+    riskFree: {
+      en: "Try risk-free for 7 days",
+      ja: "7日間リスクなしでお試し",
     },
   },
   waitlist: {

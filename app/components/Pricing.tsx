@@ -26,6 +26,23 @@ export default function Pricing({ lang, gumroadUrl }: PricingProps) {
         textAlign: "center",
       }}
     >
+      <span
+        style={{
+          display: "inline-block",
+          fontSize: 11,
+          fontWeight: 600,
+          letterSpacing: "0.08em",
+          textTransform: "uppercase",
+          color: "#fff",
+          background: "#c04000",
+          borderRadius: 999,
+          padding: "4px 14px",
+          marginBottom: 12,
+          fontFamily: "var(--font-dm)",
+        }}
+      >
+        {c.badge[lang]}
+      </span>
       <h2
         style={{
           fontFamily: "var(--font-serif)",
@@ -37,7 +54,19 @@ export default function Pricing({ lang, gumroadUrl }: PricingProps) {
       >
         {c.h2[lang]}
       </h2>
-      <div style={{ marginBottom: 24 }}>
+      <div style={{ marginBottom: 8 }}>
+        <span
+          style={{
+            fontSize: 20,
+            fontWeight: 400,
+            color: "#bbb",
+            fontFamily: "var(--font-dm)",
+            textDecoration: "line-through",
+            marginRight: 8,
+          }}
+        >
+          {c.regularPrice}
+        </span>
         <span
           style={{
             fontSize: 56,
@@ -57,7 +86,35 @@ export default function Pricing({ lang, gumroadUrl }: PricingProps) {
         >
           {c.period[lang]}
         </span>
+        <span
+          style={{
+            display: "inline-block",
+            fontSize: 11,
+            fontWeight: 700,
+            letterSpacing: "0.04em",
+            color: "#fff",
+            background: "#2D8F50",
+            borderRadius: 6,
+            padding: "3px 8px",
+            marginLeft: 8,
+            verticalAlign: "super",
+            fontFamily: "var(--font-dm)",
+          }}
+        >
+          {c.discount[lang]}
+        </span>
       </div>
+      <p
+        style={{
+          margin: "0 0 24px",
+          fontSize: 13,
+          color: "#2D8F50",
+          fontWeight: 500,
+          fontFamily: "var(--font-dm)",
+        }}
+      >
+        {c.savings[lang]}
+      </p>
       <ul
         style={{
           listStyle: "none",
@@ -84,7 +141,7 @@ export default function Pricing({ lang, gumroadUrl }: PricingProps) {
       </ul>
       <p
         style={{
-          margin: "0 0 14px",
+          margin: "0 0 8px",
           fontSize: 13,
           color: "#8a5a00",
           fontFamily: "var(--font-dm)",
@@ -96,6 +153,30 @@ export default function Pricing({ lang, gumroadUrl }: PricingProps) {
         }}
       >
         {c.urgency[lang]}
+      </p>
+      <p
+        style={{
+          margin: "0 0 6px",
+          fontSize: 12,
+          fontWeight: 600,
+          letterSpacing: "0.06em",
+          textTransform: "uppercase",
+          color: "#c04000",
+          fontFamily: "var(--font-dm)",
+        }}
+      >
+        {c.limitedBanner[lang]}
+      </p>
+      <p
+        style={{
+          margin: "0 0 18px",
+          fontSize: 12,
+          color: "#c04000",
+          fontFamily: "var(--font-dm)",
+          fontWeight: 500,
+        }}
+      >
+        {c.deadline[lang]}
       </p>
       {hasCheckoutUrl ? (
         <a
@@ -125,6 +206,52 @@ export default function Pricing({ lang, gumroadUrl }: PricingProps) {
           {c.cta[lang]}
         </PrimaryButton>
       )}
+      <p
+        style={{
+          marginTop: 10,
+          marginBottom: 0,
+          fontSize: 12,
+          color: "#888",
+          fontFamily: "var(--font-dm)",
+        }}
+      >
+        {c.ctaSub[lang]}
+      </p>
+      <p
+        style={{
+          marginTop: 6,
+          marginBottom: 0,
+          fontSize: 12,
+          color: "#2D8F50",
+          fontWeight: 500,
+          fontFamily: "var(--font-dm)",
+        }}
+      >
+        {c.riskFree[lang]}
+      </p>
+      <p
+        style={{
+          marginTop: 14,
+          marginBottom: 0,
+          fontSize: 13,
+          color: "#c04000",
+          fontWeight: 500,
+          fontFamily: "var(--font-dm)",
+        }}
+      >
+        {c.founderNote[lang]}
+      </p>
+      <p
+        style={{
+          marginTop: 8,
+          marginBottom: 0,
+          fontSize: 12,
+          color: "#999",
+          fontFamily: "var(--font-dm)",
+        }}
+      >
+        {c.guarantee[lang]}
+      </p>
     </section>
   );
 }
