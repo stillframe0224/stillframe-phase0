@@ -200,6 +200,7 @@ async function main() {
   }
 
   console.log("\nDone.");
+  process.exit(0);
 }
 
 main().catch((e) => {
