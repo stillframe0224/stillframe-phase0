@@ -3,6 +3,9 @@ import { NextResponse } from "next/server";
 const YT_RE =
   /(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/|live\/|v\/)|youtu\.be\/)([\w-]{11})/;
 
+const DEFAULT_IMAGE = "/enso.png"; // Fallback image when OGP not found
+const DEFAULT_TITLE = "SHINEN"; // Fallback title
+
 export async function POST(request: Request) {
   try {
     const { url } = await request.json();
@@ -40,10 +43,12 @@ export async function POST(request: Request) {
     });
 
     if (!res.ok) {
-      return NextResponse.json(
-        { error: "fetch failed", status: res.status },
-        { status: 502 }
-      );
+      // Fetch failed → return fallback
+      return NextResponse.json({
+        image: DEFAULT_IMAGE,
+        title: DEFAULT_TITLE,
+        fallback: true,
+      });
     }
 
     const html = await res.text();
@@ -64,12 +69,17 @@ export async function POST(request: Request) {
         /<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:title["']/i
       );
 
-    const image = ogMatch?.[1] || null;
+    const image = ogMatch?.[1] || DEFAULT_IMAGE;
     const title = titleMatch?.[1] || null;
 
     return NextResponse.json({ image, title });
   } catch (e) {
-    const message = e instanceof Error ? e.message : "unknown error";
-    return NextResponse.json({ error: message }, { status: 500 });
+    // Error → return fallback instead of 500
+    return NextResponse.json({
+      image: DEFAULT_IMAGE,
+      title: DEFAULT_TITLE,
+      fallback: true,
+      error: e instanceof Error ? e.message : "unknown error",
+    });
   }
 }
