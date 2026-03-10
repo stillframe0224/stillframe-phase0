@@ -72,7 +72,67 @@ cd /Users/array0224/stillframe-phase0
 4. `cd /Users/array0224/stillframe-phase0 && npm run build` を実行
    - ❌ 失敗: /Users/array0224/stillframe-phase0/.rwl/logs/events.jsonl に記録 → failure_count++ → 中断
    - failure_count >= max_failures → 全停止
-5. ✅ 成功: git add → commit → push → PR作成（--repo array0224-cloud/stillframe-phase0 を指定）
+5. ✅ 成功: git add → commit → push → PR作成
+
+### PR作成ルール（必須）
+
+PRを作成する際は、以下の見出しを **必ずすべて** 含めること。
+省略・リネーム・順序変更は禁止。
+
+```markdown
+## 変更内容
+（ここに変更の説明）
+
+## 動作確認
+（テスト実行結果やビルド確認）
+
+## 証拠
+（テストログ、スクリーンショット等）
+
+## Codex: RISKS
+（この変更に伴うリスク。なければ「なし」と記載）
+
+## Codex: TESTS
+（実行したテストの概要。最低限「既存テストがpassすることを確認済み」）
+
+## Codex: EDGE
+（考慮したエッジケース。なければ「なし」と記載）
+```
+
+`## Codex: RISKS` / `## Codex: TESTS` / `## Codex: EDGE` の3つが
+PR本文に存在しない場合、stage3 CI が失敗する。絶対に省略しないこと。
+
+PR本文は `/tmp/rwl-pr-body.md` に生成し、`--body-file` を使って作成すること:
+
+```bash
+cat >/tmp/rwl-pr-body.md <<'EOF'
+## 変更内容
+- <変更点を箇条書き>
+
+## 動作確認
+- npm run build: 成功（exit code 0）
+- <追加の確認>
+
+## 証拠
+- reports/triad/<task_id>.md
+
+## Codex: RISKS
+- なし
+
+## Codex: TESTS
+- 既存テストがpassすることを確認済み
+
+## Codex: EDGE
+- なし
+EOF
+
+gh pr create \
+  --repo array0224-cloud/stillframe-phase0 \
+  --base main \
+  --head "$(git branch --show-current)" \
+  --title "<type>: <desc>" \
+  --body-file /tmp/rwl-pr-body.md
+```
 
 ### 3c. 証拠ファイルの作成
 
