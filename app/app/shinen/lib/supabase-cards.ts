@@ -12,10 +12,7 @@ export async function fetchCards(): Promise<DbCard[]> {
     .select("*")
     .order("created_at", { ascending: false });
 
-  if (error) {
-    console.error("[fetchCards] Supabase error:", { error, code: error.code, message: error.message });
-    throw error;
-  }
+  if (error) throw error;
   return (data ?? []) as DbCard[];
 }
 
@@ -32,43 +29,18 @@ export async function insertCard(card: NewDbCard): Promise<DbCard> {
     .select()
     .single();
 
-  if (error) {
-    console.error("[insertCard] Supabase insert failed:", {
-      error,
-      code: error.code,
-      message: error.message,
-      payload: { type: card.type, has_text: !!card.text, has_media: !!card.media },
-    });
-    throw error;
-  }
+  if (error) throw error;
   return data as DbCard;
 }
 
 export async function updateCard(id: string, updates: DbCardUpdates): Promise<void> {
   const { error } = await supabase.from("cards").update(updates).eq("id", id);
-  if (error) {
-    console.error("[updateCard] Supabase update failed:", {
-      error,
-      code: error.code,
-      message: error.message,
-      card_id: id,
-      update_keys: Object.keys(updates),
-    });
-    throw error;
-  }
+  if (error) throw error;
 }
 
 export async function deleteCards(ids: string[]): Promise<void> {
   const { error } = await supabase.from("cards").delete().in("id", ids);
-  if (error) {
-    console.error("[deleteCards] Supabase delete failed:", {
-      error,
-      code: error.code,
-      message: error.message,
-      ids_count: ids.length,
-    });
-    throw error;
-  }
+  if (error) throw error;
 }
 
 export async function uploadFile(cardId: string, file: File): Promise<string> {
@@ -81,16 +53,7 @@ export async function uploadFile(cardId: string, file: File): Promise<string> {
   const path = `${user.id}/${cardId}/${file.name}`;
   const { error } = await supabase.storage.from("shinen-files").upload(path, file, { upsert: true });
 
-  if (error) {
-    console.error("[uploadFile] Supabase storage upload failed:", {
-      error,
-      message: error.message,
-      path,
-      file_size: file.size,
-      file_type: file.type,
-    });
-    throw error;
-  }
+  if (error) throw error;
 
   const { data } = supabase.storage.from("shinen-files").getPublicUrl(path);
   return data.publicUrl;
