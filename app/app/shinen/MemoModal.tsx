@@ -1,6 +1,28 @@
 import { useCallback, useState, useEffect, useRef } from "react";
 import { TAP_TARGET_MIN } from "./lib/constants";
 
+/** Track visual viewport offset so the modal stays visible above the iOS keyboard */
+function useKeyboardOffset() {
+  const [offset, setOffset] = useState(0);
+  useEffect(() => {
+    const vv = typeof window !== "undefined" ? window.visualViewport : null;
+    if (!vv) return;
+    const update = () => {
+      // When the keyboard opens, visualViewport.height shrinks but window.innerHeight stays the same.
+      // The difference tells us how much space the keyboard occupies.
+      const kbHeight = window.innerHeight - vv.height;
+      setOffset(kbHeight > 40 ? kbHeight : 0); // threshold to avoid false positives
+    };
+    vv.addEventListener("resize", update);
+    vv.addEventListener("scroll", update);
+    return () => {
+      vv.removeEventListener("resize", update);
+      vv.removeEventListener("scroll", update);
+    };
+  }, []);
+  return offset;
+}
+
 interface MemoModalProps {
   cardId: number;
   initialText: string;
@@ -11,6 +33,7 @@ interface MemoModalProps {
 export default function MemoModal({ cardId, initialText, onSave, onClose }: MemoModalProps) {
   const [text, setText] = useState(initialText);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const kbOffset = useKeyboardOffset();
   const handleSave = useCallback(() => {
     onSave(cardId, text);
     onClose();
@@ -43,11 +66,14 @@ export default function MemoModal({ cardId, initialText, onSave, onClose }: Memo
         inset: 0,
         zIndex: 20000,
         display: "flex",
-        alignItems: "center",
+        alignItems: kbOffset > 0 ? "flex-start" : "center",
         justifyContent: "center",
+        paddingTop: kbOffset > 0 ? "max(60px, env(safe-area-inset-top, 20px))" : undefined,
+        paddingBottom: kbOffset > 0 ? kbOffset : undefined,
         background: "rgba(0,0,0,0.15)",
         backdropFilter: "blur(4px)",
         WebkitBackdropFilter: "blur(4px)",
+        transition: "padding 0.2s ease-out",
       }}
     >
       <div

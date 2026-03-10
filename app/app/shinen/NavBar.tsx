@@ -1,6 +1,19 @@
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import { TYPES, TAP_TARGET_MIN } from "./lib/constants";
 import type { ShinenCard } from "./lib/types";
+
+/** Returns true on narrow viewports (< 480px) */
+function useIsNarrow() {
+  const [narrow, setNarrow] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 479px)");
+    setNarrow(mq.matches);
+    const handler = (e: MediaQueryListEvent) => setNarrow(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+  return narrow;
+}
 
 interface NavBarProps {
   cards: ShinenCard[];
@@ -28,6 +41,7 @@ export default function NavBar({
   onExport,
 }: NavBarProps) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const isNarrow = useIsNarrow();
 
   // Focus input when search opens
   useEffect(() => {
@@ -45,7 +59,7 @@ export default function NavBar({
         left: 0,
         right: 0,
         zIndex: 100,
-        padding: "14px 22px",
+        padding: "max(14px, env(safe-area-inset-top, 0px)) 22px 14px",
         display: "flex",
         justifyContent: "space-between",
         alignItems: "center",
@@ -77,22 +91,24 @@ export default function NavBar({
           />
           <circle cx="40" cy="40" r="2" fill="rgba(0,0,0,0.4)" />
         </svg>
-        <span
-          style={{
-            fontFamily: "'Cormorant Garamond',serif",
-            fontSize: 22,
-            fontWeight: 500,
-            color: "rgba(0,0,0,0.5)",
-            letterSpacing: "0.15em",
-            textTransform: "uppercase",
-          }}
-        >
-          Shinen
-        </span>
+        {!isNarrow && (
+          <span
+            style={{
+              fontFamily: "'Cormorant Garamond',serif",
+              fontSize: 22,
+              fontWeight: 500,
+              color: "rgba(0,0,0,0.5)",
+              letterSpacing: "0.15em",
+              textTransform: "uppercase",
+            }}
+          >
+            Shinen
+          </span>
+        )}
       </div>
 
       {/* Controls */}
-      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 1, minWidth: 0 }}>
         {/* Type dots */}
         <div style={{ display: "flex", gap: 3 }}>
           {TYPES.slice(0, 8).map((tp, i) => (
@@ -120,7 +136,7 @@ export default function NavBar({
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder="search cards…"
             style={{
-              width: 160,
+              width: isNarrow ? 100 : 160,
               height: TAP_TARGET_MIN,
               padding: "0 10px",
               background: "rgba(0,0,0,0.04)",
@@ -207,7 +223,7 @@ export default function NavBar({
             <circle cx="6.5" cy="6.5" r="4" />
             <line x1="10" y1="10" x2="14" y2="14" />
           </svg>
-          <span style={{ opacity: 0.35, fontSize: 9 }}>⌘K</span>
+          {!isNarrow && <span style={{ opacity: 0.35, fontSize: 9 }}>⌘K</span>}
         </button>
 
         {/* Layout button */}
@@ -246,7 +262,7 @@ export default function NavBar({
             <rect x="1" y="10" width="5" height="5" rx="1" />
             <rect x="10" y="10" width="5" height="5" rx="1" />
           </svg>
-          {layoutLabel} <span style={{ opacity: 0.35, fontSize: 9 }}>A</span>
+          {!isNarrow && layoutLabel} <span style={{ opacity: 0.35, fontSize: 9 }}>{isNarrow ? layoutLabel.charAt(0) : "A"}</span>
         </button>
 
         {/* Reset button */}
@@ -289,7 +305,7 @@ export default function NavBar({
             <polyline points="2 4 2 8 6 8" />
             <polyline points="14 12 14 8 10 8" />
           </svg>
-          reset <span style={{ opacity: 0.35, fontSize: 9 }}>R</span>
+          {!isNarrow && "reset"} <span style={{ opacity: 0.35, fontSize: 9 }}>{isNarrow ? "↺" : "R"}</span>
         </button>
       </div>
     </div>
