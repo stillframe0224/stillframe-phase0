@@ -6,6 +6,8 @@ import type { Lang } from "@/lib/copy";
 import { track } from "@/lib/track";
 import { PrimaryButton } from "@/ui/components/ui";
 
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 interface WaitlistProps {
   lang: Lang;
   postUrl: string;
@@ -21,12 +23,22 @@ export default function Waitlist({
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [touched, setTouched] = useState(false);
   const c = copy.waitlist;
+
+  const normalizedEmail = email.trim().toLowerCase();
+  const isValidEmail = EMAIL_RE.test(normalizedEmail);
+  const showInvalid = touched && normalizedEmail.length > 0 && !isValidEmail;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const normalizedEmail = email.trim().toLowerCase();
     if (!normalizedEmail) return;
+
+    if (!isValidEmail) {
+      setErrorMessage(c.invalidEmail[lang]);
+      setTouched(true);
+      return;
+    }
 
     const destination = postUrl ? "webhook" : fallbackEmail ? "mailto" : "none";
     track("waitlist_submit", { email: normalizedEmail, destination });
@@ -70,7 +82,7 @@ export default function Waitlist({
 
   if (submitted) {
     return (
-      <div style={{ textAlign: "center", padding: "32px 0" }}>
+      <div style={{ textAlign: "center", padding: "32px 16px" }}>
         <span style={{ fontSize: 32, display: "block", marginBottom: 12 }}>
           &#10003;
         </span>
@@ -89,7 +101,7 @@ export default function Waitlist({
           style={{
             display: "inline-block",
             marginTop: 16,
-            padding: "10px 24px",
+            padding: "12px 24px",
             borderRadius: 999,
             background: "#2a2a2a",
             color: "#fff",
@@ -97,6 +109,8 @@ export default function Waitlist({
             fontFamily: "var(--font-dm)",
             fontWeight: 600,
             textDecoration: "none",
+            minHeight: 44,
+            lineHeight: "20px",
           }}
         >
           {lang === "ja" ? "料金を見る" : "View Pricing"}
@@ -106,14 +120,11 @@ export default function Waitlist({
   }
 
   return (
-    <div style={{ maxWidth: 440, margin: "0 auto" }}>
+    <div style={{ maxWidth: 440, margin: "0 auto", padding: "0 4px" }}>
       <form
         onSubmit={handleSubmit}
-        style={{
-          display: "flex",
-          gap: 10,
-          flexWrap: "wrap",
-        }}
+        className="flex flex-col sm:flex-row gap-2.5"
+        noValidate
       >
         <input
           type="email"
@@ -124,20 +135,26 @@ export default function Waitlist({
             setEmail(e.target.value);
             if (errorMessage) setErrorMessage(null);
           }}
+          onBlur={() => setTouched(true)}
           autoComplete="email"
           inputMode="email"
           autoCapitalize="none"
           autoCorrect="off"
+          aria-invalid={showInvalid || !!errorMessage}
+          aria-describedby={errorMessage ? "waitlist-error" : undefined}
+          data-testid="waitlist-email"
+          className="w-full sm:flex-1 sm:min-w-0"
           style={{
-            flex: "1 1 240px",
-            minWidth: 0,
             padding: "12px 18px",
             borderRadius: 999,
-            border: "1px solid #ddd",
-            fontSize: 15,
+            border: `1px solid ${showInvalid || errorMessage ? "#b42318" : "#ddd"}`,
+            fontSize: 16,
             fontFamily: "var(--font-dm)",
             outline: "none",
             background: "#fff",
+            minHeight: 48,
+            WebkitAppearance: "none",
+            transition: "border-color 0.15s ease",
           }}
         />
         <PrimaryButton
@@ -145,10 +162,10 @@ export default function Waitlist({
           aria-label={loading ? c.submitting[lang] : c.cta[lang]}
           type="submit"
           disabled={loading}
-          className="rounded-full px-6 py-3 text-sm whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[var(--accent-strong)]"
+          className="w-full sm:w-auto rounded-full px-6 py-3 text-sm whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[var(--accent-strong)]"
           style={{
             cursor: loading ? "wait" : undefined,
-            flex: "1 0 auto",
+            minHeight: 48,
           }}
         >
           {loading ? c.submitting[lang] : c.cta[lang]}
@@ -156,6 +173,8 @@ export default function Waitlist({
       </form>
       {errorMessage && (
         <p
+          id="waitlist-error"
+          role="alert"
           style={{
             marginTop: 10,
             fontSize: 13,

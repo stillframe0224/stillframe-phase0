@@ -490,7 +490,7 @@ export default function Home() {
       <DotDivider />
 
       {/* Waitlist */}
-      <section
+      <section id="waitlist"
         style={{
           maxWidth: 540,
           margin: "0 auto",
