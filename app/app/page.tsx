@@ -70,15 +70,40 @@ export default function AppPage() {
           width: "100%",
           height: "100vh",
           display: "flex",
+          flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
           background: "#fdfdfd",
           fontFamily: "'DM Sans',sans-serif",
-          color: "rgba(0,0,0,0.2)",
-          fontSize: 13,
+          gap: "20px",
         }}
       >
-        loading...
+        <div
+          style={{
+            width: "48px",
+            height: "48px",
+            border: "3px solid rgba(0,0,0,0.1)",
+            borderTop: "3px solid rgba(0,0,0,0.4)",
+            borderRadius: "50%",
+            animation: "spin 0.8s linear infinite",
+          }}
+        />
+        <div
+          style={{
+            color: "rgba(0,0,0,0.3)",
+            fontSize: 14,
+            fontWeight: 400,
+            letterSpacing: "0.5px",
+          }}
+        >
+          SHINEN
+        </div>
+        <style>{`
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        `}</style>
       </div>
     );
   }
