@@ -107,16 +107,26 @@ export async function POST(request: NextRequest) {
       success: true,
       result: aiResult,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("AI organize error:", error);
+    const message = error instanceof Error ? error.message : "Internal error";
     return NextResponse.json(
-      { error: error.message || "Internal error" },
+      { error: message },
       { status: 500 }
     );
   }
 }
 
-function buildContext(card: any): string {
+interface CardRow {
+  title: string | null;
+  text: string;
+  source_url: string | null;
+  site_name: string | null;
+  notes: string | null;
+  media_kind: string | null;
+}
+
+function buildContext(card: CardRow): string {
   const parts: string[] = [];
 
   if (card.title) parts.push(`Title: ${card.title}`);
@@ -172,7 +182,7 @@ Return ONLY valid JSON with these exact keys. No markdown, no explanation.`;
   let result: AIResult;
   try {
     result = JSON.parse(content);
-  } catch (parseError) {
+  } catch {
     // Retry with stricter prompt
     const retryPayload = {
       model: OPENAI_MODEL,
