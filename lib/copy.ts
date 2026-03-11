@@ -79,7 +79,7 @@ const copy = {
         "エクスポート & API",
       ],
     },
-    cta: { en: "Get Early Access", ja: "早期アクセスを取得" },
+    cta: { en: "Get Started for $10/mo", ja: "$10/月で始める" },
     urgency: {
       en: "Early-bird pricing: first 20 members keep this price forever",
       ja: "先着20名はこの価格をずっと維持できます",

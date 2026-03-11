@@ -6,6 +6,12 @@ import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import ShinenCanvas from "./shinen/ShinenCanvas";
 import "./shinen/shinen.css";
 
+declare global {
+  interface Window {
+    __E2E_ALLOWED__?: boolean;
+  }
+}
+
 function buildE2EMockCards() {
   const types = [0, 1, 2, 3, 6, 7]; // melody, idea, quote, task, fragment, dream
   const now = Date.now();
@@ -36,7 +42,7 @@ export default function AppPage() {
 
   const e2eMode =
     typeof window !== "undefined" &&
-    (window as any).__E2E_ALLOWED__ === true &&
+    window.__E2E_ALLOWED__ === true &&
     new URLSearchParams(window.location.search).get("e2e") === "1";
 
   useEffect(() => {

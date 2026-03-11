@@ -46,8 +46,8 @@ app.message(async ({ message, say }) => {
   if (message.subtype) return;
   if (!("user" in message)) return;
   if (!("channel_type" in message)) return;
-  if ((message as any).channel_type !== "im") return;
-  if ((message as any).bot_id) return;
+  if ((message as { channel_type: string }).channel_type !== "im") return;
+  if ("bot_id" in message) return;
 
   const text = ("text" in message ? message.text : "") || "";
 
