@@ -23,10 +23,29 @@ export default function Waitlist({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const c = copy.waitlist;
 
+  // Enhanced email validation
+  const validateEmail = (email: string): boolean => {
+    if (!email) return false;
+    // RFC 5322 simplified pattern (catches most common cases)
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const getValidationError = (email: string): string | null => {
+    if (!email.trim()) {
+      return lang === "ja" ? "メールアドレスを入力してください" : "Email is required";
+    }
+    if (!validateEmail(email)) {
+      return lang === "ja" ? "有効なメールアドレスを入力してください" : "Please enter a valid email address";
+    }
+    return null;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const normalizedEmail = email.trim().toLowerCase();
-    if (!normalizedEmail) return;
+    const validationError = getValidationError(normalizedEmail);
+    if (validationError) { setErrorMessage(validationError); return; }
 
     const destination = postUrl ? "webhook" : fallbackEmail ? "mailto" : "none";
     track("waitlist_submit", { email: normalizedEmail, destination });
