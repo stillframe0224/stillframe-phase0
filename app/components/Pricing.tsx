@@ -125,6 +125,21 @@ export default function Pricing({ lang, gumroadUrl }: PricingProps) {
           {c.cta[lang]}
         </PrimaryButton>
       )}
+      <p
+        style={{
+          marginTop: 14,
+          fontSize: 12,
+          color: "#2D8F50",
+          fontFamily: "var(--font-dm)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: 4,
+        }}
+      >
+        <span style={{ fontSize: 14 }}>&#10003;</span>
+        {c.transparency[lang]}
+      </p>
     </section>
   );
 }
