@@ -171,6 +171,10 @@ export default function ThoughtCard({
         >
         {/* Media preview / playback area */}
         {hasMedia && <MediaPreview card={card} isPlaying={isPlaying} onMediaClick={onMediaClick} />}
+        {/* OGP fallback for clip cards without media */}
+        {!hasMedia && card.type === 8 && card.source?.url && (
+          <OgpFallbackPreview url={card.source.url} />
+        )}
 
         {/* Text content */}
         {card.type === 8 ? (() => {
@@ -536,6 +540,7 @@ function MediaPreview({
   const media = card.media;
   if (!media) return null;
   const isEmbedMedia = media.type === "embed" || media.kind === "embed";
+  const [imgError, setImgError] = useState(false);
   const [embedLoadState, setEmbedLoadState] = useState(() => createEmbedLoadState());
   const embedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const embedSessionKeyRef = useRef<string | null>(null);
@@ -616,6 +621,9 @@ function MediaPreview({
     const linkUrl = card.source?.url ?? media.url;
     const thumbUrl = media.url;
     const renderMode = getThumbRenderMode(card.source?.url ?? media.url);
+    if (imgError) {
+      return <OgpFallbackPreview url={linkUrl ?? thumbUrl ?? ""} />;
+    }
     return (
       <a
         data-testid="card-image-link"
@@ -687,6 +695,7 @@ function MediaPreview({
           src={proxiedSrc}
           alt={card.text}
           onError={(e) => {
+            setImgError(true);
             logDiagEvent({
               type: "thumb_error",
               cardId: card.id,
@@ -731,6 +740,9 @@ function MediaPreview({
         </div>
       );
     }
+    if (imgError) {
+      return <OgpFallbackPreview url={card.source?.url ?? media.url ?? ""} />;
+    }
     return (
       // Thumbnail click toggles inline playback; still track thumbnail load failures.
       <div
@@ -752,6 +764,7 @@ function MediaPreview({
           src={toProxySrc(media.thumbnail || `https://img.youtube.com/vi/${media.youtubeId}/hqdefault.jpg`)}
           alt={card.text}
           onError={(e) => {
+            setImgError(true);
             const thumb = media.thumbnail || `https://img.youtube.com/vi/${media.youtubeId}/hqdefault.jpg`;
             const proxyUrl = toProxySrc(thumb);
             const linkUrl = card.source?.url ?? media.url;
@@ -1138,6 +1151,75 @@ function MediaPreview({
   }
 
   return null;
+}
+
+/** Grayscale fallback shown when OGP image fetch fails or image fails to load. */
+function OgpFallbackPreview({ url }: { url: string }) {
+  let domain = "";
+  try {
+    domain = new URL(url).hostname.replace(/^www\./, "");
+  } catch { /* ignore */ }
+  const initial = domain.charAt(0).toUpperCase() || "?";
+
+  return (
+    <div
+      data-testid="ogp-fallback"
+      style={{
+        margin: "-16px -18px 0 -18px",
+        borderRadius: "10px 10px 0 0",
+        overflow: "hidden",
+        height: 96,
+        background: "linear-gradient(135deg, #ececec 0%, #d9d9d9 100%)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        position: "relative",
+      }}
+    >
+      <div
+        style={{
+          width: 40,
+          height: 40,
+          borderRadius: "50%",
+          background: "rgba(0,0,0,0.05)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <span
+          style={{
+            fontSize: 18,
+            fontWeight: 600,
+            color: "rgba(0,0,0,0.22)",
+            fontFamily: "'DM Sans',sans-serif",
+            lineHeight: 1,
+          }}
+        >
+          {initial}
+        </span>
+      </div>
+      {domain && (
+        <span
+          style={{
+            position: "absolute",
+            bottom: 6,
+            right: 10,
+            fontSize: 9,
+            color: "rgba(0,0,0,0.18)",
+            fontFamily: "'DM Sans',sans-serif",
+            letterSpacing: "0.02em",
+            maxWidth: "60%",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+          }}
+        >
+          {domain}
+        </span>
+      )}
+    </div>
+  );
 }
 
 function formatSize(bytes: number): string {

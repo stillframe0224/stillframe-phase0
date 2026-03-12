@@ -28,6 +28,7 @@ export const dynamic = "force-dynamic";
 
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { logSupabaseError } from "@/lib/supabase/logger";
 
 /** Map window param to PostgreSQL interval string (or null = no filter). */
 function windowToInterval(w: string): string | null {
@@ -66,6 +67,7 @@ export async function GET(request: Request) {
   try {
     supabase = await createClient();
   } catch (e) {
+    logSupabaseError("metrics-preview.createClient", e);
     return NextResponse.json(
       { ok: false, window: windowParam, error: String(e) },
       { status: 503 }
@@ -92,7 +94,7 @@ export async function GET(request: Request) {
     const { data, error } = await query;
 
     if (error) {
-      // Column missing or auth error — return partial response rather than hard failure.
+      logSupabaseError("metrics-preview.query", error);
       return NextResponse.json(
         {
           ok: false,
@@ -121,6 +123,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json({ ok: true, window: windowParam, instagram });
   } catch (e) {
+    logSupabaseError("metrics-preview", e);
     return NextResponse.json(
       { ok: false, window: windowParam, error: String(e) },
       { status: 500 }
