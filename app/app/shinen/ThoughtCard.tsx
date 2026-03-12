@@ -534,7 +534,37 @@ function MediaPreview({
   onMediaClick?: () => void;
 }) {
   const media = card.media;
-  if (!media) return null;
+  
+  // Fallback UI when no media is available
+  if (!media) {
+    return (
+      <div
+        style={{
+          aspectRatio: "16/9",
+          background: "linear-gradient(135deg, #e0e0e0 0%, #f5f5f5 100%)",
+          borderRadius: 8,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          border: "1px solid rgba(0,0,0,0.08)",
+        }}
+      >
+        <svg
+          width="48"
+          height="48"
+          viewBox="0 0 24 24"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          style={{ opacity: 0.35 }}
+        >
+          <path
+            d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"
+            fill="currentColor"
+          />
+        </svg>
+      </div>
+    );
+  }
   const isEmbedMedia = media.type === "embed" || media.kind === "embed";
   const [embedLoadState, setEmbedLoadState] = useState(() => createEmbedLoadState());
   const embedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
