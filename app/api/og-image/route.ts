@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { logSupabaseError } from "@/lib/supabase/logger";
 
 const YT_RE =
   /(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/|live\/|v\/)|youtu\.be\/)([\w-]{11})/;
@@ -69,6 +70,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ image, title });
   } catch (e) {
+    logSupabaseError("og-image.fetch", e);
     const message = e instanceof Error ? e.message : "unknown error";
     return NextResponse.json({ error: message }, { status: 500 });
   }

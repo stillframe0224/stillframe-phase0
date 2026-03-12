@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { logSupabaseError } from "@/lib/supabase/logger";
 
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const OPENAI_MODEL = process.env.OPENAI_MODEL || "gpt-4o-mini";
@@ -25,6 +26,7 @@ export async function POST(request: NextRequest) {
     } = await supabase.auth.getUser();
 
     if (authError || !user) {
+      if (authError) logSupabaseError("ai-organize.auth", authError);
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -54,6 +56,7 @@ export async function POST(request: NextRequest) {
       .single();
 
     if (fetchError || !card) {
+      if (fetchError) logSupabaseError("ai-organize.fetchCard", fetchError, user.id);
       return NextResponse.json(
         { error: { code: "CARD_NOT_FOUND", message: "Card not found" } },
         { status: 404 }
@@ -96,7 +99,7 @@ export async function POST(request: NextRequest) {
       .eq("id", cardId);
 
     if (updateError) {
-      console.error("Update error:", updateError);
+      logSupabaseError("ai-organize.updateCard", updateError, user.id);
       return NextResponse.json(
         { error: "Failed to update card" },
         { status: 500 }
@@ -107,10 +110,10 @@ export async function POST(request: NextRequest) {
       success: true,
       result: aiResult,
     });
-  } catch (error: any) {
-    console.error("AI organize error:", error);
+  } catch (error: unknown) {
+    logSupabaseError("ai-organize", error);
     return NextResponse.json(
-      { error: error.message || "Internal error" },
+      { error: error instanceof Error ? error.message : "Internal error" },
       { status: 500 }
     );
   }

@@ -1,4 +1,5 @@
 import { createClient } from "@/utils/supabase/client";
+import { logSupabaseError } from "@/lib/supabase/logger";
 import type { DbCard } from "./types";
 
 const supabase = createClient();
@@ -12,7 +13,10 @@ export async function fetchCards(): Promise<DbCard[]> {
     .select("*")
     .order("created_at", { ascending: false });
 
-  if (error) throw error;
+  if (error) {
+    logSupabaseError("fetchCards", error);
+    throw error;
+  }
   return (data ?? []) as DbCard[];
 }
 
@@ -21,7 +25,10 @@ export async function insertCard(card: NewDbCard): Promise<DbCard> {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) throw new Error("Not authenticated");
+  if (!user) {
+    logSupabaseError("insertCard", new Error("Not authenticated"));
+    throw new Error("Not authenticated");
+  }
 
   const { data, error } = await supabase
     .from("cards")
@@ -29,18 +36,27 @@ export async function insertCard(card: NewDbCard): Promise<DbCard> {
     .select()
     .single();
 
-  if (error) throw error;
+  if (error) {
+    logSupabaseError("insertCard", error, user.id);
+    throw error;
+  }
   return data as DbCard;
 }
 
 export async function updateCard(id: string, updates: DbCardUpdates): Promise<void> {
   const { error } = await supabase.from("cards").update(updates).eq("id", id);
-  if (error) throw error;
+  if (error) {
+    logSupabaseError("updateCard", error);
+    throw error;
+  }
 }
 
 export async function deleteCards(ids: string[]): Promise<void> {
   const { error } = await supabase.from("cards").delete().in("id", ids);
-  if (error) throw error;
+  if (error) {
+    logSupabaseError("deleteCards", error);
+    throw error;
+  }
 }
 
 export async function uploadFile(cardId: string, file: File): Promise<string> {
@@ -48,12 +64,18 @@ export async function uploadFile(cardId: string, file: File): Promise<string> {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) throw new Error("Not authenticated");
+  if (!user) {
+    logSupabaseError("uploadFile", new Error("Not authenticated"));
+    throw new Error("Not authenticated");
+  }
 
   const path = `${user.id}/${cardId}/${file.name}`;
   const { error } = await supabase.storage.from("shinen-files").upload(path, file, { upsert: true });
 
-  if (error) throw error;
+  if (error) {
+    logSupabaseError("uploadFile", error, user.id);
+    throw error;
+  }
 
   const { data } = supabase.storage.from("shinen-files").getPublicUrl(path);
   return data.publicUrl;
