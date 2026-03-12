@@ -1016,9 +1016,8 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
     let parsedHost = "";
     try { parsedHost = new URL(url).hostname; } catch { /* invalid url */ }
     const title = params.get("title") || parsedHost || url;
-    const img = params.get("img") || params.get("image") || undefined;
+    const img = params.get("img") || undefined;
     const poster = params.get("poster") || undefined;
-    const favicon = params.get("favicon") || undefined;
     const mediaKind = params.get("mk") || undefined;
     const embedUrl = params.get("embed") || undefined;
     const provider = params.get("provider") as ("youtube" | "x" | "instagram" | null) || null;
@@ -1046,7 +1045,7 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
         px: pos.px,
         py: pos.py,
         z: -20 - Math.random() * 100,
-        source: { url, site: site || parsedHost, ...(favicon ? { favicon } : {}) },
+        source: { url, site: site || parsedHost },
         media: (() => {
           if (ytId) {
             return {
@@ -1086,7 +1085,7 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
     // Clean auto-capture params from URL bar
     try {
       const cleanUrl = new URL(window.location.href);
-      for (const k of ["auto", "url", "title", "text", "desc", "img", "image", "poster", "mk", "embed", "provider", "site", "s", "favicon"]) {
+      for (const k of ["auto", "url", "title", "desc", "img", "poster", "mk", "embed", "provider", "site", "s"]) {
         cleanUrl.searchParams.delete(k);
       }
       window.history.replaceState(null, "", cleanUrl.toString());

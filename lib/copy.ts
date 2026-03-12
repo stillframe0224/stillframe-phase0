@@ -84,6 +84,10 @@ const copy = {
       en: "Early-bird pricing: first 20 members keep this price forever",
       ja: "先着20名はこの価格をずっと維持できます",
     },
+    transparency: {
+      en: "No hidden fees. Cancel anytime.",
+      ja: "隠れた料金なし。いつでもキャンセル可。",
+    },
   },
   waitlist: {
     h2: { en: "Stay in the loop", ja: "最新情報を受け取る" },

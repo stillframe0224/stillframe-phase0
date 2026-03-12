@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
+import { logSupabaseWarn } from "@/lib/supabase/logger";
 import ShinenCanvas from "./shinen/ShinenCanvas";
 import "./shinen/shinen.css";
 
@@ -53,7 +54,8 @@ export default function AppPage() {
     }
 
     const supabase = createClient();
-    supabase.auth.getUser().then(({ data }) => {
+    supabase.auth.getUser().then(({ data, error }) => {
+      if (error) logSupabaseWarn("app.page.getUser", error);
       if (!data.user) {
         router.replace("/auth/login");
       } else {

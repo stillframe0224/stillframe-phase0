@@ -43,5 +43,51 @@
     "session": "nightly",
     "pr_url": "https://github.com/stillframe0224/stillframe-phase0/pull/83",
     "evidence": "/Users/array0224/stillframe-phase0/reports/triad/20260219-230000-lp-no-manual-image-copy.md"
+  },
+  {
+    "id": "shinen-sort-toggle",
+    "goal": "ThoughtCard一覧にnewest/oldest切り替えボタンを追加。1つのボタンでトグル",
+    "completed_at": "2026-03-08T13:16:42.482Z",
+    "session": "nightly"
+  },
+  {
+    "id": "20260219-080600-waitlist-mobile-layout",
+    "goal": "Waitlistフォームをモバイルで縦積み表示にしてCTA押下率の低下を防ぐ",
+    "completed_at": "2026-03-08T13:25:56.072Z",
+    "session": "nightly"
+  },
+  {
+    "id": "20260219-080700-waitlist-success-telemetry",
+    "goal": "Waitlist送信成功/失敗イベントに送信先とHTTPステータスを付与して可観測性を上げる",
+    "completed_at": "2026-03-08T13:34:06.568Z",
+    "session": "nightly"
+  },
+  {
+    "id": "20260219-080800-pricing-cta-urgency-copy",
+    "goal": "Pricingカードに限定オファー文言を追加してGumroad導線を強化する",
+    "completed_at": "2026-03-08T13:44:12.028Z",
+    "session": "nightly"
+  },
+  {
+    "id": "20260308-230000-readme-setup-guide",
+    "goal": "README に開発セットアップ・実行手順を追記し、新規開発者が迷わず起動できるようにする",
+    "completed_at": "2026-03-08T14:05:00Z",
+    "session": "nightly",
+    "pr_url": "https://github.com/stillframe0224/stillframe-phase0/pull/218",
+    "evidence": "/Users/array0224/stillframe-phase0/reports/triad/20260308-230000-readme-setup-guide.md"
+  },
+  {
+    "id": "20260312-test-verify-pipeline-2",
+    "goal": ".rwl/README.md の末尾に stage0 テスト2回目の1行を追記する",
+    "completed_at": "2026-03-12T04:27:48.835Z",
+    "session": "nightly",
+    "evidence": "1. git diff --staged --stat: `.rwl/README.md | 3 +++` (1 file changed, 3 insertions) — 対象ファイルのみ変更\n2. npm test: スクリプト未定義（\"Missing script: test\"）— テスト不在のため skip（問題なし）\n3. npm run build: 成功。全ルート正常出力（エラー0件）\n4. .rwl/README.md 内容確認: \"Verify pipeline test (stage0 round 2): 2026-03-12\" が記載済み。タスク要件「stage0 テスト2回目の1行を追記」を満たしている。ステージング済みで runner commit 待ち状態。"
+  },
+  {
+    "id": "20260312-test-verify-pipeline-3",
+    "goal": ".rwl/README.md の末尾に stage0 テスト3回目の1行を追記する",
+    "completed_at": "2026-03-12T04:34:05.495Z",
+    "session": "nightly",
+    "evidence": "1. git diff --stat: `.rwl/README.md | 1 +` — 対象ファイルに1行追加を確認。他の変更はrunner管理ファイル（DONE.json, status.json等）で本タスク外。\n\n2. テスト: `npm test` → \"Missing script: test\" — テストスクリプト未定義のためスキップ（問題なし）。\n\n3. npm run build: 正常完了。全ルート（静的○・動的ƒ）がエラーなしで出力。\n\n4. タスク要件確認: `.rwl/README.md` の末尾に `Verify pipeline test (stage0 round 3): 2026-03-12` が追記済み。diff で `+Verify pipeline test (stage0 round 3): 2026-03-12` を確認。ファイル内容は4行（round 2 の次に round 3）。"
   }
 ]

@@ -19,6 +19,7 @@ export const dynamic = "force-dynamic";
 
 import { NextResponse } from "next/server";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/server";
+import { logSupabaseError, logSupabaseWarn } from "@/lib/supabase/logger";
 
 export async function GET() {
   const ts = new Date().toISOString();
@@ -44,6 +45,7 @@ export async function GET() {
       .select("id", { count: "exact", head: true });
 
     if (e1) {
+      logSupabaseError("phase0-kpi.totalCards", e1);
       return NextResponse.json(
         { ok: false, ts, error: e1.message },
         { status: 200 }
@@ -55,6 +57,7 @@ export async function GET() {
       .from("cards")
       .select("user_id");
 
+    if (e2) logSupabaseWarn("phase0-kpi.distinctUsers", e2);
     const distinctUsers = e2
       ? null
       : new Set((usersData ?? []).map((r) => r.user_id)).size;
@@ -97,6 +100,7 @@ export async function GET() {
         "To populate these, add manual overrides to the GitHub Issue or integrate Gumroad API.",
     });
   } catch (e) {
+    logSupabaseError("phase0-kpi", e);
     return NextResponse.json(
       { ok: false, ts, error: String(e) },
       { status: 500 }
