@@ -102,7 +102,12 @@ export default function Pricing({ lang, gumroadUrl }: PricingProps) {
           href={gumroadUrl}
           target="_blank"
           rel="noopener noreferrer"
-          onClick={() => track("checkout_start")}
+          onClick={() =>
+            track("checkout_start", {
+              lang,
+              source: "pricing_card",
+            })
+          }
           data-testid="cta-pricing"
           aria-label={c.cta[lang]}
           className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[var(--accent-strong)] rounded-full"
@@ -116,7 +121,12 @@ export default function Pricing({ lang, gumroadUrl }: PricingProps) {
         <PrimaryButton
           data-testid="cta-pricing"
           type="button"
-          onClick={() => track("checkout_unavailable")}
+          onClick={() =>
+            track("checkout_unavailable", {
+              lang,
+              source: "pricing_card",
+            })
+          }
           aria-label={`${c.cta[lang]} (unavailable)`}
           className="rounded-full px-8 py-3 text-sm"
           disabled
