@@ -256,11 +256,36 @@ export function useOgThumbnails(
             }
           },
         )
-        .catch(() => {
+        .catch((err) => {
           inflightRef.current.delete(url);
+          console.warn(`[useOgThumbnails] fetch failed for ${url}:`, err.message || err);
+          
+          // Fallback: try to extract favicon from domain (best-effort)
+          let fallbackFavicon: string | null = null;
+          try {
+            const hostname = new URL(url).hostname;
+            fallbackFavicon = `https://www.google.com/s2/favicons?domain=${hostname}&sz=32`;
+          } catch {
+            // Invalid URL — skip fallback
+          }
+
           const currentCache = readCache();
-          currentCache[url] = { image: null, fetchedAt: Date.now() };
+          currentCache[url] = {
+            image: null,
+            favicon: fallbackFavicon,
+            fetchedAt: Date.now(),
+          };
           writeCache(currentCache);
+
+          // Apply favicon fallback if available
+          if (fallbackFavicon) {
+            setCards((prev) =>
+              prev.map((c) => {
+                if (c.id !== id || !c.source || c.source.favicon) return c;
+                return { ...c, source: { ...c.source, favicon: fallbackFavicon } };
+              }),
+            );
+          }
         });
     }
 
