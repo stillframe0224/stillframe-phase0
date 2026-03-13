@@ -101,7 +101,7 @@ test("capture route uses DOM snapshot extraction and forwards img param", () => 
   const src = fs.readFileSync(capturePath, "utf8");
   assert.match(src, /pickBestImageFromHtml/);
   assert.match(src, /document\.documentElement\?\.outerHTML/);
-  assert.match(src, /buildAutoRedirectUrl/);
+  assert.match(src, /&img=\$\{encodeURIComponent/);
 });
 
 test("bookmarklet script keeps Amazon DOM selectors and img forwarding", () => {

@@ -43,5 +43,37 @@
     "session": "nightly",
     "pr_url": "https://github.com/stillframe0224/stillframe-phase0/pull/83",
     "evidence": "/Users/array0224/stillframe-phase0/reports/triad/20260219-230000-lp-no-manual-image-copy.md"
+  },
+  {
+    "id": "shinen-sort-toggle",
+    "goal": "ThoughtCard一覧にnewest/oldest切り替えボタンを追加。1つのボタンでトグル",
+    "completed_at": "2026-03-08T13:16:42.482Z",
+    "session": "nightly"
+  },
+  {
+    "id": "20260219-080600-waitlist-mobile-layout",
+    "goal": "Waitlistフォームをモバイルで縦積み表示にしてCTA押下率の低下を防ぐ",
+    "completed_at": "2026-03-08T13:25:56.072Z",
+    "session": "nightly"
+  },
+  {
+    "id": "20260219-080700-waitlist-success-telemetry",
+    "goal": "Waitlist送信成功/失敗イベントに送信先とHTTPステータスを付与して可観測性を上げる",
+    "completed_at": "2026-03-08T13:34:06.568Z",
+    "session": "nightly"
+  },
+  {
+    "id": "20260219-080800-pricing-cta-urgency-copy",
+    "goal": "Pricingカードに限定オファー文言を追加してGumroad導線を強化する",
+    "completed_at": "2026-03-08T13:44:12.028Z",
+    "session": "nightly"
+  },
+  {
+    "id": "20260308-230000-readme-setup-guide",
+    "goal": "README に開発セットアップ・実行手順を追記し、新規開発者が迷わず起動できるようにする",
+    "completed_at": "2026-03-08T14:05:00Z",
+    "session": "nightly",
+    "pr_url": "https://github.com/stillframe0224/stillframe-phase0/pull/218",
+    "evidence": "/Users/array0224/stillframe-phase0/reports/triad/20260308-230000-readme-setup-guide.md"
   }
 ]
