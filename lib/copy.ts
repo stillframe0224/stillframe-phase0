@@ -146,4 +146,44 @@ const copy = {
   },
 } as const;
 
+/**
+ * CTA Variants for A/B testing
+ * Set NEXT_PUBLIC_HERO_CTA_VARIANT to "A", "B", "C", etc. in .env.local or Vercel
+ * Default (no env var) uses the original copy.hero.cta
+ */
+const ctaVariants = {
+  A: {
+    en: "Start Capturing Thoughts",
+    ja: "思考のキャプチャを始める",
+  },
+  B: {
+    en: "Try It Now — Free Demo",
+    ja: "今すぐ試す — 無料デモ",
+  },
+  C: {
+    en: "See How It Works",
+    ja: "動作を見る",
+  },
+  D: {
+    en: "Experience Quick Capture",
+    ja: "Quick Capture を体験",
+  },
+} as const;
+
+/**
+ * Get Hero CTA copy based on NEXT_PUBLIC_HERO_CTA_VARIANT
+ * @param lang - "en" or "ja"
+ * @returns CTA button text
+ */
+export function getHeroCTA(lang: Lang): string {
+  const variant = process.env.NEXT_PUBLIC_HERO_CTA_VARIANT?.toUpperCase();
+  
+  if (variant && variant in ctaVariants) {
+    return ctaVariants[variant as keyof typeof ctaVariants][lang];
+  }
+  
+  // Default: use original copy
+  return copy.hero.cta[lang];
+}
+
 export default copy;
