@@ -48,10 +48,6 @@ function buildCardSnapshot(card: ShinenCard, linkUrl: string | null, thumbnailUr
   };
 }
 
-function clamp(value: number, min: number, max: number): number {
-  return Math.min(max, Math.max(min, value));
-}
-
 export default function ThoughtCard({
   card,
   p,
@@ -75,8 +71,6 @@ export default function ThoughtCard({
   onDelete,
 }: ThoughtCardProps) {
   const floatY = isDragging ? 0 : Math.sin(time * 0.0005 + card.id * 2.1) * 3;
-  const tiltRef = useRef<HTMLDivElement | null>(null);
-  const reduceMotionRef = useRef(false);
 
   // When playing video/youtube, expand card width
   const isVideoPlaying =
@@ -100,79 +94,6 @@ export default function ThoughtCard({
   const memoPreview = memo?.trim() ?? "";
   const hasMemo = memoPreview.length > 0;
 
-  const applyTilt = useCallback(
-    (rx: number, ry: number, shadowX: number, shadowY: number, glareX: number, glareY: number, durationMs: number) => {
-      const el = tiltRef.current;
-      if (!el) return;
-      el.style.setProperty("--tc-rx", `${rx.toFixed(2)}deg`);
-      el.style.setProperty("--tc-ry", `${ry.toFixed(2)}deg`);
-      el.style.setProperty("--tc-shadow-x", `${shadowX.toFixed(2)}px`);
-      el.style.setProperty("--tc-shadow-y", `${shadowY.toFixed(2)}px`);
-      el.style.setProperty("--tc-glare-x", `${glareX.toFixed(2)}%`);
-      el.style.setProperty("--tc-glare-y", `${glareY.toFixed(2)}%`);
-      el.style.setProperty("--tc-tilt-dur", `${durationMs}ms`);
-    },
-    [],
-  );
-
-  const resetTilt = useCallback(
-    (durationMs: number) => {
-      applyTilt(0, 0, 0, 0, 50, 38, durationMs);
-    },
-    [applyTilt],
-  );
-
-  const handleTiltMove = useCallback(
-    (e: React.PointerEvent<HTMLDivElement>) => {
-      if (isDragging || reduceMotionRef.current) {
-        resetTilt(120);
-        return;
-      }
-      const el = tiltRef.current;
-      if (!el) return;
-      const rect = el.getBoundingClientRect();
-      if (rect.width < 8 || rect.height < 8) return;
-
-      const px = (e.clientX - rect.left) / rect.width;
-      const py = (e.clientY - rect.top) / rect.height;
-      const nx = clamp((px - 0.5) * 2, -1, 1);
-      const ny = clamp((py - 0.5) * 2, -1, 1);
-      const maxTilt = e.pointerType === "touch" ? 5.5 : 9;
-      const rx = -ny * maxTilt;
-      const ry = nx * maxTilt;
-      const shadowX = nx * 11;
-      const shadowY = ny * 8;
-      const glareX = 50 + nx * 16;
-      const glareY = 38 + ny * 14;
-      applyTilt(rx, ry, shadowX, shadowY, glareX, glareY, 90);
-    },
-    [applyTilt, isDragging, resetTilt],
-  );
-
-  const handleTiltEnd = useCallback(() => {
-    resetTilt(420);
-  }, [resetTilt]);
-
-  useEffect(() => {
-    if (isDragging) resetTilt(80);
-  }, [isDragging, resetTilt]);
-
-  useEffect(() => {
-    if (typeof window === "undefined" || typeof window.matchMedia !== "function") return;
-    const media = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const apply = () => {
-      reduceMotionRef.current = media.matches;
-      if (media.matches) resetTilt(0);
-    };
-    apply();
-    if (typeof media.addEventListener === "function") {
-      media.addEventListener("change", apply);
-      return () => media.removeEventListener("change", apply);
-    }
-    media.addListener(apply);
-    return () => media.removeListener(apply);
-  }, [resetTilt]);
-
   return (
     <div
       data-shinen-card={card.id}
@@ -194,76 +115,60 @@ export default function ThoughtCard({
         touchAction: "none",
       }}
     >
-      <div
-        ref={tiltRef}
-        className="tc-tilt-shell"
-        onPointerMove={handleTiltMove}
-        onPointerLeave={handleTiltEnd}
-        onPointerUp={handleTiltEnd}
-        onPointerCancel={handleTiltEnd}
-      >
-        {/* Slab layers (3D thickness) */}
-        {Array.from({ length: SLAB_N }, (_, i) => {
-          const li = SLAB_N - i;
-          const shade = 218 - li * 12;
-          return (
-            <div
-              key={i}
-              style={{
-                position: "absolute",
-                inset: 0,
-                borderRadius: 10,
-                background: `rgb(${shade},${shade},${shade})`,
-                border: "1.5px solid rgba(0,0,0,0.22)",
-                transform: `translate(${edgeX * li * SLAB_GAP}px,${edgeY * li * SLAB_GAP}px)`,
-                transition: isDragging ? "none" : "transform 0.4s cubic-bezier(0.22,0.61,0.36,1)",
-                zIndex: -li,
-              }}
-            />
-          );
-        })}
-
-        {/* Main card shell: decorative face is below, controls/content above */}
-        <div
-          style={{
-            position: "relative",
-            borderRadius: 10,
-            minHeight: card.h ?? TAP_TARGET_MIN,
-            overflow: "hidden",
-            transform: "translateZ(10px)",
-          }}
-        >
+      {/* Slab layers (3D thickness) */}
+      {Array.from({ length: SLAB_N }, (_, i) => {
+        const li = SLAB_N - i;
+        const shade = 218 - li * 12;
+        return (
           <div
-            data-testid="shinen-card-face"
+            key={i}
             style={{
               position: "absolute",
               inset: 0,
               borderRadius: 10,
-              zIndex: 0,
-              pointerEvents: "none",
-              background: "#fff",
-              border: selectedBorder,
-              boxShadow: `var(--tc-shadow-x, 0px) calc(${liftY}px + var(--tc-shadow-y, 0px)) ${liftBlur}px -${Math.round(liftBlur * 0.3)}px rgba(0,0,0,${liftA})${selectedGlow ? `, ${selectedGlow}` : ""}`,
-              transition: isDragging ? "none" : "box-shadow 0.35s",
+              background: `rgb(${shade},${shade},${shade})`,
+              border: "1.5px solid rgba(0,0,0,0.22)",
+              transform: `translate(${edgeX * li * SLAB_GAP}px,${edgeY * li * SLAB_GAP}px)`,
+              transition: isDragging ? "none" : "transform 0.4s cubic-bezier(0.22,0.61,0.36,1)",
+              zIndex: -li,
             }}
           />
-          <div
-            aria-hidden
-            className="tc-face-glare"
-            style={{
-              opacity: isDragging ? 0.08 : isHovered ? 0.2 : 0.12,
-            }}
-          />
+        );
+      })}
 
-          <div
-            style={{
-              position: "relative",
-              zIndex: 2,
-              pointerEvents: "auto",
-              padding: "16px 18px 13px",
-              minHeight: card.h ?? TAP_TARGET_MIN,
-            }}
-          >
+      {/* Main card shell: decorative face is below, controls/content above */}
+      <div
+        style={{
+          position: "relative",
+          borderRadius: 10,
+          minHeight: card.h ?? TAP_TARGET_MIN,
+          overflow: "hidden",
+        }}
+      >
+        <div
+          data-testid="shinen-card-face"
+          style={{
+            position: "absolute",
+            inset: 0,
+            zIndex: 0,
+            pointerEvents: "none",
+            background: "#fff",
+            borderRadius: 10,
+            border: selectedBorder,
+            boxShadow: `0 ${liftY}px ${liftBlur}px -${Math.round(liftBlur * 0.3)}px rgba(0,0,0,${liftA})${selectedGlow ? `, ${selectedGlow}` : ""}`,
+            transition: isDragging ? "none" : "box-shadow 0.35s",
+          }}
+        />
+
+        <div
+          style={{
+            position: "relative",
+            zIndex: 1,
+            pointerEvents: "auto",
+            padding: "16px 18px 13px",
+            minHeight: card.h ?? TAP_TARGET_MIN,
+          }}
+        >
         {/* Media preview / playback area */}
         {hasMedia && <MediaPreview card={card} isPlaying={isPlaying} onMediaClick={onMediaClick} />}
 
@@ -612,7 +517,6 @@ export default function ThoughtCard({
             </svg>
           </div>
         )}
-          </div>
         </div>
       </div>
     </div>
@@ -630,7 +534,37 @@ function MediaPreview({
   onMediaClick?: () => void;
 }) {
   const media = card.media;
-  if (!media) return null;
+  
+  // Fallback UI when no media is available
+  if (!media) {
+    return (
+      <div
+        style={{
+          aspectRatio: "16/9",
+          background: "linear-gradient(135deg, #e0e0e0 0%, #f5f5f5 100%)",
+          borderRadius: 8,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          border: "1px solid rgba(0,0,0,0.08)",
+        }}
+      >
+        <svg
+          width="48"
+          height="48"
+          viewBox="0 0 24 24"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          style={{ opacity: 0.35 }}
+        >
+          <path
+            d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"
+            fill="currentColor"
+          />
+        </svg>
+      </div>
+    );
+  }
   const isEmbedMedia = media.type === "embed" || media.kind === "embed";
   const [embedLoadState, setEmbedLoadState] = useState(() => createEmbedLoadState());
   const embedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
