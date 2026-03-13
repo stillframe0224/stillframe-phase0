@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import copy from "@/lib/copy";
+import copy, { getHeroCTA } from "@/lib/copy";
 import type { Lang } from "@/lib/copy";
 import { cardTypes } from "@/lib/cardTypes";
 import { track } from "@/lib/track";
@@ -185,7 +185,7 @@ export default function Home() {
           href="#demo"
           data-testid="cta-early-access"
           onClick={() => track("hero_cta_click")}
-          aria-label={copy.hero.cta[lang]}
+          aria-label={getHeroCTA(lang)}
           style={{ textDecoration: "none" }}
         >
           <button
@@ -209,7 +209,7 @@ export default function Home() {
               e.currentTarget.style.background = "transparent";
             }}
           >
-            {copy.hero.cta[lang]}
+            {getHeroCTA(lang)}
           </button>
         </a>
       </section>
