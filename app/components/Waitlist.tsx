@@ -12,6 +12,25 @@ interface WaitlistProps {
   fallbackEmail: string;
 }
 
+
+const BLOCKED_DOMAINS = new Set([
+  "example.com",
+  "example.org",
+  "example.net",
+  "test.com",
+  "test.net",
+  "localhost",
+  "mailinator.com",
+  "guerrillamail.com",
+  "10minutemail.com",
+  "tempmail.com",
+]);
+
+function isValidEmailDomain(email: string): boolean {
+  const domain = email.split("@")[1]?.toLowerCase();
+  return domain ? !BLOCKED_DOMAINS.has(domain) : false;
+}
+
 export default function Waitlist({
   lang,
   postUrl,
@@ -27,6 +46,13 @@ export default function Waitlist({
     e.preventDefault();
     const normalizedEmail = email.trim().toLowerCase();
     if (!normalizedEmail) return;
+
+    // Block invalid/test domains
+    if (!isValidEmailDomain(normalizedEmail)) {
+      setErrorMessage(lang === "ja" ? "このメールアドレスは使用できません" : "This email address cannot be used");
+      track("waitlist_submit_blocked", { email: normalizedEmail, reason: "invalid_domain" });
+      return;
+    }
 
     const destination = postUrl ? "webhook" : fallbackEmail ? "mailto" : "none";
     track("waitlist_submit", { email: normalizedEmail, destination });
