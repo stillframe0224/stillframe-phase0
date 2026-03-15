@@ -184,7 +184,7 @@ export default function Home() {
         <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
           <a
             href="#waitlist"
-            data-testid="cta-waitlist"
+            data-testid="cta-waitlist-hero"
             onClick={() => track("hero_cta_waitlist_click")}
             aria-label={copy.hero.ctaWaitlist[lang]}
             style={{ textDecoration: "none" }}
