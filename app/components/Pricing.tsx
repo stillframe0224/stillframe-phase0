@@ -85,13 +85,14 @@ export default function Pricing({ lang, gumroadUrl }: PricingProps) {
       <p
         style={{
           margin: "0 0 14px",
-          fontSize: 13,
+          fontSize: 14,
           color: "#8a5a00",
           fontFamily: "var(--font-dm)",
-          background: "#fff4da",
-          border: "1px solid #f3dfb3",
+          background: "#ffe6a0",
+          border: "1px solid #e6c470",
           borderRadius: 999,
-          padding: "6px 12px",
+          padding: "8px 16px",
+          fontWeight: 600,
           display: "inline-block",
         }}
       >

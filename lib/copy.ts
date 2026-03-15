@@ -16,12 +16,12 @@ const copy = {
       ja: "リンクを貼れば画像が現れる。写真を落とせばカードになる。何もしなくてもAIが埋める。画像を探す手間なし。空白の思考なし。",
     },
     cta: {
-      en: "Try Quick Capture",
-      ja: "Quick Capture を試す",
+      en: "Start Capturing Your Thoughts",
+      ja: "思考のキャプチャを始める",
     },
   },
   demo: {
-    h2: { en: "Try Quick Capture", ja: "Quick Capture を試す" },
+    h2: { en: "Start Capturing Your Thoughts", ja: "思考のキャプチャを始める" },
     placeholder: {
       en: "Type a thought…",
       ja: "思いつきを入力…",
