@@ -15,3 +15,23 @@
   color: rgba(0,0,0,0.5) !important;
 }
 
+
+/* Loading animations for card thumbnails */
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.shinen-loading-shimmer {
+  background: linear-gradient(90deg, #f0f0f0 0%, #f8f8f8 50%, #f0f0f0 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
+.shinen-loading-spinner {
+  animation: spin 1s linear infinite;
+}
