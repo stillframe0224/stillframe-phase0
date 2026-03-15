@@ -6,6 +6,7 @@ export const SELFHEAL_MIGRATION_MAX_PER_RUN = 30;
 const GENERIC_X_THUMB_PATTERNS = [
   /https?:\/\/abs\.twimg\.com\/.*\/og\/image\.png(?:[?#].*)?$/i,
   /https?:\/\/abs\.twimg\.com\/responsive-web\/client-web\/og\/image\.png(?:[?#].*)?$/i,
+  /https?:\/\/abs\.twimg\.com\/responsive-web\/client-web\/icon-default(?:\.[a-z0-9]+)?\.png(?:[?#].*)?$/i,
 ];
 
 function normalizeMaybeUrl(input) {

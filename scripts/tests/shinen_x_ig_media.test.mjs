@@ -177,6 +177,26 @@ test("normalizeOnSave drops generic X login-wall thumbnail", () => {
   assert.equal(result.reasons.includes("guard:drop_generic_x_thumb"), true);
 });
 
+test("normalizeOnSave drops X icon-default thumbnail", () => {
+  const draft = {
+    id: 31,
+    type: 8,
+    text: "x card icon",
+    px: 0,
+    py: 0,
+    z: -10,
+    source: { url: "https://x.com/user/status/123", site: "x.com" },
+    media: {
+      type: "image",
+      kind: "image",
+      url: "https://abs.twimg.com/responsive-web/client-web/icon-default.522d363a.png",
+    },
+  };
+  const result = normalizeOnSave(draft);
+  assert.equal(result.card.media, undefined);
+  assert.equal(result.reasons.includes("guard:drop_generic_x_thumb"), true);
+});
+
 test("normalizeOnSave is idempotent", () => {
   const draft = {
     id: 4,

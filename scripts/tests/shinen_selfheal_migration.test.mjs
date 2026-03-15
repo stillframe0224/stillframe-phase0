@@ -70,6 +70,34 @@ test("generic X login-wall thumbnail is dropped and unfurl action is enqueued", 
   );
 });
 
+test("icon-default X thumbnail is dropped and unfurl action is enqueued", () => {
+  const input = card({
+    id: 43,
+    type: 8,
+    text: "x card icon",
+    source: { url: "https://x.com/user/status/123", site: "x.com" },
+    media: {
+      type: "image",
+      kind: "image",
+      url: "https://abs.twimg.com/responsive-web/client-web/icon-default.522d363a.png",
+    },
+  });
+  const migrated = migrateCard(input);
+  assert.equal(migrated.changed, true);
+  assert.equal(migrated.card.media, undefined);
+  assert.equal(
+    migrated.actions.some((action) => action.type === "drop_thumbnail"),
+    true,
+  );
+  assert.equal(
+    migrated.actions.some(
+      (action) =>
+        action.type === "enqueue_unfurl" && action.url === "https://x.com/user/status/123",
+    ),
+    true,
+  );
+});
+
 test("migration is idempotent", () => {
   const first = migrateCard(
     card({

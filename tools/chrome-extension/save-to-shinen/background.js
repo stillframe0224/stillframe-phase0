@@ -222,6 +222,42 @@ function extractPageData() {
     return x.slice(0, 2000);
   }
 
+  function isXHost() {
+    const host = (location.hostname || '').toLowerCase();
+    return (
+      host === 'x.com' ||
+      host.endsWith('.x.com') ||
+      host === 'twitter.com' ||
+      host.endsWith('.twitter.com')
+    );
+  }
+
+  function isGenericXThumb(url) {
+    const low = String(url || '').toLowerCase();
+    return (
+      /https?:\/\/abs\.twimg\.com\/.*\/og\/image\.png(?:[?#].*)?$/i.test(low) ||
+      /https?:\/\/abs\.twimg\.com\/responsive-web\/client-web\/icon-default(?:\.[a-z0-9]+)?\.png(?:[?#].*)?$/i.test(low)
+    );
+  }
+
+  function upgradeXOrig(raw) {
+    const abs = norm(raw);
+    if (!abs) return null;
+    try {
+      const parsed = new URL(abs);
+      const host = (parsed.hostname || '').toLowerCase();
+      if (!host.includes('twimg.com')) return parsed.toString();
+      parsed.pathname = parsed.pathname.replace(/:(small|medium|large|orig)$/i, ':orig');
+      const name = (parsed.searchParams.get('name') || '').toLowerCase();
+      if (!name || name === 'small' || name === 'medium' || name === 'large' || name === 'thumb') {
+        parsed.searchParams.set('name', 'orig');
+      }
+      return parsed.toString();
+    } catch (_error) {
+      return abs;
+    }
+  }
+
   // Extract site name
   const siteMeta = document.querySelector('meta[property="og:site_name"]');
   const site = (siteMeta?.content || '').slice(0, 100);
@@ -243,15 +279,29 @@ function extractPageData() {
     }
   }
 
+  const xHost = isXHost();
+
   // 1. Meta tags
-  const metas = document.querySelectorAll(
-    'meta[property="og:image"],' +
-    'meta[property="og:image:secure_url"],' +
-    'meta[property="og:image:url"],' +
-    'meta[name="twitter:image"],' +
-    'meta[property="twitter:image"]'
-  );
-  metas.forEach((m) => add(m.content));
+  if (xHost) {
+    // On X/Twitter, prefer twitter:image over og:image to avoid login-wall/logo assets.
+    const twMetas = document.querySelectorAll(
+      'meta[name="twitter:image"],meta[property="twitter:image"]'
+    );
+    twMetas.forEach((m) => add(m.content));
+    const ogMetas = document.querySelectorAll(
+      'meta[property="og:image"],meta[property="og:image:secure_url"],meta[property="og:image:url"]'
+    );
+    ogMetas.forEach((m) => add(m.content));
+  } else {
+    const metas = document.querySelectorAll(
+      'meta[property="og:image"],' +
+      'meta[property="og:image:secure_url"],' +
+      'meta[property="og:image:url"],' +
+      'meta[name="twitter:image"],' +
+      'meta[property="twitter:image"]'
+    );
+    metas.forEach((m) => add(m.content));
+  }
 
   // 2. Link rel=image_src
   const lnk = document.querySelector('link[rel="image_src"]');
@@ -344,10 +394,10 @@ function extractPageData() {
   let img = '';
   for (const c of candidates) {
     const n = norm(c);
-    if (n) {
-      img = n;
-      break;
-    }
+    if (!n) continue;
+    if (xHost && isGenericXThumb(n)) continue;
+    img = xHost ? (upgradeXOrig(n) || n) : n;
+    break;
   }
 
   return { site, img, sel };
