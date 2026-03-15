@@ -178,7 +178,7 @@ export default function BookmarkletPage() {
             return { provider: "x", kind: "embed", mk: "embed", embed: xEmbed.embed, poster: bestPoster, image: bestImage || "" };
           }
           if (bestImage) {
-            return { provider: "x", kind: "image", mk: "embed", embed: xEmbed.embed, poster: bestImage, image: bestImage };
+            return { provider: "x", kind: "image", poster: bestImage, image: bestImage };
           }
           return { provider: "x", kind: "embed", mk: "embed", embed: xEmbed.embed, poster: "", image: "" };
         }

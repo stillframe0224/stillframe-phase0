@@ -126,6 +126,15 @@ test("URL input path upgrades plain URL text to clip card with source+type8", ()
   assert.match(src, /const normalizedUrl = normalizeMaybeUrl\(text\)/);
 });
 
+test("auto-capture prefers image over embed for X and guards duplicate url ingestion", () => {
+  const canvasPath = path.resolve("app/app/shinen/ShinenCanvas.tsx");
+  const src = fs.readFileSync(canvasPath, "utf8");
+  assert.match(src, /autoCaptureSeenRef = useRef<Set<string>>\(new Set\(\)\)/);
+  assert.match(src, /const shouldPreferImageOverEmbed = provider === "x" && Boolean\(img\)/);
+  assert.match(src, /if \(mediaKind === "embed" && embedUrl && !shouldPreferImageOverEmbed\)/);
+  assert.match(src, /normalizeMaybeUrl\(existingUrl\) \?\? existingUrl\) === url/);
+});
+
 test("normalizeOnSave upgrades URL-only plain note into clip card", () => {
   const draft = {
     id: 1,

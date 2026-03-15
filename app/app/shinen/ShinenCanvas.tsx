@@ -213,6 +213,7 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
   const reorderDragRef = useRef<ReorderDragState | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
   const selfHealRanRef = useRef(false);
+  const autoCaptureSeenRef = useRef<Set<string>>(new Set());
 
   const applySaveGuards = useCallback(
     (cardDraft: ShinenCard): ShinenCard => {
@@ -1008,10 +1009,28 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
   // Bookmarklet auto-capture: parse ?auto=1&url=... params on mount
   useEffect(() => {
     if (typeof window === "undefined") return;
+    const clearAutoCaptureParams = () => {
+      try {
+        const cleanUrl = new URL(window.location.href);
+        for (const k of ["auto", "url", "title", "desc", "img", "poster", "mk", "embed", "provider", "site", "s"]) {
+          cleanUrl.searchParams.delete(k);
+        }
+        window.history.replaceState(null, "", cleanUrl.toString());
+      } catch {
+        // Ignore URL cleanup failures.
+      }
+    };
     const params = new URLSearchParams(window.location.search);
     if (params.get("auto") !== "1") return;
-    const url = params.get("url");
-    if (!url) return;
+    const rawUrl = params.get("url");
+    if (!rawUrl) return;
+    const url = normalizeMaybeUrl(rawUrl) ?? rawUrl;
+    const autoCaptureKey = `auto:${url}`;
+    if (autoCaptureSeenRef.current.has(autoCaptureKey)) {
+      clearAutoCaptureParams();
+      return;
+    }
+    autoCaptureSeenRef.current.add(autoCaptureKey);
 
     let parsedHost = "";
     try { parsedHost = new URL(url).hostname; } catch { /* invalid url */ }
@@ -1019,7 +1038,8 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
     const img = params.get("img") || undefined;
     const poster = params.get("poster") || undefined;
     const mediaKind = params.get("mk") || undefined;
-    const embedUrl = params.get("embed") || undefined;
+    const rawEmbedUrl = params.get("embed") || undefined;
+    const embedUrl = rawEmbedUrl ? (normalizeMaybeUrl(rawEmbedUrl) ?? rawEmbedUrl) : undefined;
     const provider = params.get("provider") as ("youtube" | "x" | "instagram" | null) || null;
     const site = params.get("site") || undefined;
     const sel = params.get("s") || undefined;
@@ -1034,10 +1054,19 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
 
     setCards((prev) => {
       // Dedup: skip if a card with this URL already exists
-      if (prev.some((c) => c.source?.url === url)) return prev;
+      if (
+        prev.some((c) => {
+          const existingUrl = c.source?.url;
+          if (!existingUrl) return false;
+          return (normalizeMaybeUrl(existingUrl) ?? existingUrl) === url;
+        })
+      ) {
+        return prev;
+      }
       const pos = layoutIdx < 0 || LAYOUTS[layoutIdx] === "scatter"
         ? findNonOverlappingPosition(prev)
         : { px: (Math.random() - 0.5) * 380, py: (Math.random() - 0.5) * 200 };
+      const shouldPreferImageOverEmbed = provider === "x" && Boolean(img);
       const cardDraft: ShinenCard = {
         id: Date.now(),
         type: 8, // clip
@@ -1055,7 +1084,7 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
               thumbnail: `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`,
             };
           }
-          if (mediaKind === "embed" && embedUrl) {
+          if (mediaKind === "embed" && embedUrl && !shouldPreferImageOverEmbed) {
             return {
               type: "embed" as const,
               kind: "embed" as const,
@@ -1083,15 +1112,7 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
     });
 
     // Clean auto-capture params from URL bar
-    try {
-      const cleanUrl = new URL(window.location.href);
-      for (const k of ["auto", "url", "title", "desc", "img", "poster", "mk", "embed", "provider", "site", "s"]) {
-        cleanUrl.searchParams.delete(k);
-      }
-      window.history.replaceState(null, "", cleanUrl.toString());
-    } catch {
-      // Ignore URL cleanup failures.
-    }
+    clearAutoCaptureParams();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [applySaveGuards, layoutIdx]); // Run on mount and when save guard callback changes
 

@@ -116,6 +116,13 @@ test("bookmarklet script keeps Amazon DOM selectors and img forwarding", () => {
   assert.match(src, /naturalWidth/);
 });
 
+test("bookmarklet treats X photo capture as image without embed flags", () => {
+  const bookmarkletPath = path.resolve(__dirname, "../../app/bookmarklet/page.tsx");
+  const src = fs.readFileSync(bookmarkletPath, "utf8");
+  assert.match(src, /return \{ provider: "x", kind: "image", poster: bestImage, image: bestImage \};/);
+  assert.doesNotMatch(src, /kind: "image", mk: "embed"/);
+});
+
 test("link-preview route applies strengthened Amazon page headers", () => {
   const routePath = path.resolve(__dirname, "../../app/api/link-preview/route.ts");
   const src = fs.readFileSync(routePath, "utf8");
