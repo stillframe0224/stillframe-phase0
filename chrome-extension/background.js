@@ -326,7 +326,6 @@ function extractPageData() {
   if (host === 'x.com' || host.endsWith('.x.com') || host === 'twitter.com' || host.endsWith('.twitter.com')) {
     embed = detectXEmbed(sourceUrl) || '';
     provider = embed ? 'x' : '';
-    mk = embed ? 'embed' : '';
     let bestPoster = '';
     let bestVideoArea = 0;
     const videos = document.querySelectorAll('video');
@@ -349,6 +348,10 @@ function extractPageData() {
     });
     img = bestImage ? upgradeXOrig(bestImage) : '';
     poster = bestPoster || img || '';
+    mk = bestPoster ? 'embed' : (img ? 'image' : (embed ? 'embed' : ''));
+    if (mk !== 'embed') {
+      embed = '';
+    }
   } else if (host === 'instagram.com' || host.endsWith('.instagram.com') || host === 'instagr.am') {
     const srcsetNodes = document.querySelectorAll('img[srcset]');
     let bestSrcset = '';

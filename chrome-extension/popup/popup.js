@@ -77,17 +77,10 @@ async function init() {
         savedAt: Date.now(),
       };
 
-      // Enqueue to chrome.storage.local (await ensures data persists before popup close)
-      await enqueue(chrome.storage.local, clipData);
-
-      statusEl.textContent = "Saved! Open SHINEN to see your card.";
-      btn.textContent = "Saved \u2713";
-      await updateQueueCount();
-
-      // Also try to open SHINEN (if not already open)
       const shinenTabs = await chrome.tabs.query({ url: SHINEN_BASE + "*" });
       if (shinenTabs.length === 0) {
-        // Build URL with params for immediate card creation
+        // If SHINEN is not open, create card via URL params directly.
+        // Do NOT enqueue as well, otherwise content-bridge will replay and create duplicates.
         const params = new URLSearchParams();
         params.set("auto", "1");
         params.set("url", sourceUrl.slice(0, 2000));
@@ -100,8 +93,14 @@ async function init() {
         if (extracted.site) params.set("site", extracted.site.slice(0, 100));
         if (extracted.sel) params.set("s", extracted.sel.slice(0, 1200));
         await chrome.tabs.create({ url: `${SHINEN_BASE}?${params.toString()}` });
+      } else {
+        // SHINEN tab exists: enqueue and let content-bridge deliver once.
+        await enqueue(chrome.storage.local, clipData);
       }
-      // If SHINEN is already open, the content bridge will pick up the queue change
+
+      statusEl.textContent = "Saved! Open SHINEN to see your card.";
+      btn.textContent = "Saved \u2713";
+      await updateQueueCount();
     } catch (e) {
       console.error("[SHINEN] Save failed:", e);
       statusEl.textContent = "Error saving. Try again.";
@@ -294,7 +293,7 @@ function extractPageData() {
       });
       if (bestImage) bestImage = upgradeXOrig(bestImage);
       if (bestPoster) return { mk: "embed", provider: "x", embed, poster: bestPoster, img: bestImage || bestPoster };
-      if (bestImage) return { mk: "embed", provider: "x", embed, poster: bestImage, img: bestImage };
+      if (bestImage) return { mk: "image", provider: "x", embed: "", poster: bestImage, img: bestImage };
       return { mk: "embed", provider: "x", embed, poster: "", img: "" };
     }
 
