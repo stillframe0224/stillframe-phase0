@@ -79,10 +79,15 @@ const copy = {
         "エクスポート & API",
       ],
     },
+    badge: { en: "Launch Offer", ja: "ローンチ特別価格" },
     cta: { en: "Get Early Access", ja: "早期アクセスを取得" },
     urgency: {
-      en: "Early-bird pricing: first 20 members keep this price forever",
-      ja: "先着20名はこの価格をずっと維持できます",
+      en: "First 20 members lock in this price forever — limited spots left",
+      ja: "先着20名限定 — この価格をずっと維持。残りわずか",
+    },
+    guarantee: {
+      en: "Cancel anytime. 7-day money-back guarantee.",
+      ja: "いつでも解約可。7日間返金保証。",
     },
   },
   waitlist: {
