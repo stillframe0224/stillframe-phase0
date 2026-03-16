@@ -212,6 +212,17 @@ export default function Home() {
             {copy.hero.cta[lang]}
           </button>
         </a>
+        <p
+          style={{
+            fontSize: 12,
+            color: "rgba(0,0,0,0.45)",
+            marginTop: 10,
+            fontFamily: "var(--font-dm), system-ui, sans-serif",
+            letterSpacing: "0.02em",
+          }}
+        >
+          {copy.hero.trustBadge[lang]}
+        </p>
       </section>
 
       {/* Hero Sample Cards */}

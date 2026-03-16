@@ -19,6 +19,10 @@ const copy = {
       en: "Try Quick Capture",
       ja: "Quick Capture を試す",
     },
+    trustBadge: {
+      en: "No credit card • Instant access",
+      ja: "クレカ不要 • 即時アクセス",
+    },
   },
   demo: {
     h2: { en: "Try Quick Capture", ja: "Quick Capture を試す" },
@@ -83,6 +87,10 @@ const copy = {
     urgency: {
       en: "Early-bird pricing: first 20 members keep this price forever",
       ja: "先着20名はこの価格をずっと維持できます",
+    trustBadge: {
+      en: "No credit card • Instant access",
+      ja: "クレカ不要 • 即時アクセス",
+    },
     },
   },
   waitlist: {
@@ -92,6 +100,10 @@ const copy = {
     submitting: { en: "Sending...", ja: "送信中..." },
     trust: {
       en: "Just launch updates. No spam, no sharing.",
+    trustBadge: {
+      en: "No credit card • Instant access",
+      ja: "クレカ不要 • 即時アクセス",
+    },
       ja: "お知らせのみ。スパム配信・第三者共有はしません。",
     },
     success: {
