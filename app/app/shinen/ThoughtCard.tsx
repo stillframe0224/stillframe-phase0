@@ -35,6 +35,8 @@ interface ThoughtCardProps {
   onReorderDragStart?: (cardId: number, e: React.PointerEvent) => void;
   onResizeStart?: (cardId: number, e: React.PointerEvent) => void;
   onDelete?: (cardId: number) => void;
+  ogLoading?: boolean;
+  ogError?: boolean;
 }
 
 function buildCardSnapshot(card: ShinenCard, linkUrl: string | null, thumbnailUrl: string | null) {
@@ -69,6 +71,8 @@ export default function ThoughtCard({
   onReorderDragStart,
   onResizeStart,
   onDelete,
+  ogLoading = false,
+  ogError = false,
 }: ThoughtCardProps) {
   const floatY = isDragging ? 0 : Math.sin(time * 0.0005 + card.id * 2.1) * 3;
 
@@ -171,6 +175,27 @@ export default function ThoughtCard({
         >
         {/* Media preview / playback area */}
         {hasMedia && <MediaPreview card={card} isPlaying={isPlaying} onMediaClick={onMediaClick} />}
+
+        {/* OG image loading/error feedback for clip cards */}
+        {card.type === 8 && !hasMedia && card.source?.url && (ogLoading || ogError) && (
+          <div
+            style={{
+              margin: "-16px -18px 0 -18px",
+              borderRadius: "10px 10px 0 0",
+              height: 140,
+              background: ogError ? "rgba(240,200,200,0.15)" : "rgba(0,0,0,0.02)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: 28,
+              color: ogError ? "rgba(180,35,24,0.4)" : "rgba(0,0,0,0.15)",
+              fontFamily: "sans-serif",
+              border: ogError ? "1px dashed rgba(180,35,24,0.2)" : "1px dashed rgba(0,0,0,0.08)",
+            }}
+          >
+            {ogLoading ? "⏳" : "🖼️"}
+          </div>
+        )}
 
         {/* Text content */}
         {card.type === 8 ? (() => {

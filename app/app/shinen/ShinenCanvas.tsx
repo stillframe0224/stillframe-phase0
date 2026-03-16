@@ -267,7 +267,7 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
   );
 
   // Lazy-fetch OG thumbnails for clip cards without media
-  useOgThumbnails(cards, setCards);
+  const { ogLoadingUrls, ogErrorUrls } = useOgThumbnails(cards, setCards);
 
   // Memos: localStorage-backed SSOT
   useEffect(() => {
@@ -1312,6 +1312,8 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
             onReorderDragStart={startReorderDrag}
             onResizeStart={handleResizeStart}
             onDelete={handleDeleteCard}
+            ogLoading={card.source?.url ? ogLoadingUrls.has(card.source.url) : false}
+            ogError={card.source?.url ? ogErrorUrls.has(card.source.url) : false}
           />
         ))}
       </div>
