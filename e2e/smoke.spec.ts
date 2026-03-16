@@ -4,7 +4,7 @@ test("LP CTAs are visible and clickable", async ({ page }) => {
   await page.goto("/");
 
   const pricing = page.getByTestId("cta-pricing").first();
-  const waitlist = page.getByTestId("cta-waitlist");
+  const waitlist = page.getByTestId("cta-waitlist").first();
 
   await expect(pricing).toBeVisible();
   await expect(waitlist).toBeVisible();
