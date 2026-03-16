@@ -26,6 +26,23 @@ export default function Pricing({ lang, gumroadUrl }: PricingProps) {
         textAlign: "center",
       }}
     >
+      <span
+        style={{
+          display: "inline-block",
+          fontSize: 11,
+          fontWeight: 600,
+          letterSpacing: "0.08em",
+          textTransform: "uppercase",
+          color: "#fff",
+          background: "#c04000",
+          borderRadius: 999,
+          padding: "4px 14px",
+          marginBottom: 12,
+          fontFamily: "var(--font-dm)",
+        }}
+      >
+        {c.badge[lang]}
+      </span>
       <h2
         style={{
           fontFamily: "var(--font-serif)",
@@ -38,6 +55,18 @@ export default function Pricing({ lang, gumroadUrl }: PricingProps) {
         {c.h2[lang]}
       </h2>
       <div style={{ marginBottom: 24 }}>
+        <span
+          style={{
+            fontSize: 20,
+            fontWeight: 400,
+            color: "#bbb",
+            fontFamily: "var(--font-dm)",
+            textDecoration: "line-through",
+            marginRight: 8,
+          }}
+        >
+          {c.regularPrice}
+        </span>
         <span
           style={{
             fontSize: 56,
@@ -125,6 +154,29 @@ export default function Pricing({ lang, gumroadUrl }: PricingProps) {
           {c.cta[lang]}
         </PrimaryButton>
       )}
+      <p
+        style={{
+          marginTop: 14,
+          marginBottom: 0,
+          fontSize: 13,
+          color: "#c04000",
+          fontWeight: 500,
+          fontFamily: "var(--font-dm)",
+        }}
+      >
+        {c.founderNote[lang]}
+      </p>
+      <p
+        style={{
+          marginTop: 8,
+          marginBottom: 0,
+          fontSize: 12,
+          color: "#999",
+          fontFamily: "var(--font-dm)",
+        }}
+      >
+        {c.guarantee[lang]}
+      </p>
     </section>
   );
 }
