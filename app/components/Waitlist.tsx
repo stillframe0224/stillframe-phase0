@@ -148,7 +148,7 @@ export default function Waitlist({
           className="rounded-full px-6 py-3 text-sm whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[var(--accent-strong)]"
           style={{
             cursor: loading ? "wait" : undefined,
-            flex: "1 0 auto",
+            flex: "0 0 auto",
           }}
         >
           {loading ? c.submitting[lang] : c.cta[lang]}
