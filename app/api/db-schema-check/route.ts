@@ -17,6 +17,7 @@ export const dynamic = "force-dynamic";
 
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { logSupabaseError } from "@/lib/supabase/logger";
 
 interface ColumnResult {
   notes: boolean;
@@ -69,6 +70,7 @@ export async function GET() {
   try {
     supabase = await createClient();
   } catch (e) {
+    logSupabaseError("db-schema-check.createClient", e);
     return NextResponse.json(
       { ok: false, columns: { notes: false, media_kind: false }, error: String(e) },
       { status: 503 }
