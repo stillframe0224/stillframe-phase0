@@ -108,7 +108,7 @@ export default function Pricing({ lang, gumroadUrl }: PricingProps) {
           className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[var(--accent-strong)] rounded-full"
           style={{ textDecoration: "none" }}
         >
-          <PrimaryButton data-testid="cta-pricing" className="rounded-full px-8 py-3 text-sm">
+          <PrimaryButton data-testid="cta-pricing" className="rounded-full px-10 py-4 text-base shadow-lg font-semibold transition-transform hover:scale-105">
             {c.cta[lang]}
           </PrimaryButton>
         </a>
@@ -118,7 +118,7 @@ export default function Pricing({ lang, gumroadUrl }: PricingProps) {
           type="button"
           onClick={() => track("checkout_unavailable")}
           aria-label={`${c.cta[lang]} (unavailable)`}
-          className="rounded-full px-8 py-3 text-sm"
+          className="rounded-full px-10 py-4 text-base shadow-lg font-semibold transition-transform hover:scale-105"
           disabled
           title="Checkout URL is not configured"
         >
