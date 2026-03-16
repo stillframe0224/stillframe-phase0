@@ -91,14 +91,6 @@ const copy = {
     urgency: {
       en: "Early-bird pricing: first 20 members keep this price forever",
       ja: "先着20名はこの価格をずっと維持できます",
-    ctaWaitlist: {
-      en: "Join Waitlist",
-      ja: "ウェイトリストに参加",
-    },
-    ctaPricing: {
-      en: "View Pricing",
-      ja: "料金を見る",
-    },
     },
   },
   waitlist: {
@@ -108,14 +100,6 @@ const copy = {
     submitting: { en: "Sending...", ja: "送信中..." },
     trust: {
       en: "Just launch updates. No spam, no sharing.",
-    ctaWaitlist: {
-      en: "Join Waitlist",
-      ja: "ウェイトリストに参加",
-    },
-    ctaPricing: {
-      en: "View Pricing",
-      ja: "料金を見る",
-    },
       ja: "お知らせのみ。スパム配信・第三者共有はしません。",
     },
     success: {
