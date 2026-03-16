@@ -329,8 +329,8 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
     cardsSaveTimer.current = setTimeout(() => {
       try {
         localStorage.setItem(CARDS_STORAGE_KEY, JSON.stringify(cards));
-      } catch {
-        // Storage full or disabled — silently ignore.
+      } catch (error) {
+        console.error("[ShinenCanvas] Failed to save cards to localStorage:", error instanceof Error ? error.message : String(error));
       }
     }, CARDS_SAVE_DEBOUNCE);
     return () => {
@@ -1178,7 +1178,11 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
   const projCards = useMemo(() => {
     const projected = filteredCards.map((card) => ({ card, p: proj(card.px, card.py, card.z + zoom, cam.rx, cam.ry) }));
     if (sortDir === "custom") return projected;
-    return projected.sort((a, b) => a.p.z2 - b.p.z2);
+    if (sortDir === "oldest") {
+      return projected.sort((a, b) => (a.card.createdAt ?? 0) - (b.card.createdAt ?? 0));
+    }
+    // newest — descending by createdAt
+    return projected.sort((a, b) => (b.card.createdAt ?? 0) - (a.card.createdAt ?? 0));
   }, [filteredCards, cam.rx, cam.ry, zoom, sortDir]);
 
   const t = targetCam.current;
@@ -1331,6 +1335,7 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
         camIsRotated={camIsRotated}
         searchOpen={searchOpen}
         searchQuery={searchQuery}
+        sortDir={sortDir}
         onCycleLayout={cycleLayout}
         onResetCamera={handleResetAll}
         onToggleSearch={() => {
@@ -1341,6 +1346,7 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
         }}
         onSearchChange={setSearchQuery}
         onExport={handleExport}
+        onToggleSort={() => setSortDir((d) => d === "newest" ? "oldest" : "newest")}
       />
 
       {/* Hint */}

@@ -8,11 +8,13 @@ interface NavBarProps {
   camIsRotated: boolean;
   searchOpen: boolean;
   searchQuery: string;
+  sortDir: "newest" | "oldest" | "custom";
   onCycleLayout: () => void;
   onResetCamera: () => void;
   onToggleSearch: () => void;
   onSearchChange: (q: string) => void;
   onExport: () => void;
+  onToggleSort: () => void;
 }
 
 export default function NavBar({
@@ -21,11 +23,13 @@ export default function NavBar({
   camIsRotated,
   searchOpen,
   searchQuery,
+  sortDir,
   onCycleLayout,
   onResetCamera,
   onToggleSearch,
   onSearchChange,
   onExport,
+  onToggleSort,
 }: NavBarProps) {
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -247,6 +251,33 @@ export default function NavBar({
             <rect x="10" y="10" width="5" height="5" rx="1" />
           </svg>
           {layoutLabel} <span style={{ opacity: 0.35, fontSize: 9 }}>A</span>
+        </button>
+
+        {/* Sort button */}
+        <button
+          className="tb17"
+          data-testid="sort-btn"
+          onClick={onToggleSort}
+          aria-label="Toggle sort order"
+          style={{
+            background: "rgba(0,0,0,0.03)",
+            border: "1px solid rgba(0,0,0,0.08)",
+            borderRadius: 8,
+            padding: "4px 10px",
+            minHeight: TAP_TARGET_MIN,
+            minWidth: TAP_TARGET_MIN,
+            fontSize: 10,
+            fontFamily: "'DM Sans',sans-serif",
+            color: "rgba(0,0,0,0.35)",
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 4,
+          }}
+        >
+          {sortDir === "oldest" ? "OLD" : sortDir === "custom" ? "CST" : "NEW"}
+          <span style={{ opacity: 0.35, fontSize: 9 }}>S</span>
         </button>
 
         {/* Reset button */}
