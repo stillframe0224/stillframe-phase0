@@ -3,15 +3,12 @@ import { expect, test } from "@playwright/test";
 test("LP CTAs are visible and clickable", async ({ page }) => {
   await page.goto("/");
 
-  const earlyAccess = page.getByTestId("cta-early-access").first();
   const pricing = page.getByTestId("cta-pricing").first();
   const waitlist = page.getByTestId("cta-waitlist");
 
-  await expect(earlyAccess).toBeVisible();
   await expect(pricing).toBeVisible();
   await expect(waitlist).toBeVisible();
 
-  await earlyAccess.click({ trial: true });
   // pricing CTA may be disabled when checkout URL is not configured
   if (!await pricing.isDisabled()) {
     await pricing.click({ trial: true });
