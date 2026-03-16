@@ -19,6 +19,14 @@ const copy = {
       en: "Try Quick Capture",
       ja: "Quick Capture を試す",
     },
+    ctaWaitlist: {
+      en: "Join Waitlist",
+      ja: "ウェイトリストに参加",
+    },
+    ctaPricing: {
+      en: "View Pricing",
+      ja: "料金を見る",
+    },
   },
   demo: {
     h2: { en: "Try Quick Capture", ja: "Quick Capture を試す" },

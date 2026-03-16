@@ -175,8 +175,8 @@ export function useOgThumbnails(
                 posterUrl: hit.posterUrl ?? hit.imageUrl ?? undefined,
                 provider: hit.provider ?? undefined,
               };
-            } else if (hit.imageUrl && c.source?.url && isImageAllowedHost(c.source.url)) {
-              updates.media = { type: "image" as const, kind: "image" as const, url: hit.imageUrl };
+            } else if (c.source?.url && isImageAllowedHost(c.source.url)) {
+              updates.media = { type: "image" as const, kind: "image" as const, url: hit.imageUrl ?? "/fallback-og.svg" };
             }
           }
           // Always apply favicon
@@ -225,10 +225,11 @@ export function useOgThumbnails(
             writeCache(currentCache);
 
             const embed = data.mediaKind === "embed" && data.embedUrl ? data : null;
-            const showImage = !embed && data.image && isImageAllowedHost(url);
+            const shouldShowImage = !embed && isImageAllowedHost(url);
+            const imageUrl = data.image ?? (shouldShowImage ? "/fallback-og.svg" : null);
             const favicon = data.favicon ?? null;
 
-            if (embed || showImage || favicon) {
+            if (embed || shouldShowImage || favicon) {
               setCards((prev) =>
                 prev.map((c) => {
                   if (c.id !== id) return c;
@@ -243,8 +244,8 @@ export function useOgThumbnails(
                         posterUrl: embed.posterUrl ?? embed.image ?? undefined,
                         provider: embed.provider,
                       };
-                    } else if (showImage) {
-                      updates.media = { type: "image" as const, kind: "image" as const, url: data.image! };
+                    } else if (shouldShowImage && imageUrl) {
+                      updates.media = { type: "image" as const, kind: "image" as const, url: imageUrl };
                     }
                   }
                   if (favicon && c.source && !c.source.favicon) {
