@@ -120,7 +120,7 @@ export default function InputBar({ onSubmit, onFileUpload, time }: InputBarProps
     <div
       style={{
         position: "absolute",
-        bottom: 28,
+        bottom: "max(28px, env(safe-area-inset-bottom, 0px))",
         left: "50%",
         transform: "translateX(-50%)",
         zIndex: 100,

@@ -7,8 +7,11 @@
  * already have media.type === "youtube").
  */
 
+
 import { useEffect, useRef } from "react";
 import type { ShinenCard } from "../lib/types";
+
+const FALLBACK_IMAGE = "/enso.png";
 
 const OG_CACHE_KEY = "shinen_og_v1";
 const DEFAULT_FAILURE_TTL = 5 * 60 * 1000; // 5 min
@@ -139,7 +142,7 @@ export function useOgThumbnails(
         if (entry.image || entry.favicon || (entry.mediaKind === "embed" && entry.embedUrl)) {
           cacheHits.push({
             id: card.id,
-            imageUrl: entry.image,
+            imageUrl: entry.image ?? FALLBACK_IMAGE,
             mediaKind: entry.mediaKind,
             embedUrl: entry.embedUrl ?? null,
             posterUrl: entry.posterUrl ?? null,
@@ -176,7 +179,8 @@ export function useOgThumbnails(
                 provider: hit.provider ?? undefined,
               };
             } else if (hit.imageUrl && c.source?.url && isImageAllowedHost(c.source.url)) {
-              updates.media = { type: "image" as const, kind: "image" as const, url: hit.imageUrl };
+              const imageUrl = hit.imageUrl || FALLBACK_IMAGE;
+              updates.media = { type: "image" as const, kind: "image" as const, url: imageUrl };
             }
           }
           // Always apply favicon
@@ -225,7 +229,8 @@ export function useOgThumbnails(
             writeCache(currentCache);
 
             const embed = data.mediaKind === "embed" && data.embedUrl ? data : null;
-            const showImage = !embed && data.image && isImageAllowedHost(url);
+            const imageUrl = data.image || FALLBACK_IMAGE;
+            const showImage = !embed && isImageAllowedHost(url);
             const favicon = data.favicon ?? null;
 
             if (embed || showImage || favicon) {
@@ -244,7 +249,7 @@ export function useOgThumbnails(
                         provider: embed.provider,
                       };
                     } else if (showImage) {
-                      updates.media = { type: "image" as const, kind: "image" as const, url: data.image! };
+                      updates.media = { type: "image" as const, kind: "image" as const, url: imageUrl };
                     }
                   }
                   if (favicon && c.source && !c.source.favicon) {
