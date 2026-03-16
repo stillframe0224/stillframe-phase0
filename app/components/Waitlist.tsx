@@ -33,9 +33,13 @@ export default function Waitlist({
     setLoading(true);
     setErrorMessage(null);
 
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+
     try {
       if (postUrl) {
         const res = await fetch(postUrl, {
+          signal: controller.signal,
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email: normalizedEmail }),
@@ -56,13 +60,16 @@ export default function Waitlist({
       }
 
       setSubmitted(true);
-    } catch (error) {
+    clearTimeout(timeoutId);
+      } catch (error) {
+      clearTimeout(timeoutId);
       setErrorMessage(c.error[lang]);
       track("waitlist_submit_failed", {
         email: normalizedEmail,
         destination,
         reason: error instanceof Error ? error.message : "unknown_error",
       });
+    clearTimeout(timeoutId);
     } finally {
       setLoading(false);
     }
