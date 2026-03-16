@@ -181,37 +181,71 @@ export default function Home() {
         >
           {copy.hero.sub[lang]}
         </p>
-        <a
-          href="#demo"
-          data-testid="cta-early-access"
-          onClick={() => track("hero_cta_click")}
-          aria-label={copy.hero.cta[lang]}
-          style={{ textDecoration: "none" }}
-        >
-          <button
+        <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
+          <a
+            href="#waitlist"
+            data-testid="cta-waitlist"
+            onClick={() => track("hero_cta_waitlist_click")}
+            aria-label={copy.hero.ctaWaitlist[lang]}
+            style={{ textDecoration: "none" }}
+          >
+            <PrimaryButton className="rounded-full px-8 py-3 text-sm">
+              {copy.hero.ctaWaitlist[lang]}
+            </PrimaryButton>
+          </a>
+          <a
+            href="#pricing"
+            data-testid="cta-pricing"
+            onClick={() => track("hero_cta_pricing_click")}
+            aria-label={copy.hero.ctaPricing[lang]}
+            style={{ textDecoration: "none" }}
+          >
+            <button
+              style={{
+                padding: "10px 28px",
+                borderRadius: 999,
+                border: "1.5px solid rgba(0,0,0,0.75)",
+                background: "transparent",
+                color: "rgba(0,0,0,0.8)",
+                fontSize: 14,
+                fontWeight: 500,
+                letterSpacing: "0.04em",
+                fontFamily: "var(--font-dm), system-ui, sans-serif",
+                cursor: "pointer",
+                transition: "background 0.15s, color 0.15s",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = "rgba(0,0,0,0.06)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = "transparent";
+              }}
+            >
+              {copy.hero.ctaPricing[lang]}
+            </button>
+          </a>
+        </div>
+        <div style={{ marginTop: 16, textAlign: "center" }}>
+          <a
+            href="#demo"
+            onClick={() => track("hero_cta_demo_click")}
             style={{
-              padding: "10px 28px",
-              borderRadius: 999,
-              border: "1.5px solid rgba(0,0,0,0.75)",
-              background: "transparent",
-              color: "rgba(0,0,0,0.8)",
               fontSize: 14,
-              fontWeight: 500,
-              letterSpacing: "0.04em",
-              fontFamily: "var(--font-dm), system-ui, sans-serif",
-              cursor: "pointer",
-              transition: "background 0.15s, color 0.15s",
+              color: "#888",
+              textDecoration: "none",
+              transition: "color 0.15s",
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = "rgba(0,0,0,0.06)";
+              e.currentTarget.style.color = "#555";
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.background = "transparent";
+              e.currentTarget.style.color = "#888";
             }}
           >
-            {copy.hero.cta[lang]}
-          </button>
-        </a>
+            {copy.hero.cta[lang]} ↓
+          </a>
+        </div>
+
       </section>
 
       {/* Hero Sample Cards */}
