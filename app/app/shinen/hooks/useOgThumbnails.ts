@@ -5,9 +5,11 @@
  * Fetches /api/link-preview?url=<url>, caches results in localStorage,
  * and patches card.media via setCards. YouTube URLs are skipped (they
  * already have media.type === "youtube").
+ * 
+ * Returns { ogLoadingUrls, ogErrorUrls } for UI feedback.
  */
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { ShinenCard } from "../lib/types";
 
 const OG_CACHE_KEY = "shinen_og_v1";
@@ -103,6 +105,8 @@ export function useOgThumbnails(
   setCards: React.Dispatch<React.SetStateAction<ShinenCard[]>>,
 ) {
   const inflightRef = useRef<Set<string>>(new Set());
+  const [ogLoadingUrls, setOgLoadingUrls] = useState<Set<string>>(new Set());
+  const [ogErrorUrls, setOgErrorUrls] = useState<Set<string>>(new Set());
 
   // Derive a stable dependency key from clip cards that need fetching (no media, or missing favicon).
   const needsFetchKey = cards
@@ -192,6 +196,13 @@ export function useOgThumbnails(
 
     const controller = new AbortController();
 
+    // Mark URLs as loading
+    setOgLoadingUrls((prev) => {
+      const next = new Set(prev);
+      toFetch.forEach(({ url }) => next.add(url));
+      return next;
+    });
+
     for (const { id, url } of toFetch) {
       if (inflightRef.current.has(url)) continue;
       inflightRef.current.add(url);
@@ -211,6 +222,13 @@ export function useOgThumbnails(
             provider?: "youtube" | "x" | "instagram";
           }) => {
             inflightRef.current.delete(url);
+            // Remove from loading
+            setOgLoadingUrls((prev) => {
+              const next = new Set(prev);
+              next.delete(url);
+              return next;
+            });
+
             const currentCache = readCache();
             currentCache[url] = {
               image: data.image ?? null,
@@ -253,11 +271,30 @@ export function useOgThumbnails(
                   return Object.keys(updates).length > 0 ? { ...c, ...updates } : c;
                 }),
               );
+            } else {
+              // No image/embed found → mark as error
+              setOgErrorUrls((prev) => {
+                const next = new Set(prev);
+                next.add(url);
+                return next;
+              });
             }
           },
         )
         .catch(() => {
           inflightRef.current.delete(url);
+          // Remove from loading, add to error
+          setOgLoadingUrls((prev) => {
+            const next = new Set(prev);
+            next.delete(url);
+            return next;
+          });
+          setOgErrorUrls((prev) => {
+            const next = new Set(prev);
+            next.add(url);
+            return next;
+          });
+
           const currentCache = readCache();
           currentCache[url] = { image: null, fetchedAt: Date.now() };
           writeCache(currentCache);
@@ -269,4 +306,6 @@ export function useOgThumbnails(
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [needsFetchKey, setCards]);
+
+  return { ogLoadingUrls, ogErrorUrls };
 }
