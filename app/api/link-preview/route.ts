@@ -21,6 +21,7 @@ import {
   parseSyndicationTweetMedia,
   selectBestImageCandidate,
 } from "./xigMedia.mjs";
+import { logCardError } from "./errorLogger";
 
 export const dynamic = "force-dynamic";
 
@@ -774,6 +775,16 @@ export async function GET(request: Request) {
   } catch (e) {
     const reason = e instanceof Error ? e.message : "unknown";
     if (debug) console.log(JSON.stringify({ event: "link_preview_error", url, reason }));
+    
+    // Log error to Supabase for observability
+    await logCardError({
+      url,
+      error_type: reason === "blocked" ? "dns_blocked" : "ogp_fetch_failed",
+      error_message: reason,
+      user_agent: UA_CHROME,
+      stack_trace: e instanceof Error ? e.stack : undefined,
+    });
+    
     if (reason === "blocked") {
       return NextResponse.json({ error: "blocked_url" }, { status: 400 });
     }
