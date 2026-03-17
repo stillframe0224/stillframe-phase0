@@ -75,5 +75,12 @@
     "session": "nightly",
     "pr_url": "https://github.com/stillframe0224/stillframe-phase0/pull/218",
     "evidence": "/Users/array0224/stillframe-phase0/reports/triad/20260308-230000-readme-setup-guide.md"
+  },
+  {
+    "id": "20260317-080200-mobile-responsive-check",
+    "goal": "LP（app/page.tsx）のモバイル表示崩れを修正（CTA・Waitlistフォーム）",
+    "completed_at": "2026-03-17T08:15:00+09:00",
+    "pr_url": "https://github.com/stillframe0224/stillframe-phase0/pull/245",
+    "evidence": "/Users/array0224/stillframe-phase0/reports/triad/20260317-080200-mobile-responsive-check.md"
   }
 ]

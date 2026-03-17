@@ -1,0 +1,15 @@
+[
+  {
+    "tag": "build_fail",
+    "trigger_keywords": [
+      "モバイル表示",
+      "カードレイアウト崩れ",
+      "横スクロール",
+      "画像アスペクト比"
+    ],
+    "failure_count": 6,
+    "last_seen": "2026-03-13T06:37:17.571Z",
+    "severity": "warning",
+    "message": "Past failure: Code changes broke the build"
+  }
+]

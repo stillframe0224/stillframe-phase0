@@ -1,0 +1,14 @@
+{
+  "task_id": "20260313-080001-mobile-css-fix",
+  "goal": "モバイル表示のカードレイアウト崩れを修正（横スクロール・画像アスペクト比）",
+  "failed_at": "2026-03-13T06:32:11.076Z",
+  "error_tag": "build_fail",
+  "failure_class": "build_fail",
+  "symptom": "Command failed: cd \"/Users/array0224/stillframe-phase0\" && claude -p \"You are working on SHINEN (stillframe-phase0).\nRead CLAUDE.md for project context.\n\n## Task: モバイル表示のカードレイアウト崩れを修正（横スクロール・画像アスペクト比）\n\n## Definition of Done:\n- npm run build 通過\n- reports/triad/20260313-080001-mobile-css-fix.md 作成\n- P",
+  "root_cause_hypothesis": "Code changes broke the build",
+  "preventive_rule_candidate": "Add build check assertion to task dod",
+  "context_snapshot": {
+    "branch": "main",
+    "queue_count": 2
+  }
+}

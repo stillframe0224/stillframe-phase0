@@ -25,8 +25,13 @@ const DONE_JSON = path.join(RWL, 'DONE.json');
 const STATUS = path.join(RWL, 'status.json');
 const LOGS = path.join(RWL, 'logs');
 
+const SESSIONS_DIR = path.join(RWL, 'sessions');
+const LESSONS_DIR = path.join(RWL, 'lessons');
+const ADDON_PATH = path.join(LESSONS_DIR, 'system-addon.txt');
+const MAX_LESSONS = 7;
+
 // Ensure dirs exist
-[CURRENT, DONE_DIR, QUEUE, LOGS].forEach(d => fs.mkdirSync(d, { recursive: true }));
+[CURRENT, DONE_DIR, QUEUE, LOGS, SESSIONS_DIR, LESSONS_DIR].forEach(d => fs.mkdirSync(d, { recursive: true }));
 
 function log(msg) {
   const entry = { ts: new Date().toISOString(), ...msg };
@@ -45,6 +50,91 @@ function readStatus() {
 function writeStatus(s) {
   s.last_run_at = new Date().toISOString();
   fs.writeFileSync(STATUS, JSON.stringify(s, null, 2));
+}
+
+// === Lessons: セッション間学習 ===
+
+/**
+ * タスク実行結果をセッションログに記録し、lessonsファイルを更新し、
+ * system-addon.txt を再生成する
+ */
+function recordLesson(taskId, result) {
+  // 1. セッションログ（生データ）
+  const today = new Date().toISOString().split('T')[0];
+  const sessionPath = path.join(SESSIONS_DIR, `${today}.md`);
+  const entry = [
+    `## ${taskId} — ${result.status}`,
+    `Time: ${new Date().toISOString()}`,
+    result.status === 'success'
+      ? `Completed: ${result.summary || 'no summary'}`
+      : `Error: ${result.error || 'unknown'}`,
+    '---', ''
+  ].join('\n');
+  fs.appendFileSync(sessionPath, entry);
+
+  // 2. Lessons更新
+  if (result.status === 'error' || result.status === 'blocked') {
+    updateLessonsFile(
+      path.join(LESSONS_DIR, 'recent-failures.md'),
+      `- **${taskId}**: ${result.error || 'unknown'}. 回避策: ${result.workaround || '未特定'}`
+    );
+  } else if (result.status === 'success') {
+    updateLessonsFile(
+      path.join(LESSONS_DIR, 'recent-success-patterns.md'),
+      `- **${taskId}**: ${result.summary || 'completed'}`
+    );
+  }
+
+  // 3. system-addon.txt を再生成
+  regenerateAddon();
+  log({ step: 'lesson_recorded', task_id: taskId, status: result.status });
+}
+
+function updateLessonsFile(filePath, newLine) {
+  let content = fs.existsSync(filePath) ? fs.readFileSync(filePath, 'utf8') : '';
+  const lines = content.split('\n');
+  const headerEnd = lines.findIndex(l => l.includes('<!-- 以下に'));
+  const header = headerEnd >= 0 ? lines.slice(0, headerEnd + 1) : lines.slice(0, 4);
+  const items = lines.slice(headerEnd >= 0 ? headerEnd + 1 : 4).filter(l => l.startsWith('- '));
+  items.push(newLine);
+  while (items.length > MAX_LESSONS) items.shift();
+  fs.writeFileSync(filePath, [...header, ...items, ''].join('\n'));
+}
+
+/**
+ * recent-failures.md と recent-success-patterns.md を読み、
+ * system-addon.txt に統合する
+ */
+function regenerateAddon() {
+  const preamble = [
+    '以下はこのリポジトリで最近確認された失敗/成功パターンです。',
+    '失敗パターンの再発を避け、成功パターンを優先してください。',
+    '履歴の詳細説明より、再利用可能な作業原則として扱うこと。', ''
+  ].join('\n');
+
+  let body = '';
+  const failuresPath = path.join(LESSONS_DIR, 'recent-failures.md');
+  const successPath = path.join(LESSONS_DIR, 'recent-success-patterns.md');
+
+  if (fs.existsSync(failuresPath)) {
+    const items = fs.readFileSync(failuresPath, 'utf8').split('\n').filter(l => l.startsWith('- ')).join('\n');
+    if (items) body += `\n## 最近の失敗パターン（再発を避けること）\n${items}\n`;
+  }
+  if (fs.existsSync(successPath)) {
+    const items = fs.readFileSync(successPath, 'utf8').split('\n').filter(l => l.startsWith('- ')).join('\n');
+    if (items) body += `\n## 最近の成功パターン（優先して採用すること）\n${items}\n`;
+  }
+
+  fs.writeFileSync(ADDON_PATH, body ? preamble + body : '');
+}
+
+/**
+ * system-addon.txt を読み返す（プロンプト注入用）
+ */
+function loadLessonsAddon() {
+  if (!fs.existsSync(ADDON_PATH)) return '';
+  const content = fs.readFileSync(ADDON_PATH, 'utf8').trim();
+  return content || '';
 }
 
 function getCurrentTask() {
@@ -97,6 +187,9 @@ function markDone(task) {
 function executeTask(task) {
   log({ step: 'execute_start', task_id: task.id, goal: task.goal });
 
+  // Load lessons addon for prompt injection
+  const lessonsAddon = loadLessonsAddon();
+
   // Build the Claude Code prompt from the task
   const prompt = [
     `You are working on SHINEN (stillframe-phase0).`,
@@ -113,6 +206,8 @@ function executeTask(task) {
     `- Run npm run build — must pass with zero errors`,
     `- Create a PR to main`,
     `- Do NOT merge the PR`,
+    ``,
+    ...(lessonsAddon ? [`## Lessons from previous runs:`, lessonsAddon] : []),
   ].join('\n');
 
   try {
@@ -160,9 +255,11 @@ function main() {
 
   if (success) {
     markDone(task);
+    recordLesson(task.id, { status: 'success', summary: task.goal });
     status.failure_count = 0;
     status.last_task_id = task.id;
   } else {
+    recordLesson(task.id, { status: 'error', error: `Task failed (attempt ${(status.failure_count || 0) + 1})` });
     status.failure_count = (status.failure_count || 0) + 1;
     status.last_task_id = task.id;
   }
