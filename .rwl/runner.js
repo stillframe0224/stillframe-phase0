@@ -230,6 +230,60 @@ function executeTask(task) {
   }
 }
 
+// === Post-execution: allowed_files verification ===
+
+function verifyAllowedFiles(task) {
+  const allowed = task.allowed_files;
+  if (!allowed || (typeof allowed !== 'object')) {
+    log({ step: 'file_verify', task_id: task.id, result: 'skipped', reason: 'allowed_files not defined, skipping file verification' });
+    return { ok: true };
+  }
+
+  const expected = new Set([
+    ...(allowed.modify || []),
+    ...(allowed.create || []),
+  ]);
+
+  if (expected.size === 0) {
+    log({ step: 'file_verify', task_id: task.id, result: 'skipped', reason: 'allowed_files empty' });
+    return { ok: true };
+  }
+
+  // Get actual changed files relative to main
+  let actual;
+  try {
+    const raw = execSync('git diff --name-only main...HEAD', {
+      cwd: ROOT,
+      encoding: 'utf8',
+      timeout: 10000,
+    }).trim();
+    actual = raw ? raw.split('\n').filter(Boolean) : [];
+  } catch (err) {
+    log({ step: 'file_verify', task_id: task.id, result: 'error', error: `git diff failed: ${err.message?.slice(0, 200)}` });
+    return { ok: false, error: 'git diff failed' };
+  }
+
+  const actualSet = new Set(actual);
+  const unexpected_changes = actual.filter(f => !expected.has(f));
+  const missing_changes = [...expected].filter(f => !actualSet.has(f));
+
+  if (unexpected_changes.length === 0 && missing_changes.length === 0) {
+    log({ step: 'file_verify', task_id: task.id, result: 'pass', actual_files: actual });
+    return { ok: true };
+  }
+
+  log({
+    step: 'file_verify',
+    task_id: task.id,
+    result: 'mismatch',
+    unexpected_changes,
+    missing_changes,
+    expected: [...expected],
+    actual,
+  });
+  return { ok: false, unexpected_changes, missing_changes };
+}
+
 // Main
 function main() {
   const status = readStatus();
@@ -254,9 +308,27 @@ function main() {
   const success = executeTask(task);
 
   if (success) {
-    markDone(task);
-    recordLesson(task.id, { status: 'success', summary: task.goal });
-    status.failure_count = 0;
+    // Verify allowed_files before marking done
+    const verify = verifyAllowedFiles(task);
+    if (verify.ok) {
+      markDone(task);
+      recordLesson(task.id, { status: 'success', summary: task.goal });
+      status.failure_count = 0;
+    } else {
+      // Mismatch: do NOT mark done, do NOT increment failure_count
+      console.error(`[runner] allowed_files mismatch for ${task.id} — task NOT marked done`);
+      if (verify.unexpected_changes?.length) {
+        console.error(`  unexpected: ${verify.unexpected_changes.join(', ')}`);
+      }
+      if (verify.missing_changes?.length) {
+        console.error(`  missing:    ${verify.missing_changes.join(', ')}`);
+      }
+      recordLesson(task.id, {
+        status: 'blocked',
+        error: 'allowed_files mismatch',
+        workaround: `Review: unexpected=[${(verify.unexpected_changes || []).join(',')}] missing=[${(verify.missing_changes || []).join(',')}]`,
+      });
+    }
     status.last_task_id = task.id;
   } else {
     recordLesson(task.id, { status: 'error', error: `Task failed (attempt ${(status.failure_count || 0) + 1})` });
