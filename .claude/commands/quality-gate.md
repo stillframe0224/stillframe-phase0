@@ -45,13 +45,14 @@ npm test 2>/dev/null || echo "test script not found — SKIP"
 ### 4. E2E Smoke（存在する場合）
 
 ```bash
-node scripts/app_ui_smoke.mjs 2>/dev/null || echo "smoke script not found — SKIP"
+bash scripts/run_ui_smoke_e2e_local.sh 2>/dev/null || echo "local e2e smoke runner not found — SKIP"
 ```
 
 - 判定ルール:
   - exit 0: `✅ pass`
-  - 出力に `AUTH_REQUIRED` を含む: `🔁 retryable`（環境制約。実装不良として扱わない）
-  - `smoke script not found — SKIP`: `🔁 retryable`
+  - 出力に `AUTH_REQUIRED` を含む: `🔁 retryable`（想定外の環境不整合。実装不良として扱わない）
+  - 出力に `PORT_IN_USE` / `SERVER_NOT_READY` を含む: `🔁 retryable`
+  - `local e2e smoke runner not found — SKIP`: `🔁 retryable`
   - 上記以外の失敗（アサーション失敗・実行時エラー）: `❌ fail`
 
 ### 5. 変更範囲（scope）妥当性
@@ -70,11 +71,11 @@ node scripts/app_ui_smoke.mjs 2>/dev/null || echo "smoke script not found — SK
 
 - 変更したファイルの `data-testid` が `e2e/*.spec.ts` および `scripts/app_ui_smoke.mjs` と整合しているか
 
-## 判定補助ルール（AUTH_REQUIRED時）
+## 判定補助ルール（環境制約時）
 
-- Build + Unit + Scope + Security + TestID が通過し、E2E Smoke が `AUTH_REQUIRED` のみで止まる場合:
+- Build + Unit + Scope + Security + TestID が通過し、E2E Smoke が `AUTH_REQUIRED` / `PORT_IN_USE` / `SERVER_NOT_READY` / runner未配置 のいずれかで止まる場合:
   - 最終判定は `🔁 retryable`
-  - 併記文: 「実装品質は妥当。認証済み実行環境（storageState など）を準備後に smoke を再実行」
+  - 併記文: 「実装品質は妥当。ローカルE2E実行前提（専用ポート・起動状態）を整えて smoke を再実行」
 
 ## 出力フォーマット
 
