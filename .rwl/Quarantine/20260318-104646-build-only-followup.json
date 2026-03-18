@@ -1,0 +1,37 @@
+{
+  "id": "20260318-104646-build-only-followup",
+  "goal": "Build-only follow-up observation after internal-path exclusion update",
+  "type": "ui",
+  "est_minutes": 20,
+  "plan_section": "Apply a minor copy/layout fix on app/page.tsx with optional helper adjustment in lib/copy.ts.",
+  "allowed_files": {
+    "create": [],
+    "modify": [
+      "app/page.tsx",
+      "lib/copy.ts"
+    ],
+    "delete": []
+  },
+  "required_files": {
+    "create": [],
+    "modify": [
+      "app/page.tsx"
+    ],
+    "delete": []
+  },
+  "constraints": [
+    "Do not modify files outside allowed_files",
+    "If required_files cannot be satisfied, return BLOCKED"
+  ],
+  "verification_commands": [
+    "npm run build"
+  ],
+  "review_required": {
+    "spec": true,
+    "safety": true,
+    "quality": true
+  },
+  "created_at": "2026-03-18T01:46:46Z",
+  "status": "current",
+  "_filename": "20260318-104646-build-only-followup.json"
+}
