@@ -1,0 +1,40 @@
+{
+  "id": "20260318-obsv-03-test-block",
+  "goal": "Fix a minor bug with test requirement to validate preflight blocking",
+  "type": "bugfix",
+  "est_minutes": 20,
+  "plan_section": "Implement a small behavior fix in app/page.tsx and add one focused test.",
+  "allowed_files": {
+    "create": [
+      "tests/app/page-behavior.test.tsx"
+    ],
+    "modify": [
+      "app/page.tsx",
+      "tests/app/page-behavior.test.tsx"
+    ],
+    "delete": []
+  },
+  "required_files": {
+    "create": [],
+    "modify": [
+      "app/page.tsx"
+    ],
+    "delete": []
+  },
+  "constraints": [
+    "Do not modify files outside allowed_files",
+    "If required_files cannot be satisfied, return BLOCKED"
+  ],
+  "verification_commands": [
+    "npm test",
+    "npm run build"
+  ],
+  "review_required": {
+    "spec": true,
+    "safety": true,
+    "quality": true
+  },
+  "created_at": "2026-03-18T02:00:02Z",
+  "status": "current",
+  "_filename": "20260318-obsv-03-test-block.json"
+}

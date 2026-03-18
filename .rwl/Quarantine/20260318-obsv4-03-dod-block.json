@@ -1,0 +1,40 @@
+{
+  "id": "20260318-obsv4-03-dod-block",
+  "goal": "Observe DoD-based complexity blocking",
+  "type": "ops",
+  "est_minutes": 10,
+  "plan_section": "Single file but too many DoD items.",
+  "dod": [
+    "step1",
+    "step2",
+    "step3",
+    "step4",
+    "step5"
+  ],
+  "allowed_files": {
+    "create": [],
+    "modify": [
+      "app/page.tsx"
+    ],
+    "delete": []
+  },
+  "required_files": {
+    "create": [],
+    "modify": [],
+    "delete": []
+  },
+  "constraints": [
+    "Do not modify files outside allowed_files"
+  ],
+  "verification_commands": [
+    "npm test"
+  ],
+  "review_required": {
+    "spec": true,
+    "safety": true,
+    "quality": true
+  },
+  "created_at": "2026-03-18T12:10:02+09:00",
+  "_filename": "20260318-obsv4-03-dod-block.json",
+  "status": "current"
+}

@@ -1,0 +1,37 @@
+{
+  "id": "20260318-obsv3-03-oversized-scope",
+  "goal": "Touch multiple adjacent UI files in one shot and verify build",
+  "type": "ui",
+  "est_minutes": 30,
+  "plan_section": "Cross-file tweak spanning page, input component, and shared copy helper.",
+  "allowed_files": {
+    "create": [],
+    "modify": [
+      "app/page.tsx",
+      "app/app/shinen/InputBar.tsx",
+      "lib/copy.ts"
+    ],
+    "delete": []
+  },
+  "required_files": {
+    "create": [],
+    "modify": [
+      "app/page.tsx"
+    ],
+    "delete": []
+  },
+  "constraints": [
+    "Do not modify files outside allowed_files"
+  ],
+  "verification_commands": [
+    "npm run build"
+  ],
+  "review_required": {
+    "spec": true,
+    "safety": true,
+    "quality": true
+  },
+  "created_at": "2026-03-18T12:00:02+09:00",
+  "_filename": "20260318-obsv3-03-oversized-scope.json",
+  "status": "current"
+}

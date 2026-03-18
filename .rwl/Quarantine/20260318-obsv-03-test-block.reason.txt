@@ -1,0 +1,1 @@
+blocked_reason: verification_preflight blocked; npm test requested but scripts.test is missing

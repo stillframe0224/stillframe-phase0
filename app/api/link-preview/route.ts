@@ -32,15 +32,14 @@ const IG_RE =
 
 const MAX_REDIRECTS = 5;
 
-// Telemetry helper — fire-and-forget logging to /api/track
+// Telemetry helper — structured log to stdout (Vercel Function Logs)
 function trackLinkPreview(event: string, data: Record<string, unknown>): void {
-  fetch("/api/track", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ event: `link_preview_${event}`, ...data, ts: new Date().toISOString() }),
-  }).catch(() => {
-    // Silently ignore telemetry failures — don't block the main flow
-  });
+  console.log(JSON.stringify({
+    source: "link-preview",
+    event: `link_preview_${event}`,
+    ...data,
+    ts: new Date().toISOString(),
+  }));
 }
 const FETCH_TIMEOUT = 6000; // 4s→6s for slow sites (Substack etc.)
 const JINA_TIMEOUT = 7000;  // Jina needs a bit more headroom
@@ -190,7 +189,7 @@ async function fetchInstagramEmbedPosterFromUrl(url: string): Promise<string | n
       signal: AbortSignal.timeout(FETCH_TIMEOUT),
     });
     if (!res.ok) {
-      console.info("[link-preview] ig_embed_broken", {
+      trackLinkPreview("ig_embed_broken", {
         url: summarizeUrlForLog(url),
         status: res.status,
       });
@@ -199,14 +198,14 @@ async function fetchInstagramEmbedPosterFromUrl(url: string): Promise<string | n
     const html = await res.text();
     const poster = parseLargestSrcsetImage(html, embedUrl);
     if (!poster) {
-      console.info("[link-preview] ig_embed_broken", {
+      trackLinkPreview("ig_embed_broken", {
         url: summarizeUrlForLog(url),
         reason: "poster_missing",
       });
     }
     return poster;
   } catch {
-    console.info("[link-preview] ig_embed_broken", {
+    trackLinkPreview("ig_embed_broken", {
       url: summarizeUrlForLog(url),
       reason: "fetch_failed",
     });
@@ -397,7 +396,7 @@ export async function GET(request: Request) {
       const tweetId = extractTweetId(url);
       const syndication = tweetId ? await fetchSyndicationTweet(tweetId) : null;
       if (tweetId && syndication && Object.keys(syndication).length === 0) {
-        console.info("[link-preview] x_syndication_empty", {
+        trackLinkPreview("x_syndication_empty", {
           url: summarizeUrlForLog(url),
           tweetId,
           reason: "empty_payload",
@@ -405,7 +404,7 @@ export async function GET(request: Request) {
       }
       const parsedMedia = syndication ? parseSyndicationTweetMedia(syndication) : null;
       if (tweetId && !parsedMedia) {
-        console.info("[link-preview] x_syndication_empty", {
+        trackLinkPreview("x_syndication_empty", {
           url: summarizeUrlForLog(url),
           tweetId,
           reason: syndication ? "media_missing" : "fetch_failed",
@@ -631,6 +630,7 @@ export async function GET(request: Request) {
           const data = await oembedRes.json();
           const image = resolveUrl(data?.thumbnail_url ?? null, parsed.origin);
           if (image) {
+            trackLinkPreview("ig_oembed_success", { url: summarizeUrlForLog(url) });
             return NextResponse.json(
               { image, favicon: "https://www.instagram.com/favicon.ico", title: data?.title ?? null },
               { headers: { "Cache-Control": "public, max-age=3600" } }
@@ -638,7 +638,7 @@ export async function GET(request: Request) {
           }
         }
       } catch {
-        // Fallback to next strategy
+        trackLinkPreview("ig_oembed_failed", { url: summarizeUrlForLog(url) });
       }
 
       // 2) r.jina.ai HTML mirror
@@ -657,6 +657,7 @@ export async function GET(request: Request) {
           const twImage = extractMeta(jinaHtml, "twitter:image");
           const image = resolveUrl(ogImage ?? twImage, parsed.origin);
           if (image) {
+            trackLinkPreview("ig_jina_success", { url: summarizeUrlForLog(url) });
             return NextResponse.json(
               { image, favicon: "https://www.instagram.com/favicon.ico", title: extractMeta(jinaHtml, "og:title") },
               { headers: { "Cache-Control": "public, max-age=3600" } }
@@ -664,7 +665,7 @@ export async function GET(request: Request) {
           }
         }
       } catch {
-        // Fallback to direct HTML strategy
+        trackLinkPreview("ig_jina_failed", { url: summarizeUrlForLog(url) });
       }
     }
 
