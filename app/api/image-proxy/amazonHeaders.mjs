@@ -7,10 +7,12 @@ const AMAZON_CDN_HOSTS = new Set([
   "images-eu.ssl-images-amazon.com",
   "images-fe.ssl-images-amazon.com",
 ]);
+const AMAZON_HOST_RE = /(^|\.)amazon\.[a-z]{2,3}(?:\.[a-z]{2})?$/;
+const AMZN_HOST_RE = /(^|\.)amzn\.[a-z]{2,3}(?:\.[a-z]{2})?$/;
 
 function isAmazonHost(hostname) {
   const h = hostname.toLowerCase();
-  return h.includes("amazon.") || h.includes("amzn.") || h === "a.co";
+  return AMAZON_HOST_RE.test(h) || AMZN_HOST_RE.test(h) || h === "a.co";
 }
 
 export function isAmazonCdnHost(hostname) {

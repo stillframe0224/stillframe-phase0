@@ -1,0 +1,38 @@
+{
+  "id": "20260318-obsv2-03-required-mid",
+  "goal": "Implement a medium-risk tweak that must touch app/page.tsx while permitting adjacent ripple",
+  "type": "bugfix",
+  "est_minutes": 30,
+  "plan_section": "Primary target is app/page.tsx. Adjacent candidates are InputBar and copy helper.",
+  "allowed_files": {
+    "create": [],
+    "modify": [
+      "app/page.tsx",
+      "app/app/shinen/InputBar.tsx",
+      "lib/copy.ts"
+    ],
+    "delete": []
+  },
+  "required_files": {
+    "create": [],
+    "modify": [
+      "app/page.tsx"
+    ],
+    "delete": []
+  },
+  "constraints": [
+    "Do not modify files outside allowed_files",
+    "If required_files cannot be satisfied, return BLOCKED"
+  ],
+  "verification_commands": [
+    "npm run build"
+  ],
+  "review_required": {
+    "spec": true,
+    "safety": true,
+    "quality": true
+  },
+  "created_at": "2026-03-18T02:10:02Z",
+  "status": "current",
+  "_filename": "20260318-obsv2-03-required-mid.json"
+}

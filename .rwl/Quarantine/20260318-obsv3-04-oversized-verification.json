@@ -1,0 +1,35 @@
+{
+  "id": "20260318-obsv3-04-oversized-verification",
+  "goal": "Apply a tiny fix but request multiple verification layers in one packet",
+  "type": "bugfix",
+  "est_minutes": 20,
+  "plan_section": "Single-file fix with over-specified verification set.",
+  "allowed_files": {
+    "create": [],
+    "modify": [
+      "app/page.tsx"
+    ],
+    "delete": []
+  },
+  "required_files": {
+    "create": [],
+    "modify": [],
+    "delete": []
+  },
+  "constraints": [
+    "Do not modify files outside allowed_files"
+  ],
+  "verification_commands": [
+    "npm run build",
+    "npm test",
+    "npx jest"
+  ],
+  "review_required": {
+    "spec": true,
+    "safety": true,
+    "quality": true
+  },
+  "created_at": "2026-03-18T12:00:03+09:00",
+  "_filename": "20260318-obsv3-04-oversized-verification.json",
+  "status": "current"
+}
