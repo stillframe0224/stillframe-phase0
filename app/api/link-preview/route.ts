@@ -31,6 +31,17 @@ const IG_RE =
   /(?:instagram\.com|instagr\.am)\/(?:p|reel|tv)\/([A-Za-z0-9_-]+)/;
 
 const MAX_REDIRECTS = 5;
+
+// Telemetry helper — fire-and-forget logging to /api/track
+function trackLinkPreview(event: string, data: Record<string, unknown>): void {
+  fetch("/api/track", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ event: `link_preview_${event}`, ...data, ts: new Date().toISOString() }),
+  }).catch(() => {
+    // Silently ignore telemetry failures — don't block the main flow
+  });
+}
 const FETCH_TIMEOUT = 6000; // 4s→6s for slow sites (Substack etc.)
 const JINA_TIMEOUT = 7000;  // Jina needs a bit more headroom
 const SYNDICATION_TIMEOUT = 4500;
@@ -358,6 +369,7 @@ export async function GET(request: Request) {
   const ytMatch = url.match(YT_RE);
   if (ytMatch) {
     const image = await resolveYoutubeThumbnail(ytMatch[1]);
+    trackLinkPreview("youtube_success", { url: summarizeUrlForLog(url), videoId: ytMatch[1] });
     return NextResponse.json(
       { image, favicon: "https://www.youtube.com/favicon.ico", title: null },
       { headers: { "Cache-Control": "public, max-age=86400" } }
@@ -448,6 +460,7 @@ export async function GET(request: Request) {
       }
     }
     if (xigBestImage) {
+      trackLinkPreview("xig_image_success", { url: summarizeUrlForLog(url), provider, mediaKind: "image" });
       return NextResponse.json(
         {
           image: xigBestImage,
@@ -595,6 +608,7 @@ export async function GET(request: Request) {
       );
     }
 
+    trackLinkPreview("xig_no_image", { url: summarizeUrlForLog(url), provider });
     return NextResponse.json(
       { image: null, favicon: "https://www.instagram.com/favicon.ico", title: null },
       { headers: { "Cache-Control": "public, max-age=600" } }
@@ -659,6 +673,7 @@ export async function GET(request: Request) {
       if (debug) console.log(JSON.stringify({ event: "link_preview_jina_first", url }));
       const jina = await fetchViaJina(url, parsed.origin);
       if (jina?.image) {
+        trackLinkPreview("jina_first_success", { url: summarizeUrlForLog(url) });
         return NextResponse.json(
           { image: jina.image, favicon: `${parsed.origin}/favicon.ico`, title: jina.title },
           { headers: { "Cache-Control": "public, max-age=3600" } }
@@ -693,12 +708,15 @@ export async function GET(request: Request) {
       // Non-2xx from safeFetch — try Jina as fallback before giving up
       const jina = await fetchViaJina(url, parsed.origin);
       if (jina?.image) {
+        trackLinkPreview("jina_fallback_fetch_failed", { url: summarizeUrlForLog(url) });
         return NextResponse.json(
           { image: jina.image, favicon: `${parsed.origin}/favicon.ico`, title: jina.title },
           { headers: { "Cache-Control": "public, max-age=3600" } }
         );
       }
 
+
+      trackLinkPreview("fetch_failure", { url: summarizeUrlForLog(url), status: res.status, jinaFailed: true });
       const retryAfterMs = failureRetryAfterMs(res.status, res.headers.get("retry-after"));
       return NextResponse.json(
         { image: null, favicon: `${parsed.origin}/favicon.ico`, title: null, retryAfterMs },
@@ -760,6 +778,7 @@ export async function GET(request: Request) {
       if (debug) console.log(JSON.stringify({ event: "link_preview_no_og_try_jina", url }));
       const jina = await fetchViaJina(url, finalOrigin);
       if (jina?.image) {
+        trackLinkPreview("jina_no_og_success", { url: summarizeUrlForLog(url) });
         return NextResponse.json(
           { image: jina.image, favicon, title: title ?? jina.title },
           { headers: { "Cache-Control": "public, max-age=3600" } }
@@ -767,6 +786,7 @@ export async function GET(request: Request) {
       }
     }
 
+    trackLinkPreview(image ? "html_og_success" : "no_image", { url: summarizeUrlForLog(url), hasOg: !!image });
     return NextResponse.json(
       { image, favicon, title },
       { headers: { "Cache-Control": "public, max-age=3600" } }
@@ -774,6 +794,7 @@ export async function GET(request: Request) {
   } catch (e) {
     const reason = e instanceof Error ? e.message : "unknown";
     if (debug) console.log(JSON.stringify({ event: "link_preview_error", url, reason }));
+    trackLinkPreview("exception", { url: summarizeUrlForLog(url), reason });
     if (reason === "blocked") {
       return NextResponse.json({ error: "blocked_url" }, { status: 400 });
     }
