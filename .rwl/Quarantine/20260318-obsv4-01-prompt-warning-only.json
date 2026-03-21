@@ -1,0 +1,33 @@
+{
+  "id": "20260318-obsv4-01-prompt-warning-only",
+  "goal": "Confirm that very long descriptive goal text does not trigger complexity blocking by itself while keeping file scope minimal and verification simple. This sentence intentionally adds enough characters to push prompt length over the warning threshold without increasing scope or command count.",
+  "type": "ops",
+  "est_minutes": 10,
+  "plan_section": "Keep implementation scope minimal.",
+  "allowed_files": {
+    "create": [],
+    "modify": [
+      "app/page.tsx"
+    ],
+    "delete": []
+  },
+  "required_files": {
+    "create": [],
+    "modify": [],
+    "delete": []
+  },
+  "constraints": [
+    "Do not modify files outside allowed_files"
+  ],
+  "verification_commands": [
+    "npm test"
+  ],
+  "review_required": {
+    "spec": true,
+    "safety": true,
+    "quality": true
+  },
+  "created_at": "2026-03-18T12:10:00+09:00",
+  "_filename": "20260318-obsv4-01-prompt-warning-only.json",
+  "status": "current"
+}

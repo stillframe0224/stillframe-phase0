@@ -1,0 +1,58 @@
+{
+  "generated_at": "2026-03-18T02:44:03.483Z",
+  "timeout_ms": 240000,
+  "results": [
+    {
+      "test_name": "short-direct",
+      "mode": "spawnSync-direct",
+      "started_at": "2026-03-18T02:35:24.242Z",
+      "ended_at": "2026-03-18T02:35:48.373Z",
+      "duration_ms": 24131,
+      "exit_code": 0,
+      "timed_out": false,
+      "signal": null,
+      "stdout_bytes": 3,
+      "stderr_bytes": 0,
+      "error_message": null
+    },
+    {
+      "test_name": "long-direct",
+      "mode": "spawnSync-direct",
+      "started_at": "2026-03-18T02:35:48.381Z",
+      "ended_at": "2026-03-18T02:39:48.716Z",
+      "duration_ms": 240335,
+      "exit_code": 143,
+      "timed_out": true,
+      "signal": null,
+      "stdout_bytes": 0,
+      "stderr_bytes": 0,
+      "error_message": "spawnSync claude ETIMEDOUT"
+    },
+    {
+      "test_name": "short-shell",
+      "mode": "execSync-shell",
+      "started_at": "2026-03-18T02:39:48.717Z",
+      "ended_at": "2026-03-18T02:40:03.479Z",
+      "duration_ms": 14762,
+      "exit_code": 0,
+      "timed_out": false,
+      "signal": null,
+      "stdout_bytes": 3,
+      "stderr_bytes": 0,
+      "error_message": null
+    },
+    {
+      "test_name": "long-shell",
+      "mode": "execSync-shell",
+      "started_at": "2026-03-18T02:40:03.479Z",
+      "ended_at": "2026-03-18T02:44:03.482Z",
+      "duration_ms": 240003,
+      "exit_code": null,
+      "timed_out": true,
+      "signal": "SIGTERM",
+      "stdout_bytes": 0,
+      "stderr_bytes": 0,
+      "error_message": "spawnSync /bin/sh ETIMEDOUT"
+    }
+  ]
+}

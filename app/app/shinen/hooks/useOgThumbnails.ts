@@ -199,7 +199,12 @@ export function useOgThumbnails(
       fetch(`/api/link-preview?url=${encodeURIComponent(url)}`, {
         signal: controller.signal,
       })
-        .then((res) => res.json())
+        .then((res) => {
+          if (!res.ok) {
+            return { image: null, favicon: null, retryAfterMs: 5 * 60 * 1000 };
+          }
+          return res.json();
+        })
         .then(
           (data: {
             image?: string | null;
@@ -256,8 +261,10 @@ export function useOgThumbnails(
             }
           },
         )
-        .catch(() => {
+        .catch((err: unknown) => {
           inflightRef.current.delete(url);
+          // AbortError means the component unmounted — don't cache as failure
+          if (err instanceof DOMException && err.name === "AbortError") return;
           const currentCache = readCache();
           currentCache[url] = { image: null, fetchedAt: Date.now() };
           writeCache(currentCache);

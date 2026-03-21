@@ -1,0 +1,31 @@
+diff --git a/app/page.tsx b/app/page.tsx
+index f15e92c..7076c40 100644
+--- a/app/page.tsx
++++ b/app/page.tsx
+@@ -18,7 +18,7 @@ const WAITLIST_POST_URL = process.env.NEXT_PUBLIC_WAITLIST_POST_URL || "";
+ const WAITLIST_FALLBACK_EMAIL =
+   process.env.NEXT_PUBLIC_WAITLIST_FALLBACK_EMAIL || "";
+ 
+-interface Card {
++interface DemoCard {
+   id: number;
+   text: string;
+   type: string;
+@@ -93,7 +93,7 @@ export default function Home() {
+   const [lang, setLang] = useState<Lang>("en");
+   const [selectedType, setSelectedType] = useState("memo");
+   const [input, setInput] = useState("");
+-  const [cards, setCards] = useState<Card[]>([]);
++  const [cards, setCards] = useState<DemoCard[]>([]);
+   const [nextId, setNextId] = useState(1);
+   const inputRef = useRef<HTMLInputElement>(null);
+   const demoTracked = useRef(false);
+@@ -121,7 +121,7 @@ export default function Home() {
+   }, []);
+ 
+   // Get hero sample cards
+-  const sampleCards: Card[] = sampleTypes.map((type, i) => ({
++  const sampleCards: DemoCard[] = sampleTypes.map((type, i) => ({
+     id: i + 100,
+     text: copy.cardSamples[type][lang],
+     type,

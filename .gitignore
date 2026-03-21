@@ -80,3 +80,25 @@ test-results/
 .rwl/logs/slack_runner.*.log
 reports/transcribe/
 scripts/transcribe_youtube_long.sh
+
+# --- local scratch/workspaces ---
+.backup/
+.codex-work/
+.openclaw/
+.state/
+.tmp-astro-line-bot/
+
+# --- local generated summaries ---
+reports/daily-summary.md
+
+# --- manual backup artifacts ---
+*.bak
+*.bak*
+*.backup
+*.backup*
+*.original
+
+# --- local agent profile (personal) ---
+IDENTITY.md
+TOOLS.md
+USER.md
