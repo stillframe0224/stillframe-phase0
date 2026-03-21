@@ -173,7 +173,7 @@ export default function InputBar({ onSubmit, onFileUpload, time }: InputBarProps
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
           onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
-          placeholder="drop a thought..."
+          placeholder="drop a thought\u2026"
           style={{
             flex: 1,
             background: "transparent",
@@ -254,7 +254,7 @@ export default function InputBar({ onSubmit, onFileUpload, time }: InputBarProps
           textTransform: "uppercase",
         }}
       >
-        no folders · no tags · no judgment
+        no folders · no tags · just thoughts
       </div>
     </div>
   );

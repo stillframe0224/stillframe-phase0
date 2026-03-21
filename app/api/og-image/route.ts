@@ -41,7 +41,7 @@ export async function POST(request: Request) {
 
     if (!res.ok) {
       return NextResponse.json(
-        { error: "fetch failed", status: res.status },
+        { error: "fetch_failed", image: null, title: null, retryAfterMs: 5 * 60 * 1000 },
         { status: 502 }
       );
     }
@@ -68,8 +68,11 @@ export async function POST(request: Request) {
     const title = titleMatch?.[1] || null;
 
     return NextResponse.json({ image, title });
-  } catch (e) {
-    const message = e instanceof Error ? e.message : "unknown error";
-    return NextResponse.json({ error: message }, { status: 500 });
+  } catch {
+    // Do not leak internal error details to client
+    return NextResponse.json(
+      { error: "internal_error", image: null, title: null, retryAfterMs: 5 * 60 * 1000 },
+      { status: 500 }
+    );
   }
 }

@@ -1,0 +1,37 @@
+{
+  "id": "20260318-103336-build-only-minor-fix",
+  "goal": "Fix a minor copy issue on app/page.tsx with build-only verification",
+  "type": "ui",
+  "est_minutes": 20,
+  "plan_section": "Apply a small copy/layout correction in app/page.tsx and optionally helper copy in lib/copy.ts.",
+  "allowed_files": {
+    "create": [],
+    "modify": [
+      "app/page.tsx",
+      "lib/copy.ts"
+    ],
+    "delete": []
+  },
+  "required_files": {
+    "create": [],
+    "modify": [
+      "app/page.tsx"
+    ],
+    "delete": []
+  },
+  "constraints": [
+    "Do not modify files outside allowed_files",
+    "If required_files cannot be satisfied, return BLOCKED"
+  ],
+  "verification_commands": [
+    "npm run build"
+  ],
+  "review_required": {
+    "spec": true,
+    "safety": true,
+    "quality": true
+  },
+  "created_at": "2026-03-18T01:33:36Z",
+  "status": "current",
+  "_filename": "20260318-103336-build-only-minor-fix.json"
+}

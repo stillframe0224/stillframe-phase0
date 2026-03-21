@@ -1,0 +1,1 @@
+2026-03-18T01:41:06Z blocked_reason: legacy task without verification_commands; execution hit /bin/sh ETIMEDOUT; not part of P0.5/P1 observation batch

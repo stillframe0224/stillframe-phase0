@@ -1,0 +1,1 @@
+blocked_reason: file_verify mismatch; unexpected app/app/shinen/InputBar.tsx outside allowed_files during observation batch
