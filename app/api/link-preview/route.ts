@@ -169,9 +169,19 @@ async function fetchViaJinaHtml(url: string): Promise<string | null> {
       },
       signal: AbortSignal.timeout(JINA_TIMEOUT),
     });
-    if (!res.ok) return null;
+    if (!res.ok) {
+      trackLinkPreview("jina_html_fail", {
+        url: summarizeUrlForLog(url),
+        status: res.status,
+      });
+      return null;
+    }
     return await res.text();
-  } catch {
+  } catch (e) {
+    trackLinkPreview("jina_html_error", {
+      url: summarizeUrlForLog(url),
+      reason: e instanceof Error ? e.message : "unknown",
+    });
     return null;
   }
 }
