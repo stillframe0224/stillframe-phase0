@@ -11,6 +11,7 @@
 import fs from 'fs';
 import path from 'path';
 import { execSync } from 'child_process';
+import { createHash } from 'crypto';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -25,8 +26,32 @@ const DONE_JSON = path.join(RWL, 'DONE.json');
 const STATUS = path.join(RWL, 'status.json');
 const LOGS = path.join(RWL, 'logs');
 
+const SESSIONS_DIR = path.join(RWL, 'sessions');
+const LESSONS_DIR = path.join(RWL, 'lessons');
+const ADDON_PATH = path.join(LESSONS_DIR, 'system-addon.txt');
+const MAX_LESSONS = 7;
+
+const QUARANTINE = path.join(RWL, 'Quarantine');
+
 // Ensure dirs exist
-[CURRENT, DONE_DIR, QUEUE, LOGS].forEach(d => fs.mkdirSync(d, { recursive: true }));
+[CURRENT, DONE_DIR, QUEUE, LOGS, SESSIONS_DIR, LESSONS_DIR, QUARANTINE].forEach(d => fs.mkdirSync(d, { recursive: true }));
+
+function parsePositiveIntEnv(name, fallback) {
+  const raw = process.env[name];
+  if (raw == null || raw === '') return fallback;
+  const parsed = Number.parseInt(raw, 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+}
+
+function getTaskComplexityLimits() {
+  return {
+    maxPromptChars: parsePositiveIntEnv('RWL_MAX_PROMPT_CHARS', 2200),
+    maxPlanSectionChars: parsePositiveIntEnv('RWL_MAX_PLAN_SECTION_CHARS', 300),
+    maxScopeFiles: parsePositiveIntEnv('RWL_MAX_SCOPE_FILES', 3),
+    maxVerificationCommands: parsePositiveIntEnv('RWL_MAX_VERIFICATION_COMMANDS', 2),
+    maxDodItems: parsePositiveIntEnv('RWL_MAX_DOD_ITEMS', 4),
+  };
+}
 
 function log(msg) {
   const entry = { ts: new Date().toISOString(), ...msg };
@@ -45,6 +70,112 @@ function readStatus() {
 function writeStatus(s) {
   s.last_run_at = new Date().toISOString();
   fs.writeFileSync(STATUS, JSON.stringify(s, null, 2));
+}
+
+// === Lessons: セッション間学習 ===
+
+/**
+ * タスク実行結果をセッションログに記録し、lessonsファイルを更新し、
+ * system-addon.txt を再生成する
+ */
+function recordLesson(taskId, result) {
+  // 1. セッションログ（生データ）
+  const today = new Date().toISOString().split('T')[0];
+  const sessionPath = path.join(SESSIONS_DIR, `${today}.md`);
+  const entry = [
+    `## ${taskId} — ${result.status}`,
+    `Time: ${new Date().toISOString()}`,
+    result.status === 'success'
+      ? `Completed: ${result.summary || 'no summary'}`
+      : `Error: ${result.error || 'unknown'}`,
+    '---', ''
+  ].join('\n');
+  fs.appendFileSync(sessionPath, entry);
+
+  // 2. Lessons更新
+  if (result.status === 'error' || result.status === 'blocked') {
+    updateLessonsFile(
+      path.join(LESSONS_DIR, 'recent-failures.md'),
+      `- **${taskId}**: ${result.error || 'unknown'}. 回避策: ${result.workaround || '未特定'}`
+    );
+  } else if (result.status === 'success') {
+    updateLessonsFile(
+      path.join(LESSONS_DIR, 'recent-success-patterns.md'),
+      `- **${taskId}**: ${result.summary || 'completed'}`
+    );
+  }
+
+  // 3. system-addon.txt を再生成
+  regenerateAddon();
+  log({ step: 'lesson_recorded', task_id: taskId, status: result.status });
+}
+
+function updateLessonsFile(filePath, newLine) {
+  let content = fs.existsSync(filePath) ? fs.readFileSync(filePath, 'utf8') : '';
+  const lines = content.split('\n');
+  const headerEnd = lines.findIndex(l => l.includes('<!-- 以下に'));
+  const header = headerEnd >= 0 ? lines.slice(0, headerEnd + 1) : lines.slice(0, 4);
+  const items = lines.slice(headerEnd >= 0 ? headerEnd + 1 : 4).filter(l => l.startsWith('- '));
+  items.push(newLine);
+  while (items.length > MAX_LESSONS) items.shift();
+  fs.writeFileSync(filePath, [...header, ...items, ''].join('\n'));
+}
+
+/**
+ * recent-failures.md と recent-success-patterns.md を読み、
+ * system-addon.txt に統合する
+ */
+function regenerateAddon() {
+  const preamble = [
+    '以下はこのリポジトリで最近確認された失敗/成功パターンです。',
+    '失敗パターンの再発を避け、成功パターンを優先してください。',
+    '履歴の詳細説明より、再利用可能な作業原則として扱うこと。', ''
+  ].join('\n');
+
+  let body = '';
+  const failuresPath = path.join(LESSONS_DIR, 'recent-failures.md');
+  const successPath = path.join(LESSONS_DIR, 'recent-success-patterns.md');
+
+  if (fs.existsSync(failuresPath)) {
+    const items = fs.readFileSync(failuresPath, 'utf8').split('\n').filter(l => l.startsWith('- ')).join('\n');
+    if (items) body += `\n## 最近の失敗パターン（再発を避けること）\n${items}\n`;
+  }
+  if (fs.existsSync(successPath)) {
+    const items = fs.readFileSync(successPath, 'utf8').split('\n').filter(l => l.startsWith('- ')).join('\n');
+    if (items) body += `\n## 最近の成功パターン（優先して採用すること）\n${items}\n`;
+  }
+
+  fs.writeFileSync(ADDON_PATH, body ? preamble + body : '');
+}
+
+/**
+ * system-addon.txt を読み返す（プロンプト注入用）
+ */
+function loadLessonsAddon() {
+  if (!fs.existsSync(ADDON_PATH)) return '';
+  const content = fs.readFileSync(ADDON_PATH, 'utf8').trim();
+  return content || '';
+}
+
+function buildExecutionPrompt(task, lessonsAddon = loadLessonsAddon()) {
+  return [
+    `You are working on SHINEN (stillframe-phase0).`,
+    `Read CLAUDE.md for project context.`,
+    ``,
+    `## Task: ${task.goal}`,
+    ``,
+    `## Definition of Done:`,
+    ...(task.dod || []).map(d => `- ${d}`),
+    ``,
+    `## Rules:`,
+    `- Work in a feature branch: git checkout -b rwl/${task.id}`,
+    `- Make minimal, focused changes`,
+    `- Run npm run build — must pass with zero errors`,
+    `- Create a PR to main`,
+    `- Do NOT merge the PR`,
+    ``,
+    ...(lessonsAddon ? [`## Lessons from previous runs:`, lessonsAddon] : []),
+  ].join('\n');
 }
 
 function getCurrentTask() {
@@ -94,26 +225,23 @@ function markDone(task) {
   log({ step: 'done', task_id: task.id });
 }
 
+function quarantineTask(task, reason) {
+  const src = path.join(CURRENT, task._filename);
+  const dst = path.join(QUARANTINE, task._filename);
+  const reasonPath = path.join(QUARANTINE, task._filename.replace(/\.json$/, '.reason.txt'));
+  fs.renameSync(src, dst);
+  fs.writeFileSync(reasonPath, `blocked_reason: ${reason}\n`);
+  log({ step: 'quarantine', task_id: task.id, reason });
+}
+
 function executeTask(task) {
   log({ step: 'execute_start', task_id: task.id, goal: task.goal });
 
+  // Load lessons addon for prompt injection
+  const lessonsAddon = loadLessonsAddon();
+
   // Build the Claude Code prompt from the task
-  const prompt = [
-    `You are working on SHINEN (stillframe-phase0).`,
-    `Read CLAUDE.md for project context.`,
-    ``,
-    `## Task: ${task.goal}`,
-    ``,
-    `## Definition of Done:`,
-    ...(task.dod || []).map(d => `- ${d}`),
-    ``,
-    `## Rules:`,
-    `- Work in a feature branch: git checkout -b rwl/${task.id}`,
-    `- Make minimal, focused changes`,
-    `- Run npm run build — must pass with zero errors`,
-    `- Create a PR to main`,
-    `- Do NOT merge the PR`,
-  ].join('\n');
+  const prompt = buildExecutionPrompt(task, lessonsAddon);
 
   try {
     // Try to use claude-code CLI
@@ -133,6 +261,446 @@ function executeTask(task) {
     log({ step: 'execute_end', task_id: task.id, status: 'error', error: err.message?.slice(0, 500) });
     return false;
   }
+}
+
+function checkTaskComplexityPreconditions(task) {
+  const limits = getTaskComplexityLimits();
+  const commands = Array.isArray(task.verification_commands)
+    ? task.verification_commands.filter(c => typeof c === 'string' && c.trim())
+    : [];
+  const allowedSet = collectFileSet(task.allowed_files);
+  const requiredSet = collectFileSet(task.required_files);
+  const scopeEntriesCount = allowedSet.size + requiredSet.size;
+  const planSectionLength = typeof task.plan_section === 'string' ? task.plan_section.length : 0;
+  const dodItems = Array.isArray(task.dod)
+    ? task.dod.filter(item => typeof item === 'string' && item.trim()).length
+    : 0;
+  const promptLength = buildExecutionPrompt(task, loadLessonsAddon()).length;
+
+  const metrics = {
+    prompt_length_chars: promptLength,
+    plan_section_length_chars: planSectionLength,
+    allowed_files_count: allowedSet.size,
+    required_files_count: requiredSet.size,
+    scope_files_count: scopeEntriesCount,
+    verification_commands_count: commands.length,
+    dod_items_count: dodItems,
+  };
+
+  const promptWarnings = [];
+  if (metrics.prompt_length_chars > limits.maxPromptChars) {
+    promptWarnings.push(`prompt length ${metrics.prompt_length_chars} exceeds ${limits.maxPromptChars}`);
+  }
+
+  const oversizedReasons = [];
+  if (metrics.plan_section_length_chars > limits.maxPlanSectionChars) {
+    oversizedReasons.push(`plan_section length ${metrics.plan_section_length_chars} exceeds ${limits.maxPlanSectionChars}`);
+  }
+  if (metrics.scope_files_count > limits.maxScopeFiles) {
+    oversizedReasons.push(`scope files ${metrics.scope_files_count} exceeds ${limits.maxScopeFiles}`);
+  }
+  if (metrics.verification_commands_count > limits.maxVerificationCommands) {
+    oversizedReasons.push(`verification commands ${metrics.verification_commands_count} exceeds ${limits.maxVerificationCommands}`);
+  }
+  if (metrics.dod_items_count > limits.maxDodItems) {
+    oversizedReasons.push(`DoD items ${metrics.dod_items_count} exceeds ${limits.maxDodItems}`);
+  }
+
+  if (oversizedReasons.length === 0) {
+    log({
+      step: 'task_complexity_preflight',
+      task_id: task.id,
+      result: 'pass',
+      metrics,
+      limits,
+      prompt_warnings: promptWarnings,
+    });
+    return { ok: true, prompt_warnings: promptWarnings };
+  }
+
+  const blocked_reason = 'task should be split before execution';
+  log({
+    step: 'task_complexity_preflight',
+    task_id: task.id,
+    result: 'blocked',
+    blocked_reason,
+    oversized_reasons: oversizedReasons,
+    prompt_warnings: promptWarnings,
+    metrics,
+    limits,
+  });
+  return { ok: false, blocked_reason, oversized_reasons: oversizedReasons, prompt_warnings: promptWarnings };
+}
+
+// === Post-execution: allowed_files verification ===
+
+function readPackageJsonMeta() {
+  const packageJsonPath = path.join(ROOT, 'package.json');
+  if (!fs.existsSync(packageJsonPath)) {
+    return { exists: false, data: null, error: 'package.json not found' };
+  }
+  try {
+    return {
+      exists: true,
+      data: JSON.parse(fs.readFileSync(packageJsonPath, 'utf8')),
+      error: null,
+    };
+  } catch (err) {
+    return {
+      exists: true,
+      data: null,
+      error: `package.json parse failed: ${err.message?.slice(0, 200) || String(err)}`,
+    };
+  }
+}
+
+function hasPackageDependency(pkg, depName) {
+  if (!pkg || typeof pkg !== 'object') return false;
+  return Boolean(
+    pkg.dependencies?.[depName]
+    || pkg.devDependencies?.[depName]
+    || pkg.peerDependencies?.[depName]
+    || pkg.optionalDependencies?.[depName]
+  );
+}
+
+function checkVerificationCommandPreconditions(task) {
+  const commands = Array.isArray(task.verification_commands)
+    ? task.verification_commands.filter(c => typeof c === 'string' && c.trim())
+    : [];
+
+  if (commands.length === 0) {
+    log({
+      step: 'verification_preflight',
+      task_id: task.id,
+      result: 'skipped',
+      reason: 'verification_commands not defined',
+    });
+    return { ok: true };
+  }
+
+  const needs = { npmTest: false, npxVitest: false, npxJest: false, npmRunBuild: false };
+  for (const cmd of commands) {
+    const normalized = cmd.toLowerCase();
+    if (/\bnpm\s+test\b/.test(normalized) || /\bnpm\s+run\s+test\b/.test(normalized)) {
+      needs.npmTest = true;
+    }
+    if (/\bnpx\s+vitest\b/.test(normalized)) {
+      needs.npxVitest = true;
+    }
+    if (/\bnpx\s+jest\b/.test(normalized)) {
+      needs.npxJest = true;
+    }
+    if (/\bnpm\s+run\s+build\b/.test(normalized)) {
+      needs.npmRunBuild = true;
+    }
+  }
+
+  if (!needs.npmTest && !needs.npxVitest && !needs.npxJest && !needs.npmRunBuild) {
+    log({
+      step: 'verification_preflight',
+      task_id: task.id,
+      result: 'skipped',
+      reason: 'no recognized preflight commands',
+      verification_commands: commands,
+    });
+    return { ok: true };
+  }
+
+  const pkgMeta = readPackageJsonMeta();
+  const missing_requirements = [];
+
+  if (needs.npmTest) {
+    if (!pkgMeta.exists) {
+      missing_requirements.push('npm test requested but package.json not found');
+    } else if (pkgMeta.error) {
+      missing_requirements.push(`npm test requested but ${pkgMeta.error}`);
+    } else if (!pkgMeta.data?.scripts?.test) {
+      missing_requirements.push('npm test requested but scripts.test is missing');
+    }
+  }
+
+  if (needs.npxVitest) {
+    if (!pkgMeta.exists) {
+      missing_requirements.push('npx vitest requested but package.json not found');
+    } else if (pkgMeta.error) {
+      missing_requirements.push(`npx vitest requested but ${pkgMeta.error}`);
+    } else if (!hasPackageDependency(pkgMeta.data, 'vitest')) {
+      missing_requirements.push('npx vitest requested but vitest is not installed');
+    }
+  }
+
+  if (needs.npxJest) {
+    if (!pkgMeta.exists) {
+      missing_requirements.push('npx jest requested but package.json not found');
+    } else if (pkgMeta.error) {
+      missing_requirements.push(`npx jest requested but ${pkgMeta.error}`);
+    } else if (!hasPackageDependency(pkgMeta.data, 'jest')) {
+      missing_requirements.push('npx jest requested but jest is not installed');
+    }
+  }
+
+  if (needs.npmRunBuild) {
+    if (!pkgMeta.exists) {
+      missing_requirements.push('npm run build requested but package.json not found');
+    } else if (pkgMeta.error) {
+      missing_requirements.push(`npm run build requested but ${pkgMeta.error}`);
+    } else if (!pkgMeta.data?.scripts?.build) {
+      missing_requirements.push('npm run build requested but scripts.build is missing');
+    }
+  }
+
+  if (missing_requirements.length > 0) {
+    const blocked_reason = missing_requirements.join('; ');
+    log({
+      step: 'verification_preflight',
+      task_id: task.id,
+      result: 'blocked',
+      blocked_reason,
+      missing_requirements,
+      verification_commands: commands,
+    });
+    return { ok: false, blocked_reason, missing_requirements };
+  }
+
+  log({
+    step: 'verification_preflight',
+    task_id: task.id,
+    result: 'pass',
+    verification_commands: commands,
+    checks: needs,
+  });
+  return { ok: true };
+}
+
+function parsePorcelainEntries(rawStatus) {
+  const parsed = [];
+  const lines = rawStatus.split(/\r?\n/).filter(Boolean);
+
+  for (const line of lines) {
+    if (line.length < 4) continue;
+    const xy = line.slice(0, 2);
+    const rest = line.slice(3);
+
+    if (!rest) continue;
+    if (xy === '!!') continue; // ignored files
+
+    if (xy === '??') {
+      parsed.push({ path: rest, state: 'untracked' });
+      continue;
+    }
+
+    const isRenameOrCopy = xy.includes('R') || xy.includes('C');
+    if (isRenameOrCopy && rest.includes(' -> ')) {
+      const [fromPath, toPath] = rest.split(' -> ');
+      if (fromPath) parsed.push({ path: fromPath, state: 'deleted' });
+      if (toPath) parsed.push({ path: toPath, state: 'modified' });
+      continue;
+    }
+
+    const state = xy.includes('D') ? 'deleted' : 'modified';
+    parsed.push({ path: rest, state });
+  }
+
+  return parsed;
+}
+
+function fingerprintPath(relPath, state) {
+  if (state === 'deleted') return '__DELETED__';
+  const absPath = path.join(ROOT, relPath);
+  if (!fs.existsSync(absPath)) return '__MISSING__';
+
+  const stat = fs.lstatSync(absPath);
+  if (stat.isSymbolicLink()) {
+    return `symlink:${fs.readlinkSync(absPath)}`;
+  }
+  if (!stat.isFile()) {
+    return `node:${stat.mode}:${stat.size}:${Math.floor(stat.mtimeMs)}`;
+  }
+
+  const buf = fs.readFileSync(absPath);
+  return `file:${createHash('sha1').update(buf).digest('hex')}`;
+}
+
+function captureWorkingTreeSnapshot() {
+  const raw = execSync(
+    'git -c core.quotepath=false status --porcelain=1 --untracked-files=all',
+    {
+      cwd: ROOT,
+      encoding: 'utf8',
+      timeout: 10000,
+    }
+  );
+
+  const entries = {};
+  const tracked_modified = new Set();
+  const untracked = new Set();
+  const deleted = new Set();
+
+  for (const item of parsePorcelainEntries(raw)) {
+    const relPath = item.path;
+    if (!relPath) continue;
+
+    if (item.state === 'untracked') {
+      untracked.add(relPath);
+    } else {
+      tracked_modified.add(relPath);
+      if (item.state === 'deleted') deleted.add(relPath);
+    }
+
+    entries[relPath] = {
+      state: item.state,
+      fingerprint: fingerprintPath(relPath, item.state),
+    };
+  }
+
+  return {
+    entries,
+    tracked_modified: [...tracked_modified].sort(),
+    untracked: [...untracked].sort(),
+    deleted: [...deleted].sort(),
+  };
+}
+
+function isRunnerInternalPath(relPath) {
+  return relPath === '.rwl/logs/runner.jsonl'
+    || relPath === '.rwl/breaker_inputs.json'
+    || /^\.rwl\/[^/]+\.patch$/.test(relPath);
+}
+
+function computeTaskChangedFiles(beforeSnapshot, afterSnapshot) {
+  const beforeEntries = beforeSnapshot?.entries || {};
+  const afterEntries = afterSnapshot?.entries || {};
+  const allPaths = new Set([
+    ...Object.keys(beforeEntries),
+    ...Object.keys(afterEntries),
+  ]);
+
+  const actual = [];
+  const deleted_by_task = [];
+
+  for (const relPath of [...allPaths].sort()) {
+    const before = beforeEntries[relPath];
+    const after = afterEntries[relPath];
+
+    if (!before && after) {
+      actual.push(relPath);
+      if (after.state === 'deleted') deleted_by_task.push(relPath);
+      continue;
+    }
+    if (before && !after) {
+      actual.push(relPath);
+      continue;
+    }
+    if (!before || !after) continue;
+
+    if (before.state !== after.state || before.fingerprint !== after.fingerprint) {
+      actual.push(relPath);
+      if (after.state === 'deleted') deleted_by_task.push(relPath);
+    }
+  }
+
+  return {
+    actual: actual.filter(p => !isRunnerInternalPath(p)),
+    deleted_by_task: deleted_by_task.filter(p => !isRunnerInternalPath(p)),
+  };
+}
+
+function collectFileSet(spec) {
+  const set = new Set();
+  if (!spec) return set;
+
+  if (Array.isArray(spec)) {
+    for (const p of spec) {
+      if (typeof p === 'string' && p.trim()) set.add(p.trim());
+    }
+    return set;
+  }
+
+  if (typeof spec !== 'object') return set;
+
+  for (const key of ['modify', 'create', 'delete']) {
+    const arr = spec[key];
+    if (!Array.isArray(arr)) continue;
+    for (const p of arr) {
+      if (typeof p === 'string' && p.trim()) set.add(p.trim());
+    }
+  }
+  return set;
+}
+
+function verifyAllowedFiles(task, beforeSnapshot, afterSnapshot) {
+  const allowedSet = collectFileSet(task.allowed_files);
+  const requiredSet = collectFileSet(task.required_files);
+
+  if (allowedSet.size === 0 && requiredSet.size === 0) {
+    log({
+      step: 'file_verify',
+      task_id: task.id,
+      result: 'skipped',
+      reason: 'allowed_files and required_files are both empty',
+    });
+    return { ok: true };
+  }
+
+  if (!beforeSnapshot || !afterSnapshot) {
+    log({ step: 'file_verify', task_id: task.id, result: 'error', error: 'snapshot missing' });
+    return { ok: false, error: 'snapshot missing' };
+  }
+
+  const { actual, deleted_by_task } = computeTaskChangedFiles(beforeSnapshot, afterSnapshot);
+  const actualSet = new Set(actual);
+  const unexpected_changes = allowedSet.size === 0
+    ? []
+    : actual.filter(f => !allowedSet.has(f));
+  const missing_changes = requiredSet.size === 0
+    ? []
+    : [...requiredSet].filter(f => !actualSet.has(f));
+
+  if (unexpected_changes.length === 0 && missing_changes.length === 0) {
+    log({
+      step: 'file_verify',
+      task_id: task.id,
+      result: 'pass',
+      actual_files: actual,
+      allowed_files: [...allowedSet],
+      required_files: [...requiredSet],
+      snapshot_before_counts: {
+        tracked_modified: beforeSnapshot.tracked_modified.length,
+        untracked: beforeSnapshot.untracked.length,
+        deleted: beforeSnapshot.deleted.length,
+      },
+      snapshot_after_counts: {
+        tracked_modified: afterSnapshot.tracked_modified.length,
+        untracked: afterSnapshot.untracked.length,
+        deleted: afterSnapshot.deleted.length,
+      },
+    });
+    return { ok: true };
+  }
+
+  log({
+    step: 'file_verify',
+    task_id: task.id,
+    result: 'mismatch',
+    unexpected_changes,
+    missing_changes,
+    deleted_by_task,
+    allowed_files: [...allowedSet],
+    required_files: [...requiredSet],
+    actual,
+    snapshot_before_counts: {
+      tracked_modified: beforeSnapshot.tracked_modified.length,
+      untracked: beforeSnapshot.untracked.length,
+      deleted: beforeSnapshot.deleted.length,
+    },
+    snapshot_after_counts: {
+      tracked_modified: afterSnapshot.tracked_modified.length,
+      untracked: afterSnapshot.untracked.length,
+      deleted: afterSnapshot.deleted.length,
+    },
+  });
+  return { ok: false, unexpected_changes, missing_changes };
 }
 
 // Main
@@ -155,14 +723,88 @@ function main() {
     process.exit(0);
   }
 
+  const complexityPreflight = checkTaskComplexityPreconditions(task);
+  if (!complexityPreflight.ok) {
+    console.error(`[runner] task complexity preflight blocked for ${task.id}: ${complexityPreflight.blocked_reason}`);
+    if (complexityPreflight.oversized_reasons?.length) {
+      console.error(`  oversized: ${complexityPreflight.oversized_reasons.join('; ')}`);
+    }
+    const reason = `task complexity preflight failed: ${complexityPreflight.blocked_reason}; ${(complexityPreflight.oversized_reasons || []).join('; ')}`;
+    quarantineTask(task, reason);
+    recordLesson(task.id, {
+      status: 'blocked',
+      error: 'task complexity preflight failed',
+      workaround: `${complexityPreflight.blocked_reason}; ${(complexityPreflight.oversized_reasons || []).join('; ')}`,
+    });
+    status.last_task_id = task.id;
+    writeStatus(status);
+    process.exit(0);
+  }
+
+  const preflight = checkVerificationCommandPreconditions(task);
+  if (!preflight.ok) {
+    console.error(`[runner] verification preflight blocked for ${task.id}: ${preflight.blocked_reason}`);
+    quarantineTask(task, `verification preflight failed: ${preflight.blocked_reason}`);
+    recordLesson(task.id, {
+      status: 'blocked',
+      error: 'verification preflight failed',
+      workaround: preflight.blocked_reason,
+    });
+    status.last_task_id = task.id;
+    writeStatus(status);
+    process.exit(0);
+  }
+
+  let beforeSnapshot = null;
+  try {
+    beforeSnapshot = captureWorkingTreeSnapshot();
+  } catch (err) {
+    log({
+      step: 'snapshot_before_error',
+      task_id: task.id,
+      error: err.message?.slice(0, 300) || String(err),
+    });
+  }
+
   // Execute
   const success = executeTask(task);
+  let afterSnapshot = null;
+  try {
+    afterSnapshot = captureWorkingTreeSnapshot();
+  } catch (err) {
+    log({
+      step: 'snapshot_after_error',
+      task_id: task.id,
+      error: err.message?.slice(0, 300) || String(err),
+    });
+  }
 
   if (success) {
-    markDone(task);
-    status.failure_count = 0;
+    // Verify allowed_files before marking done
+    const verify = verifyAllowedFiles(task, beforeSnapshot, afterSnapshot);
+    if (verify.ok) {
+      markDone(task);
+      recordLesson(task.id, { status: 'success', summary: task.goal });
+      status.failure_count = 0;
+    } else {
+      // Mismatch: quarantine, do NOT mark done, do NOT increment failure_count
+      console.error(`[runner] allowed_files mismatch for ${task.id} — quarantined`);
+      if (verify.unexpected_changes?.length) {
+        console.error(`  unexpected: ${verify.unexpected_changes.join(', ')}`);
+      }
+      if (verify.missing_changes?.length) {
+        console.error(`  missing:    ${verify.missing_changes.join(', ')}`);
+      }
+      quarantineTask(task, `allowed_files mismatch: unexpected=[${(verify.unexpected_changes || []).join(',')}] missing=[${(verify.missing_changes || []).join(',')}]`);
+      recordLesson(task.id, {
+        status: 'blocked',
+        error: 'allowed_files mismatch',
+        workaround: `Review: unexpected=[${(verify.unexpected_changes || []).join(',')}] missing=[${(verify.missing_changes || []).join(',')}]`,
+      });
+    }
     status.last_task_id = task.id;
   } else {
+    recordLesson(task.id, { status: 'error', error: `Task failed (attempt ${(status.failure_count || 0) + 1})` });
     status.failure_count = (status.failure_count || 0) + 1;
     status.last_task_id = task.id;
   }
@@ -170,4 +812,20 @@ function main() {
   writeStatus(status);
 }
 
-main();
+// ─── task-loader 条件付き統合 (RUN_TASK_LOADER=1 のときだけ先行実行) ───
+async function maybeRunTaskLoader() {
+  if (process.env.RUN_TASK_LOADER !== '1') return;
+  const taskLoaderPath = path.join(process.env.HOME, 'company', 'task-loader.js');
+  const { loadAndRunTasks } = await import(`file://${taskLoaderPath}`);
+  const taskResults = await loadAndRunTasks({
+    tasksDir: path.join(process.env.HOME, 'company', 'tasks'),
+    reportsDir: path.join(process.env.HOME, 'company', 'reports', 'triad'),
+    maxFailures: 3,
+  });
+  console.log('[runner] task-loader results:', JSON.stringify(taskResults));
+}
+
+(async () => {
+  await maybeRunTaskLoader();
+  main();
+})();

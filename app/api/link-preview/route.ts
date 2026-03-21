@@ -31,6 +31,16 @@ const IG_RE =
   /(?:instagram\.com|instagr\.am)\/(?:p|reel|tv)\/([A-Za-z0-9_-]+)/;
 
 const MAX_REDIRECTS = 5;
+
+// Telemetry helper — structured log to stdout (Vercel Function Logs)
+function trackLinkPreview(event: string, data: Record<string, unknown>): void {
+  console.log(JSON.stringify({
+    source: "link-preview",
+    event: `link_preview_${event}`,
+    ...data,
+    ts: new Date().toISOString(),
+  }));
+}
 const FETCH_TIMEOUT = 6000; // 4s→6s for slow sites (Substack etc.)
 const JINA_TIMEOUT = 7000;  // Jina needs a bit more headroom
 const SYNDICATION_TIMEOUT = 4500;
@@ -159,9 +169,19 @@ async function fetchViaJinaHtml(url: string): Promise<string | null> {
       },
       signal: AbortSignal.timeout(JINA_TIMEOUT),
     });
-    if (!res.ok) return null;
+    if (!res.ok) {
+      trackLinkPreview("jina_html_fail", {
+        url: summarizeUrlForLog(url),
+        status: res.status,
+      });
+      return null;
+    }
     return await res.text();
-  } catch {
+  } catch (e) {
+    trackLinkPreview("jina_html_error", {
+      url: summarizeUrlForLog(url),
+      reason: e instanceof Error ? e.message : "unknown",
+    });
     return null;
   }
 }
@@ -179,7 +199,7 @@ async function fetchInstagramEmbedPosterFromUrl(url: string): Promise<string | n
       signal: AbortSignal.timeout(FETCH_TIMEOUT),
     });
     if (!res.ok) {
-      console.info("[link-preview] ig_embed_broken", {
+      trackLinkPreview("ig_embed_broken", {
         url: summarizeUrlForLog(url),
         status: res.status,
       });
@@ -188,14 +208,14 @@ async function fetchInstagramEmbedPosterFromUrl(url: string): Promise<string | n
     const html = await res.text();
     const poster = parseLargestSrcsetImage(html, embedUrl);
     if (!poster) {
-      console.info("[link-preview] ig_embed_broken", {
+      trackLinkPreview("ig_embed_broken", {
         url: summarizeUrlForLog(url),
         reason: "poster_missing",
       });
     }
     return poster;
   } catch {
-    console.info("[link-preview] ig_embed_broken", {
+    trackLinkPreview("ig_embed_broken", {
       url: summarizeUrlForLog(url),
       reason: "fetch_failed",
     });
@@ -358,6 +378,7 @@ export async function GET(request: Request) {
   const ytMatch = url.match(YT_RE);
   if (ytMatch) {
     const image = await resolveYoutubeThumbnail(ytMatch[1]);
+    trackLinkPreview("youtube_success", { url: summarizeUrlForLog(url), videoId: ytMatch[1] });
     return NextResponse.json(
       { image, favicon: "https://www.youtube.com/favicon.ico", title: null },
       { headers: { "Cache-Control": "public, max-age=86400" } }
@@ -385,7 +406,7 @@ export async function GET(request: Request) {
       const tweetId = extractTweetId(url);
       const syndication = tweetId ? await fetchSyndicationTweet(tweetId) : null;
       if (tweetId && syndication && Object.keys(syndication).length === 0) {
-        console.info("[link-preview] x_syndication_empty", {
+        trackLinkPreview("x_syndication_empty", {
           url: summarizeUrlForLog(url),
           tweetId,
           reason: "empty_payload",
@@ -393,7 +414,7 @@ export async function GET(request: Request) {
       }
       const parsedMedia = syndication ? parseSyndicationTweetMedia(syndication) : null;
       if (tweetId && !parsedMedia) {
-        console.info("[link-preview] x_syndication_empty", {
+        trackLinkPreview("x_syndication_empty", {
           url: summarizeUrlForLog(url),
           tweetId,
           reason: syndication ? "media_missing" : "fetch_failed",
@@ -448,6 +469,7 @@ export async function GET(request: Request) {
       }
     }
     if (xigBestImage) {
+      trackLinkPreview("xig_image_success", { url: summarizeUrlForLog(url), provider, mediaKind: "image" });
       return NextResponse.json(
         {
           image: xigBestImage,
@@ -595,6 +617,7 @@ export async function GET(request: Request) {
       );
     }
 
+    trackLinkPreview("xig_no_image", { url: summarizeUrlForLog(url), provider });
     return NextResponse.json(
       { image: null, favicon: "https://www.instagram.com/favicon.ico", title: null },
       { headers: { "Cache-Control": "public, max-age=600" } }
@@ -617,6 +640,7 @@ export async function GET(request: Request) {
           const data = await oembedRes.json();
           const image = resolveUrl(data?.thumbnail_url ?? null, parsed.origin);
           if (image) {
+            trackLinkPreview("ig_oembed_success", { url: summarizeUrlForLog(url) });
             return NextResponse.json(
               { image, favicon: "https://www.instagram.com/favicon.ico", title: data?.title ?? null },
               { headers: { "Cache-Control": "public, max-age=3600" } }
@@ -624,7 +648,7 @@ export async function GET(request: Request) {
           }
         }
       } catch {
-        // Fallback to next strategy
+        trackLinkPreview("ig_oembed_failed", { url: summarizeUrlForLog(url) });
       }
 
       // 2) r.jina.ai HTML mirror
@@ -643,6 +667,7 @@ export async function GET(request: Request) {
           const twImage = extractMeta(jinaHtml, "twitter:image");
           const image = resolveUrl(ogImage ?? twImage, parsed.origin);
           if (image) {
+            trackLinkPreview("ig_jina_success", { url: summarizeUrlForLog(url) });
             return NextResponse.json(
               { image, favicon: "https://www.instagram.com/favicon.ico", title: extractMeta(jinaHtml, "og:title") },
               { headers: { "Cache-Control": "public, max-age=3600" } }
@@ -650,7 +675,7 @@ export async function GET(request: Request) {
           }
         }
       } catch {
-        // Fallback to direct HTML strategy
+        trackLinkPreview("ig_jina_failed", { url: summarizeUrlForLog(url) });
       }
     }
 
@@ -659,6 +684,7 @@ export async function GET(request: Request) {
       if (debug) console.log(JSON.stringify({ event: "link_preview_jina_first", url }));
       const jina = await fetchViaJina(url, parsed.origin);
       if (jina?.image) {
+        trackLinkPreview("jina_first_success", { url: summarizeUrlForLog(url) });
         return NextResponse.json(
           { image: jina.image, favicon: `${parsed.origin}/favicon.ico`, title: jina.title },
           { headers: { "Cache-Control": "public, max-age=3600" } }
@@ -693,12 +719,15 @@ export async function GET(request: Request) {
       // Non-2xx from safeFetch — try Jina as fallback before giving up
       const jina = await fetchViaJina(url, parsed.origin);
       if (jina?.image) {
+        trackLinkPreview("jina_fallback_fetch_failed", { url: summarizeUrlForLog(url) });
         return NextResponse.json(
           { image: jina.image, favicon: `${parsed.origin}/favicon.ico`, title: jina.title },
           { headers: { "Cache-Control": "public, max-age=3600" } }
         );
       }
 
+
+      trackLinkPreview("fetch_failure", { url: summarizeUrlForLog(url), status: res.status, jinaFailed: true });
       const retryAfterMs = failureRetryAfterMs(res.status, res.headers.get("retry-after"));
       return NextResponse.json(
         { image: null, favicon: `${parsed.origin}/favicon.ico`, title: null, retryAfterMs },
@@ -760,6 +789,7 @@ export async function GET(request: Request) {
       if (debug) console.log(JSON.stringify({ event: "link_preview_no_og_try_jina", url }));
       const jina = await fetchViaJina(url, finalOrigin);
       if (jina?.image) {
+        trackLinkPreview("jina_no_og_success", { url: summarizeUrlForLog(url) });
         return NextResponse.json(
           { image: jina.image, favicon, title: title ?? jina.title },
           { headers: { "Cache-Control": "public, max-age=3600" } }
@@ -767,6 +797,7 @@ export async function GET(request: Request) {
       }
     }
 
+    trackLinkPreview(image ? "html_og_success" : "no_image", { url: summarizeUrlForLog(url), hasOg: !!image });
     return NextResponse.json(
       { image, favicon, title },
       { headers: { "Cache-Control": "public, max-age=3600" } }
@@ -774,6 +805,7 @@ export async function GET(request: Request) {
   } catch (e) {
     const reason = e instanceof Error ? e.message : "unknown";
     if (debug) console.log(JSON.stringify({ event: "link_preview_error", url, reason }));
+    trackLinkPreview("exception", { url: summarizeUrlForLog(url), reason });
     if (reason === "blocked") {
       return NextResponse.json({ error: "blocked_url" }, { status: 400 });
     }

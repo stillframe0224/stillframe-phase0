@@ -12,8 +12,8 @@ const copy = {
       ja: "すべての思考に、画像がつく。",
     },
     sub: {
-      en: "Paste a URL and the image appears. Drop a photo and it becomes a card. Even if you do nothing, a gentle illustration fills the space — no manual image hunting, no empty thoughts.",
-      ja: "URLを貼れば画像を自動取得。写真をドロップすればそのままカードに。何もしなくても、やさしいイラストが空白を埋める。画像探しの手作業を減らし、思考を止めない。",
+      en: "Paste a URL — the image appears. Drop a photo — it becomes a card. Do nothing at all — a gentle illustration fills the space. No image hunting, no blank cards.",
+      ja: "URLを貼れば画像が現れる。写真を落とせばカードになる。何もしなくても、やさしいイラストが空白を埋める。画像探しも、空白のカードも、もういらない。",
     },
     cta: {
       en: "Try Quick Capture",
@@ -28,8 +28,8 @@ const copy = {
     },
     reset: { en: "Reset", ja: "リセット" },
     note: {
-      en: "Nothing is saved. This is just a preview.",
-      ja: "何も保存されません。プレビューです。",
+      en: "Nothing is saved — just explore freely.",
+      ja: "何も保存されません。自由に試してみてください。",
     },
   },
   howImages: {
@@ -109,6 +109,20 @@ const copy = {
       en: "Where meaning settles.",
       ja: "意味が沈殿する場所。",
     },
+    copyright: {
+      en: "© 2026 StillFrame. All rights reserved.",
+      ja: "© 2026 StillFrame",
+    },
+    navLabel: {
+      en: "Footer navigation",
+      ja: "フッターナビゲーション",
+    },
+    nav: {
+      demo: { en: "Demo", ja: "デモ" },
+      "how-it-works": { en: "How it works", ja: "しくみ" },
+      pricing: { en: "Pricing", ja: "料金" },
+      waitlist: { en: "Waitlist", ja: "ウェイトリスト" },
+    } as Record<string, { en: string; ja: string }>,
   },
   cardSamples: {
     memo: {
