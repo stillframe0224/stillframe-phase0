@@ -57,11 +57,15 @@ export default function Waitlist({
 
       setSubmitted(true);
     } catch (error) {
-      setErrorMessage(c.error[lang]);
+      // Network errors (fetch failed) show connection-specific message
+      const isNetworkError = error instanceof TypeError && 
+        (error.message.includes("Failed to fetch") || error.message.includes("Network request failed"));
+      setErrorMessage(isNetworkError ? c.errorNetwork[lang] : c.error[lang]);
       track("waitlist_submit_failed", {
         email: normalizedEmail,
         destination,
         reason: error instanceof Error ? error.message : "unknown_error",
+        isNetworkError: String(isNetworkError),
       });
     } finally {
       setLoading(false);
@@ -83,17 +87,13 @@ export default function Waitlist({
         >
           {c.success[lang]}
         </p>
-        <a
-          href="#pricing"
+        <PrimaryButton
           data-testid="waitlist-pricing-cta"
-          className="inline-flex h-8 items-center justify-center gap-2 rounded-full border-none px-6 py-2.5 text-sm font-semibold text-white no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[rgb(234,88,12)]"
-          style={{
-            marginTop: 16,
-            background: "rgb(234,88,12)",
-          }}
+          onClick={() => document.getElementById("pricing")?.scrollIntoView({ behavior: "smooth" })}
+          className="rounded-full px-6 py-2.5 text-sm mt-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[var(--accent-strong)]"
         >
           {lang === "ja" ? "料金を見る" : "View Pricing"}
-        </a>
+        </PrimaryButton>
       </div>
     );
   }

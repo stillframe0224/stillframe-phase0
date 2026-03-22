@@ -12,8 +12,8 @@ const copy = {
       ja: "すべての思考に、画像がつく。",
     },
     sub: {
-      en: "Paste a URL — the image appears. Drop a photo — it becomes a card. Do nothing at all — a gentle illustration fills the space. No image hunting, no blank cards.",
-      ja: "URLを貼れば画像が現れる。写真を落とせばカードになる。何もしなくても、やさしいイラストが空白を埋める。画像探しも、空白のカードも、もういらない。",
+      en: "Thoughts scattered across your phone, notes, and browser tabs — you know the feeling. Bring them together in one place. Paste a URL and the image loads itself. Drop a photo and it becomes a card. No hunting for images. No manual work. Just capture and collect.",
+      ja: "スマートフォン、メモ、ブラウザのタブに散らばる思考——その感覚、覚えがあるはず。すべてを一箇所に集める。URLを貼れば画像が自動で現れる。写真を落とせばカードになる。画像を探す手間も、手作業も、もういらない。ただ、つかまえて、集める。",
     },
     cta: {
       en: "Try Quick Capture",
@@ -41,22 +41,22 @@ const copy = {
       {
         title: { en: "Paste a URL", ja: "URLを貼る" },
         desc: {
-          en: "OGP image is fetched automatically, no manual fetch needed.",
-          ja: "OGP画像を自動取得。手作業の取得は不要。",
+          en: "OGP image fetches automatically. Zero steps. Zero friction. Done.",
+          ja: "OGP画像が自動で取得される。手作業ゼロ。摩擦ゼロ。完了。",
         },
       },
       {
         title: { en: "Drop a photo", ja: "写真をドロップ" },
         desc: {
-          en: "Your image becomes the card thumbnail.",
-          ja: "画像がそのままサムネイルに。",
+          en: "One click. Your image becomes the card. No editing, no uploading.",
+          ja: "ワンクリック。画像がカードになる。編集も、アップロードも不要。",
         },
       },
       {
         title: { en: "Or do nothing", ja: "何もしなくても" },
         desc: {
-          en: "A gentle SVG illustration fills the space.",
-          ja: "やさしいSVGイラストが空白を埋める。",
+          en: "We'll add a gentle illustration. No blank cards. Ever.",
+          ja: "やさしいイラストが自動で入る。空白のカードは、もう存在しない。",
         },
       },
     ],
@@ -81,8 +81,8 @@ const copy = {
     },
     cta: { en: "Get Early Access", ja: "早期アクセスを取得" },
     urgency: {
-      en: "Early-bird pricing: first 20 members keep this price forever",
-      ja: "先着20名はこの価格をずっと維持できます",
+      en: "Early-bird pricing — first 20 members lock in this price forever",
+      ja: "先着20名限定——この価格をずっと維持できます",
     },
   },
   waitlist: {
@@ -101,6 +101,10 @@ const copy = {
     error: {
       en: "Could not submit. Please try again.",
       ja: "送信できませんでした。もう一度お試しください。",
+    },
+    errorNetwork: {
+      en: "Could not connect. Please check your internet connection and try again.",
+      ja: "接続できませんでした。インターネット接続を確認してもう一度お試しください。",
     },
   },
   footer: {
