@@ -21,8 +21,11 @@ export const PrimaryButton = React.forwardRef<
       ref={ref}
       type={type}
       disabled={disabled}
+      aria-disabled={disabled ? "true" : undefined}
       className={tw(
         "inline-flex h-8 cursor-pointer items-center justify-center gap-2 rounded-md border-none px-3 text-sm font-semibold text-white disabled:cursor-default disabled:opacity-50 disabled:pointer-events-none",
+        // Accessibility: Enhanced keyboard focus indicators
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-orange-600",
         className,
       )}
       style={{ background: disabled ? undefined : "rgb(234,88,12)", ...rest.style }}
@@ -32,7 +35,6 @@ export const PrimaryButton = React.forwardRef<
     </button>
   );
 });
-
 // --- Card ------------------------------------------------------------
 interface CardProps extends Omit<React.HTMLAttributes<HTMLDivElement>, "title"> {
   title?: React.ReactNode;
