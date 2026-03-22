@@ -70,8 +70,8 @@ export default function Waitlist({
 
   if (submitted) {
     return (
-      <div style={{ textAlign: "center", padding: "32px 0" }}>
-        <span style={{ fontSize: 32, display: "block", marginBottom: 12 }}>
+      <div style={{ textAlign: "center", padding: "32px 0" }} role="status" aria-live="polite">
+        <span style={{ fontSize: 32, display: "block", marginBottom: 12 }} aria-hidden="true">
           &#10003;
         </span>
         <p
@@ -86,17 +86,10 @@ export default function Waitlist({
         <a
           href="#pricing"
           data-testid="waitlist-pricing-cta"
+          className="inline-flex h-8 items-center justify-center gap-2 rounded-full border-none px-6 py-2.5 text-sm font-semibold text-white no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[rgb(234,88,12)]"
           style={{
-            display: "inline-block",
             marginTop: 16,
-            padding: "10px 24px",
-            borderRadius: 999,
-            background: "#2a2a2a",
-            color: "#fff",
-            fontSize: 14,
-            fontFamily: "var(--font-dm)",
-            fontWeight: 600,
-            textDecoration: "none",
+            background: "rgb(234,88,12)",
           }}
         >
           {lang === "ja" ? "料金を見る" : "View Pricing"}
@@ -116,8 +109,10 @@ export default function Waitlist({
         }}
       >
         <input
+          data-testid="waitlist-email"
           type="email"
           required
+          aria-label={c.placeholder[lang]}
           placeholder={c.placeholder[lang]}
           value={email}
           onChange={(e) => {
@@ -128,16 +123,17 @@ export default function Waitlist({
           inputMode="email"
           autoCapitalize="none"
           autoCorrect="off"
+          className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-[#2a2a2a]"
           style={{
             flex: "1 1 240px",
             minWidth: 0,
             padding: "12px 18px",
             borderRadius: 999,
-            border: "1px solid #ddd",
+            border: errorMessage ? "1px solid #b42318" : "1px solid #ddd",
             fontSize: 15,
             fontFamily: "var(--font-dm)",
-            outline: "none",
             background: "#fff",
+            transition: "border-color 0.2s ease",
           }}
         />
         <PrimaryButton
@@ -156,12 +152,14 @@ export default function Waitlist({
       </form>
       {errorMessage && (
         <p
+          role="alert"
           style={{
             marginTop: 10,
             fontSize: 13,
             color: "#b42318",
             fontFamily: "var(--font-dm)",
             textAlign: "center",
+            animation: "fadeIn 0.2s ease-in",
           }}
         >
           {errorMessage}
