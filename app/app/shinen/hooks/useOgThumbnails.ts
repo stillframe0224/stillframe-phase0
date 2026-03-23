@@ -192,6 +192,14 @@ export function useOgThumbnails(
 
     const controller = new AbortController();
 
+    // Mark cards as loading before fetch begins
+    const fetchIds = new Set(toFetch.filter(({ url }) => !inflightRef.current.has(url)).map(({ id }) => id));
+    if (fetchIds.size > 0) {
+      setCards((prev) =>
+        prev.map((c) => (fetchIds.has(c.id) && !c.ogStatus ? { ...c, ogStatus: "loading" as const } : c)),
+      );
+    }
+
     for (const { id, url } of toFetch) {
       if (inflightRef.current.has(url)) continue;
       inflightRef.current.add(url);
@@ -201,6 +209,18 @@ export function useOgThumbnails(
       })
         .then((res) => {
           if (!res.ok) {
+            // Enhanced error logging for OGP fetch failures
+            console.error('[OGP Fetch Error]', {
+              url,
+              status: res.status,
+              statusText: res.statusText,
+              timestamp: new Date().toISOString(),
+              cardId: id,
+            });
+            // Mark card as failed so UI can show fallback
+            setCards((prev) =>
+              prev.map((c) => (c.id === id ? { ...c, ogStatus: "failed" as const } : c)),
+            );
             return { image: null, favicon: null, retryAfterMs: 5 * 60 * 1000 };
           }
           return res.json();
@@ -233,41 +253,53 @@ export function useOgThumbnails(
             const showImage = !embed && data.image && isImageAllowedHost(url);
             const favicon = data.favicon ?? null;
 
-            if (embed || showImage || favicon) {
-              setCards((prev) =>
-                prev.map((c) => {
-                  if (c.id !== id) return c;
-                  const updates: Partial<typeof c> = {};
-                  if (!c.media) {
-                    if (embed) {
-                      updates.media = {
-                        type: "embed" as const,
-                        kind: "embed" as const,
-                        url: c.source?.url ?? embed.embedUrl!,
-                        embedUrl: embed.embedUrl!,
-                        posterUrl: embed.posterUrl ?? embed.image ?? undefined,
-                        provider: embed.provider,
-                      };
-                    } else if (showImage) {
-                      updates.media = { type: "image" as const, kind: "image" as const, url: data.image! };
-                    }
+            // Clear ogStatus and apply fetched data
+            setCards((prev) =>
+              prev.map((c) => {
+                if (c.id !== id) return c;
+                const updates: Partial<typeof c> = { ogStatus: undefined };
+                if (!c.media) {
+                  if (embed) {
+                    updates.media = {
+                      type: "embed" as const,
+                      kind: "embed" as const,
+                      url: c.source?.url ?? embed.embedUrl!,
+                      embedUrl: embed.embedUrl!,
+                      posterUrl: embed.posterUrl ?? embed.image ?? undefined,
+                      provider: embed.provider,
+                    };
+                  } else if (showImage) {
+                    updates.media = { type: "image" as const, kind: "image" as const, url: data.image! };
                   }
-                  if (favicon && c.source && !c.source.favicon) {
-                    updates.source = { ...c.source, favicon };
-                  }
-                  return Object.keys(updates).length > 0 ? { ...c, ...updates } : c;
-                }),
-              );
-            }
+                }
+                if (favicon && c.source && !c.source.favicon) {
+                  updates.source = { ...c.source, favicon };
+                }
+                return { ...c, ...updates };
+              }),
+            );
           },
         )
         .catch((err: unknown) => {
           inflightRef.current.delete(url);
           // AbortError means the component unmounted — don't cache as failure
           if (err instanceof DOMException && err.name === "AbortError") return;
+          
+          // Enhanced error logging for network/exception errors
+          console.error('[OGP Network Error]', {
+            url,
+            error: err instanceof Error ? err.message : String(err),
+            timestamp: new Date().toISOString(),
+            cardId: id,
+          });
+          
           const currentCache = readCache();
           currentCache[url] = { image: null, fetchedAt: Date.now() };
           writeCache(currentCache);
+          // Mark card as failed so UI can show fallback
+          setCards((prev) =>
+            prev.map((c) => (c.id === id ? { ...c, ogStatus: "failed" as const } : c)),
+          );
         });
     }
 
