@@ -1,0 +1,1 @@
+blocked_reason: file_verify mismatch after breaker_inputs exclusion; unexpected .rwl/*.patch artifacts and required_files(app/page.tsx) missing
