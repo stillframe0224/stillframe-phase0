@@ -157,10 +157,85 @@ function loadLessonsAddon() {
   return content || '';
 }
 
+// === Structured task result parser ===
+
+const TASK_RESULT_VALID_STATUSES = new Set(['completed', 'partial', 'failed', 'blocked']);
+
+/**
+ * Extract structured task result from Claude's text output.
+ * Strategy (ordered by reliability):
+ *   1. Last ```json ... ``` fenced block containing "status"
+ *   2. Last bare JSON object starting with {"status":
+ * Returns { parsed: object, source: string } or { parsed: null, source: 'none' }.
+ */
+function parseTaskResult(text) {
+  if (!text || typeof text !== 'string') return { parsed: null, source: 'none' };
+
+  // Strategy 1: fenced ```json blocks — take the LAST one that has "status"
+  const fencedRe = /```json\s*\n?([\s\S]*?)```/g;
+  let lastFenced = null;
+  let m;
+  while ((m = fencedRe.exec(text)) !== null) {
+    try {
+      const obj = JSON.parse(m[1].trim());
+      if (obj && typeof obj.status === 'string') lastFenced = obj;
+    } catch { /* skip malformed */ }
+  }
+  if (lastFenced && TASK_RESULT_VALID_STATUSES.has(lastFenced.status)) {
+    return { parsed: normalizeResult(lastFenced), source: 'fenced' };
+  }
+
+  // Strategy 2: bare JSON — last {"status": ...} object
+  const bareRe = /\{[\s]*"status"\s*:\s*"[^"]+"/g;
+  let lastBareStart = -1;
+  while ((m = bareRe.exec(text)) !== null) {
+    lastBareStart = m.index;
+  }
+  if (lastBareStart >= 0) {
+    // Find matching closing brace
+    let depth = 0;
+    let end = -1;
+    for (let i = lastBareStart; i < text.length; i++) {
+      if (text[i] === '{') depth++;
+      else if (text[i] === '}') { depth--; if (depth === 0) { end = i + 1; break; } }
+    }
+    if (end > lastBareStart) {
+      try {
+        const obj = JSON.parse(text.slice(lastBareStart, end));
+        if (obj && TASK_RESULT_VALID_STATUSES.has(obj.status)) {
+          return { parsed: normalizeResult(obj), source: 'bare' };
+        }
+      } catch { /* skip */ }
+    }
+  }
+
+  return { parsed: null, source: 'none' };
+}
+
+function normalizeResult(obj) {
+  return {
+    status: TASK_RESULT_VALID_STATUSES.has(obj.status) ? obj.status : 'completed',
+    summary: typeof obj.summary === 'string' ? obj.summary.slice(0, 1000) : '',
+    files_changed: Array.isArray(obj.files_changed)
+      ? obj.files_changed.filter(f => typeof f === 'string').slice(0, 100)
+      : [],
+    reason: typeof obj.reason === 'string' ? obj.reason.slice(0, 500) : '',
+  };
+}
+
+const TASK_RESULT_INSTRUCTION = [
+  `## IMPORTANT — Structured result output`,
+  `When you finish (success or failure), output EXACTLY one JSON block as the LAST thing in your response.`,
+  `Fence it with \`\`\`json ... \`\`\`. The JSON MUST have these fields:`,
+  `  {"status":"completed|partial|failed|blocked","summary":"1-2 line summary","files_changed":["path/to/file"],"reason":"why, if failed/blocked"}`,
+  `Do NOT omit this block. It is required for automated processing.`,
+].join('\n');
+
 function buildExecutionPrompt(task, lessonsAddon = loadLessonsAddon()) {
   return [
     `You are working on SHINEN (stillframe-phase0).`,
     `Read CLAUDE.md for project context.`,
+    TASK_RESULT_INSTRUCTION,
     ``,
     `## Task: ${task.goal}`,
     ``,
@@ -175,6 +250,9 @@ function buildExecutionPrompt(task, lessonsAddon = loadLessonsAddon()) {
     `- Do NOT merge the PR`,
     ``,
     ...(lessonsAddon ? [`## Lessons from previous runs:`, lessonsAddon] : []),
+    ``,
+    `## Reminder`,
+    `After ALL work is done, you MUST output the structured JSON result block described at the top.`,
   ].join('\n');
 }
 
@@ -243,10 +321,13 @@ function executeTask(task) {
   // Build the Claude Code prompt from the task
   const prompt = buildExecutionPrompt(task, lessonsAddon);
 
+  let rawOutput = '';
+  let execOk = false;
+
   try {
     // Try to use claude-code CLI
-    const result = execSync(
-      `cd "${ROOT}" && claude -p "${prompt}" --max-turns 20 --output-format text`,
+    rawOutput = execSync(
+      `cd "${ROOT}" && claude -p "${prompt}" --max-turns 20 --output-format text --bare`,
       {
         encoding: 'utf8',
         timeout: 240000, // 4 minutes (run.sh has 5 min timeout)
@@ -254,13 +335,40 @@ function executeTask(task) {
         env: { ...process.env, PATH: '/usr/local/bin:/opt/homebrew/bin:' + process.env.PATH }
       }
     );
-
-    log({ step: 'execute_end', task_id: task.id, status: 'ok', output_length: result.length });
-    return true;
+    execOk = true;
   } catch (err) {
+    // Capture partial stdout even on non-zero exit
+    rawOutput = err.stdout || '';
     log({ step: 'execute_end', task_id: task.id, status: 'error', error: err.message?.slice(0, 500) });
-    return false;
   }
+
+  // Parse structured result (best-effort)
+  const { parsed: taskResult, source: parseSource } = parseTaskResult(rawOutput);
+
+  // Persist result to .claude/results/
+  if (taskResult) {
+    try {
+      const resultsDir = path.join(ROOT, '.claude', 'results');
+      if (!fs.existsSync(resultsDir)) fs.mkdirSync(resultsDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(resultsDir, `${task.id}_result.json`),
+        JSON.stringify({ ...taskResult, _parse_source: parseSource, _task_id: task.id, _at: new Date().toISOString() }, null, 2)
+      );
+    } catch (writeErr) {
+      log({ step: 'result_persist_error', task_id: task.id, error: writeErr.message?.slice(0, 200) });
+    }
+  }
+
+  log({
+    step: 'execute_end',
+    task_id: task.id,
+    status: execOk ? 'ok' : 'error',
+    output_length: rawOutput.length,
+    task_result_status: taskResult?.status || null,
+    task_result_source: parseSource,
+  });
+
+  return { execOk, taskResult };
 }
 
 function checkTaskComplexityPreconditions(task) {
@@ -568,6 +676,98 @@ function isRunnerInternalPath(relPath) {
     || /^\.rwl\/[^/]+\.patch$/.test(relPath);
 }
 
+// === Triad gate ===
+
+const EVENTS_PATH = path.join(RWL, 'EVENTS.jsonl');
+
+function logEvent(runId, event) {
+  const entry = { ts: new Date().toISOString(), run_id: runId, ...event };
+  fs.appendFileSync(EVENTS_PATH, JSON.stringify(entry) + '\n');
+}
+
+function getHeadShort() {
+  try {
+    return execSync('git rev-parse --short HEAD', { cwd: ROOT, encoding: 'utf8', timeout: 5000 }).trim();
+  } catch {
+    return null;
+  }
+}
+
+const LOW_RISK_EXTENSIONS = new Set(['.md', '.txt', '.json', '.yml', '.yaml']);
+const CODE_PATH_PREFIXES = ['prompts/', 'circuits/', 'src/', 'lib/', 'app/', 'tools/', 'scripts/'];
+const CODE_EXTENSIONS = new Set(['.js', '.ts', '.py']);
+
+function isLowRiskTask(changedFiles) {
+  if (!Array.isArray(changedFiles) || changedFiles.length === 0) return false;
+  for (const f of changedFiles) {
+    const ext = path.extname(f).toLowerCase();
+    if (CODE_EXTENSIONS.has(ext)) return false;
+    if (CODE_PATH_PREFIXES.some(prefix => f.startsWith(prefix))) return false;
+    if (!LOW_RISK_EXTENSIONS.has(ext) && !f.startsWith('docs/')) return false;
+  }
+  return true;
+}
+
+function checkTriadReview(task, changedFiles) {
+  const review = task.triad_review;
+  const runId = task.id || 'unknown';
+
+  // No triad_review present
+  if (!review) {
+    if (review === 'legacy_skip') {
+      logEvent(runId, { task_id: task.id, event_type: 'triad_legacy_skip' });
+      return { ok: true, reason: 'legacy_skip' };
+    }
+    if (isLowRiskTask(changedFiles)) {
+      logEvent(runId, { task_id: task.id, event_type: 'triad_review_low_risk_bypass', changed_files: changedFiles });
+      log({ step: 'triad_gate', task_id: task.id, result: 'low_risk_bypass', changed_files: changedFiles });
+      return { ok: true, reason: 'low_risk_bypass' };
+    }
+    logEvent(runId, { task_id: task.id, event_type: 'triad_review_missing' });
+    return { ok: false, blocker: 'triad_review_missing', message: 'Blocked: triad_review missing for non-low-risk task' };
+  }
+
+  // legacy_skip string
+  if (review === 'legacy_skip') {
+    logEvent(runId, { task_id: task.id, event_type: 'triad_legacy_skip' });
+    return { ok: true, reason: 'legacy_skip' };
+  }
+
+  // Validate structure
+  const { contract, regression, safety, reviewed_commit, report_path } = review;
+
+  // Check report_path exists
+  if (report_path) {
+    const reportAbsPath = path.join(ROOT, report_path);
+    if (!fs.existsSync(reportAbsPath)) {
+      logEvent(runId, { task_id: task.id, event_type: 'triad_report_missing', report_path });
+      return { ok: false, blocker: 'triad_report_missing', message: `Blocked: report not found at ${report_path}` };
+    }
+  }
+
+  // Stale check
+  if (reviewed_commit) {
+    const head = getHeadShort();
+    if (head && reviewed_commit !== head) {
+      logEvent(runId, { task_id: task.id, event_type: 'triad_review_stale', reviewed_commit, head });
+      return { ok: false, blocker: 'triad_review_stale', message: `Blocked: triad_review stale (reviewed_commit ${reviewed_commit} != HEAD ${head})` };
+    }
+  }
+
+  // FAIL check
+  for (const axis of ['contract', 'regression', 'safety']) {
+    const val = review[axis];
+    if (val === 'FAIL') {
+      logEvent(runId, { task_id: task.id, event_type: `triad_review_fail_${axis}` });
+      return { ok: false, blocker: `triad_review_fail_${axis}`, message: `Blocked: triad_review ${axis} = FAIL` };
+    }
+  }
+
+  // All PASS/WARN
+  logEvent(runId, { task_id: task.id, event_type: 'triad_ship_passed', triad_review: review });
+  return { ok: true, reason: 'triad_pass' };
+}
+
 function computeTaskChangedFiles(beforeSnapshot, afterSnapshot) {
   const beforeEntries = beforeSnapshot?.entries || {};
   const afterEntries = afterSnapshot?.entries || {};
@@ -767,7 +967,7 @@ function main() {
   }
 
   // Execute
-  const success = executeTask(task);
+  const { execOk: success, taskResult } = executeTask(task);
   let afterSnapshot = null;
   try {
     afterSnapshot = captureWorkingTreeSnapshot();
@@ -779,15 +979,68 @@ function main() {
     });
   }
 
+  // === Two-layer result evaluation ===
+  // execution_result: mechanical success/failure (exit code, build, test)
+  // governance_result: triad/gate/process completeness
+  // failure_count reflects ONLY execution_result — governance issues never increment it.
+
+  const execution_result = success ? 'success' : 'failure';
+  let governance_result = 'pending'; // will be set below
+
   if (success) {
+    // Execution succeeded — failure_count MUST be reset regardless of governance outcome
+    status.failure_count = 0;
+
+    // Log self-reported status (Phase 1: observe only, exit-code remains authoritative)
+    if (taskResult) {
+      log({ step: 'self_report', task_id: task.id, self_status: taskResult.status, summary: taskResult.summary, reason: taskResult.reason });
+      if (taskResult.status === 'failed' || taskResult.status === 'blocked') {
+        console.error(`[runner] NOTICE: task ${task.id} self-reported "${taskResult.status}" but exit code was 0 — marking done per Phase 1 policy (exit-code authoritative)`);
+      }
+    }
+
     // Verify allowed_files before marking done
     const verify = verifyAllowedFiles(task, beforeSnapshot, afterSnapshot);
     if (verify.ok) {
+      // Triad gate: check triad_review before marking done
+      const { actual: taskChangedFiles } = computeTaskChangedFiles(beforeSnapshot, afterSnapshot);
+      const triadResult = checkTriadReview(task, taskChangedFiles);
+      if (!triadResult.ok) {
+        governance_result = triadResult.blocker;
+        console.error(`[runner] ${triadResult.message}`);
+        log({
+          step: 'triad_gate', task_id: task.id, result: 'blocked', blocker: triadResult.blocker,
+          execution_result, governance_result,
+          note: 'execution succeeded — failure_count reset, task quarantined for governance only',
+        });
+        quarantineTask(task, triadResult.message);
+        recordLesson(task.id, {
+          status: 'blocked',
+          error: triadResult.blocker,
+          workaround: triadResult.message,
+        });
+        status.last_task_id = task.id;
+        status.note = `Execution succeeded but governance blocked: ${triadResult.blocker}`;
+        status.last_error = null;
+        writeStatus(status);
+        return;
+      }
+      governance_result = 'pass';
+      log({
+        step: 'triad_gate', task_id: task.id, result: 'passed', reason: triadResult.reason,
+        execution_result, governance_result,
+      });
+
       markDone(task);
-      recordLesson(task.id, { status: 'success', summary: task.goal });
-      status.failure_count = 0;
+      recordLesson(task.id, {
+        status: 'success',
+        summary: task.goal,
+        ...(taskResult ? { self_report: { status: taskResult.status, summary: taskResult.summary } } : {}),
+      });
     } else {
-      // Mismatch: quarantine, do NOT mark done, do NOT increment failure_count
+      // Mismatch: quarantine, do NOT mark done
+      // This is a governance-layer issue (file scope), NOT an execution failure
+      governance_result = 'allowed_files_mismatch';
       console.error(`[runner] allowed_files mismatch for ${task.id} — quarantined`);
       if (verify.unexpected_changes?.length) {
         console.error(`  unexpected: ${verify.unexpected_changes.join(', ')}`);
@@ -795,6 +1048,11 @@ function main() {
       if (verify.missing_changes?.length) {
         console.error(`  missing:    ${verify.missing_changes.join(', ')}`);
       }
+      log({
+        step: 'file_verify_quarantine', task_id: task.id,
+        execution_result, governance_result,
+        note: 'execution succeeded — failure_count reset, quarantined for file scope violation',
+      });
       quarantineTask(task, `allowed_files mismatch: unexpected=[${(verify.unexpected_changes || []).join(',')}] missing=[${(verify.missing_changes || []).join(',')}]`);
       recordLesson(task.id, {
         status: 'blocked',
@@ -803,10 +1061,19 @@ function main() {
       });
     }
     status.last_task_id = task.id;
+    status.last_error = null;
   } else {
+    // Execution FAILED — this is the only path that increments failure_count
+    governance_result = 'n/a';
     recordLesson(task.id, { status: 'error', error: `Task failed (attempt ${(status.failure_count || 0) + 1})` });
     status.failure_count = (status.failure_count || 0) + 1;
     status.last_task_id = task.id;
+    status.last_error = `execution_failure at attempt ${status.failure_count}`;
+    log({
+      step: 'execution_failure', task_id: task.id,
+      execution_result, governance_result,
+      failure_count: status.failure_count,
+    });
   }
 
   writeStatus(status);
