@@ -534,6 +534,96 @@ function MediaPreview({
   onMediaClick?: () => void;
 }) {
   const media = card.media;
+  const ogStatus = (card as ShinenCard & { ogStatus?: "loading" | "failed" }).ogStatus;
+  
+  // Loading state: show spinner
+  if (ogStatus === "loading") {
+    return (
+      <div
+        style={{
+          aspectRatio: "16/9",
+          background: "linear-gradient(135deg, #f8f8f8 0%, #fcfcfc 100%)",
+          borderRadius: 8,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: 8,
+          border: "1px solid rgba(0,0,0,0.06)",
+        }}
+      >
+        <div
+          style={{
+            width: 24,
+            height: 24,
+            border: "2px solid rgba(79,110,217,0.15)",
+            borderTopColor: "rgba(79,110,217,0.6)",
+            borderRadius: "50%",
+            animation: "spin 0.8s linear infinite",
+          }}
+        />
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+        <div
+          style={{
+            fontSize: 11,
+            fontFamily: "'DM Sans',sans-serif",
+            color: "rgba(0,0,0,0.35)",
+          }}
+        >
+          画像を取得中...
+        </div>
+      </div>
+    );
+  }
+  
+  // Failed state: show error message with retry hint
+  if (ogStatus === "failed") {
+    return (
+      <div
+        style={{
+          aspectRatio: "16/9",
+          background: "linear-gradient(135deg, #fef5f5 0%, #fff9f9 100%)",
+          borderRadius: 8,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: 8,
+          border: "1px solid rgba(220,38,38,0.12)",
+          padding: 16,
+        }}
+      >
+        <svg
+          width="32"
+          height="32"
+          viewBox="0 0 24 24"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          style={{ opacity: 0.4, color: "#dc2626" }}
+        >
+          <path
+            d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"
+            fill="currentColor"
+          />
+        </svg>
+        <div
+          style={{
+            fontSize: 11,
+            fontFamily: "'DM Sans',sans-serif",
+            color: "rgba(220,38,38,0.7)",
+            textAlign: "center",
+            lineHeight: 1.5,
+          }}
+        >
+          画像を取得できませんでした
+          <br />
+          <span style={{ fontSize: 10, opacity: 0.7 }}>
+            （サイトが非公開またはアクセス制限あり）
+          </span>
+        </div>
+      </div>
+    );
+  }
   
   // Fallback UI when no media is available
   if (!media) {
