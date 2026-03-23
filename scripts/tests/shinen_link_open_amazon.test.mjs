@@ -92,6 +92,12 @@ test("Amazon CDN headers use provided Amazon referer and host detection", () => 
   assert.equal(withRef.Referer, "https://www.amazon.co.jp/");
   assert.match(withRef.Accept, /^image\//);
 
+  const withAuRef = buildAmazonImageHeaders("https://www.amazon.com.au/dp/B000000000");
+  assert.equal(withAuRef.Referer, "https://www.amazon.com.au/");
+
+  const spoofed = buildAmazonImageHeaders("https://evilamazon.co/dp/B000000000");
+  assert.equal(spoofed.Referer, "https://www.amazon.co.jp/");
+
   const fallback = buildAmazonImageHeaders("https://example.com/nope");
   assert.equal(fallback.Referer, "https://www.amazon.co.jp/");
 });

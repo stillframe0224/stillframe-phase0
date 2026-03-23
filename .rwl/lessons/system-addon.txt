@@ -1,0 +1,21 @@
+以下はこのリポジトリで最近確認された失敗/成功パターンです。
+失敗パターンの再発を避け、成功パターンを優先してください。
+履歴の詳細説明より、再利用可能な作業原則として扱うこと。
+
+## 最近の失敗パターン（再発を避けること）
+- **20260318-obsv3-03-oversized-scope**: task complexity preflight failed. 回避策: task should be split before execution; scope files 4 exceeds 3
+- **20260318-obsv3-03-oversized-scope**: task complexity preflight failed. 回避策: task should be split before execution; prompt length 2209 exceeds 2200; scope files 4 exceeds 3
+- **20260318-obsv3-04-oversized-verification**: task complexity preflight failed. 回避策: task should be split before execution; prompt length 2275 exceeds 2200; verification commands 3 exceeds 2
+- **20260318-obsv3-05-oversized-dod**: task complexity preflight failed. 回避策: task should be split before execution; prompt length 2444 exceeds 2200; DoD items 5 exceeds 4
+- **20260318-obsv4-01-prompt-warning-only**: verification preflight failed. 回避策: npm test requested but scripts.test is missing
+- **20260318-obsv4-02-scope-block**: task complexity preflight failed. 回避策: task should be split before execution; scope files 4 exceeds 3
+- **20260318-obsv4-03-dod-block**: task complexity preflight failed. 回避策: task should be split before execution; DoD items 5 exceeds 4
+
+## 最近の成功パターン（優先して採用すること）
+- **20260318-obsv-01-build-a**: Apply a small UX copy refinement for landing page with build-only verification
+- **20260318-obsv-04-required-mid**: Implement a medium-risk tweak that must touch app/page.tsx
+- **20260318-obsv2-01-build-small**: Apply a small copy refinement around landing page hero
+- **20260318-obsv2-02-ui-component**: Adjust InputBar microcopy/layout consistency
+- **20260318-obsv3-01-build-small-pass**: Apply a very small copy tweak in app/page.tsx and keep behavior unchanged
+- **20260318-obsv3-02-required-mid-pass**: Implement a small medium-risk tweak that must update app/page.tsx while allowing lib/copy.ts follow-up
+- **20260318-230000-link-preview-telemetry**: link-previewのOGP取得失敗・成功パターンをtelemetry経由で記録し可観測性を向上

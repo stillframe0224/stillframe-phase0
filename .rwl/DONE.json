@@ -75,5 +75,68 @@
     "session": "nightly",
     "pr_url": "https://github.com/stillframe0224/stillframe-phase0/pull/218",
     "evidence": "/Users/array0224/stillframe-phase0/reports/triad/20260308-230000-readme-setup-guide.md"
+  },
+  {
+    "id": "20260317-080200-mobile-responsive-check",
+    "goal": "LP（app/page.tsx）のモバイル表示崩れを修正（CTA・Waitlistフォーム）",
+    "completed_at": "2026-03-17T08:15:00+09:00",
+    "pr_url": "https://github.com/stillframe0224/stillframe-phase0/pull/245",
+    "evidence": "/Users/array0224/stillframe-phase0/reports/triad/20260317-080200-mobile-responsive-check.md"
+  },
+  {
+    "id": "20260318-105506-build-only-post-patch-exclude",
+    "goal": "Build-only observation after excluding runner patch artifacts",
+    "completed_at": "2026-03-18T01:57:00.997Z",
+    "session": "nightly"
+  },
+  {
+    "id": "20260318-obsv-01-build-a",
+    "goal": "Apply a small UX copy refinement for landing page with build-only verification",
+    "completed_at": "2026-03-18T02:05:10.593Z",
+    "session": "nightly"
+  },
+  {
+    "id": "20260318-obsv-04-required-mid",
+    "goal": "Implement a medium-risk tweak that must touch app/page.tsx",
+    "completed_at": "2026-03-18T02:09:00.048Z",
+    "session": "nightly"
+  },
+  {
+    "id": "20260318-obsv2-01-build-small",
+    "goal": "Apply a small copy refinement around landing page hero",
+    "completed_at": "2026-03-18T02:21:39.493Z",
+    "session": "nightly"
+  },
+  {
+    "id": "20260318-obsv2-02-ui-component",
+    "goal": "Adjust InputBar microcopy/layout consistency",
+    "completed_at": "2026-03-18T02:23:35.612Z",
+    "session": "nightly"
+  },
+  {
+    "id": "20260318-obsv3-01-build-small-pass",
+    "goal": "Apply a very small copy tweak in app/page.tsx and keep behavior unchanged",
+    "completed_at": "2026-03-18T02:56:02.387Z",
+    "session": "nightly"
+  },
+  {
+    "id": "20260318-obsv3-02-required-mid-pass",
+    "goal": "Implement a small medium-risk tweak that must update app/page.tsx while allowing lib/copy.ts follow-up",
+    "completed_at": "2026-03-18T02:57:44.683Z",
+    "session": "nightly"
+  },
+  {
+    "id": "20260318-230000-link-preview-telemetry",
+    "goal": "link-previewのOGP取得失敗・成功パターンをtelemetry経由で記録し可観測性を向上",
+    "completed_at": "2026-03-18T14:06:51.000Z",
+    "session": "nightly",
+    "pr_url": "https://github.com/stillframe0224/stillframe-phase0/pull/246",
+    "evidence": "/Users/array0224/stillframe-phase0/reports/triad/20260318-230000-link-preview-telemetry.md"
+  },
+  {
+    "id": "20260318-230000-link-preview-telemetry",
+    "goal": "link-previewのOGP取得失敗・成功パターンをtelemetry経由で記録し可観測性を向上",
+    "completed_at": "2026-03-18T14:08:21.492Z",
+    "session": "nightly"
   }
 ]

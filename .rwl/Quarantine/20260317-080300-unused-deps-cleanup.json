@@ -1,0 +1,18 @@
+{
+  "id": "20260317-080300-unused-deps-cleanup",
+  "goal": "package.jsonから未使用依存パッケージを削除（depcheck実行）",
+  "est_minutes": 15,
+  "dod": [
+    "depcheck実行",
+    "未使用packageを削除",
+    "npm run build 通過",
+    "reports/triad/20260317-080300-unused-deps-cleanup.md 作成",
+    "PR作成"
+  ],
+  "evidence_paths": [
+    "/Users/array0224/stillframe-phase0/reports/triad/20260317-080300-unused-deps-cleanup.md"
+  ],
+  "created_at": "2026-03-17T08:03:00+09:00",
+  "status": "current",
+  "_filename": "20260317-080300-unused-deps-cleanup.json"
+}

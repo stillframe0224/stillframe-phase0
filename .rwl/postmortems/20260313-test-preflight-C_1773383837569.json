@@ -1,0 +1,14 @@
+{
+  "task_id": "20260313-test-preflight-C",
+  "goal": "管理画面のCSV出力の文言を修正する",
+  "failed_at": "2026-03-13T06:37:17.569Z",
+  "error_tag": "build_fail",
+  "failure_class": "build_fail",
+  "symptom": "Command failed: cd \"/Users/array0224/stillframe-phase0\" && claude -p \"You are working on SHINEN (stillframe-phase0).\nRead CLAUDE.md for project context.\n\n## Task: 管理画面のCSV出力の文言を修正する\n\n## Definition of Done:\n- CSVの列ヘッダーが正しく表示される\n\n## Rules:\n- Work in a feature branch: git checkout -b rwl/20260313-test-",
+  "root_cause_hypothesis": "Code changes broke the build",
+  "preventive_rule_candidate": "Add build check assertion to task dod",
+  "context_snapshot": {
+    "branch": "main",
+    "queue_count": 0
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "id": "20260318-obsv3-05-oversized-dod",
+  "goal": "Apply a small bounded tweak but include too many explicit DoD steps",
+  "type": "ops",
+  "est_minutes": 20,
+  "plan_section": "Single-file bounded tweak; intentionally overloaded DoD list for preflight observation.",
+  "dod": [
+    "Identify exact target line",
+    "Implement minimal change",
+    "Run build verification",
+    "Prepare summary with rationale",
+    "Prepare follow-up cleanup note"
+  ],
+  "allowed_files": {
+    "create": [],
+    "modify": [
+      "app/page.tsx"
+    ],
+    "delete": []
+  },
+  "required_files": {
+    "create": [],
+    "modify": [],
+    "delete": []
+  },
+  "constraints": [
+    "Do not modify files outside allowed_files"
+  ],
+  "verification_commands": [
+    "npm run build"
+  ],
+  "review_required": {
+    "spec": true,
+    "safety": true,
+    "quality": true
+  },
+  "created_at": "2026-03-18T12:00:04+09:00",
+  "_filename": "20260318-obsv3-05-oversized-dod.json",
+  "status": "current"
+}

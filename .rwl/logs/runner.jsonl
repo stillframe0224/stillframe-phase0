@@ -268,3 +268,342 @@
 {"ts":"2026-03-08T13:51:12.691Z","step":"idle","reason":"no_tasks"}
 {"ts":"2026-03-08T13:56:13.088Z","step":"idle","reason":"no_tasks"}
 {"ts":"2026-03-08T14:01:13.487Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-17T13:03:58.580Z","step":"promote","task_id":"20260317-080300-unused-deps-cleanup","from":"Queue"}
+{"ts":"2026-03-17T13:03:58.582Z","step":"execute_start","task_id":"20260317-080300-unused-deps-cleanup","goal":"package.jsonから未使用依存パッケージを削除（depcheck実行）"}
+{"ts":"2026-03-17T13:07:58.589Z","step":"execute_end","task_id":"20260317-080300-unused-deps-cleanup","status":"error","error":"spawnSync /bin/sh ETIMEDOUT"}
+{"ts":"2026-03-17T13:07:58.593Z","step":"lesson_recorded","task_id":"20260317-080300-unused-deps-cleanup","status":"error"}
+{"ts":"2026-03-17T13:13:00.851Z","step":"execute_start","task_id":"20260317-080300-unused-deps-cleanup","goal":"package.jsonから未使用依存パッケージを削除（depcheck実行）"}
+{"ts":"2026-03-17T13:17:00.861Z","step":"execute_end","task_id":"20260317-080300-unused-deps-cleanup","status":"error","error":"spawnSync /bin/sh ETIMEDOUT"}
+{"ts":"2026-03-17T13:17:00.865Z","step":"lesson_recorded","task_id":"20260317-080300-unused-deps-cleanup","status":"error"}
+{"ts":"2026-03-17T13:22:02.343Z","step":"execute_start","task_id":"20260317-080300-unused-deps-cleanup","goal":"package.jsonから未使用依存パッケージを削除（depcheck実行）"}
+{"ts":"2026-03-17T13:26:02.352Z","step":"execute_end","task_id":"20260317-080300-unused-deps-cleanup","status":"error","error":"spawnSync /bin/sh ETIMEDOUT"}
+{"ts":"2026-03-17T13:26:02.360Z","step":"lesson_recorded","task_id":"20260317-080300-unused-deps-cleanup","status":"error"}
+{"ts":"2026-03-17T13:31:03.805Z","step":"execute_start","task_id":"20260317-080300-unused-deps-cleanup","goal":"package.jsonから未使用依存パッケージを削除（depcheck実行）"}
+{"ts":"2026-03-17T13:35:03.817Z","step":"execute_end","task_id":"20260317-080300-unused-deps-cleanup","status":"error","error":"spawnSync /bin/sh ETIMEDOUT"}
+{"ts":"2026-03-17T13:35:03.835Z","step":"lesson_recorded","task_id":"20260317-080300-unused-deps-cleanup","status":"error"}
+{"ts":"2026-03-17T13:40:05.357Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T13:45:06.988Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T13:50:08.389Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T13:55:09.651Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T14:00:11.048Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T14:05:12.344Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T14:10:13.886Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T14:15:15.186Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T14:20:16.731Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T14:25:17.817Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T14:30:19.994Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T14:35:21.462Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T14:40:22.902Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T14:45:24.618Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T14:50:26.964Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T14:55:28.517Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T15:00:30.175Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T15:05:32.084Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T15:10:33.627Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T15:15:35.265Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T15:20:37.386Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T15:25:39.271Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T15:30:41.576Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T15:35:43.194Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T15:40:44.879Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T15:45:46.325Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T15:50:48.024Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T15:55:49.690Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T16:00:51.510Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T16:05:52.837Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T16:10:54.301Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T16:15:55.707Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T16:20:57.251Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T16:25:58.630Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T16:30:59.939Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T16:36:01.386Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T16:41:03.097Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T16:46:04.769Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T16:51:06.431Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T16:56:07.621Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T17:01:08.828Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T17:06:10.277Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T17:11:11.114Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T17:16:12.656Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T17:21:13.821Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T17:26:14.972Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T17:31:16.120Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T17:36:17.375Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T17:41:18.752Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T17:46:20.044Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T17:51:21.258Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T17:56:22.442Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T18:01:23.649Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T18:06:25.008Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T18:11:26.396Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T18:16:27.722Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T18:21:28.935Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T18:26:30.080Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T18:31:31.303Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T18:36:32.653Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T18:41:33.837Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T18:46:35.040Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T18:51:36.219Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T18:56:37.424Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T19:01:38.686Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T19:06:39.887Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T19:11:41.125Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T19:16:42.388Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T19:21:43.734Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T19:26:44.924Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T19:31:46.103Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T19:36:47.505Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T19:41:48.732Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T19:46:50.041Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T19:51:51.229Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T19:56:52.489Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T20:01:53.924Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T20:06:55.367Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T20:11:56.574Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T20:16:57.821Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T20:21:59.027Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T20:27:00.431Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T20:32:01.805Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T20:37:03.080Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T20:42:04.318Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T20:47:05.553Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T20:52:07.254Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T20:57:08.613Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T21:02:09.874Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T21:07:11.349Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T21:12:12.732Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T21:17:14.211Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T21:22:15.456Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T21:27:16.894Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T21:32:18.228Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T21:37:19.543Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T21:44:20.127Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T21:51:20.728Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T21:58:21.345Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T22:05:21.825Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T22:12:22.429Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T22:19:23.004Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T22:26:23.610Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T22:33:24.194Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T22:40:24.770Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T22:47:25.373Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-17T22:54:26.021Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-03-18T01:29:10.879Z","step":"verification_preflight","task_id":"20260317-080300-unused-deps-cleanup","result":"skipped","reason":"verification_commands not defined"}
+{"ts":"2026-03-18T01:29:10.940Z","step":"execute_start","task_id":"20260317-080300-unused-deps-cleanup","goal":"package.jsonから未使用依存パッケージを削除（depcheck実行）"}
+{"ts":"2026-03-18T01:33:10.943Z","step":"execute_end","task_id":"20260317-080300-unused-deps-cleanup","status":"error","error":"spawnSync /bin/sh ETIMEDOUT"}
+{"ts":"2026-03-18T01:33:10.997Z","step":"lesson_recorded","task_id":"20260317-080300-unused-deps-cleanup","status":"error"}
+{"ts":"2026-03-18T01:41:10.182Z","step":"promote","task_id":"20260318-103336-build-only-minor-fix","from":"Queue"}
+{"ts":"2026-03-18T01:41:10.184Z","step":"verification_preflight","task_id":"20260318-103336-build-only-minor-fix","result":"pass","verification_commands":["npm run build"],"checks":{"npmTest":false,"npxVitest":false,"npxJest":false,"npmRunBuild":true}}
+{"ts":"2026-03-18T01:41:10.248Z","step":"execute_start","task_id":"20260318-103336-build-only-minor-fix","goal":"Fix a minor copy issue on app/page.tsx with build-only verification"}
+{"ts":"2026-03-18T01:44:13.612Z","step":"execute_end","task_id":"20260318-103336-build-only-minor-fix","status":"ok","output_length":1264}
+{"ts":"2026-03-18T01:44:13.655Z","step":"file_verify","task_id":"20260318-103336-build-only-minor-fix","result":"mismatch","unexpected_changes":[".rwl/breaker_inputs.json"],"missing_changes":[],"deleted_by_task":[],"allowed_files":["app/page.tsx","lib/copy.ts"],"required_files":["app/page.tsx"],"actual":[".rwl/breaker_inputs.json","app/page.tsx","lib/copy.ts"],"snapshot_before_counts":{"tracked_modified":8,"untracked":9,"deleted":0},"snapshot_after_counts":{"tracked_modified":10,"untracked":9,"deleted":0}}
+{"ts":"2026-03-18T01:44:13.656Z","step":"lesson_recorded","task_id":"20260318-103336-build-only-minor-fix","status":"blocked"}
+{"ts":"2026-03-18T01:44:33.545Z","step":"promote","task_id":"20260318-103337-test-preflight-check","from":"Queue"}
+{"ts":"2026-03-18T01:44:33.548Z","step":"verification_preflight","task_id":"20260318-103337-test-preflight-check","result":"blocked","blocked_reason":"npm test requested but scripts.test is missing","missing_requirements":["npm test requested but scripts.test is missing"],"verification_commands":["npm test","npm run build"]}
+{"ts":"2026-03-18T01:44:33.549Z","step":"lesson_recorded","task_id":"20260318-103337-test-preflight-check","status":"blocked"}
+{"ts":"2026-03-18T01:46:49.820Z","step":"promote","task_id":"20260318-104646-build-only-followup","from":"Queue"}
+{"ts":"2026-03-18T01:46:49.823Z","step":"verification_preflight","task_id":"20260318-104646-build-only-followup","result":"pass","verification_commands":["npm run build"],"checks":{"npmTest":false,"npxVitest":false,"npxJest":false,"npmRunBuild":true}}
+{"ts":"2026-03-18T01:46:49.887Z","step":"execute_start","task_id":"20260318-104646-build-only-followup","goal":"Build-only follow-up observation after internal-path exclusion update"}
+{"ts":"2026-03-18T01:50:38.546Z","step":"execute_end","task_id":"20260318-104646-build-only-followup","status":"ok","output_length":1585}
+{"ts":"2026-03-18T01:50:38.605Z","step":"file_verify","task_id":"20260318-104646-build-only-followup","result":"mismatch","unexpected_changes":[".rwl/copy-diff.patch",".rwl/page-diff.patch"],"missing_changes":["app/page.tsx"],"deleted_by_task":[],"allowed_files":["app/page.tsx","lib/copy.ts"],"required_files":["app/page.tsx"],"actual":[".rwl/copy-diff.patch",".rwl/page-diff.patch"],"snapshot_before_counts":{"tracked_modified":10,"untracked":13,"deleted":0},"snapshot_after_counts":{"tracked_modified":10,"untracked":15,"deleted":0}}
+{"ts":"2026-03-18T01:50:38.607Z","step":"lesson_recorded","task_id":"20260318-104646-build-only-followup","status":"blocked"}
+{"ts":"2026-03-18T01:55:10.366Z","step":"promote","task_id":"20260318-105506-build-only-post-patch-exclude","from":"Queue"}
+{"ts":"2026-03-18T01:55:10.368Z","step":"verification_preflight","task_id":"20260318-105506-build-only-post-patch-exclude","result":"pass","verification_commands":["npm run build"],"checks":{"npmTest":false,"npxVitest":false,"npxJest":false,"npmRunBuild":true}}
+{"ts":"2026-03-18T01:55:10.422Z","step":"execute_start","task_id":"20260318-105506-build-only-post-patch-exclude","goal":"Build-only observation after excluding runner patch artifacts"}
+{"ts":"2026-03-18T01:57:00.947Z","step":"execute_end","task_id":"20260318-105506-build-only-post-patch-exclude","status":"ok","output_length":1370}
+{"ts":"2026-03-18T01:57:00.997Z","step":"file_verify","task_id":"20260318-105506-build-only-post-patch-exclude","result":"pass","actual_files":[],"allowed_files":["app/page.tsx","lib/copy.ts"],"required_files":[],"snapshot_before_counts":{"tracked_modified":10,"untracked":17,"deleted":0},"snapshot_after_counts":{"tracked_modified":10,"untracked":17,"deleted":0}}
+{"ts":"2026-03-18T01:57:00.998Z","step":"done","task_id":"20260318-105506-build-only-post-patch-exclude"}
+{"ts":"2026-03-18T01:57:01.000Z","step":"lesson_recorded","task_id":"20260318-105506-build-only-post-patch-exclude","status":"success"}
+{"ts":"2026-03-18T02:03:46.286Z","step":"promote","task_id":"20260318-obsv-01-build-a","from":"Queue"}
+{"ts":"2026-03-18T02:03:46.288Z","step":"verification_preflight","task_id":"20260318-obsv-01-build-a","result":"pass","verification_commands":["npm run build"],"checks":{"npmTest":false,"npxVitest":false,"npxJest":false,"npmRunBuild":true}}
+{"ts":"2026-03-18T02:03:46.397Z","step":"execute_start","task_id":"20260318-obsv-01-build-a","goal":"Apply a small UX copy refinement for landing page with build-only verification"}
+{"ts":"2026-03-18T02:05:10.541Z","step":"execute_end","task_id":"20260318-obsv-01-build-a","status":"ok","output_length":1241}
+{"ts":"2026-03-18T02:05:10.593Z","step":"file_verify","task_id":"20260318-obsv-01-build-a","result":"pass","actual_files":["lib/copy.ts"],"allowed_files":["app/page.tsx","lib/copy.ts"],"required_files":[],"snapshot_before_counts":{"tracked_modified":12,"untracked":17,"deleted":0},"snapshot_after_counts":{"tracked_modified":12,"untracked":17,"deleted":0}}
+{"ts":"2026-03-18T02:05:10.594Z","step":"done","task_id":"20260318-obsv-01-build-a"}
+{"ts":"2026-03-18T02:05:10.594Z","step":"lesson_recorded","task_id":"20260318-obsv-01-build-a","status":"success"}
+{"ts":"2026-03-18T02:05:13.808Z","step":"promote","task_id":"20260318-obsv-02-build-b","from":"Queue"}
+{"ts":"2026-03-18T02:05:13.811Z","step":"verification_preflight","task_id":"20260318-obsv-02-build-b","result":"pass","verification_commands":["npm run build"],"checks":{"npmTest":false,"npxVitest":false,"npxJest":false,"npmRunBuild":true}}
+{"ts":"2026-03-18T02:05:13.858Z","step":"execute_start","task_id":"20260318-obsv-02-build-b","goal":"Adjust capture page helper wording with build-only verification"}
+{"ts":"2026-03-18T02:06:59.589Z","step":"execute_end","task_id":"20260318-obsv-02-build-b","status":"ok","output_length":440}
+{"ts":"2026-03-18T02:06:59.655Z","step":"file_verify","task_id":"20260318-obsv-02-build-b","result":"mismatch","unexpected_changes":["app/app/shinen/InputBar.tsx"],"missing_changes":[],"deleted_by_task":[],"allowed_files":["app/capture/page.tsx","lib/urlUtils.ts"],"required_files":[],"actual":["app/app/shinen/InputBar.tsx"],"snapshot_before_counts":{"tracked_modified":12,"untracked":17,"deleted":0},"snapshot_after_counts":{"tracked_modified":13,"untracked":17,"deleted":0}}
+{"ts":"2026-03-18T02:06:59.659Z","step":"lesson_recorded","task_id":"20260318-obsv-02-build-b","status":"blocked"}
+{"ts":"2026-03-18T02:07:12.409Z","step":"promote","task_id":"20260318-obsv-03-test-block","from":"Queue"}
+{"ts":"2026-03-18T02:07:12.411Z","step":"verification_preflight","task_id":"20260318-obsv-03-test-block","result":"blocked","blocked_reason":"npm test requested but scripts.test is missing","missing_requirements":["npm test requested but scripts.test is missing"],"verification_commands":["npm test","npm run build"]}
+{"ts":"2026-03-18T02:07:12.412Z","step":"lesson_recorded","task_id":"20260318-obsv-03-test-block","status":"blocked"}
+{"ts":"2026-03-18T02:07:22.852Z","step":"promote","task_id":"20260318-obsv-04-required-mid","from":"Queue"}
+{"ts":"2026-03-18T02:07:22.854Z","step":"verification_preflight","task_id":"20260318-obsv-04-required-mid","result":"pass","verification_commands":["npm run build"],"checks":{"npmTest":false,"npxVitest":false,"npxJest":false,"npmRunBuild":true}}
+{"ts":"2026-03-18T02:07:22.895Z","step":"execute_start","task_id":"20260318-obsv-04-required-mid","goal":"Implement a medium-risk tweak that must touch app/page.tsx"}
+{"ts":"2026-03-18T02:08:59.986Z","step":"execute_end","task_id":"20260318-obsv-04-required-mid","status":"ok","output_length":1607}
+{"ts":"2026-03-18T02:09:00.048Z","step":"file_verify","task_id":"20260318-obsv-04-required-mid","result":"pass","actual_files":["app/page.tsx"],"allowed_files":["app/page.tsx","lib/copy.ts"],"required_files":["app/page.tsx"],"snapshot_before_counts":{"tracked_modified":13,"untracked":21,"deleted":0},"snapshot_after_counts":{"tracked_modified":13,"untracked":21,"deleted":0}}
+{"ts":"2026-03-18T02:09:00.050Z","step":"done","task_id":"20260318-obsv-04-required-mid"}
+{"ts":"2026-03-18T02:09:00.051Z","step":"lesson_recorded","task_id":"20260318-obsv-04-required-mid","status":"success"}
+{"ts":"2026-03-18T02:19:58.627Z","step":"promote","task_id":"20260318-obsv2-01-build-small","from":"Queue"}
+{"ts":"2026-03-18T02:19:58.630Z","step":"verification_preflight","task_id":"20260318-obsv2-01-build-small","result":"pass","verification_commands":["npm run build"],"checks":{"npmTest":false,"npxVitest":false,"npxJest":false,"npmRunBuild":true}}
+{"ts":"2026-03-18T02:19:58.690Z","step":"execute_start","task_id":"20260318-obsv2-01-build-small","goal":"Apply a small copy refinement around landing page hero"}
+{"ts":"2026-03-18T02:21:39.438Z","step":"execute_end","task_id":"20260318-obsv2-01-build-small","status":"ok","output_length":1278}
+{"ts":"2026-03-18T02:21:39.493Z","step":"file_verify","task_id":"20260318-obsv2-01-build-small","result":"pass","actual_files":["lib/copy.ts"],"allowed_files":["app/page.tsx","app/app/shinen/InputBar.tsx","lib/copy.ts"],"required_files":[],"snapshot_before_counts":{"tracked_modified":13,"untracked":21,"deleted":0},"snapshot_after_counts":{"tracked_modified":13,"untracked":21,"deleted":0}}
+{"ts":"2026-03-18T02:21:39.494Z","step":"done","task_id":"20260318-obsv2-01-build-small"}
+{"ts":"2026-03-18T02:21:39.495Z","step":"lesson_recorded","task_id":"20260318-obsv2-01-build-small","status":"success"}
+{"ts":"2026-03-18T02:21:44.565Z","step":"promote","task_id":"20260318-obsv2-02-ui-component","from":"Queue"}
+{"ts":"2026-03-18T02:21:44.568Z","step":"verification_preflight","task_id":"20260318-obsv2-02-ui-component","result":"pass","verification_commands":["npm run build"],"checks":{"npmTest":false,"npxVitest":false,"npxJest":false,"npmRunBuild":true}}
+{"ts":"2026-03-18T02:21:44.611Z","step":"execute_start","task_id":"20260318-obsv2-02-ui-component","goal":"Adjust InputBar microcopy/layout consistency"}
+{"ts":"2026-03-18T02:23:35.559Z","step":"execute_end","task_id":"20260318-obsv2-02-ui-component","status":"ok","output_length":1341}
+{"ts":"2026-03-18T02:23:35.611Z","step":"file_verify","task_id":"20260318-obsv2-02-ui-component","result":"pass","actual_files":["app/app/shinen/InputBar.tsx"],"allowed_files":["app/app/shinen/InputBar.tsx","app/page.tsx","lib/copy.ts"],"required_files":[],"snapshot_before_counts":{"tracked_modified":13,"untracked":21,"deleted":0},"snapshot_after_counts":{"tracked_modified":13,"untracked":21,"deleted":0}}
+{"ts":"2026-03-18T02:23:35.613Z","step":"done","task_id":"20260318-obsv2-02-ui-component"}
+{"ts":"2026-03-18T02:23:35.614Z","step":"lesson_recorded","task_id":"20260318-obsv2-02-ui-component","status":"success"}
+{"ts":"2026-03-18T02:23:42.967Z","step":"promote","task_id":"20260318-obsv2-03-required-mid","from":"Queue"}
+{"ts":"2026-03-18T02:23:42.970Z","step":"verification_preflight","task_id":"20260318-obsv2-03-required-mid","result":"pass","verification_commands":["npm run build"],"checks":{"npmTest":false,"npxVitest":false,"npxJest":false,"npmRunBuild":true}}
+{"ts":"2026-03-18T02:23:43.021Z","step":"execute_start","task_id":"20260318-obsv2-03-required-mid","goal":"Implement a medium-risk tweak that must touch app/page.tsx while permitting adjacent ripple"}
+{"ts":"2026-03-18T02:27:43.024Z","step":"execute_end","task_id":"20260318-obsv2-03-required-mid","status":"error","error":"spawnSync /bin/sh ETIMEDOUT"}
+{"ts":"2026-03-18T02:27:43.104Z","step":"lesson_recorded","task_id":"20260318-obsv2-03-required-mid","status":"error"}
+{"ts":"2026-03-18T02:54:19.178Z","step":"promote","task_id":"20260318-obsv3-01-build-small-pass","from":"Queue"}
+{"ts":"2026-03-18T02:54:19.183Z","step":"task_complexity_preflight","task_id":"20260318-obsv3-01-build-small-pass","result":"pass","metrics":{"prompt_length_chars":1881,"plan_section_length_chars":87,"allowed_files_count":2,"required_files_count":1,"scope_files_count":3,"verification_commands_count":1,"dod_items_count":0},"limits":{"maxPromptChars":2200,"maxPlanSectionChars":300,"maxScopeFiles":3,"maxVerificationCommands":2,"maxDodItems":4}}
+{"ts":"2026-03-18T02:54:19.184Z","step":"verification_preflight","task_id":"20260318-obsv3-01-build-small-pass","result":"pass","verification_commands":["npm run build"],"checks":{"npmTest":false,"npxVitest":false,"npxJest":false,"npmRunBuild":true}}
+{"ts":"2026-03-18T02:54:19.272Z","step":"execute_start","task_id":"20260318-obsv3-01-build-small-pass","goal":"Apply a very small copy tweak in app/page.tsx and keep behavior unchanged"}
+{"ts":"2026-03-18T02:56:02.320Z","step":"execute_end","task_id":"20260318-obsv3-01-build-small-pass","status":"ok","output_length":892}
+{"ts":"2026-03-18T02:56:02.385Z","step":"file_verify","task_id":"20260318-obsv3-01-build-small-pass","result":"pass","actual_files":["app/page.tsx"],"allowed_files":["app/page.tsx","lib/copy.ts"],"required_files":["app/page.tsx"],"snapshot_before_counts":{"tracked_modified":13,"untracked":26,"deleted":0},"snapshot_after_counts":{"tracked_modified":13,"untracked":26,"deleted":0}}
+{"ts":"2026-03-18T02:56:02.390Z","step":"done","task_id":"20260318-obsv3-01-build-small-pass"}
+{"ts":"2026-03-18T02:56:02.392Z","step":"lesson_recorded","task_id":"20260318-obsv3-01-build-small-pass","status":"success"}
+{"ts":"2026-03-18T02:56:02.477Z","step":"promote","task_id":"20260318-obsv3-02-required-mid-pass","from":"Queue"}
+{"ts":"2026-03-18T02:56:02.489Z","step":"task_complexity_preflight","task_id":"20260318-obsv3-02-required-mid-pass","result":"pass","metrics":{"prompt_length_chars":2027,"plan_section_length_chars":68,"allowed_files_count":2,"required_files_count":1,"scope_files_count":3,"verification_commands_count":1,"dod_items_count":0},"limits":{"maxPromptChars":2200,"maxPlanSectionChars":300,"maxScopeFiles":3,"maxVerificationCommands":2,"maxDodItems":4}}
+{"ts":"2026-03-18T02:56:02.491Z","step":"verification_preflight","task_id":"20260318-obsv3-02-required-mid-pass","result":"pass","verification_commands":["npm run build"],"checks":{"npmTest":false,"npxVitest":false,"npxJest":false,"npmRunBuild":true}}
+{"ts":"2026-03-18T02:56:02.599Z","step":"execute_start","task_id":"20260318-obsv3-02-required-mid-pass","goal":"Implement a small medium-risk tweak that must update app/page.tsx while allowing lib/copy.ts follow-up"}
+{"ts":"2026-03-18T02:57:44.624Z","step":"execute_end","task_id":"20260318-obsv3-02-required-mid-pass","status":"ok","output_length":1272}
+{"ts":"2026-03-18T02:57:44.682Z","step":"file_verify","task_id":"20260318-obsv3-02-required-mid-pass","result":"pass","actual_files":["app/page.tsx","lib/copy.ts"],"allowed_files":["app/page.tsx","lib/copy.ts"],"required_files":["app/page.tsx"],"snapshot_before_counts":{"tracked_modified":13,"untracked":26,"deleted":0},"snapshot_after_counts":{"tracked_modified":13,"untracked":26,"deleted":0}}
+{"ts":"2026-03-18T02:57:44.684Z","step":"done","task_id":"20260318-obsv3-02-required-mid-pass"}
+{"ts":"2026-03-18T02:57:44.685Z","step":"lesson_recorded","task_id":"20260318-obsv3-02-required-mid-pass","status":"success"}
+{"ts":"2026-03-18T02:57:44.754Z","step":"promote","task_id":"20260318-obsv3-03-oversized-scope","from":"Queue"}
+{"ts":"2026-03-18T02:57:44.761Z","step":"task_complexity_preflight","task_id":"20260318-obsv3-03-oversized-scope","result":"blocked","blocked_reason":"task should be split before execution","oversized_reasons":["scope files 4 exceeds 3"],"metrics":{"prompt_length_chars":2130,"plan_section_length_chars":72,"allowed_files_count":3,"required_files_count":1,"scope_files_count":4,"verification_commands_count":1,"dod_items_count":0},"limits":{"maxPromptChars":2200,"maxPlanSectionChars":300,"maxScopeFiles":3,"maxVerificationCommands":2,"maxDodItems":4}}
+{"ts":"2026-03-18T02:57:44.769Z","step":"lesson_recorded","task_id":"20260318-obsv3-03-oversized-scope","status":"blocked"}
+{"ts":"2026-03-18T02:57:44.859Z","step":"task_complexity_preflight","task_id":"20260318-obsv3-03-oversized-scope","result":"blocked","blocked_reason":"task should be split before execution","oversized_reasons":["scope files 4 exceeds 3"],"metrics":{"prompt_length_chars":2196,"plan_section_length_chars":72,"allowed_files_count":3,"required_files_count":1,"scope_files_count":4,"verification_commands_count":1,"dod_items_count":0},"limits":{"maxPromptChars":2200,"maxPlanSectionChars":300,"maxScopeFiles":3,"maxVerificationCommands":2,"maxDodItems":4}}
+{"ts":"2026-03-18T02:57:44.872Z","step":"lesson_recorded","task_id":"20260318-obsv3-03-oversized-scope","status":"blocked"}
+{"ts":"2026-03-18T02:57:44.948Z","step":"task_complexity_preflight","task_id":"20260318-obsv3-03-oversized-scope","result":"blocked","blocked_reason":"task should be split before execution","oversized_reasons":["prompt length 2209 exceeds 2200","scope files 4 exceeds 3"],"metrics":{"prompt_length_chars":2209,"plan_section_length_chars":72,"allowed_files_count":3,"required_files_count":1,"scope_files_count":4,"verification_commands_count":1,"dod_items_count":0},"limits":{"maxPromptChars":2200,"maxPlanSectionChars":300,"maxScopeFiles":3,"maxVerificationCommands":2,"maxDodItems":4}}
+{"ts":"2026-03-18T02:57:44.956Z","step":"lesson_recorded","task_id":"20260318-obsv3-03-oversized-scope","status":"blocked"}
+{"ts":"2026-03-18T02:58:11.284Z","step":"promote","task_id":"20260318-obsv3-04-oversized-verification","from":"Queue"}
+{"ts":"2026-03-18T02:58:11.288Z","step":"task_complexity_preflight","task_id":"20260318-obsv3-04-oversized-verification","result":"blocked","blocked_reason":"task should be split before execution","oversized_reasons":["prompt length 2275 exceeds 2200","verification commands 3 exceeds 2"],"metrics":{"prompt_length_chars":2275,"plan_section_length_chars":53,"allowed_files_count":1,"required_files_count":0,"scope_files_count":1,"verification_commands_count":3,"dod_items_count":0},"limits":{"maxPromptChars":2200,"maxPlanSectionChars":300,"maxScopeFiles":3,"maxVerificationCommands":2,"maxDodItems":4}}
+{"ts":"2026-03-18T02:58:11.290Z","step":"lesson_recorded","task_id":"20260318-obsv3-04-oversized-verification","status":"blocked"}
+{"ts":"2026-03-18T02:58:16.677Z","step":"promote","task_id":"20260318-obsv3-05-oversized-dod","from":"Queue"}
+{"ts":"2026-03-18T02:58:16.682Z","step":"task_complexity_preflight","task_id":"20260318-obsv3-05-oversized-dod","result":"blocked","blocked_reason":"task should be split before execution","oversized_reasons":["prompt length 2444 exceeds 2200","DoD items 5 exceeds 4"],"metrics":{"prompt_length_chars":2444,"plan_section_length_chars":87,"allowed_files_count":1,"required_files_count":0,"scope_files_count":1,"verification_commands_count":1,"dod_items_count":5},"limits":{"maxPromptChars":2200,"maxPlanSectionChars":300,"maxScopeFiles":3,"maxVerificationCommands":2,"maxDodItems":4}}
+{"ts":"2026-03-18T02:58:16.686Z","step":"lesson_recorded","task_id":"20260318-obsv3-05-oversized-dod","status":"blocked"}
+{"ts":"2026-03-18T03:03:14.026Z","step":"promote","task_id":"20260318-obsv4-01-prompt-warning-only","from":"Queue"}
+{"ts":"2026-03-18T03:03:14.029Z","step":"task_complexity_preflight","task_id":"20260318-obsv4-01-prompt-warning-only","result":"pass","metrics":{"prompt_length_chars":2579,"plan_section_length_chars":34,"allowed_files_count":1,"required_files_count":0,"scope_files_count":1,"verification_commands_count":1,"dod_items_count":0},"limits":{"maxPromptChars":2200,"maxPlanSectionChars":300,"maxScopeFiles":3,"maxVerificationCommands":2,"maxDodItems":4},"prompt_warnings":["prompt length 2579 exceeds 2200"]}
+{"ts":"2026-03-18T03:03:14.031Z","step":"verification_preflight","task_id":"20260318-obsv4-01-prompt-warning-only","result":"blocked","blocked_reason":"npm test requested but scripts.test is missing","missing_requirements":["npm test requested but scripts.test is missing"],"verification_commands":["npm test"]}
+{"ts":"2026-03-18T03:03:14.035Z","step":"lesson_recorded","task_id":"20260318-obsv4-01-prompt-warning-only","status":"blocked"}
+{"ts":"2026-03-18T03:03:18.888Z","step":"promote","task_id":"20260318-obsv4-02-scope-block","from":"Queue"}
+{"ts":"2026-03-18T03:03:18.892Z","step":"task_complexity_preflight","task_id":"20260318-obsv4-02-scope-block","result":"blocked","blocked_reason":"task should be split before execution","oversized_reasons":["scope files 4 exceeds 3"],"prompt_warnings":["prompt length 2328 exceeds 2200"],"metrics":{"prompt_length_chars":2328,"plan_section_length_chars":44,"allowed_files_count":3,"required_files_count":1,"scope_files_count":4,"verification_commands_count":1,"dod_items_count":0},"limits":{"maxPromptChars":2200,"maxPlanSectionChars":300,"maxScopeFiles":3,"maxVerificationCommands":2,"maxDodItems":4}}
+{"ts":"2026-03-18T03:03:18.893Z","step":"lesson_recorded","task_id":"20260318-obsv4-02-scope-block","status":"blocked"}
+{"ts":"2026-03-18T03:03:22.652Z","step":"promote","task_id":"20260318-obsv4-03-dod-block","from":"Queue"}
+{"ts":"2026-03-18T03:03:22.654Z","step":"task_complexity_preflight","task_id":"20260318-obsv4-03-dod-block","result":"blocked","blocked_reason":"task should be split before execution","oversized_reasons":["DoD items 5 exceeds 4"],"prompt_warnings":["prompt length 2431 exceeds 2200"],"metrics":{"prompt_length_chars":2431,"plan_section_length_chars":35,"allowed_files_count":1,"required_files_count":0,"scope_files_count":1,"verification_commands_count":1,"dod_items_count":5},"limits":{"maxPromptChars":2200,"maxPlanSectionChars":300,"maxScopeFiles":3,"maxVerificationCommands":2,"maxDodItems":4}}
+{"ts":"2026-03-18T03:03:22.655Z","step":"lesson_recorded","task_id":"20260318-obsv4-03-dod-block","status":"blocked"}
+{"ts":"2026-03-18T05:36:49.836Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T05:36:55.554Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T05:42:54.449Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T05:42:55.042Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T13:05:33.905Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T13:10:34.420Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T13:15:34.903Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T13:20:35.383Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T13:25:35.881Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T13:30:36.346Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T13:35:36.832Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T13:40:37.291Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T13:45:37.785Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T13:50:38.267Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T13:55:38.741Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T14:00:39.223Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T14:05:39.703Z","step":"task_complexity_preflight","task_id":"20260318-230000-link-preview-telemetry","result":"pass","metrics":{"prompt_length_chars":2529,"plan_section_length_chars":0,"allowed_files_count":0,"required_files_count":0,"scope_files_count":0,"verification_commands_count":0,"dod_items_count":3},"limits":{"maxPromptChars":2200,"maxPlanSectionChars":300,"maxScopeFiles":3,"maxVerificationCommands":2,"maxDodItems":4},"prompt_warnings":["prompt length 2529 exceeds 2200"]}
+{"ts":"2026-03-18T14:05:39.704Z","step":"verification_preflight","task_id":"20260318-230000-link-preview-telemetry","result":"skipped","reason":"verification_commands not defined"}
+{"ts":"2026-03-18T14:05:39.758Z","step":"execute_start","task_id":"20260318-230000-link-preview-telemetry","goal":"link-previewのOGP取得失敗・成功パターンをtelemetry経由で記録し可観測性を向上"}
+{"ts":"2026-03-18T14:08:21.411Z","step":"execute_end","task_id":"20260318-230000-link-preview-telemetry","status":"ok","output_length":29}
+{"ts":"2026-03-18T14:08:21.492Z","step":"file_verify","task_id":"20260318-230000-link-preview-telemetry","result":"skipped","reason":"allowed_files and required_files are both empty"}
+{"ts":"2026-03-18T14:08:21.494Z","step":"done","task_id":"20260318-230000-link-preview-telemetry"}
+{"ts":"2026-03-18T14:08:21.495Z","step":"lesson_recorded","task_id":"20260318-230000-link-preview-telemetry","status":"success"}
+{"ts":"2026-03-18T14:13:28.464Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T14:18:28.933Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T14:23:29.407Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T14:28:29.874Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T14:33:30.342Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T14:38:30.820Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T14:43:31.290Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T14:48:31.754Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T14:53:32.225Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T14:58:32.712Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T15:03:33.316Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T15:08:33.816Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T15:13:34.296Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T15:18:34.770Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T15:23:35.254Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T15:28:35.720Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T15:33:36.191Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T15:38:36.679Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T15:43:37.167Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T15:48:37.647Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T15:53:38.128Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T15:58:38.620Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T16:03:39.112Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T16:08:39.583Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T16:13:40.070Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T16:18:40.559Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T16:23:41.033Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T16:28:41.503Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T16:33:41.980Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T16:38:42.442Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T16:43:42.913Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T16:48:43.390Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T16:53:43.859Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T16:58:44.339Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T17:03:44.831Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T17:08:45.328Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T17:13:46.029Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T17:18:46.758Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T17:23:47.374Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T17:28:47.846Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T17:33:48.315Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T17:38:48.803Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T17:43:49.245Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T17:48:49.721Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T17:53:50.219Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T17:58:50.689Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T18:03:51.203Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T18:08:57.124Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T18:14:06.174Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T18:19:09.141Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T18:24:12.961Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T18:29:16.476Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T18:34:17.430Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T18:40:57.936Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T18:47:08.252Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T18:52:25.360Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T18:57:33.107Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T19:02:40.297Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T19:07:41.468Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T19:13:38.836Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T19:19:05.941Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T19:24:06.662Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T19:29:07.325Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T19:34:07.842Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T19:39:08.355Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T19:44:08.856Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T19:49:09.347Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T19:54:09.835Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T19:59:10.314Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T20:04:10.812Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T20:09:11.313Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T20:14:11.819Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T20:19:12.322Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T20:24:12.807Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T20:59:22.331Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T21:04:23.171Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T21:09:23.771Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T21:29:49.239Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T21:34:49.742Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T21:55:15.242Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T22:00:15.712Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T22:05:16.165Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T22:25:27.203Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T22:30:27.709Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T22:36:50.424Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T22:41:50.861Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T22:46:51.301Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T22:51:51.716Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-03-18T22:56:52.180Z","step":"idle","reason":"no_tasks"}

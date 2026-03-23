@@ -1,0 +1,13 @@
+diff --git a/lib/copy.ts b/lib/copy.ts
+index c4d436e..0421852 100644
+--- a/lib/copy.ts
++++ b/lib/copy.ts
+@@ -12,7 +12,7 @@ const copy = {
+       ja: "すべての思考に、画像がつく。",
+     },
+     sub: {
+-      en: "Paste a URL and the image appears. Drop a photo and it becomes a card. Even if you do nothing, a gentle illustration fills the space — no manual image hunting, no empty thoughts.",
++      en: "Paste a URL and the image appears. Drop a photo and it becomes a card. Even if you do nothing, a gentle illustration fills the space — no manual image hunting, no blank cards.",
+       ja: "URLを貼れば画像を自動取得。写真をドロップすればそのままカードに。何もしなくても、やさしいイラストが空白を埋める。画像探しの手作業を減らし、思考を止めない。",
+     },
+     cta: {

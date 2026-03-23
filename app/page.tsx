@@ -18,7 +18,7 @@ const WAITLIST_POST_URL = process.env.NEXT_PUBLIC_WAITLIST_POST_URL || "";
 const WAITLIST_FALLBACK_EMAIL =
   process.env.NEXT_PUBLIC_WAITLIST_FALLBACK_EMAIL || "";
 
-interface Card {
+interface DemoCard {
   id: number;
   text: string;
   type: string;
@@ -89,11 +89,18 @@ function SandRipple() {
   );
 }
 
+const FOOTER_SECTIONS = [
+  { id: "demo" },
+  { id: "how-it-works" },
+  { id: "pricing" },
+  { id: "waitlist" },
+] as const;
+
 export default function Home() {
   const [lang, setLang] = useState<Lang>("en");
   const [selectedType, setSelectedType] = useState("memo");
   const [input, setInput] = useState("");
-  const [cards, setCards] = useState<Card[]>([]);
+  const [cards, setCards] = useState<DemoCard[]>([]);
   const [nextId, setNextId] = useState(1);
   const inputRef = useRef<HTMLInputElement>(null);
   const demoTracked = useRef(false);
@@ -115,13 +122,17 @@ export default function Home() {
     setNextId(1);
   };
 
+  const scrollTo = (id: string) => {
+    document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+  };
+
   // Track page_view on mount
   useEffect(() => {
     track("page_view");
   }, []);
 
   // Get hero sample cards
-  const sampleCards: Card[] = sampleTypes.map((type, i) => ({
+  const sampleCards: DemoCard[] = sampleTypes.map((type, i) => ({
     id: i + 100,
     text: copy.cardSamples[type][lang],
     type,
@@ -181,37 +192,35 @@ export default function Home() {
         >
           {copy.hero.sub[lang]}
         </p>
-        <a
-          href="#demo"
+        <button
           data-testid="cta-early-access"
-          onClick={() => track("hero_cta_click")}
+          onClick={() => {
+            track("hero_cta_click");
+            scrollTo("demo");
+          }}
           aria-label={copy.hero.cta[lang]}
-          style={{ textDecoration: "none" }}
+          style={{
+            padding: "10px 28px",
+            borderRadius: 999,
+            border: "1.5px solid rgba(0,0,0,0.75)",
+            background: "transparent",
+            color: "rgba(0,0,0,0.8)",
+            fontSize: 14,
+            fontWeight: 500,
+            letterSpacing: "0.04em",
+            fontFamily: "var(--font-dm), system-ui, sans-serif",
+            cursor: "pointer",
+            transition: "background 0.15s, color 0.15s",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = "rgba(0,0,0,0.06)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = "transparent";
+          }}
         >
-          <button
-            style={{
-              padding: "10px 28px",
-              borderRadius: 999,
-              border: "1.5px solid rgba(0,0,0,0.75)",
-              background: "transparent",
-              color: "rgba(0,0,0,0.8)",
-              fontSize: 14,
-              fontWeight: 500,
-              letterSpacing: "0.04em",
-              fontFamily: "var(--font-dm), system-ui, sans-serif",
-              cursor: "pointer",
-              transition: "background 0.15s, color 0.15s",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = "rgba(0,0,0,0.06)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = "transparent";
-            }}
-          >
-            {copy.hero.cta[lang]}
-          </button>
-        </a>
+          {copy.hero.cta[lang]}
+        </button>
       </section>
 
       {/* Hero Sample Cards */}
@@ -272,6 +281,8 @@ export default function Home() {
 
         {/* Type Selector */}
         <div
+          role="tablist"
+          aria-label={lang === "ja" ? "思考タイプ" : "Thought types"}
           style={{
             display: "flex",
             gap: 6,
@@ -283,6 +294,8 @@ export default function Home() {
           {cardTypes.map((t) => (
             <button
               key={t.label}
+              role="tab"
+              aria-selected={selectedType === t.label}
               onClick={() => setSelectedType(t.label)}
               style={{
                 padding: "5px 14px",
@@ -426,6 +439,7 @@ export default function Home() {
 
       {/* How Images Work */}
       <section
+        id="how-it-works"
         style={{
           maxWidth: 800,
           margin: "0 auto",
@@ -491,6 +505,7 @@ export default function Home() {
 
       {/* Waitlist */}
       <section
+        id="waitlist"
         style={{
           maxWidth: 540,
           margin: "0 auto",
@@ -526,6 +541,37 @@ export default function Home() {
           padding: "0 24px 60px",
         }}
       >
+        <nav
+          aria-label={copy.footer.navLabel[lang]}
+          style={{
+            display: "flex",
+            gap: 20,
+            justifyContent: "center",
+            marginBottom: 20,
+          }}
+        >
+          {FOOTER_SECTIONS.map((sec) => (
+            <button
+              key={sec.id}
+              onClick={() => scrollTo(sec.id)}
+              style={{
+                background: "none",
+                border: "none",
+                padding: 0,
+                fontSize: 13,
+                color: "#999",
+                cursor: "pointer",
+                fontFamily: "var(--font-dm)",
+                letterSpacing: "0.03em",
+                transition: "color 0.15s",
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = "#555")}
+              onMouseLeave={(e) => (e.currentTarget.style.color = "#999")}
+            >
+              {copy.footer.nav[sec.id][lang]}
+            </button>
+          ))}
+        </nav>
         <p
           style={{
             fontFamily: "var(--font-serif)",
@@ -546,6 +592,17 @@ export default function Home() {
           }}
         >
           {copy.footer.tagline[lang]}
+        </p>
+        <p
+          style={{
+            fontSize: 11,
+            color: "#bbb",
+            marginTop: 16,
+            fontFamily: "var(--font-dm)",
+            letterSpacing: "0.02em",
+          }}
+        >
+          {copy.footer.copyright[lang]}
         </p>
       </footer>
     </div>

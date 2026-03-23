@@ -1,0 +1,37 @@
+{
+  "id": "20260318-obsv4-02-scope-block",
+  "goal": "Observe scope-based complexity blocking",
+  "type": "ui",
+  "est_minutes": 10,
+  "plan_section": "Touch page and adjacent files in one packet.",
+  "allowed_files": {
+    "create": [],
+    "modify": [
+      "app/page.tsx",
+      "app/app/shinen/InputBar.tsx",
+      "lib/copy.ts"
+    ],
+    "delete": []
+  },
+  "required_files": {
+    "create": [],
+    "modify": [
+      "app/page.tsx"
+    ],
+    "delete": []
+  },
+  "constraints": [
+    "Do not modify files outside allowed_files"
+  ],
+  "verification_commands": [
+    "npm test"
+  ],
+  "review_required": {
+    "spec": true,
+    "safety": true,
+    "quality": true
+  },
+  "created_at": "2026-03-18T12:10:01+09:00",
+  "_filename": "20260318-obsv4-02-scope-block.json",
+  "status": "current"
+}

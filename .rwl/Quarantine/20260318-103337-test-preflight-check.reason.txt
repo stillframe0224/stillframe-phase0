@@ -1,0 +1,1 @@
+blocked_reason: preflight blocked (npm test requested but scripts.test missing); quarantined to run build-only follow-up observation

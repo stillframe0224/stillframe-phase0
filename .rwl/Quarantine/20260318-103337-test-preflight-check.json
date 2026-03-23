@@ -1,0 +1,40 @@
+{
+  "id": "20260318-103337-test-preflight-check",
+  "goal": "Add a small bugfix with test requirement to validate preflight blocking behavior",
+  "type": "bugfix",
+  "est_minutes": 25,
+  "plan_section": "Fix one small behavior issue in app/page.tsx and add/update a focused test file.",
+  "allowed_files": {
+    "create": [
+      "tests/app/page-behavior.test.tsx"
+    ],
+    "modify": [
+      "app/page.tsx",
+      "tests/app/page-behavior.test.tsx"
+    ],
+    "delete": []
+  },
+  "required_files": {
+    "create": [],
+    "modify": [
+      "app/page.tsx"
+    ],
+    "delete": []
+  },
+  "constraints": [
+    "Do not modify files outside allowed_files",
+    "If required_files cannot be satisfied, return BLOCKED"
+  ],
+  "verification_commands": [
+    "npm test",
+    "npm run build"
+  ],
+  "review_required": {
+    "spec": true,
+    "safety": true,
+    "quality": true
+  },
+  "created_at": "2026-03-18T01:33:36Z",
+  "status": "current",
+  "_filename": "20260318-103337-test-preflight-check.json"
+}
