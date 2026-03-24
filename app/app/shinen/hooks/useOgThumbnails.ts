@@ -13,6 +13,7 @@ import type { ShinenCard } from "../lib/types";
 const OG_CACHE_KEY = "shinen_og_v1";
 const DEFAULT_FAILURE_TTL = 5 * 60 * 1000; // 5 min
 const MAX_CACHE_SIZE = 200;
+const FETCH_TIMEOUT_MS = 10000; // 10 seconds timeout
 
 // Domains where OG images are structurally unavailable (login walls, JS-only, etc.)
 // The server-side Jina fallback handles Twitter/X and Facebook — still allow them through.
@@ -44,6 +45,7 @@ interface OgCacheEntry {
   favicon?: string | null;
   fetchedAt: number;
   retryAfterMs?: number;
+  failureCount?: number; // Track consecutive failures for exponential backoff
 }
 
 type OgCache = Record<string, OgCacheEntry>;
@@ -67,6 +69,16 @@ function isImageAllowedHost(url: string): boolean {
   } catch {
     return false;
   }
+}
+
+/** Calculate exponential backoff based on failure count */
+function getRetryDelay(failureCount: number): number {
+  const delays = [
+    5 * 60 * 1000,  // 1st failure: 5 min
+    15 * 60 * 1000, // 2nd failure: 15 min
+    60 * 60 * 1000, // 3rd+ failure: 60 min
+  ];
+  return delays[Math.min(failureCount, delays.length - 1)];
 }
 
 function readCache(): OgCache {
@@ -196,27 +208,45 @@ export function useOgThumbnails(
       if (inflightRef.current.has(url)) continue;
       inflightRef.current.add(url);
 
+      // Create timeout signal (10 seconds)
+      const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+
       fetch(`/api/link-preview?url=${encodeURIComponent(url)}`, {
         signal: controller.signal,
       })
         .then((res) => {
+          clearTimeout(timeoutId);
           if (!res.ok) {
+            const cache = readCache();
+            const entry = cache[url];
+            const failureCount = (entry?.failureCount ?? 0) + 1;
+            const retryAfterMs = getRetryDelay(failureCount);
+
             console.error('[OGP Fetch Error]', {
               url,
               status: res.status,
               statusText: res.statusText,
               timestamp: new Date().toISOString(),
               cardId: id,
+              failureCount,
+              retryAfterMs,
+              contentType: res.headers.get('content-type'),
             });
-            return { image: null, favicon: null, retryAfterMs: 5 * 60 * 1000 };
+            return { 
+              image: null, 
+              favicon: null, 
+              retryAfterMs,
+              failureCount,
+            };
           }
-          return res.json();
+          return res.json().then(data => ({ ...data, failureCount: 0 }));
         })
         .then(
           (data: {
             image?: string | null;
             favicon?: string | null;
             retryAfterMs?: number;
+            failureCount?: number;
             mediaKind?: "image" | "embed";
             embedUrl?: string | null;
             posterUrl?: string | null;
@@ -232,6 +262,7 @@ export function useOgThumbnails(
               provider: data.provider ?? null,
               favicon: data.favicon ?? null,
               fetchedAt: Date.now(),
+              failureCount: data.failureCount ?? 0,
               ...(data.image ? {} : { retryAfterMs: data.retryAfterMs }),
             };
             writeCache(currentCache);
@@ -269,17 +300,58 @@ export function useOgThumbnails(
           },
         )
         .catch((err: unknown) => {
+          clearTimeout(timeoutId);
           inflightRef.current.delete(url);
-          // AbortError means the component unmounted — don't cache as failure
-          if (err instanceof DOMException && err.name === "AbortError") return;
+          // AbortError means the component unmounted or timeout — don't cache as failure if unmounted
+          if (err instanceof DOMException && err.name === "AbortError") {
+            const cache = readCache();
+            const entry = cache[url];
+            const failureCount = (entry?.failureCount ?? 0) + 1;
+            const retryAfterMs = getRetryDelay(failureCount);
+            
+            console.error('[OGP Timeout/Abort]', {
+              url,
+              error: 'Request timeout or aborted',
+              timestamp: new Date().toISOString(),
+              cardId: id,
+              failureCount,
+              retryAfterMs,
+            });
+            
+            const currentCache = readCache();
+            currentCache[url] = { 
+              image: null, 
+              favicon: null, 
+              fetchedAt: Date.now(),
+              failureCount,
+              retryAfterMs,
+            };
+            writeCache(currentCache);
+            return;
+          }
+          
+          const cache = readCache();
+          const entry = cache[url];
+          const failureCount = (entry?.failureCount ?? 0) + 1;
+          const retryAfterMs = getRetryDelay(failureCount);
+          
           console.error('[OGP Network Error]', {
             url,
             error: err instanceof Error ? err.message : String(err),
             timestamp: new Date().toISOString(),
             cardId: id,
+            failureCount,
+            retryAfterMs,
           });
+          
           const currentCache = readCache();
-          currentCache[url] = { image: null, fetchedAt: Date.now() };
+          currentCache[url] = { 
+            image: null, 
+            favicon: null, 
+            fetchedAt: Date.now(),
+            failureCount,
+            retryAfterMs,
+          };
           writeCache(currentCache);
         });
     }
