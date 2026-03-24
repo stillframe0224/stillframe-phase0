@@ -238,13 +238,13 @@ export default function Home() {
             onClick={() => track("hero_cta_buy")}
             aria-label={lang === "ja" ? "今すぐ購入 — $29" : "Buy Now — $29"}
             style={{
-              padding: "10px 28px",
+              padding: "12px 36px",
               borderRadius: 999,
-              border: "1.5px solid rgba(45, 143, 80, 0.8)",
-              background: "rgba(45, 143, 80, 0.08)",
+              border: "2px solid rgba(45, 143, 80, 0.9)",
+              background: "rgba(45, 143, 80, 0.12)",
               color: "rgba(45, 143, 80, 1)",
-              fontSize: 14,
-              fontWeight: 600,
+              fontSize: 15,
+              fontWeight: 700,
               letterSpacing: "0.04em",
               fontFamily: "var(--font-dm), system-ui, sans-serif",
               cursor: "pointer",
