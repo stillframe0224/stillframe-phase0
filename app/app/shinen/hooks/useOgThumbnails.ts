@@ -201,6 +201,13 @@ export function useOgThumbnails(
       })
         .then((res) => {
           if (!res.ok) {
+            console.error('[OGP Fetch Error]', {
+              url,
+              status: res.status,
+              statusText: res.statusText,
+              timestamp: new Date().toISOString(),
+              cardId: id,
+            });
             return { image: null, favicon: null, retryAfterMs: 5 * 60 * 1000 };
           }
           return res.json();
@@ -265,6 +272,12 @@ export function useOgThumbnails(
           inflightRef.current.delete(url);
           // AbortError means the component unmounted — don't cache as failure
           if (err instanceof DOMException && err.name === "AbortError") return;
+          console.error('[OGP Network Error]', {
+            url,
+            error: err instanceof Error ? err.message : String(err),
+            timestamp: new Date().toISOString(),
+            cardId: id,
+          });
           const currentCache = readCache();
           currentCache[url] = { image: null, fetchedAt: Date.now() };
           writeCache(currentCache);
