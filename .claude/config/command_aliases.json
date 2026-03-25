@@ -1,0 +1,12 @@
+{
+  "version": "1.0",
+  "aliases": {
+    "build": "npx tsc --noEmit",
+    "tests": "npx vitest run",
+    "smoke": "npx vitest run --reporter=verbose",
+    "migration_check": "npx supabase migration list",
+    "typecheck": "npx tsc --noEmit",
+    "lint_json": "node -e \"JSON.parse(require('fs').readFileSync(process.argv[1]))\"",
+    "lint_yaml": "node -e \"require('yaml').parse(require('fs').readFileSync(process.argv[1],'utf8'))\""
+  }
+}

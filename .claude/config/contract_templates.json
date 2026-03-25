@@ -1,0 +1,112 @@
+{
+  "types": {
+    "docs": {
+      "acceptance_plan": [],
+      "evidence_required": ["changed_files"],
+      "failure_conditions": [
+        "files outside scope changed"
+      ]
+    },
+    "ui-fix": {
+      "acceptance_plan": ["build", "tests"],
+      "evidence_required": [
+        "changed_files",
+        "before_screenshot",
+        "after_screenshot"
+      ],
+      "failure_conditions": [
+        "assertion failed",
+        "visual regression in touched area",
+        "build failed"
+      ]
+    },
+    "ui-feature": {
+      "acceptance_plan": ["build", "tests"],
+      "evidence_required": [
+        "changed_files",
+        "feature_screenshot",
+        "test_log"
+      ],
+      "failure_conditions": [
+        "assertion failed",
+        "feature not demonstrably working",
+        "build failed",
+        "existing tests broken"
+      ]
+    },
+    "api-change": {
+      "acceptance_plan": ["build", "tests", "smoke"],
+      "evidence_required": [
+        "changed_files",
+        "request_response_log"
+      ],
+      "failure_conditions": [
+        "assertion failed",
+        "smoke failed",
+        "build failed",
+        "undocumented breaking change"
+      ]
+    },
+    "logic-change": {
+      "acceptance_plan": ["build", "tests"],
+      "evidence_required": [
+        "changed_files",
+        "test_log",
+        "diff_summary"
+      ],
+      "failure_conditions": [
+        "assertion failed",
+        "build failed",
+        "existing tests broken",
+        "logic not covered by test"
+      ]
+    },
+    "db-migration": {
+      "acceptance_plan": ["build", "tests", "migration_check"],
+      "evidence_required": [
+        "changed_files",
+        "migration_log",
+        "rollback_note"
+      ],
+      "failure_conditions": [
+        "schema drift",
+        "rollback path missing",
+        "migration failed",
+        "data loss risk"
+      ]
+    },
+    "infra-config": {
+      "acceptance_plan": ["build"],
+      "evidence_required": [
+        "changed_files",
+        "config_diff"
+      ],
+      "failure_conditions": [
+        "build failed",
+        "secret exposed in commit"
+      ]
+    },
+    "test-only": {
+      "acceptance_plan": ["tests"],
+      "evidence_required": [
+        "changed_files",
+        "test_log"
+      ],
+      "failure_conditions": [
+        "new tests fail",
+        "existing tests broken"
+      ]
+    }
+  },
+  "risk_overrides": {
+    "low": {
+      "verify_policy": "skip"
+    },
+    "medium": {
+      "verify_policy": "run"
+    },
+    "high": {
+      "verify_policy": "run_strict"
+    }
+  }
+}

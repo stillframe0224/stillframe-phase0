@@ -192,35 +192,78 @@ export default function Home() {
         >
           {copy.hero.sub[lang]}
         </p>
-        <button
-          data-testid="cta-early-access"
-          onClick={() => {
-            track("hero_cta_click");
-            scrollTo("demo");
-          }}
-          aria-label={copy.hero.cta[lang]}
+        {/* Dual CTA: Try Demo + Buy Now */}
+        <div
           style={{
-            padding: "10px 28px",
-            borderRadius: 999,
-            border: "1.5px solid rgba(0,0,0,0.75)",
-            background: "transparent",
-            color: "rgba(0,0,0,0.8)",
-            fontSize: 14,
-            fontWeight: 500,
-            letterSpacing: "0.04em",
-            fontFamily: "var(--font-dm), system-ui, sans-serif",
-            cursor: "pointer",
-            transition: "background 0.15s, color 0.15s",
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.background = "rgba(0,0,0,0.06)";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background = "transparent";
+            display: "flex",
+            gap: 12,
+            justifyContent: "center",
+            flexWrap: "wrap",
           }}
         >
-          {copy.hero.cta[lang]}
-        </button>
+          <button
+            data-testid="cta-early-access"
+            onClick={() => {
+              track("hero_cta_demo");
+              scrollTo("demo");
+            }}
+            aria-label={lang === "ja" ? "デモを試す" : "Try Demo"}
+            style={{
+              padding: "10px 28px",
+              borderRadius: 999,
+              border: "1.5px solid rgba(0,0,0,0.75)",
+              background: "transparent",
+              color: "rgba(0,0,0,0.8)",
+              fontSize: 14,
+              fontWeight: 500,
+              letterSpacing: "0.04em",
+              fontFamily: "var(--font-dm), system-ui, sans-serif",
+              cursor: "pointer",
+              transition: "background 0.15s, color 0.15s",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = "rgba(0,0,0,0.06)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = "transparent";
+            }}
+          >
+            {lang === "ja" ? "デモを試す" : "Try Demo"}
+          </button>
+          <a
+            data-testid="cta-buy-now"
+            href={GUMROAD_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => track("hero_cta_buy")}
+            aria-label={lang === "ja" ? "今すぐ購入 — $29" : "Buy Now — $29"}
+            style={{
+              padding: "12px 36px",
+              borderRadius: 999,
+              border: "2px solid rgba(45, 143, 80, 0.9)",
+              background: "rgba(45, 143, 80, 0.12)",
+              color: "rgba(45, 143, 80, 1)",
+              fontSize: 15,
+              fontWeight: 700,
+              letterSpacing: "0.04em",
+              fontFamily: "var(--font-dm), system-ui, sans-serif",
+              cursor: "pointer",
+              transition: "all 0.15s",
+              textDecoration: "none",
+              display: "inline-block",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = "rgba(45, 143, 80, 0.15)";
+              e.currentTarget.style.borderColor = "rgba(45, 143, 80, 1)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = "rgba(45, 143, 80, 0.08)";
+              e.currentTarget.style.borderColor = "rgba(45, 143, 80, 0.8)";
+            }}
+          >
+            {lang === "ja" ? "今すぐ購入 — $29" : "Buy Now — $29"}
+          </a>
+        </div>
       </section>
 
       {/* Hero Sample Cards */}

@@ -46,19 +46,19 @@ export default function AppPage() {
       return;
     }
 
-    if (!isSupabaseConfigured()) {
-      setAuthed(true);
-      setLoading(false);
-      return;
-    }
+  if (!isSupabaseConfigured()) {
+    setAuthed(true);
+    setLoading(false);
+    return;
+  }
 
-    const supabase = createClient();
-    supabase.auth.getUser().then(({ data }) => {
-      if (!data.user) {
-        router.replace("/auth/login");
-      } else {
-        setAuthed(true);
-      }
+  const supabase = createClient();
+  supabase.auth.getUser().then(({ data }) => {
+    if (!data.user) {
+      router.replace("/auth/login");
+    } else {
+      setAuthed(true);
+    }
       setLoading(false);
     });
   }, [router, e2eMode]);
