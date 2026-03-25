@@ -10,7 +10,7 @@
 
 import fs from 'fs';
 import path from 'path';
-import { execSync } from 'child_process';
+import { execFileSync, execSync } from 'child_process';
 import { createHash } from 'crypto';
 import { fileURLToPath } from 'url';
 
@@ -32,6 +32,14 @@ const ADDON_PATH = path.join(LESSONS_DIR, 'system-addon.txt');
 const MAX_LESSONS = 7;
 
 const QUARANTINE = path.join(RWL, 'Quarantine');
+
+// --- Verify Agent paths (resolved from repo root, cwd-independent) ---
+const CLAUDE_CONFIG = path.join(ROOT, '.claude', 'config');
+const CLAUDE_PROMPTS = path.join(ROOT, '.claude', 'prompts');
+const CLAUDE_RESULTS = path.join(ROOT, '.claude', 'results');
+const TEMPLATES_PATH = path.join(CLAUDE_CONFIG, 'contract_templates.json');
+const ALIASES_PATH = path.join(CLAUDE_CONFIG, 'command_aliases.json');
+const VERIFY_PROMPT_PATH = path.join(CLAUDE_PROMPTS, 'verify-agent.md');
 
 // Ensure dirs exist
 [CURRENT, DONE_DIR, QUEUE, LOGS, SESSIONS_DIR, LESSONS_DIR, QUARANTINE].forEach(d => fs.mkdirSync(d, { recursive: true }));
@@ -260,6 +268,7 @@ function getCurrentTask() {
   const files = fs.readdirSync(CURRENT).filter(f => f.endsWith('.json'));
   if (files.length === 0) return null;
   const content = JSON.parse(fs.readFileSync(path.join(CURRENT, files[0]), 'utf8'));
+  if (!content.id && content.task_id) content.id = content.task_id;
   content._filename = files[0];
   return content;
 }
@@ -271,6 +280,7 @@ function promoteFromQueue() {
   const dst = path.join(CURRENT, files[0]);
   fs.renameSync(src, dst);
   const content = JSON.parse(fs.readFileSync(dst, 'utf8'));
+  if (!content.id && content.task_id) content.id = content.task_id;
   content._filename = files[0];
   content.status = 'current';
   fs.writeFileSync(dst, JSON.stringify(content, null, 2));
@@ -325,14 +335,19 @@ function executeTask(task) {
   let execOk = false;
 
   try {
+    const cliPathPrefix = process.env.RWL_CLAUDE_PATH_PREPEND
+      ? `${process.env.RWL_CLAUDE_PATH_PREPEND}:`
+      : '';
     // Try to use claude-code CLI
-    rawOutput = execSync(
-      `cd "${ROOT}" && claude -p "${prompt}" --max-turns 20 --output-format text --bare`,
+    rawOutput = execFileSync(
+      'claude',
+      ['-p', prompt, '--max-turns', '20', '--output-format', 'text', '--bare'],
       {
+        cwd: ROOT,
         encoding: 'utf8',
         timeout: 240000, // 4 minutes (run.sh has 5 min timeout)
         stdio: ['pipe', 'pipe', 'pipe'],
-        env: { ...process.env, PATH: '/usr/local/bin:/opt/homebrew/bin:' + process.env.PATH }
+        env: { ...process.env, PATH: `${cliPathPrefix}/usr/local/bin:/opt/homebrew/bin:${process.env.PATH}` }
       }
     );
     execOk = true;
@@ -903,6 +918,452 @@ function verifyAllowedFiles(task, beforeSnapshot, afterSnapshot) {
   return { ok: false, unexpected_changes, missing_changes };
 }
 
+// === Verify Agent: contract generation, verification, decision table ===
+
+function loadContractTemplates() {
+  try {
+    return JSON.parse(fs.readFileSync(TEMPLATES_PATH, 'utf8'));
+  } catch (err) {
+    log({ step: 'verify_config_error', error: `Failed to load contract_templates.json: ${err.message}` });
+    return null;
+  }
+}
+
+function loadCommandAliases() {
+  try {
+    return JSON.parse(fs.readFileSync(ALIASES_PATH, 'utf8')).aliases || {};
+  } catch {
+    return {};
+  }
+}
+
+function getVerifyArtifactTaskId(task) {
+  return task.task_id || task.id || task._filename?.replace(/\.json$/, '') || 'unknown-task';
+}
+
+function isVerifyAwareTask(task) {
+  return task.task_id != null || task.risk_level != null || task.scope != null;
+}
+
+/**
+ * §5 — validateTask: check required fields for verify pipeline.
+ * Returns { valid, errors }.
+ */
+function validateTask(task, templates) {
+  const errors = [];
+
+  if (!task.task_id) errors.push('task_id is required');
+  if (!task.type) errors.push('type is required');
+  if (!task.risk_level) errors.push('risk_level is required');
+  if (!task.goal) errors.push('goal is required');
+
+  const validTypes = templates ? Object.keys(templates.types || {}) : [];
+  if (task.type && validTypes.length > 0 && !validTypes.includes(task.type)) {
+    errors.push(`Unknown type: ${task.type}. Valid: ${validTypes.join(', ')}`);
+  }
+
+  const validRisks = ['low', 'medium', 'high'];
+  if (task.risk_level && !validRisks.includes(task.risk_level)) {
+    errors.push(`Unknown risk_level: ${task.risk_level}`);
+  }
+
+  if (!Array.isArray(task.scope?.include) || task.scope.include.length === 0) {
+    errors.push('scope.include must have at least one entry');
+  }
+
+  if (task.risk_level === 'high') {
+    const hasAcceptance = task.acceptance?.commands?.length > 0 || task.acceptance?.assertions?.length > 0;
+    if (!hasAcceptance) {
+      errors.push('high risk tasks require at least one acceptance command or assertion');
+    }
+  }
+
+  return { valid: errors.length === 0, errors };
+}
+
+/**
+ * §4.3 — generateContract: pure function, no LLM.
+ * Merges template defaults with task-specific acceptance commands.
+ */
+function generateContract(task, templates) {
+  const taskId = task.task_id;
+  const typeTemplate = templates.types[task.type];
+  if (!typeTemplate) throw new Error(`Unknown task type: ${task.type}`);
+
+  const riskOverride = templates.risk_overrides[task.risk_level];
+  if (!riskOverride) throw new Error(`Unknown risk_level: ${task.risk_level}`);
+
+  const aliases = loadCommandAliases();
+
+  // Resolve short command names in template acceptance_plan
+  const resolvedTemplatePlan = (typeTemplate.acceptance_plan || []).map(s => aliases[s] || s);
+
+  // Merge with task-specific commands (deduplicate)
+  const taskCommands = (task.acceptance?.commands || []).map(s => aliases[s] || s);
+  const mergedPlan = [...resolvedTemplatePlan];
+  for (const cmd of taskCommands) {
+    if (!mergedPlan.includes(cmd)) mergedPlan.push(cmd);
+  }
+
+  const contract = {
+    task_id: taskId,
+    type: task.type,
+    risk_level: task.risk_level,
+    scope: task.scope || { include: ['**'], exclude: [] },
+    acceptance_plan: {
+      commands: mergedPlan,
+      assertions: [...(task.acceptance?.assertions || [])],
+    },
+    evidence_required: [...typeTemplate.evidence_required],
+    failure_conditions: [...typeTemplate.failure_conditions],
+    verify_policy: riskOverride.verify_policy,
+    generated_at: new Date().toISOString(),
+  };
+
+  log({ step: 'contract_generated', task_id: taskId, verify_policy: contract.verify_policy, type: task.type, risk_level: task.risk_level });
+  return contract;
+}
+
+/** §6.1 — shouldRunVerify */
+function shouldRunVerify(contract) {
+  return contract.verify_policy !== 'skip';
+}
+
+function runAcceptanceChecks(task, contract) {
+  const taskId = getVerifyArtifactTaskId(task);
+  const commands = Array.isArray(contract.acceptance_plan?.commands)
+    ? contract.acceptance_plan.commands.filter(cmd => typeof cmd === 'string' && cmd.trim())
+    : [];
+  const assertions = Array.isArray(contract.acceptance_plan?.assertions)
+    ? contract.acceptance_plan.assertions
+    : [];
+  const command_results = [];
+
+  log({
+    step: 'acceptance_start',
+    task_id: taskId,
+    commands,
+    assertions_count: assertions.length,
+  });
+
+  for (const command of commands) {
+    const started_at = new Date().toISOString();
+    try {
+      const output = execSync(command, {
+        cwd: ROOT,
+        encoding: 'utf8',
+        timeout: 120_000,
+        maxBuffer: 10 * 1024 * 1024,
+        stdio: ['pipe', 'pipe', 'pipe'],
+        env: { ...process.env, PATH: '/usr/local/bin:/opt/homebrew/bin:' + process.env.PATH },
+      });
+      command_results.push({
+        command,
+        status: 'pass',
+        exit_code: 0,
+        started_at,
+        finished_at: new Date().toISOString(),
+        output_excerpt: output.trim().slice(0, 4000),
+      });
+    } catch (err) {
+      const output = [err.stdout, err.stderr].filter(Boolean).join('\n').trim();
+      command_results.push({
+        command,
+        status: 'fail',
+        exit_code: Number.isInteger(err.status) ? err.status : 1,
+        started_at,
+        finished_at: new Date().toISOString(),
+        output_excerpt: (output || err.message || '').slice(0, 4000),
+      });
+      const acceptanceResult = {
+        passed: false,
+        command_results,
+        assertions,
+      };
+      log({
+        step: 'acceptance_complete',
+        task_id: taskId,
+        passed: false,
+        failed_command: command,
+      });
+      return acceptanceResult;
+    }
+  }
+
+  const acceptanceResult = {
+    passed: true,
+    command_results,
+    assertions,
+  };
+  log({
+    step: 'acceptance_complete',
+    task_id: taskId,
+    passed: true,
+    commands_run: command_results.length,
+  });
+  return acceptanceResult;
+}
+
+/**
+ * §6.2 — runVerifyAgent: invoke claude -p with verify prompt via execSync.
+ * Returns VERIFY_RESULT object. Saves to .claude/results/{task_id}/.
+ */
+function runVerifyAgent(task, contract, execResultData, acceptanceResult) {
+  const taskId = getVerifyArtifactTaskId(task);
+  const resultDir = path.join(CLAUDE_RESULTS, taskId);
+  fs.mkdirSync(resultDir, { recursive: true });
+
+  let promptTemplate;
+  try {
+    promptTemplate = fs.readFileSync(VERIFY_PROMPT_PATH, 'utf8');
+    log({ step: 'verify_prompt_loaded', task_id: taskId, path: VERIFY_PROMPT_PATH });
+  } catch (err) {
+    const fallback = {
+      verdict: 'fail',
+      fail_reasons: [`Could not load verify prompt: ${err.message}`],
+      warnings: [],
+      evidence_checked: [],
+      assertion_results: [],
+    };
+    fs.writeFileSync(path.join(resultDir, 'VERIFY_RESULT.json'), JSON.stringify(fallback, null, 2));
+    log({ step: 'verify_prompt_error', task_id: taskId, error: err.message });
+    return fallback;
+  }
+
+  const contractPath = path.join(resultDir, 'EXECUTION_CONTRACT.json');
+  const acceptanceLogPath = path.join(resultDir, 'acceptance.log');
+
+  fs.writeFileSync(contractPath, JSON.stringify(contract, null, 2) + '\n');
+  if (acceptanceResult) {
+    fs.writeFileSync(acceptanceLogPath, JSON.stringify(acceptanceResult, null, 2) + '\n');
+  }
+
+  // Collect evidence paths
+  const evidencePaths = [];
+  if (fs.existsSync(contractPath)) evidencePaths.push(contractPath);
+  if (fs.existsSync(acceptanceLogPath)) evidencePaths.push(acceptanceLogPath);
+
+  // git diff --stat
+  let diffStat = '(unavailable)';
+  try {
+    diffStat = execSync('git diff --stat', { cwd: ROOT, encoding: 'utf8', timeout: 10000 });
+  } catch {}
+
+  // Replace placeholders
+  const prompt = promptTemplate
+    .replace('{{contract}}', JSON.stringify(contract, null, 2))
+    .replace('{{execResult}}', JSON.stringify(execResultData || {}, null, 2))
+    .replace('{{acceptanceLog}}', JSON.stringify(acceptanceResult || {}, null, 2))
+    .replace('{{diffStat}}', diffStat)
+    .replace('{{evidencePaths}}', evidencePaths.join('\n'));
+
+  // Write prompt to temp file to avoid shell escaping issues
+  const tmpPromptPath = path.join(resultDir, '_verify_prompt.tmp');
+  fs.writeFileSync(tmpPromptPath, prompt);
+
+  let verifyResult;
+  try {
+    const cliPathPrefix = process.env.RWL_CLAUDE_PATH_PREPEND
+      ? `${process.env.RWL_CLAUDE_PATH_PREPEND}:`
+      : '';
+    const output = execFileSync(
+      'claude',
+      ['-p', prompt, '--model', 'claude-sonnet-4-20250514', '--output-format', 'json'],
+      {
+        cwd: ROOT,
+        encoding: 'utf8',
+        timeout: 120_000,
+        maxBuffer: 10 * 1024 * 1024,
+        stdio: ['pipe', 'pipe', 'pipe'],
+        env: { ...process.env, PATH: `${cliPathPrefix}/usr/local/bin:/opt/homebrew/bin:${process.env.PATH}` },
+      }
+    );
+
+    let parsed = tryParseVerifyOutput(output.trim());
+
+    const validVerdicts = ['pass', 'fail', 'marginal'];
+    if (!parsed || !validVerdicts.includes(parsed.verdict)) {
+      throw new Error('Invalid or missing verdict in verify output');
+    }
+
+    verifyResult = {
+      verdict: parsed.verdict,
+      fail_reasons: Array.isArray(parsed.fail_reasons) ? parsed.fail_reasons : [],
+      warnings: Array.isArray(parsed.warnings) ? parsed.warnings : [],
+      evidence_checked: Array.isArray(parsed.evidence_checked) ? parsed.evidence_checked : [],
+      assertion_results: Array.isArray(parsed.assertion_results) ? parsed.assertion_results : [],
+    };
+  } catch (err) {
+    verifyResult = {
+      verdict: 'fail',
+      fail_reasons: [`JSON parse failed: ${err.message}`],
+      warnings: [],
+      evidence_checked: [],
+      assertion_results: [],
+    };
+  } finally {
+    // Clean up temp file
+    try { fs.unlinkSync(tmpPromptPath); } catch {}
+  }
+
+  fs.writeFileSync(path.join(resultDir, 'VERIFY_RESULT.json'), JSON.stringify(verifyResult, null, 2));
+  log({ step: 'verify_complete', task_id: taskId, verdict: verifyResult.verdict });
+  return verifyResult;
+}
+
+/** Try to parse verify agent output — handles claude JSON envelope and raw JSON */
+function tryParseVerifyOutput(output) {
+  if (!output) return null;
+
+  // Try direct parse
+  try {
+    const obj = JSON.parse(output);
+    // claude --output-format json may wrap in { result: "..." }
+    if (obj.result && typeof obj.result === 'string') {
+      try {
+        const inner = JSON.parse(obj.result);
+        if (inner.verdict) return inner;
+      } catch {}
+      // Try to extract JSON from result string
+      const m = obj.result.match(/\{[\s\S]*"verdict"[\s\S]*\}/);
+      if (m) { try { return JSON.parse(m[0]); } catch {} }
+    }
+    if (obj.verdict) return obj;
+  } catch {}
+
+  // Try to find embedded JSON with verdict
+  const m = output.match(/\{[\s\S]*"verdict"[\s\S]*\}/);
+  if (m) {
+    try { return JSON.parse(m[0]); } catch {}
+  }
+
+  return null;
+}
+
+/**
+ * §7.2 — decideFinalStatus: deterministic decision table.
+ * exec fail → failed, acceptance fail → failed, skip → complete,
+ * pass → complete, fail → failed, marginal → needs_human_review.
+ */
+function decideFinalStatus({ execOk, acceptancePassed, contract, verifyResult }) {
+  if (!execOk) return 'failed';
+  if (acceptancePassed === false) return 'failed';
+
+  if (!shouldRunVerify(contract)) return 'complete';
+
+  if (!verifyResult) return 'failed'; // verify required but no result
+
+  switch (verifyResult.verdict) {
+    case 'pass':     return 'complete';
+    case 'fail':     return 'failed';
+    case 'marginal': return 'needs_human_review';
+    default:         return 'failed';
+  }
+}
+
+/** Write verify-agent artifacts to .claude/results/{task_id}/ */
+function writeVerifyArtifacts(task, {
+  contract = null,
+  acceptanceResult = null,
+  verifyResult = null,
+  finalStatus,
+  changedFiles = [],
+  failureReasons = [],
+}) {
+  const taskId = getVerifyArtifactTaskId(task);
+  const resultDir = path.join(CLAUDE_RESULTS, taskId);
+  fs.mkdirSync(resultDir, { recursive: true });
+
+  // EXECUTION_CONTRACT.json — always
+  if (contract) {
+    fs.writeFileSync(
+      path.join(resultDir, 'EXECUTION_CONTRACT.json'),
+      JSON.stringify(contract, null, 2) + '\n'
+    );
+  }
+
+  // acceptance.log
+  if (acceptanceResult) {
+    fs.writeFileSync(
+      path.join(resultDir, 'acceptance.log'),
+      JSON.stringify(acceptanceResult, null, 2) + '\n'
+    );
+  }
+
+  // VERIFY_RESULT.json — medium/high only (already written by runVerifyAgent, but ensure)
+  if ((contract ? shouldRunVerify(contract) : Boolean(verifyResult)) && verifyResult) {
+    fs.writeFileSync(
+      path.join(resultDir, 'VERIFY_RESULT.json'),
+      JSON.stringify(verifyResult, null, 2) + '\n'
+    );
+  }
+
+  // Extended TASK_RESULT.json
+  const taskResult = {
+    task_id: taskId,
+    status: finalStatus,
+    type: task.type || null,
+    risk_level: task.risk_level || null,
+    changed_files: changedFiles,
+    acceptance_results: acceptanceResult?.command_results || [],
+    evidence_paths: [
+      path.join(resultDir, 'EXECUTION_CONTRACT.json'),
+      ...((contract ? shouldRunVerify(contract) : Boolean(verifyResult)) ? [path.join(resultDir, 'VERIFY_RESULT.json')] : []),
+      path.join(resultDir, 'acceptance.log'),
+    ].filter(p => fs.existsSync(p)),
+    known_limits: verifyResult ? verifyResult.warnings : [],
+    next_operator_notes: finalStatus === 'needs_human_review'
+      ? [`Verify Agent returned marginal — human review required.`, ...(verifyResult?.warnings || [])]
+      : failureReasons,
+    completed_at: new Date().toISOString(),
+  };
+
+  fs.writeFileSync(
+    path.join(resultDir, 'TASK_RESULT.json'),
+    JSON.stringify(taskResult, null, 2) + '\n'
+  );
+
+  log({ step: 'verify_artifacts_written', task_id: taskId, result_dir: resultDir, final_status: finalStatus });
+  return taskResult;
+}
+
+function failVerifyAwareTask({
+  task,
+  status,
+  governanceResult,
+  reason,
+  lessonError,
+  lessonWorkaround,
+  contract = null,
+  acceptanceResult = null,
+  verifyResult = null,
+  changedFiles = [],
+}) {
+  const failureReasons = verifyResult?.fail_reasons?.length
+    ? verifyResult.fail_reasons
+    : [reason];
+
+  writeVerifyArtifacts(task, {
+    contract,
+    acceptanceResult,
+    verifyResult,
+    finalStatus: 'failed',
+    changedFiles,
+    failureReasons,
+  });
+
+  quarantineTask(task, reason);
+  recordLesson(task.id, {
+    status: 'blocked',
+    error: lessonError,
+    workaround: lessonWorkaround,
+  });
+  status.last_task_id = task.id;
+  status.last_error = null;
+  status.note = `Execution succeeded but governance blocked: ${governanceResult}`;
+  writeStatus(status);
+}
+
 // Main
 function main() {
   const status = readStatus();
@@ -1030,6 +1491,170 @@ function main() {
         step: 'triad_gate', task_id: task.id, result: 'passed', reason: triadResult.reason,
         execution_result, governance_result,
       });
+
+      // === Verify Agent pipeline (Phase A) ===
+      const verifyAwareTask = isVerifyAwareTask(task);
+      if (verifyAwareTask) {
+        const templates = loadContractTemplates();
+        if (!templates) {
+          governance_result = 'verify_config_error';
+          const reason = 'Verify Agent config unavailable: contract_templates.json could not be loaded';
+          log({ step: 'verify_config_fatal', task_id: task.id, reason });
+          failVerifyAwareTask({
+            task,
+            status,
+            governanceResult: governance_result,
+            reason,
+            lessonError: 'verify_config_error',
+            lessonWorkaround: 'Restore .claude/config/contract_templates.json and rerun',
+            changedFiles: taskChangedFiles,
+          });
+          return;
+        }
+
+        const validation = validateTask(task, templates);
+        if (!validation.valid) {
+          governance_result = 'verify_validation_failed';
+          const reason = `Verify task validation failed: ${validation.errors.join('; ')}`;
+          log({ step: 'verify_validation_failed', task_id: task.id, errors: validation.errors });
+          failVerifyAwareTask({
+            task,
+            status,
+            governanceResult: governance_result,
+            reason,
+            lessonError: `verify_validation_failed: ${validation.errors.join('; ')}`,
+            lessonWorkaround: 'Fix task metadata for verify-agent fields and rerun',
+            changedFiles: taskChangedFiles,
+          });
+          return;
+        }
+
+        let contract = null;
+        let acceptanceResult = null;
+
+        try {
+          contract = generateContract(task, templates);
+          acceptanceResult = runAcceptanceChecks(task, contract);
+
+          if (!acceptanceResult.passed) {
+            governance_result = 'acceptance_failed';
+            const failedCommands = acceptanceResult.command_results
+              .filter(result => result.status === 'fail')
+              .map(result => result.command);
+            const reason = `Acceptance failed: ${failedCommands.join('; ') || 'unknown command failure'}`;
+            log({
+              step: 'acceptance_failed',
+              task_id: task.id,
+              failed_commands: failedCommands,
+            });
+            failVerifyAwareTask({
+              task,
+              status,
+              governanceResult: governance_result,
+              reason,
+              lessonError: reason,
+              lessonWorkaround: 'Review acceptance.log and fix failing acceptance commands',
+              contract,
+              acceptanceResult,
+              changedFiles: taskChangedFiles,
+            });
+            return;
+          }
+
+          if (shouldRunVerify(contract)) {
+            log({ step: 'verify_start', task_id: task.id, verify_policy: contract.verify_policy });
+            const verifyResult = runVerifyAgent(task, contract, taskResult, acceptanceResult);
+            const finalStatus = decideFinalStatus({
+              execOk: success,
+              acceptancePassed: acceptanceResult.passed,
+              contract,
+              verifyResult,
+            });
+
+            log({ step: 'verify_decision', task_id: task.id, verdict: verifyResult.verdict, final_status: finalStatus });
+
+            if (finalStatus === 'failed') {
+              governance_result = 'verify_failed';
+              failVerifyAwareTask({
+                task,
+                status,
+                governanceResult: governance_result,
+                reason: `Verify Agent: ${verifyResult.fail_reasons.join('; ')}`,
+                lessonError: `verify_failed: ${verifyResult.fail_reasons.join('; ')}`,
+                lessonWorkaround: 'Review VERIFY_RESULT.json and fix issues',
+                contract,
+                acceptanceResult,
+                verifyResult,
+                changedFiles: taskChangedFiles,
+              });
+              return;
+            }
+
+            if (finalStatus === 'needs_human_review') {
+              governance_result = 'needs_human_review';
+              writeVerifyArtifacts(task, {
+                contract,
+                acceptanceResult,
+                verifyResult,
+                finalStatus,
+                changedFiles: taskChangedFiles,
+              });
+              quarantineTask(task, `Verify Agent: marginal — human review required. Warnings: ${verifyResult.warnings.join('; ')}`);
+              recordLesson(task.id, {
+                status: 'blocked',
+                error: 'needs_human_review: verify agent returned marginal',
+                workaround: 'Human review of VERIFY_RESULT.json required',
+              });
+              status.last_task_id = task.id;
+              status.last_error = null;
+              status.note = 'Execution succeeded but governance blocked: needs_human_review';
+              writeStatus(status);
+              return;
+            }
+
+            writeVerifyArtifacts(task, {
+              contract,
+              acceptanceResult,
+              verifyResult,
+              finalStatus,
+              changedFiles: taskChangedFiles,
+            });
+          } else {
+            log({ step: 'verify_skipped', task_id: task.id, risk_level: task.risk_level });
+            writeVerifyArtifacts(task, {
+              contract,
+              acceptanceResult,
+              verifyResult: null,
+              finalStatus: 'complete',
+              changedFiles: taskChangedFiles,
+            });
+          }
+        } catch (verifyErr) {
+          governance_result = 'verify_pipeline_exception';
+          const verifyResult = {
+            verdict: 'fail',
+            fail_reasons: [`Verify pipeline exception: ${verifyErr.message?.slice(0, 500) || String(verifyErr)}`],
+            warnings: [],
+            evidence_checked: [],
+            assertion_results: [],
+          };
+          log({ step: 'verify_pipeline_error', task_id: task.id, error: verifyErr.message?.slice(0, 500) });
+          failVerifyAwareTask({
+            task,
+            status,
+            governanceResult: governance_result,
+            reason: verifyResult.fail_reasons[0],
+            lessonError: 'verify_pipeline_exception',
+            lessonWorkaround: 'Inspect runner logs and verify artifacts before rerun',
+            contract,
+            acceptanceResult,
+            verifyResult: contract && shouldRunVerify(contract) ? verifyResult : null,
+            changedFiles: taskChangedFiles,
+          });
+          return;
+        }
+      }
+      // === End Verify Agent pipeline ===
 
       markDone(task);
       recordLesson(task.id, {
