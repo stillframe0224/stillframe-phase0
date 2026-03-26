@@ -536,7 +536,66 @@ function MediaPreview({
   const media = card.media;
   
   // Fallback UI when no media is available
+  const isClipWaitingForThumbnail = card.type === 8 && card.source?.url && !media;
+  
   if (!media) {
+    if (isClipWaitingForThumbnail) {
+      // Animated loading placeholder for clip cards waiting for OG fetch
+      return (
+        <div
+          className="shinen-loading-shimmer"
+          style={{
+            aspectRatio: "16/9",
+            borderRadius: 8,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            border: "1px solid rgba(0,0,0,0.08)",
+            position: "relative",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: 8,
+              opacity: 0.4,
+            }}
+          >
+            <svg
+              width="32"
+              height="32"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              style={{ opacity: 0.6 }}
+            >
+              <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" opacity="0.25" />
+              <path
+                className="shinen-loading-spinner"
+                d="M12 2a10 10 0 0 1 10 10"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
+            </svg>
+            <span
+              style={{
+                fontSize: 10,
+                fontFamily: "'DM Sans',sans-serif",
+                color: "rgba(0,0,0,0.4)",
+                fontWeight: 500,
+              }}
+            >
+              Loading preview...
+            </span>
+          </div>
+        </div>
+      );
+    }
+    
+    // Static fallback for non-clip cards or cards without URLs
     return (
       <div
         style={{
