@@ -48,12 +48,15 @@ export default function InputBar({ onSubmit, onFileUpload, time }: InputBarProps
   const [text, setText] = useState("");
   const [focused, setFocused] = useState(false);
   const [dragOver, setDragOver] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleSubmit = useCallback(() => {
     if (!text.trim()) return;
     onSubmit(text.trim());
     setText("");
+    setSubmitting(true);
+    setTimeout(() => setSubmitting(false), 600);
   }, [text, onSubmit]);
 
   const processFile = useCallback(
@@ -62,36 +65,40 @@ export default function InputBar({ onSubmit, onFileUpload, time }: InputBarProps
       const mediaType = detectMediaType(file.type);
       const title = cleanFileName(file.name);
 
-      if (file.type.startsWith("text/")) {
-        // Read text files and put content in card
-        const reader = new FileReader();
-        reader.onload = () => {
-          const content = (reader.result as string).slice(0, 500);
-          onFileUpload?.({
-            text: content,
-            type: 9, // file
-            file: { name: file.name, size: file.size, mimeType: file.type },
-          });
+      try {
+        if (file.type.startsWith("text/")) {
+          // Read text files and put content in card
+          const reader = new FileReader();
+          reader.onload = () => {
+            const content = (reader.result as string).slice(0, 500);
+            onFileUpload?.({
+              text: content,
+              type: 9, // file
+              file: { name: file.name, size: file.size, mimeType: file.type },
+            });
+          };
+          reader.readAsText(file);
+          return;
+        }
+
+        const result: FileUploadResult = {
+          text: title,
+          type: 9, // file
+          file: { name: file.name, size: file.size, mimeType: file.type },
         };
-        reader.readAsText(file);
-        return;
+
+        if (mediaType) {
+          result.media = {
+            type: mediaType,
+            url: blobUrl,
+            thumbnail: mediaType === "image" ? blobUrl : undefined,
+          };
+        }
+
+        onFileUpload?.(result);
+      } catch (error) {
+        console.error("File processing error:", error);
       }
-
-      const result: FileUploadResult = {
-        text: title,
-        type: 9, // file
-        file: { name: file.name, size: file.size, mimeType: file.type },
-      };
-
-      if (mediaType) {
-        result.media = {
-          type: mediaType,
-          url: blobUrl,
-          thumbnail: mediaType === "image" ? blobUrl : undefined,
-        };
-      }
-
-      onFileUpload?.(result);
     },
     [onFileUpload],
   );
@@ -223,23 +230,25 @@ export default function InputBar({ onSubmit, onFileUpload, time }: InputBarProps
           style={{ display: "none" }}
         />
 
-        {text && (
+        {(text || submitting) && (
           <button
             onClick={handleSubmit}
+            disabled={submitting}
             style={{
-              background: "rgba(0,0,0,0.04)",
+              background: submitting ? "rgba(0,0,0,0.07)" : "rgba(0,0,0,0.04)",
               border: "1px solid rgba(0,0,0,0.06)",
-              color: "rgba(0,0,0,0.3)",
+              color: submitting ? "rgba(0,0,0,0.18)" : "rgba(0,0,0,0.3)",
               borderRadius: 8,
               padding: "4px 11px",
               minHeight: TAP_TARGET_MIN,
               fontSize: 11,
               fontFamily: "'DM Sans',sans-serif",
-              cursor: "pointer",
+              cursor: submitting ? "default" : "pointer",
               flexShrink: 0,
+              transition: "all 0.15s",
             }}
           >
-            drop ↵
+            {submitting ? "···" : "drop ↵"}
           </button>
         )}
       </div>
