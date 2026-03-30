@@ -107,14 +107,24 @@ export default function Home() {
 
   const toggleLang = () => setLang((l) => (l === "en" ? "ja" : "en"));
 
+  const [cardError, setCardError] = useState<string | null>(null);
+
   const addCard = () => {
     const text = input.trim();
-    if (!text) return;
-    setCards((prev) => [...prev, { id: nextId, text, type: selectedType }]);
-    setNextId((n) => n + 1);
-    setInput("");
-    track("card_add", { type: selectedType });
-    inputRef.current?.focus();
+    if (!text) {
+      setCardError("思考を入力してください");
+      return;
+    }
+    setCardError(null);
+    try {
+      setCards((prev) => [...prev, { id: nextId, text, type: selectedType }]);
+      setNextId((n) => n + 1);
+      setInput("");
+      track("card_add", { type: selectedType });
+      inputRef.current?.focus();
+    } catch (e) {
+      setCardError("カード作成に失敗しました。");
+    }
   };
 
   const resetCards = () => {
@@ -333,14 +343,17 @@ export default function Home() {
             ref={inputRef}
             type="text"
             value={input}
-            onChange={(e) => setInput(e.target.value)}
+            onChange={(e) => {
+              setInput(e.target.value);
+              setCardError(null);
+            }}
             onKeyDown={(e) => e.key === "Enter" && addCard()}
             placeholder={copy.demo.placeholder[lang]}
             style={{
               flex: 1,
               padding: "14px 20px",
               borderRadius: 20,
-              border: "1px solid #e8e5e0",
+              border: cardError ? "1.5px solid #e55353" : "1px solid #e8e5e0",
               fontSize: 15,
               fontFamily: "var(--font-dm)",
               background: "#fff",
@@ -348,8 +361,11 @@ export default function Home() {
               transition: "border-color 0.2s",
             }}
             onFocus={(e) => (e.currentTarget.style.borderColor = ct.border)}
-            onBlur={(e) => (e.currentTarget.style.borderColor = "#e8e5e0")}
+            onBlur={(e) => (e.currentTarget.style.borderColor = cardError ? "#e55353" : "#e8e5e0")}
           />
+          {cardError && (
+            <p style={{ color: "#e55353", fontSize: 13, marginTop: 4 }}>{cardError}</p>
+          )
           <button
             onClick={addCard}
             style={{
