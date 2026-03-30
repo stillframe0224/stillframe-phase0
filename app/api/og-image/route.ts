@@ -40,6 +40,11 @@ export async function POST(request: Request) {
     });
 
     if (!res.ok) {
+      console.error("[og-image] fetch failed", {
+        url: parsed.hostname,
+        status: res.status,
+        statusText: res.statusText,
+      });
       return NextResponse.json(
         { error: "fetch failed", status: res.status },
         { status: 502 }
@@ -70,6 +75,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ image, title });
   } catch (e) {
     const message = e instanceof Error ? e.message : "unknown error";
-    return NextResponse.json({ error: message }, { status: 500 });
+    const isTimeout = e instanceof Error && e.name === "TimeoutError";
+    console.error("[og-image] exception", {
+      type: isTimeout ? "timeout" : "error",
+      message,
+    });
+    return NextResponse.json({ error: message }, { status: isTimeout ? 504 : 500 });
   }
 }
