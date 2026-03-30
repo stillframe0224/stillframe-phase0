@@ -27,7 +27,6 @@
   "license": "ISC",
   "type": "module",
   "dependencies": {
-    "@slack/bolt": "^4.1.0",
     "@subframe/core": "^1.154.0",
     "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.95.3",
@@ -37,6 +36,7 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.58.2",
+    "@slack/bolt": "^4.1.0",
     "@tailwindcss/postcss": "^4.1.18",
     "@types/js-yaml": "^4.0.9",
     "@types/node": "^25.2.3",
