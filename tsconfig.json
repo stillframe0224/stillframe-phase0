@@ -37,6 +37,9 @@
   ],
   "exclude": [
     "node_modules",
-    "tools"
+    "tools",
+    "magmawatch-site",
+    "magamawatch-site",
+    "stillframe-phase0"
   ]
 }
