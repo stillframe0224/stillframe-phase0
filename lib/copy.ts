@@ -12,12 +12,12 @@ const copy = {
       ja: "すべての思考に、画像がつく。",
     },
     sub: {
-      en: "Thoughts scattered across your phone, notes, and browser tabs — you know the feeling. Bring them together in one place. Paste a URL and the image loads itself. Drop a photo and it becomes a card. No hunting for images. No manual work. Just capture and collect.",
-      ja: "スマートフォン、メモ、ブラウザのタブに散らばる思考——その感覚、覚えがあるはず。すべてを一箇所に集める。URLを貼れば画像が自動で現れる。写真を落とせばカードになる。画像を探す手間も、手作業も、もういらない。ただ、つかまえて、集める。",
+      en: "Paste a URL — the image appears. Drop a photo — it becomes a card. Do nothing at all — a gentle illustration fills the space. No image hunting, no blank cards.",
+      ja: "URLを貼れば画像が現れる。写真を落とせばカードになる。何もしなくても、やさしいイラストが空白を埋める。画像探しも、空白のカードも、もういらない。",
     },
     cta: {
-      en: "Try Quick Capture",
-      ja: "Quick Capture を試す",
+      en: "Start Capturing →",
+      ja: "今すぐ試す →",
     },
   },
   demo: {
@@ -79,10 +79,10 @@ const copy = {
         "エクスポート & API",
       ],
     },
-    cta: { en: "Get Early Access", ja: "早期アクセスを取得" },
+    cta: { en: "Claim Early Access →", ja: "早期アクセスを確保 →" },
     urgency: {
-      en: "Early-bird pricing — first 20 members lock in this price forever",
-      ja: "先着20名限定——この価格をずっと維持できます",
+      en: "Early-bird pricing · first 20 members keep this price forever",
+      ja: "先着20名限定 · この価格をずっと維持できます",
     },
   },
   waitlist: {

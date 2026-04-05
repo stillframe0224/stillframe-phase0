@@ -1,0 +1,138 @@
+{
+  "asOf": "2026.03 W4",
+  "updatedAt": "2026-03-29T15:00:00+09:00",
+  "rows": [
+    {
+      "topic": "Telegramブロックと抗議運動",
+      "region": "🇷🇺 RU",
+      "heat": 88,
+      "delta7d": 12,
+      "persistence": 0.82,
+      "spread": 4,
+      "suppression": 0.75,
+      "suppressionDelta7d": 0.15,
+      "signal": "accelerating",
+      "anomaly": true
+    },
+    {
+      "topic": "親クレムリンブロガー離反",
+      "region": "🇷🇺 RU",
+      "heat": 72,
+      "delta7d": 8,
+      "persistence": 0.65,
+      "spread": 3,
+      "suppression": 0.60,
+      "suppressionDelta7d": 0.10,
+      "signal": "emerging",
+      "anomaly": false
+    },
+    {
+      "topic": "軍事ブロガー焦点移動",
+      "region": "🇷🇺 RU",
+      "heat": 58,
+      "delta7d": -5,
+      "persistence": 0.70,
+      "spread": 2,
+      "suppression": 0.40,
+      "suppressionDelta7d": -0.05,
+      "signal": "cooling",
+      "anomaly": false
+    },
+    {
+      "topic": "Zhihu自主検証文化",
+      "region": "🇨🇳 CN",
+      "heat": 76,
+      "delta7d": 15,
+      "persistence": 0.88,
+      "spread": 3,
+      "suppression": 0.85,
+      "suppressionDelta7d": 0.20,
+      "signal": "accelerating",
+      "anomaly": true
+    },
+    {
+      "topic": "フェミニズムBAN vs 女神節",
+      "region": "🇨🇳 CN",
+      "heat": 68,
+      "delta7d": -3,
+      "persistence": 0.55,
+      "spread": 3,
+      "suppression": 0.70,
+      "suppressionDelta7d": 0.05,
+      "signal": "steady",
+      "anomaly": false
+    },
+    {
+      "topic": "EV愛国消費論争",
+      "region": "🇨🇳 CN",
+      "heat": 62,
+      "delta7d": 6,
+      "persistence": 0.50,
+      "spread": 2,
+      "suppression": 0.30,
+      "suppressionDelta7d": 0.00,
+      "signal": "emerging",
+      "anomaly": false
+    },
+    {
+      "topic": "Druski政治風刺論争",
+      "region": "🇺🇸 US",
+      "heat": 80,
+      "delta7d": 20,
+      "persistence": 0.45,
+      "spread": 5,
+      "suppression": 0.10,
+      "suppressionDelta7d": 0.00,
+      "signal": "spike",
+      "anomaly": true
+    },
+    {
+      "topic": "AI生成選挙広告",
+      "region": "🇺🇸 US",
+      "heat": 74,
+      "delta7d": 10,
+      "persistence": 0.72,
+      "spread": 4,
+      "suppression": 0.15,
+      "suppressionDelta7d": 0.02,
+      "signal": "accelerating",
+      "anomaly": false
+    },
+    {
+      "topic": "水道民営化抗議",
+      "region": "🇺🇸 US",
+      "heat": 55,
+      "delta7d": 3,
+      "persistence": 0.60,
+      "spread": 2,
+      "suppression": 0.20,
+      "suppressionDelta7d": -0.05,
+      "signal": "steady",
+      "anomaly": false
+    },
+    {
+      "topic": "グリーンランドNATO危機",
+      "region": "🌐 GL",
+      "heat": 84,
+      "delta7d": -2,
+      "persistence": 0.90,
+      "spread": 5,
+      "suppression": 0.25,
+      "suppressionDelta7d": 0.03,
+      "signal": "sustained",
+      "anomaly": false
+    },
+    {
+      "topic": "ベネズエラ新モンロー主義",
+      "region": "🌐 VE",
+      "heat": 65,
+      "delta7d": 4,
+      "persistence": 0.68,
+      "spread": 3,
+      "suppression": 0.35,
+      "suppressionDelta7d": 0.08,
+      "signal": "emerging",
+      "anomaly": false
+    }
+  ]
+}
