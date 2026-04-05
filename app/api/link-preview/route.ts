@@ -169,9 +169,19 @@ async function fetchViaJinaHtml(url: string): Promise<string | null> {
       },
       signal: AbortSignal.timeout(JINA_TIMEOUT),
     });
-    if (!res.ok) return null;
+    if (!res.ok) {
+      trackLinkPreview("jina_html_fail", {
+        url: summarizeUrlForLog(url),
+        status: res.status,
+      });
+      return null;
+    }
     return await res.text();
-  } catch {
+  } catch (e) {
+    trackLinkPreview("jina_html_error", {
+      url: summarizeUrlForLog(url),
+      reason: e instanceof Error ? e.message : "unknown",
+    });
     return null;
   }
 }
@@ -709,7 +719,7 @@ export async function GET(request: Request) {
       // Non-2xx from safeFetch — try Jina as fallback before giving up
       const jina = await fetchViaJina(url, parsed.origin);
       if (jina?.image) {
-        trackLinkPreview("jina_fallback_fetch_failed", { url: summarizeUrlForLog(url) });
+        trackLinkPreview("jina_fallback_fetch_failed", { url: summarizeUrlForLog(url), hostname: parsed.hostname, status: res.status });
         return NextResponse.json(
           { image: jina.image, favicon: `${parsed.origin}/favicon.ico`, title: jina.title },
           { headers: { "Cache-Control": "public, max-age=3600" } }
@@ -717,7 +727,7 @@ export async function GET(request: Request) {
       }
 
 
-      trackLinkPreview("fetch_failure", { url: summarizeUrlForLog(url), status: res.status, jinaFailed: true });
+      trackLinkPreview("fetch_failure", { url: summarizeUrlForLog(url), hostname: parsed.hostname, status: res.status, jinaFailed: true });
       const retryAfterMs = failureRetryAfterMs(res.status, res.headers.get("retry-after"));
       return NextResponse.json(
         { image: null, favicon: `${parsed.origin}/favicon.ico`, title: null, retryAfterMs },
@@ -795,7 +805,7 @@ export async function GET(request: Request) {
   } catch (e) {
     const reason = e instanceof Error ? e.message : "unknown";
     if (debug) console.log(JSON.stringify({ event: "link_preview_error", url, reason }));
-    trackLinkPreview("exception", { url: summarizeUrlForLog(url), reason });
+    trackLinkPreview("exception", { url: summarizeUrlForLog(url), hostname: parsed.hostname, reason, isTimeout: reason.includes("abort") || reason.includes("timeout") });
     if (reason === "blocked") {
       return NextResponse.json({ error: "blocked_url" }, { status: 400 });
     }

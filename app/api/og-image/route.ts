@@ -46,7 +46,7 @@ export async function POST(request: Request) {
         statusText: res.statusText,
       });
       return NextResponse.json(
-        { error: "fetch failed", status: res.status },
+        { error: "fetch_failed", image: null, title: null, retryAfterMs: 5 * 60 * 1000 },
         { status: 502 }
       );
     }
@@ -80,6 +80,14 @@ export async function POST(request: Request) {
       type: isTimeout ? "timeout" : "error",
       message,
     });
-    return NextResponse.json({ error: message }, { status: isTimeout ? 504 : 500 });
+    return NextResponse.json(
+      {
+        error: isTimeout ? "timeout" : "internal_error",
+        image: null,
+        title: null,
+        retryAfterMs: 5 * 60 * 1000,
+      },
+      { status: isTimeout ? 504 : 500 }
+    );
   }
 }
