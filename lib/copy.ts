@@ -63,7 +63,7 @@ const copy = {
   },
   pricing: {
     h2: { en: "Simple pricing", ja: "シンプルな料金" },
-    price: "$10",
+    price: "$29",
     period: { en: "/mo", ja: "/月" },
     features: {
       en: [
