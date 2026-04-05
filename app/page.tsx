@@ -365,7 +365,7 @@ export default function Home() {
           />
           {cardError && (
             <p style={{ color: "#e55353", fontSize: 13, marginTop: 4 }}>{cardError}</p>
-          )
+          )}
           <button
             onClick={addCard}
             style={{
