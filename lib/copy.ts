@@ -41,22 +41,22 @@ const copy = {
       {
         title: { en: "Paste a URL", ja: "URLを貼る" },
         desc: {
-          en: "OGP image is fetched automatically, no manual fetch needed.",
-          ja: "OGP画像を自動取得。手作業の取得は不要。",
+          en: "OGP image fetches automatically. Zero steps. Zero friction. Done.",
+          ja: "OGP画像が自動で取得される。手作業ゼロ。摩擦ゼロ。完了。",
         },
       },
       {
         title: { en: "Drop a photo", ja: "写真をドロップ" },
         desc: {
-          en: "Your image becomes the card thumbnail.",
-          ja: "画像がそのままサムネイルに。",
+          en: "One click. Your image becomes the card. No editing, no uploading.",
+          ja: "ワンクリック。画像がカードになる。編集も、アップロードも不要。",
         },
       },
       {
         title: { en: "Or do nothing", ja: "何もしなくても" },
         desc: {
-          en: "A gentle SVG illustration fills the space.",
-          ja: "やさしいSVGイラストが空白を埋める。",
+          en: "We'll add a gentle illustration. No blank cards. Ever.",
+          ja: "やさしいイラストが自動で入る。空白のカードは、もう存在しない。",
         },
       },
     ],
@@ -101,6 +101,10 @@ const copy = {
     error: {
       en: "Could not submit. Please try again.",
       ja: "送信できませんでした。もう一度お試しください。",
+    },
+    errorNetwork: {
+      en: "Could not connect. Please check your internet connection and try again.",
+      ja: "接続できませんでした。インターネット接続を確認してもう一度お試しください。",
     },
   },
   footer: {

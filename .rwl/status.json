@@ -1,9 +1,9 @@
 {
   "failure_count": 0,
   "max_failures": 5,
-  "last_run_at": "2026-03-18T14:08:21.495Z",
-  "last_task_id": "20260318-230000-link-preview-telemetry",
-  "note": "failure_count >= max_failures で自律タスクを停止。手動リセット: failure_count を 0 に戻す",
-  "last_task_type": "ux_improvement",
+  "last_run_at": "2026-03-23T08:25:00+09:00",
+  "last_task_id": "20260323-080003-link-preview-telemetry",
+  "note": "Nightly run completed successfully: Waitlist CTA styling improvement",
+  "last_task_type": "lp_improvement",
   "last_error": null
 }

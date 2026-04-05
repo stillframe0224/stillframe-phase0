@@ -1,165 +1,225 @@
-# SHINEN — Phase0
+# SHINEN (StillFrame Phase0)
 
-**思考をキャプチャするとき、常に画像が付く体験**
+> Every thought gets a picture.
 
-Phase0のゴール: LP → Waitlist登録 → 課金意欲の証拠を得る
-
----
-
-## 🎯 Phase0 OKR
-
-- **KR1**: Waitlist 登録 ≥ 50件
-- **KR2**: Gumroad 決済 ≥ 3件（$29 tier）
-- **KR3**: DAU ≥ 10（連続7日）
-- **KR4**: カード作成数 ≥ 100（全ユーザー合計）
-
-詳細: [ops/GOALS.md](./ops/GOALS.md)
+**SHINEN** is a thought-capture application where every card automatically includes an image. Paste a URL and the OGP image auto-loads. Drop a photo and it becomes a card instantly. No manual image hunting. No tedious work. Just capture and collect your thoughts.
 
 ---
 
-## 🚀 Setup
+## 🎯 Project Overview
 
-### 必要環境
+- **Phase**: Phase0 (LP + initial user acquisition + monetization proof)
+- **Goal**: Prove that users with real pain points will use and pay for this product
+- **Tech Stack**: Next.js 16, React 19, Supabase, Vercel
+- **Repository**: https://github.com/array0224-cloud/stillframe-phase0
 
-- Node.js 18+
-- npm 9+
-- Supabase プロジェクト（認証 + カードストレージ用）
+### Phase0 OKRs
 
-### 初回セットアップ
+- **KR1**: Waitlist registrations ≥ 50
+- **KR2**: Gumroad purchases ≥ 3 ($29 tier)
+- **KR3**: DAU ≥ 10 (7-day streak)
+- **KR4**: Total cards created ≥ 100
+
+---
+
+## 🛠 Tech Stack
+
+- **Framework**: Next.js 16 (App Router)
+- **UI**: React 19, Tailwind CSS 4
+- **Backend**: Supabase (Auth + Database)
+- **Deployment**: Vercel
+- **E2E Testing**: Playwright
+- **Language**: TypeScript
+
+---
+
+## 📦 Prerequisites
+
+- Node.js 18+ (recommended: use `nvm` or `fnm`)
+- npm or yarn
+- Git
+
+---
+
+## 🚀 Getting Started
+
+### 1. Clone the repository
 
 ```bash
-# 1. Clone
 git clone https://github.com/array0224-cloud/stillframe-phase0.git
 cd stillframe-phase0
+```
 
-# 2. Install dependencies
+### 2. Install dependencies
+
+```bash
 npm install
+```
 
-# 3. 環境変数の設定
-cp .env.example .env.local
-# .env.local を編集して Supabase URL/Key、Gumroad URL等を設定
+### 3. Set up environment variables
 
-# 4. 開発サーバー起動
+Create a `.env.local` file in the project root:
+
+```bash
+# Supabase
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+
+# Gumroad (optional)
+NEXT_PUBLIC_GUMROAD_PRODUCT_URL=your_gumroad_product_url
+
+# Waitlist (optional)
+NEXT_PUBLIC_WAITLIST_POST_URL=your_waitlist_webhook_url
+NEXT_PUBLIC_WAITLIST_FALLBACK_EMAIL=your_fallback_email
+
+# Analytics (optional)
+NEXT_PUBLIC_ANALYTICS_ENABLED=false
+```
+
+### 4. Run the development server
+
+```bash
 npm run dev
 ```
 
-ブラウザで http://localhost:3000 を開く
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ---
 
-## 📦 主要コマンド
+## 🏗 Build & Deploy
 
-| コマンド | 説明 |
-|---------|------|
-| `npm run dev` | 開発サーバー起動（localhost:3000） |
-| `npm run build` | 本番ビルド（Vercel deploy前に必須） |
-| `npm run start` | 本番サーバー起動（build後） |
-| `npm run test:e2e` | E2Eテスト（Playwright） |
-| `npm run test:e2e:guard` | E2Eガードチェック（セキュリティ不変条件） |
-| `npm run test:smoke` | スモークテスト（smoke.spec.ts, tunnel.spec.ts） |
-| `npm run test:unit` | ユニットテスト（Node.js test runner） |
-| `npm run market:pulse` | Market Pulse レポート生成 |
+### Build for production
+
+```bash
+npm run build
+```
+
+### Start production server locally
+
+```bash
+npm start
+```
+
+### Deploy to Vercel
+
+This project is configured for automatic deployment via Vercel:
+
+1. Push to `main` branch
+2. Vercel automatically builds and deploys
+3. Preview deployments are created for PRs
 
 ---
 
-## 📁 プロジェクト構成
+## 🧪 Testing
+
+### E2E tests (Playwright)
+
+```bash
+# Run all E2E tests
+npm run test:e2e
+
+# Run in CI mode
+npm run test:e2e:ci
+
+# Run guard tests (security invariants)
+npm run test:e2e:guard
+
+# Run smoke tests only
+npm run test:smoke
+```
+
+### Unit tests
+
+```bash
+npm run test:unit
+```
+
+---
+
+## 📊 Available Scripts
+
+| Script | Description |
+|--------|-------------|
+| `npm run dev` | Start development server |
+| `npm run build` | Build for production |
+| `npm start` | Start production server |
+| `npm run test:e2e` | Run E2E tests |
+| `npm run test:e2e:guard` | Run guard tests (security) |
+| `npm run test:smoke` | Run smoke tests |
+| `npm run test:unit` | Run unit tests |
+| `npm run market:pulse` | Generate market pulse report |
+| `npm run subframe:sync` | Sync Subframe components |
+
+---
+
+## 📁 Project Structure
 
 ```
 stillframe-phase0/
 ├── app/                    # Next.js App Router
-│   ├── page.tsx           # ランディングページ
-│   ├── app/               # メインアプリ（認証後）
-│   ├── auth/              # 認証コールバック
-│   └── api/               # API Routes
-├── components/            # React コンポーネント
-├── scripts/               # 自動化スクリプト
-│   ├── codex-run-notify   # Codex実行 + 通知
-│   └── notify_smoke.mjs   # スモークテスト結果通知
-├── tools/                 # ツール群
-│   └── market_pulse/      # Market Pulse（市場調査自動化）
-├── .rwl/                  # 自律タスク管理（Queue/Current/Done）
-│   ├── Queue/            # 待機タスク
-│   ├── Current/          # 実行中タスク
-│   ├── Done/             # 完了タスク
-│   ├── DONE.json         # 完了タスク一覧
-│   ├── status.json       # failure_count等のステータス
-│   └── logs/             # イベントログ
-├── ops/                   # 運用ドキュメント
-│   ├── GOALS.md          # Phase0ゴール・OKR
-│   └── GUARDS.md         # 自律タスクのガードレール
-├── reports/               # 生成レポート
-│   ├── triad/            # タスク証拠ファイル
-│   └── market_pulse/     # Market Pulseレポート
-├── issues/                # Issue草案（自動生成）
-│   └── auto_generated/
-└── e2e/                   # E2Eテスト（Playwright）
+│   ├── page.tsx           # Landing page (LP)
+│   ├── app/               # Main application
+│   └── components/        # React components
+├── lib/                   # Shared utilities
+│   ├── copy.ts           # Copy/i18n strings
+│   ├── cardTypes.ts      # Card type definitions
+│   └── track.ts          # Analytics tracking
+├── ui/                    # UI components
+├── e2e/                   # Playwright E2E tests
+├── scripts/               # Build & automation scripts
+├── tools/                 # CLI tools (market pulse, etc.)
+├── reports/               # Generated reports
+│   ├── triad/            # Task evidence reports
+│   └── market_pulse/     # Market research reports
+├── .rwl/                  # Autonomous agent runtime
+│   ├── Queue/            # Pending tasks
+│   ├── Current/          # Active tasks
+│   ├── Done/             # Completed tasks
+│   └── logs/             # Event logs
+└── ops/                   # Operational docs
+    ├── GOALS.md          # Project goals & OKRs
+    └── GUARDS.md         # Task constraints & DoD
 ```
 
 ---
 
-## 🛡️ セキュリティ: E2Eバイパス封印
+## 🔒 Security & E2E Bypass Guards
 
-本番環境では**絶対に**E2Eモックデータを表示しない4層封印アーキテクチャを採用。
+This project enforces strict security invariants for E2E test bypasses:
 
-詳細: [ops/GUARDS.md](./ops/GUARDS.md)
-
-```bash
-# ガード違反がないか確認
-npm run test:e2e:guard
-```
+- **4-layer sealed architecture** prevents production abuse
+- E2E mode is **localhost-only** and sealed via `Object.defineProperty`
+- CI guard tests ensure invariants never break
+- See `ops/GUARDS.md` for full details
 
 ---
 
-## 🤖 自律タスクシステム
+## 🤝 Contributing
 
-`.rwl/` 配下で自律エージェントがタスクを管理・実行。
+1. Create a feature branch: `git checkout -b feat/your-feature`
+2. Make changes and commit: `git commit -m "feat: your feature"`
+3. Push and create a PR: `git push origin feat/your-feature`
+4. **Never push directly to `main`** (enforced by project rules)
+5. Ensure `npm run build` passes before creating PR
 
-### タスクフロー
+### Commit Convention
 
 ```
-Queue/ → Current/ → Done/
+type: short description
+
+Co-Authored-By: Your Name <your@email.com>
 ```
 
-- **Queue**: 待機中のタスク（1ファイル = 1タスク）
-- **Current**: 実行中のタスク
-- **Done**: 完了済みタスク（アーカイブ）
-
-### ガードレール
-
-- main ブランチへの直接 push 禁止
-- `npm run build` が通らないコミット禁止
-- failure_count >= max_failures で自動停止
-
-詳細: [ops/GUARDS.md](./ops/GUARDS.md)
-
----
-
-## 📊 Market Pulse
-
-Market Pulse は Hacker News / Dev.to / Reddit 等から痛みポイントを自動収集し、
-スコアリングするツール。
-
-```bash
-# レポート生成
-npm run market:pulse
-
-# 結果
-reports/market_pulse/YYYY-MM-DD.md
-```
-
-生成されたレポートは LP の訴求改善や Issue 草案作成に活用。
-
----
-
-## 🔗 リンク
-
-- **運用ドキュメント**: [ops/GOALS.md](./ops/GOALS.md), [ops/GUARDS.md](./ops/GUARDS.md)
-- **タスク証拠**: [reports/triad/](./reports/triad/)
-- **Market Pulse レポート**: [reports/market_pulse/](./reports/market_pulse/)
-- **Issue草案**: [issues/auto_generated/](./issues/auto_generated/)
+**Types**: `feat`, `fix`, `chore`, `refactor`, `docs`, `test`
 
 ---
 
 ## 📝 License
 
-ISC
+Proprietary - StillFrame Project
+
+---
+
+## 🙋‍♂️ Support
+
+For questions or issues, please create an issue in the GitHub repository.
