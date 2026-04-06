@@ -206,7 +206,7 @@ export default function Home() {
           data-testid="cta-early-access"
           onClick={() => {
             track("hero_cta_click");
-            scrollTo("demo");
+            scrollTo("waitlist");
           }}
           aria-label={copy.hero.cta[lang]}
           style={{
