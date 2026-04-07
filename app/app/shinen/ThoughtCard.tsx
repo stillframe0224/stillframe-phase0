@@ -646,6 +646,44 @@ function MediaPreview({
     const linkUrl = card.source?.url ?? media.url;
     const thumbUrl = media.url;
     const renderMode = getThumbRenderMode(card.source?.url ?? media.url);
+    const [imgLoadFailed, setImgLoadFailed] = useState(false);
+    
+    if (imgLoadFailed) {
+      return (
+        <div
+          style={{
+            margin: "-16px -18px 0 -18px",
+            aspectRatio: "16/9",
+            background: "linear-gradient(135deg, #e0e0e0 0%, #f5f5f5 100%)",
+            borderRadius: "10px 10px 0 0",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            border: "1px solid rgba(0,0,0,0.08)",
+            gap: 6,
+          }}
+        >
+          <svg
+            width="48"
+            height="48"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            style={{ opacity: 0.25 }}
+          >
+            <path
+              d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"
+              fill="currentColor"
+            />
+          </svg>
+          <div style={{ fontSize: 9, color: "rgba(0,0,0,0.28)", fontFamily: "'DM Sans',sans-serif", letterSpacing: "0.04em" }}>
+            画像を読み込めませんでした
+          </div>
+        </div>
+      );
+    }
+    
     return (
       <a
         data-testid="card-image-link"
@@ -697,6 +735,7 @@ function MediaPreview({
             src={proxiedSrc}
             alt=""
             aria-hidden
+            onError={() => setImgLoadFailed(true)}
             style={{
               position: "absolute",
               inset: 0,
@@ -717,6 +756,7 @@ function MediaPreview({
           src={proxiedSrc}
           alt={card.text}
           onError={(e) => {
+            setImgLoadFailed(true);
             logDiagEvent({
               type: "thumb_error",
               cardId: card.id,
