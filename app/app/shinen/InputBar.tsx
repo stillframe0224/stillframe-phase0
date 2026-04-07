@@ -246,9 +246,29 @@ export default function InputBar({ onSubmit, onFileUpload, time }: InputBarProps
               cursor: submitting ? "default" : "pointer",
               flexShrink: 0,
               transition: "all 0.15s",
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
             }}
           >
-            {submitting ? "···" : "drop ↵"}
+            {submitting && (
+              <svg
+                width={12}
+                height={12}
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                style={{
+                  animation: "spin 0.8s linear infinite",
+                }}
+              >
+                <circle cx="12" cy="12" r="10" strokeDasharray="31.4 31.4" strokeDashoffset="0" opacity="0.25" />
+                <path d="M12 2 A10 10 0 0 1 22 12" strokeDasharray="15.7" strokeDashoffset="0" />
+              </svg>
+            )}
+            {submitting ? "creating..." : "drop ↵"}
           </button>
         )}
       </div>
@@ -267,4 +287,13 @@ export default function InputBar({ onSubmit, onFileUpload, time }: InputBarProps
       </div>
     </div>
   );
+
+
+{/* Spinner animation */}
+<style jsx global>{`
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+`}</style>
 }
