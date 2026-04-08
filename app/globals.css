@@ -186,3 +186,60 @@ body {
     display: none !important;
   }
 }
+
+/* ── Mobile Responsive Fixes ── */
+@media (max-width: 640px) {
+  /* Hero section: reduce top padding on mobile */
+  .paper-grid-bg > section:nth-of-type(2) {
+    padding-top: 48px !important;
+  }
+
+  /* Hero h1: reduce font size on mobile */
+  .paper-grid-bg > section:nth-of-type(2) h1 {
+    font-size: 28px !important;
+  }
+
+  /* All section h2 headings: reduce font size on mobile */
+  section h2 {
+    font-size: 24px !important;
+  }
+
+  /* How it works grid: force single column on mobile */
+  #how-it-works > div:last-of-type {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+
+  /* Footer nav: wrap and reduce gap on mobile */
+  footer nav {
+    flex-wrap: wrap !important;
+    gap: 12px !important;
+    row-gap: 8px !important;
+  }
+
+  /* Demo input button: ensure minimum tap target size */
+  #demo button[style*="width: 48px"] {
+    min-width: 52px !important;
+    min-height: 52px !important;
+  }
+}
+
+/* Additional mobile refinements for very small screens */
+@media (max-width: 480px) {
+  /* Further reduce hero title on very small screens */
+  .paper-grid-bg > section:nth-of-type(2) h1 {
+    font-size: 24px !important;
+  }
+
+  /* Tighten horizontal padding */
+  section {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+
+  /* Type selector buttons: reduce size */
+  div[role="tablist"] button {
+    padding: 4px 10px !important;
+    font-size: 11px !important;
+  }
+}
