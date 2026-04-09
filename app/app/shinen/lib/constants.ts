@@ -40,7 +40,7 @@ export function getCardWidth(): number {
 export const CARD_HEIGHT_DEFAULT = 180;
 
 /** Tap-target minimum size (px) per mobile a11y guidelines */
-export const TAP_TARGET_MIN = 44;
+export const TAP_TARGET_MIN = 48;
 
 export const LAYOUTS = ["scatter", "grid", "circle", "tiles", "triangle"] as const;
 export type LayoutName = (typeof LAYOUTS)[number];
