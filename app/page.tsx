@@ -17,6 +17,9 @@ const GUMROAD_URL = process.env.NEXT_PUBLIC_GUMROAD_PRODUCT_URL || "#";
 const WAITLIST_POST_URL = process.env.NEXT_PUBLIC_WAITLIST_POST_URL || "";
 const WAITLIST_FALLBACK_EMAIL =
   process.env.NEXT_PUBLIC_WAITLIST_FALLBACK_EMAIL || "";
+// Hero copy override for A/B testing (defaults to copy.ts if not set)
+const HERO_COPY_EN = process.env.NEXT_PUBLIC_LP_HERO_COPY_EN;
+const HERO_COPY_JA = process.env.NEXT_PUBLIC_LP_HERO_COPY_JA;
 
 interface DemoCard {
   id: number;
@@ -189,7 +192,9 @@ export default function Home() {
             letterSpacing: "-0.01em",
           }}
         >
-          {copy.hero.h1[lang]}
+          {lang === "en"
+            ? HERO_COPY_EN || copy.hero.h1.en
+            : HERO_COPY_JA || copy.hero.h1.ja}
         </h1>
         <p
           style={{
