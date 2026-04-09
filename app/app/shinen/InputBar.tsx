@@ -49,6 +49,8 @@ export default function InputBar({ onSubmit, onFileUpload, time }: InputBarProps
   const [focused, setFocused] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [fileError, setFileError] = useState<string | null>(null);
+  const [lastFailedFile, setLastFailedFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleSubmit = useCallback(() => {
@@ -98,6 +100,8 @@ export default function InputBar({ onSubmit, onFileUpload, time }: InputBarProps
         onFileUpload?.(result);
       } catch (error) {
         console.error("File processing error:", error);
+        setFileError(error instanceof Error ? error.message : "ファイルの処理に失敗しました");
+        setLastFailedFile(file);
       }
     },
     [onFileUpload],
@@ -106,7 +110,11 @@ export default function InputBar({ onSubmit, onFileUpload, time }: InputBarProps
   const handleFileChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
-      if (file) processFile(file);
+      if (file) {
+        setFileError(null);
+        setLastFailedFile(null);
+        processFile(file);
+      }
       // Reset input so same file can be re-selected
       e.target.value = "";
     },
@@ -122,6 +130,13 @@ export default function InputBar({ onSubmit, onFileUpload, time }: InputBarProps
     },
     [processFile],
   );
+
+  const handleRetry = useCallback(() => {
+    if (lastFailedFile) {
+      setFileError(null);
+      processFile(lastFailedFile);
+    }
+  }, [lastFailedFile, processFile]);
 
   return (
     <div
@@ -246,9 +261,29 @@ export default function InputBar({ onSubmit, onFileUpload, time }: InputBarProps
               cursor: submitting ? "default" : "pointer",
               flexShrink: 0,
               transition: "all 0.15s",
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
             }}
           >
-            {submitting ? "···" : "drop ↵"}
+            {submitting && (
+              <svg
+                width={12}
+                height={12}
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                style={{
+                  animation: "spin 0.8s linear infinite",
+                }}
+              >
+                <circle cx="12" cy="12" r="10" strokeDasharray="31.4 31.4" strokeDashoffset="0" opacity="0.25" />
+                <path d="M12 2 A10 10 0 0 1 22 12" strokeDasharray="15.7" strokeDashoffset="0" />
+              </svg>
+            )}
+            {submitting ? "creating..." : "drop ↵"}
           </button>
         )}
       </div>
