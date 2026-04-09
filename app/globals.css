@@ -243,3 +243,9 @@ body {
     font-size: 11px !important;
   }
 }
+
+/* ── Spinner animation (used by InputBar) ── */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
