@@ -28,12 +28,12 @@ export const ZOOM_MIN = -400;
 export const ZOOM_MAX = 500;
 
 export const CARD_WIDTH_DESKTOP = 210;
-export const CARD_WIDTH_MOBILE = 170; // floor of 45vw at 375px
+export const CARD_WIDTH_MOBILE = 187; // floor of 50vw at 375px
 
-/** Returns responsive card width: min(210, 45vw) */
+/** Returns responsive card width: min(210, 50vw) */
 export function getCardWidth(): number {
   if (typeof window === "undefined") return CARD_WIDTH_DESKTOP;
-  return Math.min(CARD_WIDTH_DESKTOP, window.innerWidth * 0.45);
+  return Math.min(CARD_WIDTH_DESKTOP, window.innerWidth * 0.50);
 }
 
 /** Default card height for layout algorithms (px) */
