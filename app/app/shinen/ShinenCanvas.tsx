@@ -14,6 +14,7 @@ import { useOgThumbnails } from "./hooks/useOgThumbnails";
 import Background from "./Background";
 import ThoughtCard from "./ThoughtCard";
 import SelectionOverlay from "./SelectionOverlay";
+import { CardErrorBoundary } from "./components/CardErrorBoundary";
 import InputBar from "./InputBar";
 import NavBar from "./NavBar";
 import HintOverlay from "./HintOverlay";
@@ -1283,6 +1284,7 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
       {/* Cards */}
       <div data-testid="cards-grid" style={{ position: "absolute", inset: 0, zIndex: 5, gap: "8px" }}>
         {projCards.map(({ card, p }) => (
+          <CardErrorBoundary key={card.id}>
           <ThoughtCard
             key={card.id}
             card={card}
@@ -1313,6 +1315,7 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
             onResizeStart={handleResizeStart}
             onDelete={handleDeleteCard}
           />
+          </CardErrorBoundary>
         ))}
       </div>
 
