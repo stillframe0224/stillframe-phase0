@@ -16,8 +16,8 @@ const copy = {
       ja: "URLを貼れば画像が現れる。写真を落とせばカードになる。何もしなくても、やさしいイラストが空白を埋める。画像探しも、空白のカードも、もういらない。",
     },
     cta: {
-      en: "Join Waitlist →",
-      ja: "ウェイトリストに参加 →",
+      en: "Get Early Access →",
+      ja: "早期アクセス →",
     },
   },
   demo: {
@@ -87,6 +87,10 @@ const copy = {
   },
   waitlist: {
     h2: { en: "Stay in the loop", ja: "最新情報を受け取る" },
+    urgency: {
+      en: "Limited early access spots available",
+      ja: "早期アクセス枠は限定数です",
+    },
     placeholder: { en: "you@email.com", ja: "you@email.com" },
     cta: { en: "Notify me", ja: "通知を受け取る" },
     submitting: { en: "Sending...", ja: "送信中..." },

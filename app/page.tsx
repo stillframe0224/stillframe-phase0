@@ -547,6 +547,19 @@ export default function Home() {
         >
           {copy.waitlist.h2[lang]}
         </h2>
+        <p
+          style={{
+            fontSize: 13,
+            color: "#e85d47",
+            fontWeight: 600,
+            letterSpacing: "0.03em",
+            textTransform: "uppercase",
+            marginBottom: 20,
+            fontFamily: "var(--font-dm)",
+          }}
+        >
+          {copy.waitlist.urgency[lang]}
+        </p>
         <Waitlist
           lang={lang}
           postUrl={WAITLIST_POST_URL}
