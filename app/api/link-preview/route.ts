@@ -154,7 +154,10 @@ async function fetchViaJina(
     const image = resolveUrl(ogImage ?? twImage, origin);
     const title = extractMeta(html, "og:title");
     return { image, title };
-  } catch {
+  } catch (error) {
+    if (error instanceof Error && (error.name === "TimeoutError" || error.name === "AbortError")) {
+      trackLinkPreview("jina_timeout", { url: summarizeUrlForLog(url), timeout_ms: JINA_TIMEOUT });
+    }
     return null;
   }
 }
@@ -171,7 +174,10 @@ async function fetchViaJinaHtml(url: string): Promise<string | null> {
     });
     if (!res.ok) return null;
     return await res.text();
-  } catch {
+  } catch (error) {
+    if (error instanceof Error && (error.name === "TimeoutError" || error.name === "AbortError")) {
+      trackLinkPreview("jina_timeout", { url: summarizeUrlForLog(url), timeout_ms: JINA_TIMEOUT });
+    }
     return null;
   }
 }
@@ -228,7 +234,10 @@ async function fetchSyndicationTweet(tweetId: string): Promise<Record<string, un
     if (!res.ok) return null;
     const data = await res.json();
     return data && typeof data === "object" ? data as Record<string, unknown> : null;
-  } catch {
+  } catch (error) {
+    if (error instanceof Error && (error.name === "TimeoutError" || error.name === "AbortError")) {
+      trackLinkPreview("syndication_timeout", { tweet_id: tweetId, timeout_ms: SYNDICATION_TIMEOUT });
+    }
     return null;
   }
 }
