@@ -1,22 +1,58 @@
 [
   {
-    "id": "8dc23490963f",
-    "url": "https://news.ycombinator.com/item?id=47042431",
-    "title": "Ask HN: Which password manager do you use / would you recommend?",
-    "source": "hn_ask",
-    "sourceName": "Hacker News: Ask HN",
-    "publishedAt": "2026-02-17T01:07:01.000Z",
+    "id": "3d191f1cc148",
+    "url": "https://www.reddit.com/r/Entrepreneur/comments/1shx23p/emotional_impulse_buying_is_here_to_stay/",
+    "title": "Emotional / Impulse Buying Is Here To Stay",
+    "source": "reddit_entrepreneur",
+    "sourceName": "Reddit: r/Entrepreneur",
+    "publishedAt": "2026-04-10T19:45:28.000Z",
     "score": {
-      "total": 46,
-      "pain": 8,
-      "demand": 10,
-      "urgency": 10,
-      "frequency": 10,
+      "total": 60,
+      "pain": 24,
+      "demand": 20,
+      "urgency": 0,
+      "frequency": 6,
       "sourceWeight": 1.2,
       "matchedKeywords": [
-        "help",
-        "recommend",
-        "today"
+        "impossible",
+        "problem",
+        "need",
+        "buy",
+        "purchase"
+      ]
+    },
+    "tags": [
+      "pain",
+      "business",
+      "startup"
+    ],
+    "summaryBullets": [
+      "With our economy being all over the place I've seen people discussing how imp...",
+      "I'm here to say thats impossible.",
+      "Emotional buying has survived the 08 crash, covid 2020 crash and is still ali...",
+      "This is because people may see something they dont NEED but it makes them fee...",
+      "They'll buy based on that feeling alone."
+    ]
+  },
+  {
+    "id": "1cd4c30eac87",
+    "url": "https://news.ycombinator.com/item?id=47723538",
+    "title": "Ask HN: Recommendations on which models to pay how much for?",
+    "source": "hn_ask",
+    "sourceName": "Hacker News: Ask HN",
+    "publishedAt": "2026-04-10T20:54:22.000Z",
+    "score": {
+      "total": 53,
+      "pain": 8,
+      "demand": 30,
+      "urgency": 0,
+      "frequency": 6,
+      "sourceWeight": 1.2,
+      "matchedKeywords": [
+        "ugh",
+        "subscription",
+        "how much",
+        "recommend"
       ]
     },
     "tags": [
@@ -25,23 +61,23 @@
       "community"
     ],
     "summaryBullets": [
-      "I still use a unique password for every site, and plan to educate myself on p...",
-      "We don't have any special requirements; I'm into tech but others in the fam s...",
-      "Everyone in the family has a smart phone, some have a tablet, most do not own...",
-      "I'm starting to educate myself today, starting with a computerphile video on ...",
-      "Comments URL: https://news.ycombinator.com/item?id=47042431\nPoints: 4\n# Comme..."
+      "Each of us doing different things for the last few months (e.g.",
+      "~$20..$40 for ZedPro, another guy $20/mo for GPT, etc).",
+      "Would like to move something we could all share and willing to burn through a...",
+      "API or subscription?",
+      "Just curious what others have found as they've wandered the chaos that is pay..."
     ]
   },
   {
-    "id": "39b125061f26",
-    "url": "https://news.ycombinator.com/item?id=47044151",
-    "title": "Ask HN: How does the cost of CPU-bound computations scale in cloud computing?",
+    "id": "baebe710e200",
+    "url": "https://news.ycombinator.com/item?id=47723275",
+    "title": "Scanners are too late for AI-driven actions",
     "source": "hn_ask",
     "sourceName": "Hacker News: Ask HN",
-    "publishedAt": "2026-02-17T05:48:51.000Z",
+    "publishedAt": "2026-04-10T20:27:54.000Z",
     "score": {
-      "total": 38,
-      "pain": 16,
+      "total": 48,
+      "pain": 24,
       "demand": 0,
       "urgency": 10,
       "frequency": 6,
@@ -49,6 +85,7 @@
       "matchedKeywords": [
         "problem",
         "ugh",
+        "need",
         "today"
       ]
     },
@@ -58,30 +95,306 @@
       "community"
     ],
     "summaryBullets": [
-      "Let's say that I'm a rich mathematician (that would be nice) and want to spon...",
-      "The I/O and storage costs are low; the bulk of the cost is going to be pure c...",
-      "Now I'm ready to get out my checkbook.",
-      "What factors influence the cost of such a computation in today's cloud comput...",
-      "How does the price scale with N and the rate at which I want to complete the ..."
+      "Most AI and automation stacks still rely on monitoring, logs, and post-event ...",
+      "That is not control if the action is irreversible.",
+      "A scanner can tell you what happened.",
+      "A boundary can decide whether it may happen.",
+      "The core problem I keep running into is this:\nonce agents can call tools, tri..."
     ]
   },
   {
-    "id": "17bb75e1c37b",
-    "url": "https://news.ycombinator.com/item?id=47043293",
-    "title": "Looking for Founding Engineers – Esbern",
-    "source": "hn_ask",
-    "sourceName": "Hacker News: Ask HN",
-    "publishedAt": "2026-02-17T03:15:47.000Z",
+    "id": "9c1da8b3df4c",
+    "url": "https://www.reddit.com/r/webdev/comments/1shkdl1/any_openrouter_alternatives/",
+    "title": "Any OpenRouter alternatives?",
+    "source": "reddit_indiehackers_like",
+    "sourceName": "Reddit: r/webdev",
+    "publishedAt": "2026-04-10T11:55:19.000Z",
     "score": {
-      "total": 38,
-      "pain": 16,
+      "total": 48,
+      "pain": 24,
+      "demand": 30,
+      "urgency": 0,
+      "frequency": 6,
+      "sourceWeight": 0.8,
+      "matchedKeywords": [
+        "can't",
+        "hard to",
+        "ugh",
+        "looking for",
+        "recommend",
+        "alternative"
+      ]
+    },
+    "tags": [
+      "webdev",
+      "tool",
+      "pain"
+    ],
+    "summaryBullets": [
+      "I'm currently using OpenRouter.",
+      "Although it provides a huge model selection and some free options, it is gett...",
+      "Since I run a lot of A/B testing, the pay-as-you-go model makes it hard to ma...",
+      "I also can't stand that they take off the top every time I top up.",
+      "So, I'm looking for solid, cheaper OpenRouter-like alternatives that still of..."
+    ]
+  },
+  {
+    "id": "13b40b81f7f3",
+    "url": "https://www.reddit.com/r/nocode/comments/1shj3i4/spreadsheetlike_database_tool/",
+    "title": "spreadsheet-like database tool",
+    "source": "reddit_nocode",
+    "sourceName": "Reddit: r/nocode",
+    "publishedAt": "2026-04-10T10:50:51.000Z",
+    "score": {
+      "total": 48,
+      "pain": 32,
+      "demand": 10,
+      "urgency": 0,
+      "frequency": 6,
+      "sourceWeight": 1,
+      "matchedKeywords": [
+        "pain",
+        "impossible",
+        "nightmare",
+        "need",
+        "alternative"
+      ]
+    },
+    "tags": [
+      "nocode",
+      "tools",
+      "pain"
+    ],
+    "summaryBullets": [
+      "this day has come, and we are finally ready (we really can’t use it anymore) ...",
+      "i know there are plenty of great alternatives, and we could test a few and ch...",
+      "we have lots of data (all of our clients and marketing campaigns we run for t...",
+      "on top of that, the team has grown to 200+ people, and the whole permissions ...",
+      "the tool really needs to be easy to use and have a spreadsheet-like interface..."
+    ]
+  },
+  {
+    "id": "a89c30c75f52",
+    "url": "https://www.reddit.com/r/Entrepreneur/comments/1shdn2p/thoughts_after_3_months_using_connectd_as_a/",
+    "title": "Thoughts after 3 months using Connectd as a founder",
+    "source": "reddit_entrepreneur",
+    "sourceName": "Reddit: r/Entrepreneur",
+    "publishedAt": "2026-04-10T05:34:43.000Z",
+    "score": {
+      "total": 48,
+      "pain": 24,
       "demand": 10,
       "urgency": 0,
       "frequency": 6,
       "sourceWeight": 1.2,
       "matchedKeywords": [
         "ugh",
+        "help",
         "need",
+        "recommend"
+      ]
+    },
+    "tags": [
+      "pain",
+      "business",
+      "startup"
+    ],
+    "summaryBullets": [
+      "Saw a few threads asking about this platform so figured I'd share my experience.",
+      "We used it to find a board advisor.",
+      "The onboarding was straightforward, took about 2 weeks before we had our firs...",
+      "The person we were matched with helped us achieve exactly what we set out to ...",
+      "Downsides: The communication was a bit stretched out (this was around the hol..."
+    ]
+  },
+  {
+    "id": "fbb1c49c9947",
+    "url": "https://www.reddit.com/r/nocode/comments/1shfbhg/why_most_people_fail_with_nocode_its_not_because/",
+    "title": "Why most people fail with no-code (it’s not because of the tools)",
+    "source": "reddit_nocode",
+    "sourceName": "Reddit: r/nocode",
+    "publishedAt": "2026-04-10T07:10:23.000Z",
+    "score": {
+      "total": 42,
+      "pain": 40,
+      "demand": 0,
+      "urgency": 0,
+      "frequency": 2,
+      "sourceWeight": 1,
+      "matchedKeywords": [
+        "stuck",
+        "problem",
+        "issue",
+        "slow",
+        "manual",
+        "struggling"
+      ]
+    },
+    "tags": [
+      "nocode",
+      "tools",
+      "pain"
+    ],
+    "summaryBullets": [
+      "Hey everyone,\n I’ve been spending a lot of time in the no-code / automation s...",
+      "They’re struggling because of what they’re trying to build.",
+      "At first, I was doing the same thing:\n Building random automations, connectin...",
+      "Once I shifted focus, everything changed.",
+      "Instead of asking:\n “How do I build something cool?”\n I started asking:\n “Wha..."
+    ]
+  },
+  {
+    "id": "9ae590dc97e5",
+    "url": "https://www.reddit.com/r/Entrepreneur/comments/1sh6szi/would_homeowners_buy_a_water_softener_without_an/",
+    "title": "Would homeowners buy a Water Softener without an in-home presentation?",
+    "source": "reddit_entrepreneur",
+    "sourceName": "Reddit: r/Entrepreneur",
+    "publishedAt": "2026-04-10T00:07:36.000Z",
+    "score": {
+      "total": 41,
+      "pain": 8,
+      "demand": 20,
+      "urgency": 0,
+      "frequency": 6,
+      "sourceWeight": 1.2,
+      "matchedKeywords": [
+        "issue",
+        "buy",
+        "looking for"
+      ]
+    },
+    "tags": [
+      "pain",
+      "business",
+      "startup"
+    ],
+    "summaryBullets": [
+      "Looking for some feedback\n Backstory - My Dad and I ran a small full service ...",
+      "Because of that we started selling a lot of whole home water softeners and ev...",
+      "We quickly realized however there weren't many options.",
+      "There were either the really cheap big box store units that we'd constantly g...",
+      "Or there was really high quality units, but you'd have to get them from these..."
+    ]
+  },
+  {
+    "id": "cb09c788a8e8",
+    "url": "https://www.reddit.com/r/Entrepreneur/comments/1sgwmw1/what_kind_of_advice_is_add_more_stress_to_your/",
+    "title": "What Kind of Advice Is “Add More Stress to Your Life”? Signal vs Noise.",
+    "source": "reddit_entrepreneur",
+    "sourceName": "Reddit: r/Entrepreneur",
+    "publishedAt": "2026-04-09T17:41:43.000Z",
+    "score": {
+      "total": 41,
+      "pain": 8,
+      "demand": 20,
+      "urgency": 0,
+      "frequency": 6,
+      "sourceWeight": 1.2,
+      "matchedKeywords": [
+        "need",
+        "recommend",
+        "does anyone"
+      ]
+    },
+    "tags": [
+      "pain",
+      "business",
+      "startup"
+    ],
+    "summaryBullets": [
+      "We've been seeing a lot of bro strategy being recommended for businesses.",
+      "What kind of advice is add more stress to your life?",
+      "These gurus are telling people to post more, do more, launch more, learn more...",
+      "What I've learned over the years is to focus on what is moving the business f...",
+      "For those that havent heard of this, let me mention Steve Jobs plan for his d..."
+    ]
+  },
+  {
+    "id": "68bd1cc57543",
+    "url": "https://www.reddit.com/r/Entrepreneur/comments/1sginin/whats_something_founders_think_will_grow_their/",
+    "title": "What's something founders think will grow their buisness... But usually doesn't?",
+    "source": "reddit_entrepreneur",
+    "sourceName": "Reddit: r/Entrepreneur",
+    "publishedAt": "2026-04-09T07:19:42.000Z",
+    "score": {
+      "total": 41,
+      "pain": 32,
+      "demand": 0,
+      "urgency": 0,
+      "frequency": 2,
+      "sourceWeight": 1.2,
+      "matchedKeywords": [
+        "problem",
+        "ugh",
+        "help",
+        "need"
+      ]
+    },
+    "tags": [
+      "pain",
+      "business",
+      "startup"
+    ],
+    "summaryBullets": [
+      "for the longest time, I thought business growth came from adding more.",
+      "more \"hustle.\"\n but looking back, most of that didn't really move the needle.",
+      "what actually helped was fixing boring stuff:\n Faster replies \n better follow...",
+      "they have friction problem.",
+      "and \"more marketing\" usually doesn't solve that."
+    ]
+  },
+  {
+    "id": "48b94f5e8a98",
+    "url": "https://www.reddit.com/r/webdev/comments/1shr8sx/most_ai_browser_automation_is_just_glorified/",
+    "title": "Most ai browser automation is just glorified scripts and nobody wants to admit it.",
+    "source": "reddit_indiehackers_like",
+    "sourceName": "Reddit: r/webdev",
+    "publishedAt": "2026-04-10T16:18:51.000Z",
+    "score": {
+      "total": 40,
+      "pain": 24,
+      "demand": 0,
+      "urgency": 20,
+      "frequency": 6,
+      "sourceWeight": 0.8,
+      "matchedKeywords": [
+        "broken",
+        "failing",
+        "problem",
+        "today",
+        "right now"
+      ]
+    },
+    "tags": [
+      "webdev",
+      "tool",
+      "pain"
+    ],
+    "summaryBullets": [
+      "I am gonna say it because nobody else will, 90% of what people call ai browse...",
+      "you still have: flows breaking the second a button moves, sessions randomly d...",
+      "but now people just say oh it’s ai powered like that magically fixes anything.",
+      "IT DOESN’T\n if your system still depends on rigid steps, selectors, and perfe...",
+      "it’s just slightly fancier automation waiting to break and don’t get me start..."
+    ]
+  },
+  {
+    "id": "a8745da07a71",
+    "url": "https://news.ycombinator.com/item?id=47722062",
+    "title": "Amazon Luna Shuts Down without refunds?",
+    "source": "hn_ask",
+    "sourceName": "Hacker News: Ask HN",
+    "publishedAt": "2026-04-10T18:46:05.000Z",
+    "score": {
+      "total": 38,
+      "pain": 0,
+      "demand": 30,
+      "urgency": 0,
+      "frequency": 2,
+      "sourceWeight": 1.2,
+      "matchedKeywords": [
+        "subscription",
+        "purchase",
         "looking for"
       ]
     },
@@ -91,32 +404,234 @@
       "community"
     ],
     "summaryBullets": [
-      "Technical roles only.",
-      "Must be able to ship: code, infra, AI/LLM, API.",
-      "Location: Will happen either in Los Angeles or San Francisco (In-person neede...",
-      "Founding Team / Equity\nCompensation: 5% equity + $100/day (For 60 days until ...",
-      "Timeline: 60-day sprint to MVP, then bring investors\nTHE MISSION\nWe're ending..."
+      "Just received this email from Luna:\nThank you for being part of the Amazon Lu...",
+      "We’re reaching out to share an update about how Amazon Luna is evolving - and...",
+      "At Amazon, we’re always looking for ways to better serve our players.",
+      "Your feedback has been clear: you want easy access to great games, more socia...",
+      "As our library continues to grow, more of that content is available to Prime ..."
     ]
   },
   {
-    "id": "bd27fa070513",
-    "url": "https://dev.to/archibaldtitan/how-to-automate-security-audits-with-ai-a-complete-guide-for-devops-teams-1co0",
-    "title": "How to Automate Security Audits with AI: A Complete Guide for DevOps Teams",
-    "source": "devto_top",
-    "sourceName": "Dev.to: Top",
-    "publishedAt": "2026-02-17T07:39:39.000Z",
+    "id": "7ff799d00a2d",
+    "url": "https://www.reddit.com/r/Entrepreneur/comments/1shqawa/why_do_some_clients_make_your_business_feel_easy/",
+    "title": "Why do some clients make your business feel easy and others make it chaotic?",
+    "source": "reddit_entrepreneur",
+    "sourceName": "Reddit: r/Entrepreneur",
+    "publishedAt": "2026-04-10T15:46:13.000Z",
     "score": {
-      "total": 32,
-      "pain": 24,
-      "demand": 0,
-      "urgency": 10,
+      "total": 38,
+      "pain": 16,
+      "demand": 10,
+      "urgency": 0,
       "frequency": 6,
-      "sourceWeight": 0.8,
+      "sourceWeight": 1.2,
       "matchedKeywords": [
-        "impossible",
+        "problem",
+        "slow",
+        "how much"
+      ]
+    },
+    "tags": [
+      "pain",
+      "business",
+      "startup"
+    ],
+    "summaryBullets": [
+      "Honestly...used to think getting more clients would fix everything.",
+      "More clients meant more revenue, so I kept pushing for more.",
+      "What I didn’t expect was how much harder things got..",
+      "ie: More messages, more follow ups, more context switching, more half finishe...",
+      "Some clients were easy."
+    ]
+  },
+  {
+    "id": "a8272f521f7d",
+    "url": "https://www.reddit.com/r/productivity/comments/1shkam7/i_need_to_get_these_things_done_but_i_have_no/",
+    "title": "I need to get these things done but I have no motivation to do anything",
+    "source": "reddit_productivity",
+    "sourceName": "Reddit: r/productivity",
+    "publishedAt": "2026-04-10T11:51:20.000Z",
+    "score": {
+      "total": 38,
+      "pain": 40,
+      "demand": 0,
+      "urgency": 0,
+      "frequency": 2,
+      "sourceWeight": 0.9,
+      "matchedKeywords": [
+        "can't",
+        "problem",
+        "issue",
+        "ugh",
+        "need"
+      ]
+    },
+    "tags": [
+      "productivity",
+      "tools",
+      "habit"
+    ],
+    "summaryBullets": [
+      "I need to finish reading Jane Eyre by Charlotte Brontë by the end of this wee...",
+      "I do enjoy the book but that's the problem since I don't want to rush it, and...",
+      "I also have this second project that is totally stressing me out and I can't ...",
+      "This project is worth 25% of my grade and at this rate I'm going to fail the ...",
+      "Worst part is, it's mandatory, so it's not like I can get out of it whether I..."
+    ]
+  },
+  {
+    "id": "71b1b97e2408",
+    "url": "https://twill.ai",
+    "title": "Launch HN: Twill.ai (YC S25) – Delegate to cloud agents, get back PRs",
+    "source": "hn_frontpage",
+    "sourceName": "Hacker News: Front Page",
+    "publishedAt": "2026-04-10T16:22:13.000Z",
+    "score": {
+      "total": 37,
+      "pain": 32,
+      "demand": 0,
+      "urgency": 0,
+      "frequency": 2,
+      "sourceWeight": 1.1,
+      "matchedKeywords": [
+        "pain",
         "manual",
         "ugh",
-        "today"
+        "need"
+      ]
+    },
+    "tags": [
+      "trending",
+      "tech"
+    ],
+    "summaryBullets": [
+      "Hey HN, we're Willy and Dan, co-founders of Twill.ai (https://twill.ai/).",
+      "Twill runs coding CLIs like Claude Code and Codex in isolated cloud sandboxes.",
+      "You hand it work through Slack, GitHub, Linear, our web app or CLI, and it co...",
+      "It loops you in when it needs your input, so you stay in control.",
+      "Demo: https://www.youtube.com/watch?v=oyfTMXVECbs\nBefore Twill, building with..."
+    ]
+  },
+  {
+    "id": "23eed8159e33",
+    "url": "https://www.reddit.com/r/startups/comments/1shg5d4/how_do_you_get_people_to_download_your_new_app_i/",
+    "title": "How do you get people to download your new app? I will not promote.",
+    "source": "reddit_startups",
+    "sourceName": "Reddit: r/startups",
+    "publishedAt": "2026-04-10T07:59:55.000Z",
+    "score": {
+      "total": 37,
+      "pain": 8,
+      "demand": 20,
+      "urgency": 0,
+      "frequency": 6,
+      "sourceWeight": 1.1,
+      "matchedKeywords": [
+        "stuck",
+        "how much",
+        "better than"
+      ]
+    },
+    "tags": [
+      "startup",
+      "pain",
+      "demand"
+    ],
+    "summaryBullets": [
+      "I'm stuck in the first stages where I already published the app on App Store,...",
+      "They say that they do, but they don't.",
+      "How do you get over this kind of betrayal from friends?",
+      "I noticed strangers support better than anyone close.",
+      "submitted by    /u/eaquinn_  \n [link]   [comments] I'm stuck in the first sta..."
+    ]
+  },
+  {
+    "id": "94d0e7a91453",
+    "url": "https://www.reddit.com/r/productivity/comments/1si15wh/new_project_manager_seeking_system/",
+    "title": "New Project Manager seeking System",
+    "source": "reddit_productivity",
+    "sourceName": "Reddit: r/productivity",
+    "publishedAt": "2026-04-10T22:22:41.000Z",
+    "score": {
+      "total": 36,
+      "pain": 24,
+      "demand": 10,
+      "urgency": 0,
+      "frequency": 6,
+      "sourceWeight": 0.9,
+      "matchedKeywords": [
+        "ugh",
+        "help",
+        "need",
+        "does anyone"
+      ]
+    },
+    "tags": [
+      "productivity",
+      "tools",
+      "habit"
+    ],
+    "summaryBullets": [
+      "I figured I'd theme this like a dating post, but I'm a bit too desperate for ...",
+      "I'm about six to eight months in and drowning.",
+      "I have, at any given time, upwards of 60 to 70 projects at any given point in...",
+      "Does anyone have any ideas?",
+      "My function primarily consists of coordinating the delivery of overhead doors..."
+    ]
+  },
+  {
+    "id": "28366ecafcfc",
+    "url": "https://www.reddit.com/r/startups/comments/1shqgp6/is_this_fintech_idea_scalable_or_too/",
+    "title": "Is this fintech idea scalable or too country-specific? I will not promote",
+    "source": "reddit_startups",
+    "sourceName": "Reddit: r/startups",
+    "publishedAt": "2026-04-10T15:51:50.000Z",
+    "score": {
+      "total": 35,
+      "pain": 16,
+      "demand": 10,
+      "urgency": 0,
+      "frequency": 6,
+      "sourceWeight": 1.1,
+      "matchedKeywords": [
+        "problem",
+        "manual",
+        "pay for"
+      ]
+    },
+    "tags": [
+      "startup",
+      "pain",
+      "demand"
+    ],
+    "summaryBullets": [
+      "Hey everyone,\n I’ve been working on a tool that automates investment tax calc...",
+      "Now I’m wondering if this is:\n - a local problem;\n - or something worth expan...",
+      "Do people use tools or just accountants?",
+      "Is this something people would actually pay for?",
+      "Not promoting anything just validating the idea."
+    ]
+  },
+  {
+    "id": "84b762507c5e",
+    "url": "https://dev.to/archrad_architect/detecting-architecture-drift-3pie",
+    "title": "Detecting architecture drift during system design",
+    "source": "devto_top",
+    "sourceName": "Dev.to: Top",
+    "publishedAt": "2026-04-11T02:43:57.000Z",
+    "score": {
+      "total": 34,
+      "pain": 40,
+      "demand": 0,
+      "urgency": 0,
+      "frequency": 2,
+      "sourceWeight": 0.8,
+      "matchedKeywords": [
+        "problem",
+        "issue",
+        "bug",
+        "hard to",
+        "ugh"
       ]
     },
     "tags": [
@@ -125,20 +640,491 @@
       "pain"
     ],
     "summaryBullets": [
-      "How to Automate Security Audits with AI: A Complete Guide for DevOps Teams\n\n\n...",
-      "However, this agility must not come at the expense of security.",
-      "Traditional, manual security audits often struggle to keep pace with continuo...",
-      "This is where Artificial Intelligence (AI) steps in, offering a transformativ...",
-      "DevOps methodologies emphasize collaboration, automation, and rapid delivery."
+      "A team ships a feature.",
+      "Weeks later, a security flaw surfaces.",
+      "Not a bug in the code — a flaw in the architecture.",
+      "The API gateway talks directly to the database.",
+      "A compliance gap that was baked in from day one."
     ]
   },
   {
-    "id": "159f7447ef87",
-    "url": "https://news.ycombinator.com/item?id=47044081",
-    "title": "Smart-KNN: A production-focused, feature-weighted KNN optimized for CPU",
-    "source": "hn_ask",
-    "sourceName": "Hacker News: Ask HN",
-    "publishedAt": "2026-02-17T05:38:08.000Z",
+    "id": "54634ae0e408",
+    "url": "https://www.reddit.com/r/productivity/comments/1si3zxf/feels_like_ive_done_almost_nothing_in_the_past_4/",
+    "title": "Feels like I've done almost nothing in the past 4 months. Productivity/Motivation at an all time low. Really lacking any sort of drive.",
+    "source": "reddit_productivity",
+    "sourceName": "Reddit: r/productivity",
+    "publishedAt": "2026-04-11T00:23:41.000Z",
+    "score": {
+      "total": 34,
+      "pain": 8,
+      "demand": 10,
+      "urgency": 10,
+      "frequency": 10,
+      "sourceWeight": 0.9,
+      "matchedKeywords": [
+        "struggling",
+        "better than",
+        "deadline"
+      ]
+    },
+    "tags": [
+      "productivity",
+      "tools",
+      "habit"
+    ],
+    "summaryBullets": [
+      "I'm 19, a university student, second year, 2nd semester.",
+      "This semester has been my worst so far, despite promising myself I'd do bette...",
+      "My previous ones weren't perfect, but I still had decent attendance, wasn't f...",
+      "However, during this semester for the past 10 weeks I've done almost nothing.",
+      "I'm many weeks behind on content, and I'm really struggling to stay focused d..."
+    ]
+  },
+  {
+    "id": "990689bd0b18",
+    "url": "https://www.reddit.com/r/SideProject/comments/1si0u0l/i_built_an_ios_app_around_the_every_noise_at_once/",
+    "title": "I built an iOS app around the Every Noise at Once genre map - now with full Apple Music track streaming!",
+    "source": "reddit_sideproject",
+    "sourceName": "Reddit: r/SideProject",
+    "publishedAt": "2026-04-10T22:09:18.000Z",
+    "score": {
+      "total": 34,
+      "pain": 8,
+      "demand": 20,
+      "urgency": 0,
+      "frequency": 6,
+      "sourceWeight": 1,
+      "matchedKeywords": [
+        "ugh",
+        "subscription",
+        "recommend"
+      ]
+    },
+    "tags": [
+      "product",
+      "indie",
+      "launch"
+    ],
+    "summaryBullets": [
+      "I shared an early version of this project here before but thought I'd share t...",
+      "It's a map of 6,000+ genres you can pinch, zoom, and tap around.",
+      "If you've been feeling like Apple Music, Spotify, etc.",
+      "is kinda bad at surfacing the fun/weird corners of its catalog, this is for you!",
+      "There's no recommendation algorithm, no \"we think you'd like this.\" Just the ..."
+    ]
+  },
+  {
+    "id": "41b14d39d060",
+    "url": "https://www.reddit.com/r/SideProject/comments/1shvtlw/i_built_a_nostalgic_windows_xpstyle_personal_site/",
+    "title": "I built a nostalgic Windows XP-style personal site you can actually use",
+    "source": "reddit_sideproject",
+    "sourceName": "Reddit: r/SideProject",
+    "publishedAt": "2026-04-10T19:00:56.000Z",
+    "score": {
+      "total": 34,
+      "pain": 8,
+      "demand": 20,
+      "urgency": 0,
+      "frequency": 6,
+      "sourceWeight": 1,
+      "matchedKeywords": [
+        "bug",
+        "looking for",
+        "recommend"
+      ]
+    },
+    "tags": [
+      "product",
+      "indie",
+      "launch"
+    ],
+    "summaryBullets": [
+      "Hello everyone\n I’ve been working on this for a few months.",
+      "It started as a simple Windows XP–themed personal website, but gradually turn...",
+      "I’d really appreciate it if you could check it out:\n Link: irfansubasi.com\n I...",
+      "P.S.: It’s primarily designed for desktop.",
+      "There is mobile support, but for the full experience, I recommend using a des..."
+    ]
+  },
+  {
+    "id": "8032b3caf910",
+    "url": "https://www.reddit.com/r/nocode/comments/1shlefh/confused_about_the_nocode_approach/",
+    "title": "confused about the nocode approach",
+    "source": "reddit_nocode",
+    "sourceName": "Reddit: r/nocode",
+    "publishedAt": "2026-04-10T12:40:41.000Z",
+    "score": {
+      "total": 34,
+      "pain": 32,
+      "demand": 0,
+      "urgency": 0,
+      "frequency": 2,
+      "sourceWeight": 1,
+      "matchedKeywords": [
+        "difficult",
+        "ugh",
+        "help",
+        "need"
+      ]
+    },
+    "tags": [
+      "nocode",
+      "tools",
+      "pain"
+    ],
+    "summaryBullets": [
+      "I'm a Linux guy, I do a good bit of Python scripting as a hobby for all kinds...",
+      "I also help 2-3 non-profit orgs with their IT,\n I discovered nocode tools 2-3...",
+      "I thought it was great but I'm looking at the state of things now: all the au...",
+      "I find it difficult and non-intuitive for either IT people or non-IT people.",
+      "And nocode tools don't teach people best practices: after 2-3 years, I'm seei..."
+    ]
+  },
+  {
+    "id": "d7bee48bd25c",
+    "url": "https://www.reddit.com/r/webdev/comments/1shehgb/every_small_change_from_the_business_team_somehow/",
+    "title": "Every “small change” from the business team somehow turns into weeks of work… and then I’m the one getting questioned on delays.",
+    "source": "reddit_indiehackers_like",
+    "sourceName": "Reddit: r/webdev",
+    "publishedAt": "2026-04-10T06:22:28.000Z",
+    "score": {
+      "total": 34,
+      "pain": 40,
+      "demand": 0,
+      "urgency": 0,
+      "frequency": 2,
+      "sourceWeight": 0.8,
+      "matchedKeywords": [
+        "stuck",
+        "problem",
+        "slow",
+        "ugh",
+        "help"
+      ]
+    },
+    "tags": [
+      "webdev",
+      "tool",
+      "pain"
+    ],
+    "summaryBullets": [
+      "I don’t mind doing the work, but this keeps happening again and again.",
+      "what starts as a quick tweak slowly turns into something much bigger and time...",
+      "I think part of the problem is I don’t push back early enough, so expectation...",
+      "then when things slip it looks like I’m the one not managing time properly.",
+      "I’m trying to find a balance where I’m still helpful, but not overcommitting ..."
+    ]
+  },
+  {
+    "id": "7a36eeb85976",
+    "url": "https://www.reddit.com/r/SideProject/comments/1si5p77/built_a_free_voiceactivated_teleprompter_that/",
+    "title": "Built a free voice-activated teleprompter that hides in your Mac's notch - just shipped v3 after a full rewrite",
+    "source": "reddit_sideproject",
+    "sourceName": "Reddit: r/SideProject",
+    "publishedAt": "2026-04-11T01:40:55.000Z",
+    "score": {
+      "total": 32,
+      "pain": 16,
+      "demand": 0,
+      "urgency": 10,
+      "frequency": 6,
+      "sourceWeight": 1,
+      "matchedKeywords": [
+        "slow",
+        "need",
+        "today"
+      ]
+    },
+    "tags": [
+      "product",
+      "indie",
+      "launch"
+    ],
+    "summaryBullets": [
+      "Six months ago I got tired of pausing recordings every time I lost my place.",
+      "Paid teleprompter apps felt overkill for what I needed.",
+      "OpenTeleprompter - it lives in your Mac's Dynamic Island notch.",
+      "You talk, it scrolls.",
+      "That's the core idea and it actually works."
+    ]
+  },
+  {
+    "id": "091771887d78",
+    "url": "https://www.reddit.com/r/SideProject/comments/1si4eip/i_built_a_10year_financial_life_simulator_in_a/",
+    "title": "I built a 10-year financial life simulator in a few weeks using Lovable + Claude AI — would love brutal feedback from builders",
+    "source": "reddit_sideproject",
+    "sourceName": "Reddit: r/SideProject",
+    "publishedAt": "2026-04-11T00:41:38.000Z",
+    "score": {
+      "total": 32,
+      "pain": 0,
+      "demand": 30,
+      "urgency": 0,
+      "frequency": 2,
+      "sourceWeight": 1,
+      "matchedKeywords": [
+        "pay for",
+        "pricing",
+        "purchase"
+      ]
+    },
+    "tags": [
+      "product",
+      "indie",
+      "launch"
+    ],
+    "summaryBullets": [
+      "Hey [r/SideProject](r/SideProject)\n I shipped something I actually wanted to ...",
+      "Future Self Budget lets you map your biggest life decisions: new job, new bab...",
+      "The AI-powered Honest Score summarizes your plan in plain English.",
+      "Turn on Brutal Mode for zero sugarcoating.",
+      "What makes it different:\n ∙ No bank linking, no transaction tracking\n ∙ Inves..."
+    ]
+  },
+  {
+    "id": "810e033590f1",
+    "url": "https://www.reddit.com/r/nocode/comments/1sgmoju/looking_for_a_softr_alternative_with_better/",
+    "title": "Looking for a Softr alternative (with better SQL/Supabase support)",
+    "source": "reddit_nocode",
+    "sourceName": "Reddit: r/nocode",
+    "publishedAt": "2026-04-09T11:15:49.000Z",
+    "score": {
+      "total": 32,
+      "pain": 0,
+      "demand": 30,
+      "urgency": 0,
+      "frequency": 2,
+      "sourceWeight": 1,
+      "matchedKeywords": [
+        "pricing",
+        "looking for",
+        "alternative"
+      ]
+    },
+    "tags": [
+      "nocode",
+      "tools",
+      "pain"
+    ],
+    "summaryBullets": [
+      "I’ve been using Softr for our apps and really like it, especially the pricing.",
+      "However, we’re moving from Airtable to SQL, and Softr’s Supabase support feel...",
+      "I’m looking for a front-end tool to replace Softr that can support things lik...",
+      "I’ve checked out Budibase, which is close, but it’s a bit too expensive.",
+      "submitted by    /u/BoldElara92  \n [link]   [comments] I’ve been using Softr f..."
+    ]
+  },
+  {
+    "id": "b5a0b1dd0134",
+    "url": "https://www.reddit.com/r/productivity/comments/1shvvtc/i_thought_i_was_bad_at_staying_consistent_turns/",
+    "title": "I Thought I Was Bad at Staying Consistent… Turns Out My Workflow Was the Problem",
+    "source": "reddit_productivity",
+    "sourceName": "Reddit: r/productivity",
+    "publishedAt": "2026-04-10T19:03:06.000Z",
+    "score": {
+      "total": 31,
+      "pain": 32,
+      "demand": 0,
+      "urgency": 0,
+      "frequency": 2,
+      "sourceWeight": 0.9,
+      "matchedKeywords": [
+        "problem",
+        "issue",
+        "ugh",
+        "need"
+      ]
+    },
+    "tags": [
+      "productivity",
+      "tools",
+      "habit"
+    ],
+    "summaryBullets": [
+      "For a long time, I assumed consistency just wasn’t my thing.",
+      "I’d sit down to work on content with the intention of getting something done,...",
+      "I’d open my laptop, scroll through old notes, revisit half-formed ideas, open...",
+      "So I did what most people do.",
+      "I thought maybe I just didn’t have the discipline, or that other creators wer..."
+    ]
+  },
+  {
+    "id": "befb4b7ea7ab",
+    "url": "https://www.reddit.com/r/productivity/comments/1shfuwj/im_doing_everything_right_but_i_feel_unrested/",
+    "title": "i’m doing everything right but I feel unrested even after sleeping 8 hours anyway",
+    "source": "reddit_productivity",
+    "sourceName": "Reddit: r/productivity",
+    "publishedAt": "2026-04-10T07:42:26.000Z",
+    "score": {
+      "total": 31,
+      "pain": 32,
+      "demand": 0,
+      "urgency": 0,
+      "frequency": 2,
+      "sourceWeight": 0.9,
+      "matchedKeywords": [
+        "stuck",
+        "issue",
+        "slow",
+        "ugh"
+      ]
+    },
+    "tags": [
+      "productivity",
+      "tools",
+      "habit"
+    ],
+    "summaryBullets": [
+      "this is the part that makes no sense to me.",
+      "i go to bed at a decent time, don’t scroll for hours, room is fine, everythin...",
+      "and yet i wake up like i barely slept.",
+      "not exhausted enough to crash, but not rested enough to function properly eit...",
+      "just stuck in that middle zone where you’re technically functioning but every..."
+    ]
+  },
+  {
+    "id": "87eb8e5e46b3",
+    "url": "https://www.reddit.com/r/productivity/comments/1shfj9n/what_apps_do_you_use_to_get_caught_up_in_2030/",
+    "title": "What apps do you use to get caught up in 20–30 minutes drive in the morning?",
+    "source": "reddit_productivity",
+    "sourceName": "Reddit: r/productivity",
+    "publishedAt": "2026-04-10T07:23:04.000Z",
+    "score": {
+      "total": 31,
+      "pain": 32,
+      "demand": 0,
+      "urgency": 0,
+      "frequency": 2,
+      "sourceWeight": 0.9,
+      "matchedKeywords": [
+        "hate",
+        "problem",
+        "ugh",
+        "help"
+      ]
+    },
+    "tags": [
+      "productivity",
+      "tools",
+      "habit"
+    ],
+    "summaryBullets": [
+      "my morning routine feels extremely inefficient.",
+      "Usually I have about 20 minutes while getting ready or driving to work, and I...",
+      "The problem is every option feels off in a different way.",
+      "X/Reddit are noisy and not hands free apps.",
+      "traditional news apps feels reading heavy."
+    ]
+  },
+  {
+    "id": "c1b87c5106f0",
+    "url": "https://www.reddit.com/r/productivity/comments/1shdkp4/habit_of_using_internal_music_as_a_distraction/",
+    "title": "Habit of using internal music as a distraction while studying — how to undo it?",
+    "source": "reddit_productivity",
+    "sourceName": "Reddit: r/productivity",
+    "publishedAt": "2026-04-10T05:30:53.000Z",
+    "score": {
+      "total": 31,
+      "pain": 32,
+      "demand": 0,
+      "urgency": 0,
+      "frequency": 2,
+      "sourceWeight": 0.9,
+      "matchedKeywords": [
+        "stuck",
+        "problem",
+        "issue",
+        "difficult"
+      ]
+    },
+    "tags": [
+      "productivity",
+      "tools",
+      "habit"
+    ],
+    "summaryBullets": [
+      "Hi all,\n 23M in school who has had constant music (pop tunes, classical music...",
+      "Most of the time the music sits in the background, but at times it becomes ve...",
+      "Recently I’ve noticed a pattern: when I get stuck on a problem or face mental...",
+      "It feels like my brain is using music as a way to delay or avoid effortful th...",
+      "Thus, I’m trying to figure out how to break this loop of:\n difficulty → shift..."
+    ]
+  },
+  {
+    "id": "3f2fa71f5446",
+    "url": "https://www.reddit.com/r/productivity/comments/1shbyil/any_tips_to_be_able_to_study_after_a_whole_day_of/",
+    "title": "Any tips to be able to study after a whole day of sitting at work?",
+    "source": "reddit_productivity",
+    "sourceName": "Reddit: r/productivity",
+    "publishedAt": "2026-04-10T04:04:21.000Z",
+    "score": {
+      "total": 31,
+      "pain": 32,
+      "demand": 0,
+      "urgency": 0,
+      "frequency": 2,
+      "sourceWeight": 0.9,
+      "matchedKeywords": [
+        "frustrated",
+        "can't",
+        "problem",
+        "help"
+      ]
+    },
+    "tags": [
+      "productivity",
+      "tools",
+      "habit"
+    ],
+    "summaryBullets": [
+      "I have a WFH job so I'm basically sitting the wholeee day.",
+      "I end up very tired and frustrated from sitting.",
+      "After work I take my dog for a walk just to get rid of this awful feeling, my...",
+      "I have to sit for that.",
+      "But I'm just so done from sitting the whole day that I just can't bring mysel..."
+    ]
+  },
+  {
+    "id": "57617b064928",
+    "url": "https://www.reddit.com/r/productivity/comments/1sh92hu/could_someone_just_give_me_a_reality_check_so/",
+    "title": "Could someone just give me a reality check so hard I actually go do the stuff I need to instead of wallowing in self pity because I'm too lazy to do it",
+    "source": "reddit_productivity",
+    "sourceName": "Reddit: r/productivity",
+    "publishedAt": "2026-04-10T01:49:22.000Z",
+    "score": {
+      "total": 31,
+      "pain": 32,
+      "demand": 0,
+      "urgency": 0,
+      "frequency": 2,
+      "sourceWeight": 0.9,
+      "matchedKeywords": [
+        "can't",
+        "failing",
+        "help",
+        "need"
+      ]
+    },
+    "tags": [
+      "productivity",
+      "tools",
+      "habit"
+    ],
+    "summaryBullets": [
+      "Basically the title.",
+      "All my grades are in hell.",
+      "I'm failing near every subject.",
+      "I can't or won't (I don't even know anymore) do anything about it.",
+      "I fully realise that if I fail the year I'm gonna disappoint my family, lose ..."
+    ]
+  },
+  {
+    "id": "dc3de52aa40d",
+    "url": "https://www.reddit.com/r/Entrepreneur/comments/1sgugcw/online_business_journey_next_steps_found_the/",
+    "title": "Online Business Journey! Next steps? Found the problem to Solve but How best to solve it?",
+    "source": "reddit_entrepreneur",
+    "sourceName": "Reddit: r/Entrepreneur",
+    "publishedAt": "2026-04-09T16:25:10.000Z",
     "score": {
       "total": 31,
       "pain": 24,
@@ -147,95 +1133,260 @@
       "frequency": 2,
       "sourceWeight": 1.2,
       "matchedKeywords": [
-        "issue",
-        "manual",
-        "ugh"
+        "problem",
+        "ugh",
+        "help"
       ]
     },
     "tags": [
       "pain",
-      "demand",
-      "community"
+      "business",
+      "startup"
     ],
     "summaryBullets": [
-      "Hi HN,\nI’ve been working on SmartKNN, a nearest-neighbor system designed spec...",
-      "The goal was not to slightly tweak classical KNN, but to restructure it into ...",
-      "What it does differently\nTraditional KNN is simple and interpretable, but in ...",
-      "Learned Feature Weighting\nFeature importance is learned automatically and inc...",
-      "This reduces noise and improves neighbor quality without manual tuning."
+      "After doing a bunch of research I have found a problem I think I can help man...",
+      "1.I researched the problem and came up with a fairly simple program to help s...",
+      "I found that different people have different causes for the problem.",
+      "There's usually about 6 causes and most people have 1 or 2 primary causes tha...",
+      "Most look for generic advice and get the wrong solutions because their cause ..."
     ]
   },
   {
-    "id": "d5574f71852c",
-    "url": "https://news.ycombinator.com/item?id=47041751",
-    "title": "Ask HN: What code repository inspires you?",
-    "source": "hn_ask",
-    "sourceName": "Hacker News: Ask HN",
-    "publishedAt": "2026-02-16T23:30:09.000Z",
+    "id": "22baf4216e0d",
+    "url": "https://www.reddit.com/r/webdev/comments/1shuxan/im_building_a_low_cost_automated_content/",
+    "title": "I'm building a low cost automated content moderation system: ISO adversarial testing",
+    "source": "reddit_indiehackers_like",
+    "sourceName": "Reddit: r/webdev",
+    "publishedAt": "2026-04-10T18:28:28.000Z",
     "score": {
-      "total": 31,
-      "pain": 0,
+      "total": 30,
+      "pain": 8,
       "demand": 10,
       "urgency": 10,
-      "frequency": 6,
-      "sourceWeight": 1.2,
+      "frequency": 10,
+      "sourceWeight": 0.8,
       "matchedKeywords": [
+        "ugh",
         "looking for",
-        "today"
+        "blocked"
       ]
     },
     "tags": [
-      "pain",
-      "demand",
-      "community"
+      "webdev",
+      "tool",
+      "pain"
     ],
     "summaryBullets": [
-      "I was thinking today how we will in such a cool age.",
-      "Yes, AI slop is rampant, but there are so many skilled individuals and teams ...",
-      "I'm trying to grow and looking for examples of things like excellent architec...",
-      "I am even more curious about repositories (on the smaller side) written by a ...",
-      "Comments URL: https://news.ycombinator.com/item?id=47041751\nPoints: 2\n# Comme..."
+      "Try and break my automated content moderation system - link in the comments\n ...",
+      "The setup is deliberately simple:\n  \nSingle model (gemini-2.5-flash-lite)\n No...",
+      "attempts to insult me or my site)\n  \nHere are some initial testing results:\n ...",
+      "Can you insult me or my site without it being blocked?",
+      "Please comment if you are able to cause a failure."
     ]
   },
   {
-    "id": "3ce314bd5dfc",
-    "url": "https://www.latent.space/p/ainews-qwen35-397b-a17b-the-smallest",
-    "title": "[AINews] Qwen3.5-397B-A17B: the smallest Open-Opus class, very efficient model",
-    "source": "latent-space",
-    "sourceName": "Latent Space",
-    "publishedAt": "2026-02-17T04:22:56.000Z",
+    "id": "259dd67d1b49",
+    "url": "https://www.reddit.com/r/webdev/comments/1shtqbz/anyone_here_actually_make_meaningful_money_from/",
+    "title": "Anyone here actually make meaningful money from AdSense on small/new projects?",
+    "source": "reddit_indiehackers_like",
+    "sourceName": "Reddit: r/webdev",
+    "publishedAt": "2026-04-10T17:46:42.000Z",
+    "score": {
+      "total": 30,
+      "pain": 8,
+      "demand": 10,
+      "urgency": 10,
+      "frequency": 10,
+      "sourceWeight": 0.8,
+      "matchedKeywords": [
+        "help",
+        "recommend",
+        "right now"
+      ]
+    },
+    "tags": [
+      "webdev",
+      "tool",
+      "pain"
+    ],
+    "summaryBullets": [
+      "I’ve recently launched a small web app and I’m starting to think about moneti...",
+      "For context, I built a niche tool: https://fc-gameplayfinder.com/\n It’s essen...",
+      "So it’s not content-heavy like a blog—it’s more of an interactive tool.",
+      "Target audience is pretty specific (gamers who want a more realistic experien...",
+      "Right now I’m at:\n  \n~900 users over the last 2 weeks\n Early traction mostly ..."
+    ]
+  },
+  {
+    "id": "7b8b4bea9039",
+    "url": "https://www.reddit.com/r/startups/comments/1si4475/i_will_not_promote_anything_i_kept_shipping/",
+    "title": "I will not promote anything. I kept shipping features nobody wanted and here's the process that fixed it.",
+    "source": "reddit_startups",
+    "sourceName": "Reddit: r/startups",
+    "publishedAt": "2026-04-11T00:28:56.000Z",
+    "score": {
+      "total": 29,
+      "pain": 24,
+      "demand": 0,
+      "urgency": 0,
+      "frequency": 2,
+      "sourceWeight": 1.1,
+      "matchedKeywords": [
+        "wish",
+        "can't",
+        "problem"
+      ]
+    },
+    "tags": [
+      "startup",
+      "pain",
+      "demand"
+    ],
+    "summaryBullets": [
+      "I've been building products for 14 years.",
+      "For way too long, I had a pattern: get excited about an idea, validate it wit...",
+      "The problem was never engineering.",
+      "It was that I skipped real discovery.",
+      "Not the \"let me check Google Trends\" kind."
+    ]
+  },
+  {
+    "id": "28f426f191e3",
+    "url": "https://www.reddit.com/r/startups/comments/1shw5vw/what_i_learned_building_an_event_discovery_app/",
+    "title": "What I learned building an event discovery app after getting frustrated with every option out there (I will not promote)",
+    "source": "reddit_startups",
+    "sourceName": "Reddit: r/startups",
+    "publishedAt": "2026-04-10T19:13:05.000Z",
+    "score": {
+      "total": 29,
+      "pain": 24,
+      "demand": 0,
+      "urgency": 0,
+      "frequency": 2,
+      "sourceWeight": 1.1,
+      "matchedKeywords": [
+        "frustrated",
+        "problem",
+        "help"
+      ]
+    },
+    "tags": [
+      "startup",
+      "pain",
+      "demand"
+    ],
+    "summaryBullets": [
+      "Been building an app for the last few months and wanted to share some things ...",
+      "The idea came from a simple frustration.",
+      "Every event app I tried was full of sponsored listings, outdated stuff nobody...",
+      "And if you rely on event influencers you have to catch their posts at the exa...",
+      "Felt like a solvable problem."
+    ]
+  },
+  {
+    "id": "516edd6099c6",
+    "url": "https://fluidcad.io/",
+    "title": "Show HN: FluidCAD – Parametric CAD with JavaScript",
+    "source": "hn_frontpage",
+    "sourceName": "Hacker News: Front Page",
+    "publishedAt": "2026-04-10T18:39:19.000Z",
+    "score": {
+      "total": 29,
+      "pain": 24,
+      "demand": 0,
+      "urgency": 0,
+      "frequency": 2,
+      "sourceWeight": 1.1,
+      "matchedKeywords": [
+        "hard to",
+        "help",
+        "need"
+      ]
+    },
+    "tags": [
+      "trending",
+      "tech"
+    ],
+    "summaryBullets": [
+      "Hello HN users,\nThis is a CAD by code project I have been working on on my fr...",
+      "I built it with 3 goals in mind:\n- It should be familiar to CAD designers who...",
+      "Same workflow, same terminology.",
+      "- Reduce the mental effort required to create models as much as possible.",
+      "This is achieved by:\n    - Provide live rendering and visual guidance as you ..."
+    ]
+  },
+  {
+    "id": "b3cefe2fb549",
+    "url": "https://www.reddit.com/r/Entrepreneur/comments/1sh8gkf/the_success_im_having_after_significant_loss/",
+    "title": "The success I’m having after significant loss feels better than before",
+    "source": "reddit_entrepreneur",
+    "sourceName": "Reddit: r/Entrepreneur",
+    "publishedAt": "2026-04-10T01:21:44.000Z",
     "score": {
       "total": 29,
       "pain": 8,
-      "demand": 0,
-      "urgency": 10,
+      "demand": 10,
+      "urgency": 0,
       "frequency": 6,
       "sourceWeight": 1.2,
       "matchedKeywords": [
-        "issue",
-        "today"
+        "ugh",
+        "better than"
       ]
     },
     "tags": [
-      "llm",
-      "ai-agent",
-      "frontier-tech"
+      "pain",
+      "business",
+      "startup"
     ],
     "summaryBullets": [
-      "a good ship from Qwen.",
-      "AI News for 2/13/2026-2/16/2026.",
-      "We checked 12 subreddits, 544 Twitters and 24 Discords ( 261 channels, and 26...",
-      "Estimated reading time saved (at 200wpm): 2606 minutes.",
-      "AINews&#8217; website lets you search all past issues."
+      "I lost a significant amount of money in my business and for about six months ...",
+      "I was constantly stressed, losing hair, exhausted, and honestly didn’t know w...",
+      "It felt like everything I had built was slipping.",
+      "I thought about quitting more times than I can count.",
+      "Instead, I set a goal."
     ]
   },
   {
-    "id": "4f9f3e0f544b",
-    "url": "https://dev.to/theo_hsiung_912d07109a35e/python-quality-tools-for-juniors-ruff-mypy-59af",
-    "title": "Python Quality Tools for Juniors: Ruff & Mypy",
-    "source": "devto_top",
-    "sourceName": "Dev.to: Top",
-    "publishedAt": "2026-02-17T07:12:56.000Z",
+    "id": "da83b8dd9921",
+    "url": "https://www.reddit.com/r/webdev/comments/1si23n5/i_build_a_cursorinspired_latextemplate_resume/",
+    "title": "I build a cursor-inspired LaTeX-template resume building software",
+    "source": "reddit_indiehackers_like",
+    "sourceName": "Reddit: r/webdev",
+    "publishedAt": "2026-04-10T23:01:53.000Z",
+    "score": {
+      "total": 27,
+      "pain": 8,
+      "demand": 20,
+      "urgency": 0,
+      "frequency": 6,
+      "sourceWeight": 0.8,
+      "matchedKeywords": [
+        "ugh",
+        "looking for",
+        "recommend"
+      ]
+    },
+    "tags": [
+      "webdev",
+      "tool",
+      "pain"
+    ],
+    "summaryBullets": [
+      "https://preview.redd.it/zajmm01n1gug1.png?width=3172&format=png&auto=webp&s=f...",
+      "got recommend to post about this here, and since a lot of you are probably CS...",
+      "It's in a cursor-inspired dashboard that gives you suggestions based on what ...",
+      "you can paste job descriptions and ask for resume improvements super easily\n ...",
+      "submitted by    /u/No-Hurry-2568  \n [link]   [comments] https://preview.redd...."
+    ]
+  },
+  {
+    "id": "40c9d1a5b168",
+    "url": "https://www.reddit.com/r/webdev/comments/1si0k46/i_built_a_dropin_comments_saas_for_static_sites/",
+    "title": "I built a drop-in comments SaaS for static sites — would love brutal thoughts from this community",
+    "source": "reddit_indiehackers_like",
+    "sourceName": "Reddit: r/webdev",
+    "publishedAt": "2026-04-10T21:58:10.000Z",
     "score": {
       "total": 27,
       "pain": 32,
@@ -246,30 +1397,127 @@
       "matchedKeywords": [
         "problem",
         "issue",
-        "bug",
-        "slow"
+        "ugh",
+        "need"
       ]
     },
     "tags": [
-      "dev",
+      "webdev",
+      "tool",
+      "pain"
+    ],
+    "summaryBullets": [
+      "Hey [r/webdev](r/webdev), I've been working on a side project called Talky an...",
+      "What it is:\n A lightweight embeddable comment widget.",
+      "One script tag, and any static site has a fully functional comment section.",
+      "No backend needed on your end.",
+      "How it works under the hood:\n - Google OAuth for tenant signup — you get a UU..."
+    ]
+  },
+  {
+    "id": "3fba75cd106d",
+    "url": "https://www.reddit.com/r/startups/comments/1si7g2h/how_to_begin_distribution_seasoned_founders_give/",
+    "title": "How to begin distribution: seasoned founders give advice to early ones! [I will not promote]",
+    "source": "reddit_startups",
+    "sourceName": "Reddit: r/startups",
+    "publishedAt": "2026-04-11T03:02:10.000Z",
+    "score": {
+      "total": 26,
+      "pain": 8,
+      "demand": 10,
+      "urgency": 0,
+      "frequency": 6,
+      "sourceWeight": 1.1,
+      "matchedKeywords": [
+        "help",
+        "how much"
+      ]
+    },
+    "tags": [
+      "startup",
+      "pain",
+      "demand"
+    ],
+    "summaryBullets": [
+      "Everyone has their own answer to this question.",
+      "Those who have answered it, including myself, will always tell you focus on 1...",
+      "What people always forget to mention is how much time, experimentation and di...",
+      "There are so many options nowadays, founders feel overwhelmed on where to sta...",
+      "Within each channel, there are also plenty of strategies."
+    ]
+  },
+  {
+    "id": "e83428e9c79a",
+    "url": "https://www.reddit.com/r/startups/comments/1si32ih/looking_for_a_technical_cofounder_to_build_an/",
+    "title": "Looking for a technical cofounder to build an early-stage marketplace startup I will not promote",
+    "source": "reddit_startups",
+    "sourceName": "Reddit: r/startups",
+    "publishedAt": "2026-04-10T23:43:08.000Z",
+    "score": {
+      "total": 26,
+      "pain": 8,
+      "demand": 10,
+      "urgency": 0,
+      "frequency": 6,
+      "sourceWeight": 1.1,
+      "matchedKeywords": [
+        "help",
+        "looking for"
+      ]
+    },
+    "tags": [
+      "startup",
+      "pain",
+      "demand"
+    ],
+    "summaryBullets": [
+      "I’m looking for a technical cofounder for an early-stage marketplace concept ...",
+      "I’m looking for someone who:\n • can build fast • has solid product instincts ...",
+      "You’d handle the technical side: product architecture, MVP development, and h...",
+      "If you’re interested, send:\n • what you’ve built • your stack • any links • w...",
+      "I’m looking for someone who: • can build fast • has solid product instincts •..."
+    ]
+  },
+  {
+    "id": "265267beb498",
+    "url": "https://www.reddit.com/r/nocode/comments/1si2l0d/were_paying_1000_usd_for_whoever_makes_the_most/",
+    "title": "We're paying 1000 USD for whoever makes the most viral no-code project",
+    "source": "reddit_nocode",
+    "sourceName": "Reddit: r/nocode",
+    "publishedAt": "2026-04-10T23:22:21.000Z",
+    "score": {
+      "total": 26,
+      "pain": 24,
+      "demand": 0,
+      "urgency": 0,
+      "frequency": 2,
+      "sourceWeight": 1,
+      "matchedKeywords": [
+        "hate",
+        "ugh",
+        "need"
+      ]
+    },
+    "tags": [
+      "nocode",
       "tools",
       "pain"
     ],
     "summaryBullets": [
-      "Your code runs — that doesn't mean it's correct.",
-      "These two tools catch problems before they become bugs.",
-      "Python is a very \"permissive\" language.",
-      "It lets you do a lot of things without telling you something is wrong:\ndef ad...",
-      "Ruff and Mypy catch these problems before they become bugs."
+      "I'm Maxim, founder of Launchyard.",
+      "We're giving out $1,000 in prizes to the Launchyard sites that go the most vi...",
+      "Prizes: $600 for the most unique visitors, $300 for second place, $100 for th...",
+      "Post your website below for free marketing and 20 task credits.",
+      "Win cash if you succeed!"
     ]
   },
   {
-    "id": "3415b0407a35",
-    "url": "https://seodisias.com",
-    "title": "Show HN: Free SEO Crawler and Analyze App",
-    "source": "hn_newest",
-    "sourceName": "Hacker News: Newest",
-    "publishedAt": "2026-02-17T07:37:08.000Z",
+    "id": "d53335c96973",
+    "url": "https://www.reddit.com/r/webdev/comments/1shtcpl/i_need_opinions_on_wordpress_vs_wix/",
+    "title": "I need opinions on WordPress vs Wix",
+    "source": "reddit_indiehackers_like",
+    "sourceName": "Reddit: r/webdev",
+    "publishedAt": "2026-04-10T17:33:10.000Z",
     "score": {
       "total": 26,
       "pain": 16,
@@ -278,1219 +1526,150 @@
       "frequency": 6,
       "sourceWeight": 0.8,
       "matchedKeywords": [
-        "issue",
+        "ugh",
         "need",
         "subscription"
       ]
     },
     "tags": [
-      "general",
-      "tech"
-    ],
-    "summaryBullets": [
-      "Most SEO tools hide basic features behind paywalls and expensive plans.",
-      "I wanted something simple, honest, and actually useful.",
-      "So I built Seodisias.",
-      "It crawls your website, finds technical SEO issues, and clearly shows what ne...",
-      "You run it on your own computer and keep full control of your data."
-    ]
-  },
-  {
-    "id": "cd2e3122a5e5",
-    "url": "https://news.ycombinator.com/item?id=47041571",
-    "title": "Ask HN: Why can't I reply to \"Who wants to be hired?\"?",
-    "source": "hn_ask",
-    "sourceName": "Hacker News: Ask HN",
-    "publishedAt": "2026-02-16T23:05:05.000Z",
-    "score": {
-      "total": 22,
-      "pain": 16,
-      "demand": 0,
-      "urgency": 0,
-      "frequency": 2,
-      "sourceWeight": 1.2,
-      "matchedKeywords": [
-        "can't",
-        "ugh"
-      ]
-    },
-    "tags": [
-      "pain",
-      "demand",
-      "community"
-    ],
-    "summaryBullets": [
-      "Is there a limitation as to when someone can post a reply?",
-      "Does this mean the second half of the month is not going to be fruitful when ...",
-      "Is there another place one might look for jobs during that time?",
-      "Comments URL: https://news.ycombinator.com/item?id=47041571\nPoints: 2\n# Comme...",
-      "Does this mean the second half of the month is not going to be fruitful when ..."
-    ]
-  },
-  {
-    "id": "64fa457011bb",
-    "url": "https://dev.to/karthick17/knowledge-distillation-in-machine-learning-making-ai-models-smaller-and-faster-3l8h",
-    "title": "Knowledge Distillation in Machine Learning: Making AI Models Smaller and Faster",
-    "source": "devto_top",
-    "sourceName": "Dev.to: Top",
-    "publishedAt": "2026-02-17T07:08:36.000Z",
-    "score": {
-      "total": 21,
-      "pain": 24,
-      "demand": 0,
-      "urgency": 0,
-      "frequency": 2,
-      "sourceWeight": 0.8,
-      "matchedKeywords": [
-        "problem",
-        "slow",
-        "need"
-      ]
-    },
-    "tags": [
-      "dev",
-      "tools",
+      "webdev",
+      "tool",
       "pain"
     ],
     "summaryBullets": [
-      "Introduction\n\n\nIn modern Artificial Intelligence, deep learning models like l...",
-      "But the problem is, these models are very large, slow, and require high memor...",
-      "This is where Model Compression comes into the picture.",
-      "One of the most powerful and popular model compression techniques is Knowledg...",
-      "In this blog, we will understand Knowledge Distillation in a simple and begin..."
+      "Hi, I'm currently a dev student doing an internship with a company where I'm ...",
+      "Since the internship is pretty short it has to be something they can fill-up ...",
+      "Now I have used Wix in the past, made a full website, paid the premium subscr...",
+      "In comparison I have never used WordPress and the info I've seen seems to sug...",
+      "The thing is, if I offer both options to the person that hired me she'd proba..."
     ]
   },
   {
-    "id": "7ecbd5902afe",
-    "url": "https://forestrydiary.com/",
-    "title": "Show HN: Scanned 1927-1945 Daily USFS Work Diary",
-    "source": "hn_frontpage",
-    "sourceName": "Hacker News: Front Page",
-    "publishedAt": "2026-02-16T23:40:33.000Z",
+    "id": "b37b8929de90",
+    "url": "https://www.reddit.com/r/startups/comments/1shs3el/how_do_you_audittrust_your_lawyers_i_will_not/",
+    "title": "How do you audit/trust your lawyers? I will not promote.",
+    "source": "reddit_startups",
+    "sourceName": "Reddit: r/startups",
+    "publishedAt": "2026-04-10T16:49:08.000Z",
     "score": {
-      "total": 20,
-      "pain": 16,
-      "demand": 0,
-      "urgency": 0,
-      "frequency": 2,
-      "sourceWeight": 1.1,
-      "matchedKeywords": [
-        "ugh",
-        "help"
-      ]
-    },
-    "tags": [
-      "trending",
-      "tech"
-    ],
-    "summaryBullets": [
-      "My great-grandfather Reuben P.",
-      "Box was a US Forest Ranger in Northern California, and I've got his daily wor...",
-      "I've scanned the entire thing, had Claude help with transcription, indexing, ...",
-      "As far as I know, this is the only US Forestry Diary that has been fully scan...",
-      "I understand that there are other diaries in some collections, but none have ..."
-    ]
-  },
-  {
-    "id": "489f14081840",
-    "url": "https://essays.debugyourpain.com/p/you-are-not-just-your-brain",
-    "title": "Neurons outside the brain",
-    "source": "hn_frontpage",
-    "sourceName": "Hacker News: Front Page",
-    "publishedAt": "2026-02-16T18:54:37.000Z",
-    "score": {
-      "total": 20,
-      "pain": 16,
-      "demand": 0,
-      "urgency": 0,
-      "frequency": 2,
-      "sourceWeight": 1.1,
-      "matchedKeywords": [
-        "pain",
-        "bug"
-      ]
-    },
-    "tags": [
-      "trending",
-      "tech"
-    ],
-    "summaryBullets": [
-      "Article URL: https://essays.debugyourpain.com/p/you-are-not-just-your-brain\nC..."
-    ]
-  },
-  {
-    "id": "b15f72850bfe",
-    "url": "http://coolwulfAI.com",
-    "title": "Show HN: CoolWulf AI – A personal AI assistant built in Go, optimized for macOS",
-    "source": "hn_show",
-    "sourceName": "Hacker News: Show HN",
-    "publishedAt": "2026-02-17T05:32:16.000Z",
-    "score": {
-      "total": 18,
-      "pain": 16,
-      "demand": 0,
-      "urgency": 0,
-      "frequency": 2,
-      "sourceWeight": 1,
-      "matchedKeywords": [
-        "problem",
-        "need"
-      ]
-    },
-    "tags": [
-      "product",
-      "launch",
-      "demo"
-    ],
-    "summaryBullets": [
-      "Hey HN,\nI've been building CoolWulf AI (https://coolwulfai.com), a self-hoste...",
-      "After seeing OpenClaw blow up, I wanted to share what I've been working on — ...",
-      "*Why I built this:*\nI tried OpenClaw and found the Node.js/TypeScript stack h...",
-      "pnpm, Node 22+, React — lots of moving parts.",
-      "I wanted something that's a single binary, zero runtime dependencies, and fee..."
-    ]
-  },
-  {
-    "id": "7c714bc5b1e6",
-    "url": "https://github.com/abokhalill/cuttlefish",
-    "title": "Show HN: How do you reliably benchmark sub-100ns code paths in Rust",
-    "source": "hn_show",
-    "sourceName": "Hacker News: Show HN",
-    "publishedAt": "2026-02-17T04:33:26.000Z",
-    "score": {
-      "total": 18,
-      "pain": 16,
-      "demand": 0,
-      "urgency": 0,
-      "frequency": 2,
-      "sourceWeight": 1,
-      "matchedKeywords": [
-        "ugh",
-        "need"
-      ]
-    },
-    "tags": [
-      "product",
-      "launch",
-      "demo"
-    ],
-    "summaryBullets": [
-      "Hi everyone,\nI just finished coding the core version of this library called C...",
-      "It’s a CRDT inspired framework that packs stuff like io_uring, SIMD, zero cop...",
-      "Here’s what it is:\nSo most distributed systems are strong consistency but the...",
-      "Cuttlefish is a coordination-free state kernel that preserves invariants and ...",
-      "Correctness here is defined by a property of algebra."
-    ]
-  },
-  {
-    "id": "898594f4ed02",
-    "url": "https://dev.to/srinivasamcjf/enterprise-jenkins-pipeline-deploy-war-to-dev-qa-uat-and-prod-with-approval-gates-rollback-3l5e",
-    "title": "Enterprise Jenkins Pipeline: Deploy WAR to DEV, QA, UAT, and PROD with Approval Gates, Rollback, and SCP",
-    "source": "devto_top",
-    "sourceName": "Dev.to: Top",
-    "publishedAt": "2026-02-17T07:18:01.000Z",
-    "score": {
-      "total": 14,
-      "pain": 16,
-      "demand": 0,
-      "urgency": 0,
-      "frequency": 2,
-      "sourceWeight": 0.8,
-      "matchedKeywords": [
-        "manual",
-        "need"
-      ]
-    },
-    "tags": [
-      "dev",
-      "tools",
-      "pain"
-    ],
-    "summaryBullets": [
-      "Introduction\nIn modern enterprise environments, deploying applications manual...",
-      "Organizations need:\nAutomated deployments\nIn this article, we will build a pr...",
-      "Enterprise Deployment Architecture\nDeveloper\nPrerequisites\nBefore implementin...",
-      "Jenkins Installed\nRequired plugins:\n2.",
-      "Add SSH Credentials in Jenkins\nNavigate:\n3."
-    ]
-  },
-  {
-    "id": "3f0c2ebc4a6e",
-    "url": "https://dev.to/camof1ow/i-built-a-pre-commit-security-scanner-with-claude-code-2lk",
-    "title": "I Built a Pre-commit Security Scanner with Claude Code",
-    "source": "devto_top",
-    "sourceName": "Dev.to: Top",
-    "publishedAt": "2026-02-17T07:14:17.000Z",
-    "score": {
-      "total": 14,
-      "pain": 16,
-      "demand": 0,
-      "urgency": 0,
-      "frequency": 2,
-      "sourceWeight": 0.8,
-      "matchedKeywords": [
-        "problem",
-        "issue"
-      ]
-    },
-    "tags": [
-      "dev",
-      "tools",
-      "pain"
-    ],
-    "summaryBullets": [
-      "👋\nI recently built vibe-guardian, a Claude Code skill that scans your code f...",
-      "Most security scanners check your code after you've already pushed to GitHub.",
-      "But here's the issue - even if you fix the vulnerability later, the original ...",
-      "Anyone with repo access can see it.",
-      "Traditional Flow (Risky):\nCode → Commit → Push → [SCAN] → Fix\n               ..."
-    ]
-  },
-  {
-    "id": "47ec6dbf3f5f",
-    "url": "https://news.ycombinator.com/item?id=47043370",
-    "title": "M Title: Show HN:P3 – AI Reputation-Based Lending",
-    "source": "hn_ask",
-    "sourceName": "Hacker News: Ask HN",
-    "publishedAt": "2026-02-17T03:26:08.000Z",
-    "score": {
-      "total": 14,
-      "pain": 0,
+      "total": 26,
+      "pain": 8,
       "demand": 10,
       "urgency": 0,
+      "frequency": 6,
+      "sourceWeight": 1.1,
+      "matchedKeywords": [
+        "need",
+        "recommend"
+      ]
+    },
+    "tags": [
+      "startup",
+      "pain",
+      "demand"
+    ],
+    "summaryBullets": [
+      "I did a lot of the first legal work on my own when starting a business.",
+      "But eventually I had to hire a law firm, and one was recommended to me that w...",
+      "Ultimately I feel like I got way over charged for things I had already done.",
+      "They also just produced some bad documents/contracts that didn’t align with w...",
+      "Words were exchanged, we dropped them."
+    ]
+  },
+  {
+    "id": "b1a6f9929389",
+    "url": "https://www.reddit.com/r/startups/comments/1shitkl/we_have_140k_users_over_1m_in_revenue_and/",
+    "title": "We have 140k users, over $1m in revenue, and multiple successful events. But we are barely able to pay server costs. Looking for advice on next steps. I will not promote",
+    "source": "reddit_startups",
+    "sourceName": "Reddit: r/startups",
+    "publishedAt": "2026-04-10T10:35:57.000Z",
+    "score": {
+      "total": 26,
+      "pain": 8,
+      "demand": 10,
+      "urgency": 0,
+      "frequency": 6,
+      "sourceWeight": 1.1,
+      "matchedKeywords": [
+        "need",
+        "looking for"
+      ]
+    },
+    "tags": [
+      "startup",
+      "pain",
+      "demand"
+    ],
+    "summaryBullets": [
+      "Edit: $1m processed transactions, not revenue.",
+      "Made a mistake there.",
+      "Tldr: Built a company with lots of users and good revenue but that revenue do...",
+      "Need advice on next steps.",
+      "(Also posted on venture capital subreddit)\n So we built a ticketing platform."
+    ]
+  },
+  {
+    "id": "b5bc981cb6e7",
+    "url": "https://www.reddit.com/r/startups/comments/1shi31f/building_a_pii_discovery_masking_tool_seeking/",
+    "title": "Building a PII discovery & masking tool. Seeking your wisdom on real-world governance challenges! i will not promote",
+    "source": "reddit_startups",
+    "sourceName": "Reddit: r/startups",
+    "publishedAt": "2026-04-10T09:55:55.000Z",
+    "score": {
+      "total": 26,
+      "pain": 8,
+      "demand": 0,
+      "urgency": 10,
+      "frequency": 6,
+      "sourceWeight": 1.1,
+      "matchedKeywords": [
+        "need",
+        "right now"
+      ]
+    },
+    "tags": [
+      "startup",
+      "pain",
+      "demand"
+    ],
+    "summaryBullets": [
+      "Hey everyone,\n I'm a software developer coming primarily from an AI engineeri...",
+      "As I've been building out different applications, I keep running into a massi...",
+      "To tackle this, I've started building a PII (Personally Identifiable Informat...",
+      "While I know the technical SDE side of things, I'm still learning the deeper ...",
+      "I wanted to humbly reach out to this community for some guidance and a realit..."
+    ]
+  },
+  {
+    "id": "d17ff0a8116c",
+    "url": "https://www.reddit.com/r/Entrepreneur/comments/1shg631/feedback_friday_rate_my_ideas_april_10_2026/",
+    "title": "Feedback Friday: Rate My Ideas | April 10, 2026",
+    "source": "reddit_entrepreneur",
+    "sourceName": "Reddit: r/Entrepreneur",
+    "publishedAt": "2026-04-10T08:00:54.000Z",
+    "score": {
+      "total": 26,
+      "pain": 0,
+      "demand": 20,
+      "urgency": 0,
       "frequency": 2,
       "sourceWeight": 1.2,
       "matchedKeywords": [
+        "pricing",
         "looking for"
       ]
     },
     "tags": [
       "pain",
-      "demand",
-      "community"
-    ],
-    "summaryBullets": [
-      "I’ve been building P3, a lending protocol that replaces FICO with AI-generate...",
-      "Each score snapshot is cryptographically hashed and verified before loan appr...",
-      "Preparing for beta and looking for technical feedback on architecture, risk m...",
-      "Comments URL: https://news.ycombinator.com/item?id=47043370\nPoints: 1\n# Comme...",
-      "Each score snapshot is cryptographically hashed and verified before loan appr..."
-    ]
-  },
-  {
-    "id": "508504d5fa55",
-    "url": "https://github.com/zachlatta/freeflow",
-    "title": "Show HN: Free alternative to Wispr Flow, Superwhisper, and Monologue",
-    "source": "hn_frontpage",
-    "sourceName": "Hacker News: Front Page",
-    "publishedAt": "2026-02-16T21:10:44.000Z",
-    "score": {
-      "total": 13,
-      "pain": 0,
-      "demand": 10,
-      "urgency": 0,
-      "frequency": 2,
-      "sourceWeight": 1.1,
-      "matchedKeywords": [
-        "alternative"
-      ]
-    },
-    "tags": [
-      "trending",
-      "tech"
-    ],
-    "summaryBullets": [
-      "Article URL: https://github.com/zachlatta/freeflow\nComments URL: https://news..."
-    ]
-  },
-  {
-    "id": "cf83d7d1b519",
-    "url": "https://www.smithsonianmag.com/innovation/this-14-year-old-is-using-origami-to-design-emergency-shelters-that-are-sturdy-cost-efficient-and-easy-to-deploy-180988179/",
-    "title": "14-year-old Miles Wu folded origami pattern that holds 10k times its own weight",
-    "source": "hn_frontpage",
-    "sourceName": "Hacker News: Front Page",
-    "publishedAt": "2026-02-16T18:41:50.000Z",
-    "score": {
-      "total": 13,
-      "pain": 0,
-      "demand": 0,
-      "urgency": 10,
-      "frequency": 2,
-      "sourceWeight": 1.1,
-      "matchedKeywords": [
-        "emergency"
-      ]
-    },
-    "tags": [
-      "trending",
-      "tech"
-    ],
-    "summaryBullets": [
-      "Article URL: https://www.smithsonianmag.com/innovation/this-14-year-old-is-us..."
-    ]
-  },
-  {
-    "id": "2c7476fd8a08",
-    "url": "https://www.producthunt.com/products/seamlessity",
-    "title": "CoThou Autonomous Superagent",
-    "source": "ph_daily",
-    "sourceName": "Product Hunt: Daily",
-    "publishedAt": "2026-02-16T06:04:28.000Z",
-    "score": {
-      "total": 13,
-      "pain": 8,
-      "demand": 0,
-      "urgency": 0,
-      "frequency": 2,
-      "sourceWeight": 1.3,
-      "matchedKeywords": [
-        "ugh"
-      ]
-    },
-    "tags": [
-      "product",
-      "launch",
+      "business",
       "startup"
     ],
     "summaryBullets": [
-      "Discussion\n            |\n            Link Reasoning from first principles to ..."
-    ]
-  },
-  {
-    "id": "3f3c526408bd",
-    "url": "https://news.ycombinator.com/item?id=47044278",
-    "title": "'Like a Virgin' songwriter Billy Steinberg dies at 74",
-    "source": "hn_ask",
-    "sourceName": "Hacker News: Ask HN",
-    "publishedAt": "2026-02-17T06:14:50.000Z",
-    "score": {
-      "total": 12,
-      "pain": 8,
-      "demand": 0,
-      "urgency": 0,
-      "frequency": 2,
-      "sourceWeight": 1.2,
-      "matchedKeywords": [
-        "help"
-      ]
-    },
-    "tags": [
-      "pain",
-      "demand",
-      "community"
-    ],
-    "summaryBullets": [
-      "Legendary songwriter Billy Steinberg, whose lyrics helped define pop music in...",
-      "Steinberg died in Los Angeles’ Brentwood neighborhood, according to his attor...",
-      "Comments URL: https://news.ycombinator.com/item?id=47044278\nPoints: 1\n# Comme...",
-      "Steinberg died in Los Angeles’ Brentwood neighborhood, according to his attor...",
-      "Comments URL: https://news.ycombinator.com/item?id=47044278 Points: 1 # Comme..."
-    ]
-  },
-  {
-    "id": "21f3ea591ede",
-    "url": "https://github.com/openconstruct/freeclaw",
-    "title": "Show HN: OpenClaw alternative with no API costs",
-    "source": "hn_show",
-    "sourceName": "Hacker News: Show HN",
-    "publishedAt": "2026-02-17T05:19:16.000Z",
-    "score": {
-      "total": 12,
-      "pain": 0,
-      "demand": 10,
-      "urgency": 0,
-      "frequency": 2,
-      "sourceWeight": 1,
-      "matchedKeywords": [
-        "alternative"
-      ]
-    },
-    "tags": [
-      "product",
-      "launch",
-      "demo"
-    ],
-    "summaryBullets": [
-      "Freeclaw is in active development.",
-      "Written in python, simple setup for your old compute pr cheap VPS.",
-      "Uses about 500mb ram when active\nComments URL: https://news.ycombinator.com/i...",
-      "Written in python, simple setup for your old compute pr cheap VPS.",
-      "Uses about 500mb ram when active Comments URL: https://news.ycombinator.com/i..."
-    ]
-  },
-  {
-    "id": "abe1111a69e2",
-    "url": "https://github.com/superhq-ai/neko",
-    "title": "Show HN: Neko – AI agent runtime that fits on a Raspberry Pi Zero 2W",
-    "source": "hn_show",
-    "sourceName": "Hacker News: Show HN",
-    "publishedAt": "2026-02-17T04:20:50.000Z",
-    "score": {
-      "total": 12,
-      "pain": 0,
-      "demand": 0,
-      "urgency": 10,
-      "frequency": 2,
-      "sourceWeight": 1,
-      "matchedKeywords": [
-        "today"
-      ]
-    },
-    "tags": [
-      "product",
-      "launch",
-      "demo"
-    ],
-    "summaryBullets": [
-      "I wanted a personal AI agent I could leave running on cheap hardware, a Pi Ze...",
-      "Memory is markdown files the agent reads and writes itself.",
-      "There's a short-term layer for today's and yesterday's session logs, a long-t...",
-      "The files are plain text you can read, edit, and commit to git.",
-      "It also supports MCP for connecting external tools, and Telegram as a messagi..."
-    ]
-  },
-  {
-    "id": "e7b938658e3c",
-    "url": "https://news.ycombinator.com/item?id=47043484",
-    "title": "Ask HN: How do companies that use Cursor handle compliance?",
-    "source": "hn_ask",
-    "sourceName": "Hacker News: Ask HN",
-    "publishedAt": "2026-02-17T03:48:00.000Z",
-    "score": {
-      "total": 12,
-      "pain": 8,
-      "demand": 0,
-      "urgency": 0,
-      "frequency": 2,
-      "sourceWeight": 1.2,
-      "matchedKeywords": [
-        "ugh"
-      ]
-    },
-    "tags": [
-      "pain",
-      "demand",
-      "community"
-    ],
-    "summaryBullets": [
-      "I'm trying to decide whether to adopt Cursor for our company, but we're in a ...",
-      "The thing is, there are companies in regulated industries using it [1][2].",
-      "But Cursor has no HIPAA BAA, no FedRAMP certification, and is cloud-only with...",
-      "(This is probably true for Claude and other coding assistants, though I've on...",
-      "Or do most just avoid Cursor and other AI coding tools altogether?"
-    ]
-  },
-  {
-    "id": "ae53897d13f0",
-    "url": "https://news.ycombinator.com/item?id=47043302",
-    "title": "Ask HN: Why is there a negative sentiment towards crypto?",
-    "source": "hn_ask",
-    "sourceName": "Hacker News: Ask HN",
-    "publishedAt": "2026-02-17T03:16:38.000Z",
-    "score": {
-      "total": 12,
-      "pain": 8,
-      "demand": 0,
-      "urgency": 0,
-      "frequency": 2,
-      "sourceWeight": 1.2,
-      "matchedKeywords": [
-        "need"
-      ]
-    },
-    "tags": [
-      "pain",
-      "demand",
-      "community"
-    ],
-    "summaryBullets": [
-      "It seems to me like there’s an overall negative sentiment towards crypto here...",
-      "Why is this the case?",
-      "I get there’s a lot of false hype around various projects and the space has s...",
-      "Im taking about things like decentralised exchanges, RWAs, stablecoins, appea...",
-      "The programmable factor also allows for there to be a platform for new ways o..."
-    ]
-  },
-  {
-    "id": "b672b64acb82",
-    "url": "https://news.ycombinator.com/item?id=47042747",
-    "title": "Watching an elderly relative trying to use the modern web",
-    "source": "hn_ask",
-    "sourceName": "Hacker News: Ask HN",
-    "publishedAt": "2026-02-17T01:53:18.000Z",
-    "score": {
-      "total": 12,
-      "pain": 8,
-      "demand": 0,
-      "urgency": 0,
-      "frequency": 2,
-      "sourceWeight": 1.2,
-      "matchedKeywords": [
-        "frustrated"
-      ]
-    },
-    "tags": [
-      "pain",
-      "demand",
-      "community"
-    ],
-    "summaryBullets": [
-      "Watching my elderly mother trying to accomplish something on the internet and...",
-      "Modern website \"design\" amounts to abuse of the elderly.",
-      "I've now seen her driven to tears, knowing that she should be able to do some...",
-      "It makes me so angry.",
-      "Comments URL: https://news.ycombinator.com/item?id=47042747\nPoints: 23\n# Comm..."
-    ]
-  },
-  {
-    "id": "9fe1389256d8",
-    "url": "https://apps.apple.com/us/app/wildex-identify-plants-animals/id6748092158",
-    "title": "Show HN: Wildex – Pokémon Go for real wildlife",
-    "source": "hn_frontpage",
-    "sourceName": "Hacker News: Front Page",
-    "publishedAt": "2026-02-16T21:12:07.000Z",
-    "score": {
-      "total": 11,
-      "pain": 8,
-      "demand": 0,
-      "urgency": 0,
-      "frequency": 2,
-      "sourceWeight": 1.1,
-      "matchedKeywords": [
-        "ugh"
-      ]
-    },
-    "tags": [
-      "trending",
-      "tech"
-    ],
-    "summaryBullets": [
-      "Dear HN,\nMy wife and I both love nature and have always wanted a Pokémon go s...",
-      "All the usual species identifying apps were didn’t feel fun enough, so we des...",
-      "Would love for you guys to give it a try and share any thoughts you have.",
-      "Comments URL: https://news.ycombinator.com/item?id=47040390\nPoints: 73\n# Comm...",
-      "All the usual species identifying apps were didn’t feel fun enough, so we des..."
-    ]
-  },
-  {
-    "id": "d870e21d1dac",
-    "url": "https://arxiv.org/abs/2602.11988",
-    "title": "Evaluating AGENTS.md: are they helpful for coding agents?",
-    "source": "hn_frontpage",
-    "sourceName": "Hacker News: Front Page",
-    "publishedAt": "2026-02-16T12:15:39.000Z",
-    "score": {
-      "total": 11,
-      "pain": 8,
-      "demand": 0,
-      "urgency": 0,
-      "frequency": 2,
-      "sourceWeight": 1.1,
-      "matchedKeywords": [
-        "help"
-      ]
-    },
-    "tags": [
-      "trending",
-      "tech"
-    ],
-    "summaryBullets": [
-      "Article URL: https://arxiv.org/abs/2602.11988\nComments URL: https://news.ycom..."
-    ]
-  },
-  {
-    "id": "92a7cc0f60bf",
-    "url": "https://dev.to/andrew_da_miz/how-i-used-ai-to-build-a-programming-language-with-actors-an-orm-and-a-saas-backend-in-12-days-4j8p",
-    "title": "How I Used AI to Build a Programming Language with Actors, an ORM, and a SaaS Backend in 12 Days",
-    "source": "devto_top",
-    "sourceName": "Dev.to: Top",
-    "publishedAt": "2026-02-17T07:17:08.000Z",
-    "score": {
-      "total": 10,
-      "pain": 0,
-      "demand": 0,
-      "urgency": 10,
-      "frequency": 2,
-      "sourceWeight": 0.8,
-      "matchedKeywords": [
-        "today"
-      ]
-    },
-    "tags": [
-      "dev",
-      "tools",
-      "pain"
-    ],
-    "summaryBullets": [
-      "Twelve days ago, I had an empty directory.",
-      "Today, I have a compiled programming language with a distributed actor runtim...",
-      "111,000 lines of Rust.",
-      "I didn't write most of it.",
-      "Claude Opus 4.6 did."
-    ]
-  },
-  {
-    "id": "df003831cad6",
-    "url": "https://github.com/livetheoogway/python-uime",
-    "title": "Show HN: Python UI-Me – Turn functions into web forms with one decorator",
-    "source": "hn_show",
-    "sourceName": "Hacker News: Show HN",
-    "publishedAt": "2026-02-17T05:30:46.000Z",
-    "score": {
-      "total": 10,
-      "pain": 8,
-      "demand": 0,
-      "urgency": 0,
-      "frequency": 2,
-      "sourceWeight": 1,
-      "matchedKeywords": [
-        "need"
-      ]
-    },
-    "tags": [
-      "product",
-      "launch",
-      "demo"
-    ],
-    "summaryBullets": [
-      "I built UI-Me because Streamlit felt too heavy and Click/Argparse felt too li...",
-      "It’s a minimalist library that maps your Python functions to a clean web dash...",
-      "The Essentials:\n- One Decorator: Add @ui_enabled to any function to generate ...",
-      "- No Frontend Bloat: Built with vanilla HTML/JS and Flask.",
-      "No React, no NPM, no complex build steps."
-    ]
-  },
-  {
-    "id": "e2f714242585",
-    "url": "https://tagintegrity.com/",
-    "title": "Show HN: TagIntegrity – Free Consent Mode v2 Scanner",
-    "source": "hn_show",
-    "sourceName": "Hacker News: Show HN",
-    "publishedAt": "2026-02-17T05:00:40.000Z",
-    "score": {
-      "total": 10,
-      "pain": 8,
-      "demand": 0,
-      "urgency": 0,
-      "frequency": 2,
-      "sourceWeight": 1,
-      "matchedKeywords": [
-        "broken"
-      ]
-    },
-    "tags": [
-      "product",
-      "launch",
-      "demo"
-    ],
-    "summaryBullets": [
-      "I built this after seeing too many sites lose Google Ads conversion data due ...",
-      "Free scanner checks GTM/GA4/Ads + consent signals in 60 seconds.",
-      "Example scan: https://tagintegrity.lovable.app/results/347d5a06-541d-4d6c-...",
-      "Would love feedback on what would make this more useful!",
-      "Comments URL: https://news.ycombinator.com/item?id=47043867\nPoints: 1\n# Comme..."
-    ]
-  },
-  {
-    "id": "f5eb1b7be4d8",
-    "url": "https://github.com/maxritter/claude-pilot",
-    "title": "Show HN: Claude Pilot – Claude Code is powerful. Pilot makes it reliable",
-    "source": "hn_show",
-    "sourceName": "Hacker News: Show HN",
-    "publishedAt": "2026-02-17T04:55:29.000Z",
-    "score": {
-      "total": 10,
-      "pain": 8,
-      "demand": 0,
-      "urgency": 0,
-      "frequency": 2,
-      "sourceWeight": 1,
-      "matchedKeywords": [
-        "ugh"
-      ]
-    },
-    "tags": [
-      "product",
-      "launch",
-      "demo"
-    ],
-    "summaryBullets": [
-      "Start a task, grab a coffee, come back to production-grade code.",
-      "Claude Code moves fast but without structure, it skips tests, loses context, ...",
-      "I tried other frameworks — they burned tokens on bloated prompts without addi...",
-      "Some added process without enforcement.",
-      "Others were prompt templates that Claude ignored when context got tight."
-    ]
-  },
-  {
-    "id": "fa32894f8e12",
-    "url": "https://github.com/al1-nasir/codegraph-cli",
-    "title": "Show HN: CodeGraph CLI – Chat with your codebase using graph-augmented RAG",
-    "source": "hn_show",
-    "sourceName": "Hacker News: Show HN",
-    "publishedAt": "2026-02-17T04:39:54.000Z",
-    "score": {
-      "total": 10,
-      "pain": 8,
-      "demand": 0,
-      "urgency": 0,
-      "frequency": 2,
-      "sourceWeight": 1,
-      "matchedKeywords": [
-        "ugh"
-      ]
-    },
-    "tags": [
-      "product",
-      "launch",
-      "demo"
-    ],
-    "summaryBullets": [
-      "I built CodeGraph CLI because I was tired of grep-ing through \nmassive codeba...",
-      "It combines three things:\n- tree-sitter (AST parsing, error-tolerant)\n- SQLit...",
-      "So I combined vector search with BFS graph \ntraversal — find semantically sim...",
-      "Result: ask \"how does authentication work?\" and it finds \nvalidate_token(), i...",
-      "Other features:\n- Impact analysis (multi-hop BFS: what breaks before you chan..."
-    ]
-  },
-  {
-    "id": "b03aec5ce492",
-    "url": "https://changelog.com/news/181",
-    "title": "All the Claw things",
-    "source": "changelog_news",
-    "sourceName": "Changelog News",
-    "publishedAt": "2026-02-16T19:30:00.000Z",
-    "score": {
-      "total": 10,
-      "pain": 0,
-      "demand": 0,
-      "urgency": 10,
-      "frequency": 2,
-      "sourceWeight": 0.8,
-      "matchedKeywords": [
-        "today"
-      ]
-    },
-    "tags": [
-      "oss",
-      "tools",
-      "trend"
-    ],
-    "summaryBullets": [
-      "Peter Steinberger joins OpenAI, ZeroClaw is \"claw done right\", MimiClaw runs ...",
-      "Peter Steinberger joins OpenAI, ZeroClaw is “claw done right”, MimiClaw runs ...",
-      "View the newsletter Join the discussion Changelog++ members support our work,...",
-      "Sponsors: Tiger Data – Postgres for Developers, devices, and agents The data ...",
-      "Featuring: Jerod Santo &ndash; Website , GitH All the Claw things"
-    ]
-  },
-  {
-    "id": "2e9cc4ed7aef",
-    "url": "https://techcrunch.com/2026/02/15/anthropic-and-the-pentagon-are-reportedly-arguing-over-claude-usage/",
-    "title": "Anthropic and the Pentagon are reportedly arguing over Claude usage",
-    "source": "techcrunch_startups",
-    "sourceName": "TechCrunch AI",
-    "publishedAt": "2026-02-15T21:11:28.000Z",
-    "score": {
-      "total": 10,
-      "pain": 8,
-      "demand": 0,
-      "urgency": 0,
-      "frequency": 2,
-      "sourceWeight": 1,
-      "matchedKeywords": [
-        "issue"
-      ]
-    },
-    "tags": [
-      "llm",
-      "ai-agent",
-      "startup",
-      "trend"
-    ],
-    "summaryBullets": [
-      "The apparent issue: whether Claude can be used for mass domestic surveillance...",
-      "The apparent issue: whether Claude can be used for mass domestic surveillance...",
-      "Anthropic and the Pentagon are reportedly arguing over Claude usage"
-    ]
-  },
-  {
-    "id": "8ccc35657216",
-    "url": "https://lobste.rs/s/jdoe4x/please_consider_tagging_vibecoding",
-    "title": "Please consider tagging a vibecoding griefpost or hypepost as a rant",
-    "source": "lobsters",
-    "sourceName": "Lobste.rs",
-    "publishedAt": "2026-02-16T13:44:50.000Z",
-    "score": {
-      "total": 9,
-      "pain": 8,
-      "demand": 0,
-      "urgency": 0,
-      "frequency": 2,
-      "sourceWeight": 0.9,
-      "matchedKeywords": [
-        "ugh"
-      ]
-    },
-    "tags": [
-      "tech",
-      "tools",
-      "community"
-    ],
-    "summaryBullets": [
-      "Many of us going through the five stages of grief about AI.",
-      "But processing our collective trauma is neither practices nor programming.",
-      "And people have left because we're not talking about computing!",
-      "(e.g.)\nSome rules of thumb for great stories to submit: Will this improve the...",
-      "Will it deepen their understanding of their last program?"
-    ]
-  },
-  {
-    "id": "ee151ec1a190",
-    "url": "https://whynot.fail/human/ai-is-slowly-munching-away-my-passion/",
-    "title": "AI is slowly munching away my passion",
-    "source": "lobsters",
-    "sourceName": "Lobste.rs",
-    "publishedAt": "2026-02-15T14:36:09.000Z",
-    "score": {
-      "total": 9,
-      "pain": 8,
-      "demand": 0,
-      "urgency": 0,
-      "frequency": 2,
-      "sourceWeight": 0.9,
-      "matchedKeywords": [
-        "slow"
-      ]
-    },
-    "tags": [
-      "tech",
-      "tools",
-      "community"
-    ],
-    "summaryBullets": [
-      "Comments Comments AI is slowly munching away my passion"
-    ]
-  },
-  {
-    "id": "a48f71793667",
-    "url": "https://dev.to/amonoff/why-ai-is-unlikely-to-be-a-game-changer-in-african-economies-4g38",
-    "title": "Why AI Is Unlikely to Be a Game-Changer in African Economies",
-    "source": "devto_top",
-    "sourceName": "Dev.to: Top",
-    "publishedAt": "2026-02-17T07:34:27.000Z",
-    "score": {
-      "total": 8,
-      "pain": 8,
-      "demand": 0,
-      "urgency": 0,
-      "frequency": 2,
-      "sourceWeight": 0.8,
-      "matchedKeywords": [
-        "need"
-      ]
-    },
-    "tags": [
-      "dev",
-      "tools",
-      "pain"
-    ],
-    "summaryBullets": [
-      "Everyone is talking about AI transforming Africa, but the reality on the grou...",
-      "While AI has enormous potential globally, in many African contexts it is unli...",
-      "Electricity Shortages Are a Major Bottleneck\nAI systems, whether cloud-hosted...",
-      "Training even a single large AI model can use as much power as a small town i...",
-      "Many African countries struggle with unreliable grids and frequent load shedd..."
-    ]
-  },
-  {
-    "id": "cb0a9af66d22",
-    "url": "https://www.theglobeandmail.com/opinion/article-ai-writing-just-isnt-good-enough-and-if-youre-using-it-everyone-can/",
-    "title": "AI writing just isn't good enough – if you're using it everyone can tell",
-    "source": "hn_newest",
-    "sourceName": "Hacker News: Newest",
-    "publishedAt": "2026-02-17T07:30:18.000Z",
-    "score": {
-      "total": 8,
-      "pain": 8,
-      "demand": 0,
-      "urgency": 0,
-      "frequency": 2,
-      "sourceWeight": 0.8,
-      "matchedKeywords": [
-        "ugh"
-      ]
-    },
-    "tags": [
-      "general",
-      "tech"
-    ],
-    "summaryBullets": [
-      "Article URL: https://www.theglobeandmail.com/opinion/article-ai-writing-just-..."
-    ]
-  },
-  {
-    "id": "fff077fbf976",
-    "url": "https://dev.to/msmyaqoob25/how-to-track-ai-citation-traffic-in-ga4-and-why-its-replacing-google-organic-559k",
-    "title": "How to Track AI Citation Traffic in GA4 (And Why It's Replacing Google Organic)",
-    "source": "devto_top",
-    "sourceName": "Dev.to: Top",
-    "publishedAt": "2026-02-17T07:12:09.000Z",
-    "score": {
-      "total": 8,
-      "pain": 8,
-      "demand": 0,
-      "urgency": 0,
-      "frequency": 2,
-      "sourceWeight": 0.8,
-      "matchedKeywords": [
-        "problem"
-      ]
-    },
-    "tags": [
-      "dev",
-      "tools",
-      "pain"
-    ],
-    "summaryBullets": [
-      "A technical breakdown of how AI systems decide what to cite, how to measure A...",
-      "impression inflation problem, and it's caused by Google's AI Overviews counti...",
-      "How to set up GA4 to properly track AI referral sources\nLet's get technical.",
-      "Setting Up AI Citation Tracking in GA4\nDimensions: Session source/medium, Lan...",
-      "<h3>Specific Aspect</h3>\n<p>Precise answer to implied question...</p>\n\n<!-- F..."
-    ]
-  },
-  {
-    "id": "ff10b2fca610",
-    "url": "https://dev.to/theo_hsiung_912d07109a35e/gei-junior-de-python-pin-zhi-gong-ju-ru-men-ruff-yu-mypy-3hg0",
-    "title": "給 Junior 的 Python 品質工具入門：Ruff 與 Mypy",
-    "source": "devto_top",
-    "sourceName": "Dev.to: Top",
-    "publishedAt": "2026-02-17T07:07:29.000Z",
-    "score": {
-      "total": 8,
-      "pain": 8,
-      "demand": 0,
-      "urgency": 0,
-      "frequency": 2,
-      "sourceWeight": 0.8,
-      "matchedKeywords": [
-        "bug"
-      ]
-    },
-    "tags": [
-      "dev",
-      "tools",
-      "pain"
-    ],
-    "summaryBullets": [
-      "你的程式碼能跑不代表它沒問題。這兩個工具幫你在「出事之前」就抓到問題。",
-      "Python 是一個非常「寬容」的語言。它讓你做很多事情，但不會告訴你做錯了：\ndef add(a: int, b: int) -> int:\n    r...",
-      "Ruff 和 Mypy 就是幫你在這些問題變成 bug 之前就抓到它們。",
-      "Python 的 type hint（a: int）只是給人看的註解，執行時完全不檢查。Mypy 是那個真的去檢查的工具。",
-      "def get_user_name(user_id: int) -> str:\n    if user_id <= 0:\n        return N..."
-    ]
-  },
-  {
-    "id": "5f90eab1b871",
-    "url": "https://nebezb.com/30gb-ram/",
-    "title": "Site Runs on 30GB of RAM",
-    "source": "hn_newest",
-    "sourceName": "Hacker News: Newest",
-    "publishedAt": "2026-02-17T07:43:26.000Z",
-    "score": {
-      "total": 0,
-      "pain": 0,
-      "demand": 0,
-      "urgency": 0,
-      "frequency": 0,
-      "sourceWeight": 0.8,
-      "matchedKeywords": []
-    },
-    "tags": [
-      "general",
-      "tech"
-    ],
-    "summaryBullets": [
-      "Article URL: https://nebezb.com/30gb-ram/\nComments URL: https://news.ycombina..."
-    ]
-  },
-  {
-    "id": "78b03e400307",
-    "url": "https://dev.to/rpi1337/building-a-cloud-native-agentic-ai-research-app-a-comprehensive-deep-dive-into-pgvector-remix-mdm",
-    "title": "Building a Cloud-Native Agentic AI Research App: A Comprehensive Deep Dive into pgvector, Remix, and Multimodal LLMs",
-    "source": "devto_top",
-    "sourceName": "Dev.to: Top",
-    "publishedAt": "2026-02-17T07:41:33.000Z",
-    "score": {
-      "total": 0,
-      "pain": 0,
-      "demand": 0,
-      "urgency": 0,
-      "frequency": 0,
-      "sourceWeight": 0.8,
-      "matchedKeywords": []
-    },
-    "tags": [
-      "dev",
-      "tools",
-      "pain"
-    ],
-    "summaryBullets": [
-      "How I modernized a legacy computer vision project into an LLM-powered, cloud-...",
-      "I am a Full-spectrum Software Engineer, DevSecOps practitioner, and the CEO o...",
-      "Over my career, I’ve navigated the rapid evolution of software deployment—tra...",
-      "Back in 2014, for my Bachelor's thesis, I built a Three-Tier client-server ap...",
-      "It was a monolithic C++ and Node.js app utilizing traditional computer vision..."
-    ]
-  },
-  {
-    "id": "75b46199a7c2",
-    "url": "https://ethz.ch/en/news-and-events/eth-news/news/2026/02/password-managers-less-secure-than-promised.html",
-    "title": "Password managers less secure than promised",
-    "source": "hn_newest",
-    "sourceName": "Hacker News: Newest",
-    "publishedAt": "2026-02-17T07:41:18.000Z",
-    "score": {
-      "total": 0,
-      "pain": 0,
-      "demand": 0,
-      "urgency": 0,
-      "frequency": 0,
-      "sourceWeight": 0.8,
-      "matchedKeywords": []
-    },
-    "tags": [
-      "general",
-      "tech"
-    ],
-    "summaryBullets": [
-      "Article URL: https://ethz.ch/en/news-and-events/eth-news/news/2026/02/passwor..."
-    ]
-  },
-  {
-    "id": "fbeeb42fe2ac",
-    "url": "https://twitter.com/geoffreylitt/status/2023589705246200289",
-    "title": "Prototyping UIs has always been a good fit for vibe coding",
-    "source": "hn_newest",
-    "sourceName": "Hacker News: Newest",
-    "publishedAt": "2026-02-17T07:41:15.000Z",
-    "score": {
-      "total": 0,
-      "pain": 0,
-      "demand": 0,
-      "urgency": 0,
-      "frequency": 0,
-      "sourceWeight": 0.8,
-      "matchedKeywords": []
-    },
-    "tags": [
-      "general",
-      "tech"
-    ],
-    "summaryBullets": [
-      "Article URL: https://twitter.com/geoffreylitt/status/2023589705246200289\nComm..."
-    ]
-  },
-  {
-    "id": "795bfcad9607",
-    "url": "https://www.thetimes.com/business/companies-markets/article/apax-pinewood-technologies-bid-ai-fqql85jzz",
-    "title": "Apax pulls out of Pinewood Technologies takeover after AI scare",
-    "source": "hn_newest",
-    "sourceName": "Hacker News: Newest",
-    "publishedAt": "2026-02-17T07:40:49.000Z",
-    "score": {
-      "total": 0,
-      "pain": 0,
-      "demand": 0,
-      "urgency": 0,
-      "frequency": 0,
-      "sourceWeight": 0.8,
-      "matchedKeywords": []
-    },
-    "tags": [
-      "general",
-      "tech"
-    ],
-    "summaryBullets": [
-      "Article URL: https://www.thetimes.com/business/companies-markets/article/apax..."
-    ]
-  },
-  {
-    "id": "2d144904bf03",
-    "url": "https://github.com/ibkvictor/Rust-CAS",
-    "title": "Rust-CAS",
-    "source": "hn_newest",
-    "sourceName": "Hacker News: Newest",
-    "publishedAt": "2026-02-17T07:39:03.000Z",
-    "score": {
-      "total": 0,
-      "pain": 0,
-      "demand": 0,
-      "urgency": 0,
-      "frequency": 0,
-      "sourceWeight": 0.8,
-      "matchedKeywords": []
-    },
-    "tags": [
-      "general",
-      "tech"
-    ],
-    "summaryBullets": [
-      "Article URL: https://github.com/ibkvictor/Rust-CAS\nComments URL: https://news..."
-    ]
-  },
-  {
-    "id": "c85f26634e79",
-    "url": "https://github.com/nickjazz/product-lock",
-    "title": "Product Lock – A JSON spec that defines what your AI-built product is and isn't",
-    "source": "hn_newest",
-    "sourceName": "Hacker News: Newest",
-    "publishedAt": "2026-02-17T07:38:49.000Z",
-    "score": {
-      "total": 0,
-      "pain": 0,
-      "demand": 0,
-      "urgency": 0,
-      "frequency": 0,
-      "sourceWeight": 0.8,
-      "matchedKeywords": []
-    },
-    "tags": [
-      "general",
-      "tech"
-    ],
-    "summaryBullets": [
-      "Article URL: https://github.com/nickjazz/product-lock\nComments URL: https://n..."
-    ]
-  },
-  {
-    "id": "5d67c599db57",
-    "url": "https://dev.to/petrilahdelma/enforcing-your-spacing-standards-with-rhythmguard-a-custom-stylelint-plugin-1ojj",
-    "title": "Enforcing Your Spacing Standards with Rhythmguard (A Custom Stylelint Plugin)",
-    "source": "devto_top",
-    "sourceName": "Dev.to: Top",
-    "publishedAt": "2026-02-17T07:38:21.000Z",
-    "score": {
-      "total": 0,
-      "pain": 0,
-      "demand": 0,
-      "urgency": 0,
-      "frequency": 0,
-      "sourceWeight": 0.8,
-      "matchedKeywords": []
-    },
-    "tags": [
-      "dev",
-      "tools",
-      "pain"
-    ],
-    "summaryBullets": [
-      "Even on teams with a spacing scale and token system, random values still cree...",
-      "I built Rhythmguard to stop that at lint time.",
-      "stylelint-plugin-rhythmguard focuses on three rules:\nrhythmguard/use-scale\n\nC...",
-      "rhythmguard/prefer-token\n\nEnforces token usage over raw spacing literals and ...",
-      "rhythmguard/no-offscale-transform\n\nApplies scale rules to translation motion ..."
+      "Share your website, pitch, logo, idea, pricing, copy, or anything else you wa...",
+      "Tell us what you're looking for: brutal honesty, general impressions, or spec...",
+      "Return the favour and leave feedback for someone else while you're here.",
+      "submitted by    /u/AutoModerator  \n [link]   [comments] Share your website, p...",
+      "Tell us what you're looking for: brutal honesty, general impressions, or spec..."
     ]
   }
 ]
