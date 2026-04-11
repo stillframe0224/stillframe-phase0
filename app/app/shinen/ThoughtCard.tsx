@@ -534,9 +534,12 @@ function MediaPreview({
   onMediaClick?: () => void;
 }) {
   const media = card.media;
+  const [imageError, setImageError] = useState(false);
   
-  // Fallback UI when no media is available
-  if (!media) {
+  // Fallback UI when no media is available or image failed to load
+  const showFallback = !media || (media.type === "image" && imageError);
+  
+  if (showFallback) {
     return (
       <div
         style={{
@@ -730,6 +733,7 @@ function MediaPreview({
                 cardSnapshot: buildCardSnapshot(card, linkUrl, thumbUrl),
               },
             });
+            setImageError(true);
           }}
           style={{
             position: "relative",
@@ -798,6 +802,7 @@ function MediaPreview({
                 cardSnapshot: buildCardSnapshot(card, linkUrl, thumb),
               },
             });
+            setImageError(true);
           }}
           style={{ width: "100%", height: 96, objectFit: "cover", display: "block" }}
         />
