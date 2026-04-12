@@ -12,6 +12,12 @@ interface WaitlistProps {
   fallbackEmail: string;
 }
 
+function isValidEmail(email: string): boolean {
+  // More strict than HTML5 type="email"
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+}
+
 export default function Waitlist({
   lang,
   postUrl,
@@ -23,10 +29,19 @@ export default function Waitlist({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const c = copy.waitlist;
 
+  const normalizedEmail = email.trim().toLowerCase();
+  const isEmailValid = isValidEmail(normalizedEmail);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const normalizedEmail = email.trim().toLowerCase();
-    if (!normalizedEmail) return;
+    if (!normalizedEmail || !isEmailValid) {
+      setErrorMessage(
+        lang === "ja"
+          ? "有効なメールアドレスを入力してください"
+          : "Please enter a valid email address"
+      );
+      return;
+    }
 
     const destination = postUrl ? "webhook" : fallbackEmail ? "mailto" : "none";
     track("waitlist_submit", { email: normalizedEmail, destination });
@@ -128,12 +143,14 @@ export default function Waitlist({
           inputMode="email"
           autoCapitalize="none"
           autoCorrect="off"
+          aria-invalid={errorMessage ? "true" : "false"}
+          aria-describedby={errorMessage ? "waitlist-error" : undefined}
           style={{
             flex: "1 1 240px",
             minWidth: 0,
             padding: "12px 18px",
             borderRadius: 999,
-            border: "1px solid #ddd",
+            border: errorMessage ? "1px solid #b42318" : "1px solid #ddd",
             fontSize: 15,
             fontFamily: "var(--font-dm)",
             outline: "none",
@@ -144,10 +161,11 @@ export default function Waitlist({
           data-testid="cta-waitlist"
           aria-label={loading ? c.submitting[lang] : c.cta[lang]}
           type="submit"
-          disabled={loading}
+          disabled={loading || !normalizedEmail || !isEmailValid}
           className="rounded-full px-6 py-3 text-sm whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[var(--accent-strong)]"
           style={{
-            cursor: loading ? "wait" : undefined,
+            cursor: loading ? "wait" : !normalizedEmail || !isEmailValid ? "not-allowed" : undefined,
+            opacity: !normalizedEmail || !isEmailValid ? 0.5 : 1,
             flex: "1 0 auto",
           }}
         >
@@ -156,6 +174,8 @@ export default function Waitlist({
       </form>
       {errorMessage && (
         <p
+          id="waitlist-error"
+          role="alert"
           style={{
             marginTop: 10,
             fontSize: 13,
