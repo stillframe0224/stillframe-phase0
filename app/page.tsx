@@ -202,35 +202,75 @@ export default function Home() {
         >
           {copy.hero.sub[lang]}
         </p>
-        <button
-          data-testid="cta-early-access"
-          onClick={() => {
-            track("hero_cta_click");
-            scrollTo("demo");
-          }}
-          aria-label={copy.hero.cta[lang]}
+        <div
           style={{
-            padding: "10px 28px",
-            borderRadius: 999,
-            border: "1.5px solid rgba(0,0,0,0.75)",
-            background: "transparent",
-            color: "rgba(0,0,0,0.8)",
-            fontSize: 14,
-            fontWeight: 500,
-            letterSpacing: "0.04em",
-            fontFamily: "var(--font-dm), system-ui, sans-serif",
-            cursor: "pointer",
-            transition: "background 0.15s, color 0.15s",
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.background = "rgba(0,0,0,0.06)";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background = "transparent";
+            display: "flex",
+            gap: 12,
+            justifyContent: "center",
+            flexWrap: "wrap",
           }}
         >
-          {copy.hero.cta[lang]}
-        </button>
+          <button
+            data-testid="cta-demo"
+            onClick={() => {
+              track("hero_cta_demo_click");
+              scrollTo("demo");
+            }}
+            aria-label={copy.hero.cta[lang]}
+            style={{
+              padding: "10px 28px",
+              borderRadius: 999,
+              border: "1.5px solid rgba(0,0,0,0.75)",
+              background: "transparent",
+              color: "rgba(0,0,0,0.8)",
+              fontSize: 14,
+              fontWeight: 500,
+              letterSpacing: "0.04em",
+              fontFamily: "var(--font-dm), system-ui, sans-serif",
+              cursor: "pointer",
+              transition: "background 0.15s, color 0.15s",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = "rgba(0,0,0,0.06)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = "transparent";
+            }}
+          >
+            {copy.hero.cta[lang]}
+          </button>
+          <a
+            data-testid="cta-early-access"
+            href={GUMROAD_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => track("hero_cta_early_access_click")}
+            aria-label={copy.hero.ctaSecondary[lang]}
+            style={{
+              padding: "10px 28px",
+              borderRadius: 999,
+              border: "none",
+              background: "rgba(0,0,0,0.85)",
+              color: "#fff",
+              fontSize: 14,
+              fontWeight: 500,
+              letterSpacing: "0.04em",
+              fontFamily: "var(--font-dm), system-ui, sans-serif",
+              cursor: "pointer",
+              textDecoration: "none",
+              display: "inline-block",
+              transition: "background 0.15s",
+            }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLAnchorElement).style.background = "rgba(0,0,0,0.95)";
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLAnchorElement).style.background = "rgba(0,0,0,0.85)";
+            }}
+          >
+            {copy.hero.ctaSecondary[lang]}
+          </a>
+        </div>
       </section>
 
       {/* Hero Sample Cards */}

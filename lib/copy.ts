@@ -19,6 +19,10 @@ const copy = {
       en: "Start Capturing →",
       ja: "今すぐ試す →",
     },
+    ctaSecondary: {
+      en: "Get Early Access",
+      ja: "アーリーアクセス",
+    },
   },
   demo: {
     h2: { en: "Try Quick Capture", ja: "Quick Capture を試す" },
