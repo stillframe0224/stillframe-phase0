@@ -372,62 +372,66 @@ export default function Home() {
         </div>
 
         {/* Input */}
-        <div
-          style={{
-            display: "flex",
-            gap: 8,
-            marginBottom: 16,
-          }}
-        >
-          <input
-            ref={inputRef}
-            type="text"
-            value={input}
-            onChange={(e) => {
-              setInput(e.target.value);
-              setCardError(null);
-            }}
-            onKeyDown={(e) => e.key === "Enter" && addCard()}
-            placeholder={copy.demo.placeholder[lang]}
+        <div>
+          <div
             style={{
-              flex: 1,
-              padding: "14px 20px",
-              borderRadius: 20,
-              border: cardError ? "1.5px solid #e55353" : "1px solid #e8e5e0",
-              fontSize: 15,
-              fontFamily: "var(--font-dm)",
-              background: "#fff",
-              outline: "none",
-              transition: "border-color 0.2s",
-            }}
-            onFocus={(e) => (e.currentTarget.style.borderColor = ct.border)}
-            onBlur={(e) => (e.currentTarget.style.borderColor = cardError ? "#e55353" : "#e8e5e0")}
-          />
-          {cardError && (
-            <p style={{ color: "#e55353", fontSize: 13, marginTop: 4 }}>{cardError}</p>
-          )}
-          <button
-            onClick={addCard}
-            style={{
-              width: 48,
-              height: 48,
-              borderRadius: "50%",
-              border: "none",
-              background: ct.accent,
-              color: "#fff",
-              fontSize: 22,
-              fontWeight: 300,
-              cursor: "pointer",
-              transition: "opacity 0.2s",
               display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
+              gap: 8,
+              marginBottom: cardError ? 4 : 16,
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.8")}
-            onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
           >
-            +
-          </button>
+            <input
+              ref={inputRef}
+              type="text"
+              value={input}
+              onChange={(e) => {
+                setInput(e.target.value);
+                setCardError(null);
+              }}
+              onKeyDown={(e) => e.key === "Enter" && addCard()}
+              placeholder={copy.demo.placeholder[lang]}
+              style={{
+                flex: 1,
+                padding: "14px 20px",
+                borderRadius: 20,
+                border: cardError ? "1.5px solid #e55353" : "1px solid #e8e5e0",
+                fontSize: 15,
+                fontFamily: "var(--font-dm)",
+                background: "#fff",
+                outline: "none",
+                transition: "border-color 0.2s",
+              }}
+              onFocus={(e) => (e.currentTarget.style.borderColor = ct.border)}
+              onBlur={(e) => (e.currentTarget.style.borderColor = cardError ? "#e55353" : "#e8e5e0")}
+            />
+            <button
+              onClick={addCard}
+              style={{
+                width: 48,
+                height: 48,
+                borderRadius: "50%",
+                border: "none",
+                background: ct.accent,
+                color: "#fff",
+                fontSize: 22,
+                fontWeight: 300,
+                cursor: "pointer",
+                transition: "opacity 0.2s",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.8")}
+              onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
+            >
+              +
+            </button>
+          </div>
+          {cardError && (
+            <p style={{ color: "#e55353", fontSize: 13, marginTop: 0, marginBottom: 12, marginLeft: 20 }}>
+              {cardError}
+            </p>
+          )}
         </div>
 
         {/* Cards Grid */}
