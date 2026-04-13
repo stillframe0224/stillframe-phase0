@@ -646,7 +646,8 @@ export async function GET(request: Request) {
             );
           }
         }
-      } catch {
+      } catch (err) {
+        console.error("Instagram oEmbed error:", err instanceof Error ? err.message : String(err));
         trackLinkPreview("ig_oembed_failed", { url: summarizeUrlForLog(url) });
       }
 
@@ -673,7 +674,8 @@ export async function GET(request: Request) {
             );
           }
         }
-      } catch {
+      } catch (err) {
+        console.error("Instagram Jina error:", err instanceof Error ? err.message : String(err));
         trackLinkPreview("ig_jina_failed", { url: summarizeUrlForLog(url) });
       }
     }
@@ -803,7 +805,8 @@ export async function GET(request: Request) {
     );
   } catch (e) {
     const reason = e instanceof Error ? e.message : "unknown";
-    if (debug) console.log(JSON.stringify({ event: "link_preview_error", url, reason }));
+    if (debug) console.log(JSON.stringify({ event: "link_preview_error", url, reason, stack: e instanceof Error ? e.stack : undefined }));
+    console.error("Link preview error:", { url: summarizeUrlForLog(url), reason, error: e });
     trackLinkPreview("exception", { url: summarizeUrlForLog(url), reason });
     if (reason === "blocked") {
       return NextResponse.json({ error: "blocked_url" }, { status: 400 });
