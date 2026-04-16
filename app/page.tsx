@@ -252,8 +252,8 @@ export default function Home() {
               border: "none",
               background: "rgba(0,0,0,0.85)",
               color: "#fff",
-              fontSize: 14,
-              fontWeight: 500,
+              fontSize: 15,
+              fontWeight: 600,
               letterSpacing: "0.04em",
               fontFamily: "var(--font-dm), system-ui, sans-serif",
               cursor: "pointer",
@@ -559,6 +559,89 @@ export default function Home() {
       {/* Pricing */}
       <section id="pricing" style={{ padding: "0 24px" }}>
         <Pricing lang={lang} gumroadUrl={GUMROAD_URL} />
+      </section>
+
+
+      {/* Ready to Start CTA */}
+      <section
+        style={{
+          maxWidth: 640,
+          margin: "0 auto",
+          padding: "0 24px",
+          textAlign: "center",
+        }}
+      >
+        <div
+          style={{
+            background: "linear-gradient(135deg, rgba(0,0,0,0.02) 0%, rgba(0,0,0,0.04) 100%)",
+            borderRadius: 24,
+            padding: "48px 32px",
+            border: "1px solid rgba(0,0,0,0.08)",
+          }}
+        >
+          <h3
+            style={{
+              fontFamily:
+                lang === "ja" ? "var(--font-serif-jp)" : "var(--font-serif)",
+              fontSize: 24,
+              fontWeight: 400,
+              color: "#2a2a2a",
+              marginBottom: 16,
+            }}
+          >
+            {lang === "ja" ? "今すぐ始める" : "Ready to start?"}
+          </h3>
+          <p
+            style={{
+              fontSize: 15,
+              lineHeight: 1.7,
+              color: "#666",
+              marginBottom: 28,
+              maxWidth: 480,
+              margin: "0 auto 28px",
+            }}
+          >
+            {lang === "ja"
+              ? "すべての思考に画像がつく体験を、今日から。"
+              : "Every thought with an image, starting today."}
+          </p>
+          <a
+            href={GUMROAD_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => track("ready_cta_click")}
+            data-testid="cta-ready"
+            aria-label={copy.hero.ctaSecondary[lang]}
+            style={{
+              padding: "14px 36px",
+              borderRadius: 999,
+              border: "none",
+              background: "rgba(0,0,0,0.9)",
+              color: "#fff",
+              fontSize: 15,
+              fontWeight: 600,
+              letterSpacing: "0.04em",
+              fontFamily: "var(--font-dm), system-ui, sans-serif",
+              cursor: "pointer",
+              textDecoration: "none",
+              display: "inline-block",
+              transition: "all 0.2s",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.12)",
+            }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLAnchorElement).style.background = "#000";
+              (e.currentTarget as HTMLAnchorElement).style.transform = "translateY(-1px)";
+              (e.currentTarget as HTMLAnchorElement).style.boxShadow = "0 4px 12px rgba(0,0,0,0.18)";
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLAnchorElement).style.background = "rgba(0,0,0,0.9)";
+              (e.currentTarget as HTMLAnchorElement).style.transform = "translateY(0)";
+              (e.currentTarget as HTMLAnchorElement).style.boxShadow = "0 2px 8px rgba(0,0,0,0.12)";
+            }}
+          >
+            {copy.hero.ctaSecondary[lang]}
+          </a>
+        </div>
       </section>
 
       <DotDivider />
