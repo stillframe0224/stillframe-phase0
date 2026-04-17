@@ -256,11 +256,47 @@ export function useOgThumbnails(
             }
           },
         )
-        .catch(() => {
+        .catch((error) => {
           inflightRef.current.delete(url);
           const currentCache = readCache();
-          currentCache[url] = { image: null, fetchedAt: Date.now() };
+          
+          // Log error details for debugging
+          const errorType = error instanceof Error ? error.name : 'UnknownError';
+          const errorMsg = error instanceof Error ? error.message : String(error);
+          console.warn(
+            `[OG Fetch Failed] ${url}\n` +
+            `Type: ${errorType}\n` +
+            `Message: ${errorMsg}\n` +
+            `Card ID: ${id}`
+          );
+          
+          // Cache the failure with default retry TTL
+          currentCache[url] = { 
+            image: null, 
+            fetchedAt: Date.now(),
+            retryAfterMs: DEFAULT_FAILURE_TTL
+          };
           writeCache(currentCache);
+          
+          // Try to at least show the favicon as fallback
+          setCards((prev) =>
+            prev.map((c) => {
+              if (c.id !== id || !c.source) return c;
+              // If we already have media or favicon, don't overwrite
+              if (c.media || c.source.favicon) return c;
+              // Extract favicon from URL (protocol + hostname)
+              try {
+                const u = new URL(url);
+                const faviconUrl = `${u.origin}/favicon.ico`;
+                return {
+                  ...c,
+                  source: { ...c.source, favicon: faviconUrl }
+                };
+              } catch {
+                return c;
+              }
+            })
+          );
         });
     }
 
