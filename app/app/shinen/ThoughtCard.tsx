@@ -204,7 +204,7 @@ export default function ThoughtCard({
                 }}
               >
                 {siteIcon && (
-                  <img
+                  <img loading="lazy" decoding="async"
                     src={siteIcon}
                     alt=""
                     style={{
@@ -696,7 +696,7 @@ function MediaPreview({
         }}
       >
         {renderMode === "contain_blur" && (
-          <img
+          <img loading="lazy" decoding="async"
             src={proxiedSrc}
             alt=""
             aria-hidden
@@ -716,7 +716,7 @@ function MediaPreview({
             }}
           />
         )}
-        <img
+        <img loading="lazy" decoding="async"
           src={proxiedSrc}
           alt={card.text}
           onError={(e) => {
@@ -782,7 +782,7 @@ function MediaPreview({
           cursor: "pointer",
         }}
       >
-        <img
+        <img loading="lazy" decoding="async"
           src={toProxySrc(media.thumbnail || `https://img.youtube.com/vi/${media.youtubeId}/hqdefault.jpg`)}
           alt={card.text}
           onError={(e) => {
@@ -864,7 +864,7 @@ function MediaPreview({
               }}
             >
               {poster ? (
-                <img
+                <img loading="lazy" decoding="async"
                   src={toProxySrc(poster, card.source?.url)}
                   alt={card.text}
                   style={{
@@ -995,7 +995,7 @@ function MediaPreview({
         }}
       >
         {poster ? (
-          <img
+          <img loading="lazy" decoding="async"
             src={toProxySrc(poster, card.source?.url)}
             alt={card.text}
             style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
