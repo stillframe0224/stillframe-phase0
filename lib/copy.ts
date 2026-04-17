@@ -16,12 +16,12 @@ const copy = {
       ja: "URLを貼れば画像が現れる。写真を落とせばカードになる。何もしなくても、やさしいイラストが空白を埋める。画像探しも、空白のカードも、もういらない。",
     },
     cta: {
-      en: "Start Capturing →",
-      ja: "今すぐ試す →",
+      en: "Try Free Demo →",
+      ja: "無料で試す →",
     },
     ctaSecondary: {
-      en: "Get Early Access",
-      ja: "アーリーアクセス",
+      en: "$10/mo Forever (First 20)",
+      ja: "$10/月 永久保証（先着20名）",
     },
   },
   demo: {
@@ -83,10 +83,10 @@ const copy = {
         "エクスポート & API",
       ],
     },
-    cta: { en: "Claim Early Access →", ja: "早期アクセスを確保 →" },
+    cta: { en: "Lock in $10/mo Forever →", ja: "$10/月 を永久確保 →" },
     urgency: {
-      en: "Early-bird pricing · first 20 members keep this price forever",
-      ja: "先着20名限定 · この価格をずっと維持できます",
+      en: "⚡ Only 20 spots at this price — lock it in now or pay more later",
+      ja: "⚡ この価格は先着20名のみ — 今確保しないと後から値上げ",
     },
   },
   waitlist: {
