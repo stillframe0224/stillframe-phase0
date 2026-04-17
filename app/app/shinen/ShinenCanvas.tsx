@@ -20,6 +20,7 @@ import HintOverlay from "./HintOverlay";
 import MemoModal from "./MemoModal";
 import TagModal from "./TagModal";
 import MemoToolbar from "./MemoToolbar";
+import { useToast } from "./SuccessToast";
 import { initClipReceiver } from "./lib/clip-receiver";
 import type { ClipData } from "./lib/clip-receiver";
 import {
@@ -211,6 +212,9 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
   const resizeStartRef = useRef<{ mx: number; my: number; w: number; h: number } | null>(null);
   const reorderCaptureRef = useRef<{ el: HTMLElement; pointerId: number } | null>(null);
   const reorderDragRef = useRef<ReorderDragState | null>(null);
+
+  // Toast notification for success feedback
+  const { showToast, ToastContainer } = useToast();
   const rootRef = useRef<HTMLDivElement>(null);
   const selfHealRanRef = useRef(false);
 
@@ -889,7 +893,8 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
       }
       return next;
     });
-  }, [applySaveGuards, layoutIdx]);
+    showToast("✨ カードを作成しました");
+  }, [applySaveGuards, layoutIdx, showToast]);
 
   // File upload handler
   const handleFileUpload = useCallback(
@@ -922,8 +927,9 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
         }
         return next;
       });
+      showToast("📎 ファイルを追加しました");
     },
-    [applySaveGuards, layoutIdx],
+    [applySaveGuards, layoutIdx, showToast],
   );
 
 
@@ -1001,9 +1007,10 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
         }
         return next;
       });
+      showToast("🔗 クリップを保存しました");
     });
     return cleanup;
-  }, [applySaveGuards, layoutIdx]);
+  }, [applySaveGuards, layoutIdx, showToast]);
 
   // Bookmarklet auto-capture: parse ?auto=1&url=... params on mount
   useEffect(() => {
@@ -1081,6 +1088,7 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
       }
       return next;
     });
+    showToast("📥 ブックマークレットから保存しました");
 
     // Clean auto-capture params from URL bar
     try {
@@ -1093,7 +1101,7 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
       // Ignore URL cleanup failures.
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [applySaveGuards, layoutIdx]); // Run on mount and when save guard callback changes
+  }, [applySaveGuards, layoutIdx, showToast]); // Run on mount and when save guard callback changes
 
   // Media click handler — toggle playback (single active at a time)
   const handleMediaClick = useCallback(
@@ -1384,6 +1392,9 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
 
       {/* Stub testids for skipped e2e tests (invisible, non-interactive) */}
       <UiSmokeStubs />
+
+      {/* Toast notification container */}
+      <ToastContainer />
     </div>
   );
 }
