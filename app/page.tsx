@@ -202,35 +202,75 @@ export default function Home() {
         >
           {copy.hero.sub[lang]}
         </p>
-        <button
-          data-testid="cta-early-access"
-          onClick={() => {
-            track("hero_cta_click");
-            scrollTo("waitlist");
-          }}
-          aria-label={copy.hero.cta[lang]}
+        <div
           style={{
-            padding: "10px 28px",
-            borderRadius: 999,
-            border: "1.5px solid rgba(0,0,0,0.75)",
-            background: "transparent",
-            color: "rgba(0,0,0,0.8)",
-            fontSize: 14,
-            fontWeight: 500,
-            letterSpacing: "0.04em",
-            fontFamily: "var(--font-dm), system-ui, sans-serif",
-            cursor: "pointer",
-            transition: "background 0.15s, color 0.15s",
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.background = "rgba(0,0,0,0.06)";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background = "transparent";
+            display: "flex",
+            gap: 12,
+            justifyContent: "center",
+            flexWrap: "wrap",
           }}
         >
-          {copy.hero.cta[lang]}
-        </button>
+          <button
+            data-testid="cta-demo"
+            onClick={() => {
+              track("hero_cta_demo_click");
+              scrollTo("demo");
+            }}
+            aria-label={copy.hero.cta[lang]}
+            style={{
+              padding: "10px 28px",
+              borderRadius: 999,
+              border: "1.5px solid rgba(0,0,0,0.75)",
+              background: "transparent",
+              color: "rgba(0,0,0,0.8)",
+              fontSize: 14,
+              fontWeight: 500,
+              letterSpacing: "0.04em",
+              fontFamily: "var(--font-dm), system-ui, sans-serif",
+              cursor: "pointer",
+              transition: "background 0.15s, color 0.15s",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = "rgba(0,0,0,0.06)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = "transparent";
+            }}
+          >
+            {copy.hero.cta[lang]}
+          </button>
+          <a
+            data-testid="cta-early-access"
+            href={GUMROAD_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => track("hero_cta_early_access_click")}
+            aria-label={copy.hero.ctaSecondary[lang]}
+            style={{
+              padding: "10px 28px",
+              borderRadius: 999,
+              border: "none",
+              background: "rgba(0,0,0,0.85)",
+              color: "#fff",
+              fontSize: 15,
+              fontWeight: 600,
+              letterSpacing: "0.04em",
+              fontFamily: "var(--font-dm), system-ui, sans-serif",
+              cursor: "pointer",
+              textDecoration: "none",
+              display: "inline-block",
+              transition: "background 0.15s",
+            }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLAnchorElement).style.background = "rgba(0,0,0,0.95)";
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLAnchorElement).style.background = "rgba(0,0,0,0.85)";
+            }}
+          >
+            {copy.hero.ctaSecondary[lang]}
+          </a>
+        </div>
       </section>
 
       {/* Hero Sample Cards */}
@@ -332,62 +372,66 @@ export default function Home() {
         </div>
 
         {/* Input */}
-        <div
-          style={{
-            display: "flex",
-            gap: 8,
-            marginBottom: 16,
-          }}
-        >
-          <input
-            ref={inputRef}
-            type="text"
-            value={input}
-            onChange={(e) => {
-              setInput(e.target.value);
-              setCardError(null);
-            }}
-            onKeyDown={(e) => e.key === "Enter" && addCard()}
-            placeholder={copy.demo.placeholder[lang]}
+        <div>
+          <div
             style={{
-              flex: 1,
-              padding: "14px 20px",
-              borderRadius: 20,
-              border: cardError ? "1.5px solid #e55353" : "1px solid #e8e5e0",
-              fontSize: 15,
-              fontFamily: "var(--font-dm)",
-              background: "#fff",
-              outline: "none",
-              transition: "border-color 0.2s",
-            }}
-            onFocus={(e) => (e.currentTarget.style.borderColor = ct.border)}
-            onBlur={(e) => (e.currentTarget.style.borderColor = cardError ? "#e55353" : "#e8e5e0")}
-          />
-          {cardError && (
-            <p style={{ color: "#e55353", fontSize: 13, marginTop: 4 }}>{cardError}</p>
-          )}
-          <button
-            onClick={addCard}
-            style={{
-              width: 48,
-              height: 48,
-              borderRadius: "50%",
-              border: "none",
-              background: ct.accent,
-              color: "#fff",
-              fontSize: 22,
-              fontWeight: 300,
-              cursor: "pointer",
-              transition: "opacity 0.2s",
               display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
+              gap: 8,
+              marginBottom: cardError ? 4 : 16,
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.8")}
-            onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
           >
-            +
-          </button>
+            <input
+              ref={inputRef}
+              type="text"
+              value={input}
+              onChange={(e) => {
+                setInput(e.target.value);
+                setCardError(null);
+              }}
+              onKeyDown={(e) => e.key === "Enter" && addCard()}
+              placeholder={copy.demo.placeholder[lang]}
+              style={{
+                flex: 1,
+                padding: "14px 20px",
+                borderRadius: 20,
+                border: cardError ? "1.5px solid #e55353" : "1px solid #e8e5e0",
+                fontSize: 15,
+                fontFamily: "var(--font-dm)",
+                background: "#fff",
+                outline: "none",
+                transition: "border-color 0.2s",
+              }}
+              onFocus={(e) => (e.currentTarget.style.borderColor = ct.border)}
+              onBlur={(e) => (e.currentTarget.style.borderColor = cardError ? "#e55353" : "#e8e5e0")}
+            />
+            <button
+              onClick={addCard}
+              style={{
+                width: 48,
+                height: 48,
+                borderRadius: "50%",
+                border: "none",
+                background: ct.accent,
+                color: "#fff",
+                fontSize: 22,
+                fontWeight: 300,
+                cursor: "pointer",
+                transition: "opacity 0.2s",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.8")}
+              onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
+            >
+              +
+            </button>
+          </div>
+          {cardError && (
+            <p style={{ color: "#e55353", fontSize: 13, marginTop: 0, marginBottom: 12, marginLeft: 20 }}>
+              {cardError}
+            </p>
+          )}
         </div>
 
         {/* Cards Grid */}
@@ -515,6 +559,89 @@ export default function Home() {
       {/* Pricing */}
       <section id="pricing" style={{ padding: "0 24px" }}>
         <Pricing lang={lang} gumroadUrl={GUMROAD_URL} />
+      </section>
+
+
+      {/* Ready to Start CTA */}
+      <section
+        style={{
+          maxWidth: 640,
+          margin: "0 auto",
+          padding: "0 24px",
+          textAlign: "center",
+        }}
+      >
+        <div
+          style={{
+            background: "linear-gradient(135deg, rgba(0,0,0,0.02) 0%, rgba(0,0,0,0.04) 100%)",
+            borderRadius: 24,
+            padding: "48px 32px",
+            border: "1px solid rgba(0,0,0,0.08)",
+          }}
+        >
+          <h3
+            style={{
+              fontFamily:
+                lang === "ja" ? "var(--font-serif-jp)" : "var(--font-serif)",
+              fontSize: 24,
+              fontWeight: 400,
+              color: "#2a2a2a",
+              marginBottom: 16,
+            }}
+          >
+            {lang === "ja" ? "今すぐ始める" : "Ready to start?"}
+          </h3>
+          <p
+            style={{
+              fontSize: 15,
+              lineHeight: 1.7,
+              color: "#666",
+              marginBottom: 28,
+              maxWidth: 480,
+              margin: "0 auto 28px",
+            }}
+          >
+            {lang === "ja"
+              ? "すべての思考に画像がつく体験を、今日から。"
+              : "Every thought with an image, starting today."}
+          </p>
+          <a
+            href={GUMROAD_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => track("ready_cta_click")}
+            data-testid="cta-ready"
+            aria-label={copy.hero.ctaSecondary[lang]}
+            style={{
+              padding: "14px 36px",
+              borderRadius: 999,
+              border: "none",
+              background: "rgba(0,0,0,0.9)",
+              color: "#fff",
+              fontSize: 15,
+              fontWeight: 600,
+              letterSpacing: "0.04em",
+              fontFamily: "var(--font-dm), system-ui, sans-serif",
+              cursor: "pointer",
+              textDecoration: "none",
+              display: "inline-block",
+              transition: "all 0.2s",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.12)",
+            }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLAnchorElement).style.background = "#000";
+              (e.currentTarget as HTMLAnchorElement).style.transform = "translateY(-1px)";
+              (e.currentTarget as HTMLAnchorElement).style.boxShadow = "0 4px 12px rgba(0,0,0,0.18)";
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLAnchorElement).style.background = "rgba(0,0,0,0.9)";
+              (e.currentTarget as HTMLAnchorElement).style.transform = "translateY(0)";
+              (e.currentTarget as HTMLAnchorElement).style.boxShadow = "0 2px 8px rgba(0,0,0,0.12)";
+            }}
+          >
+            {copy.hero.ctaSecondary[lang]}
+          </a>
+        </div>
       </section>
 
       <DotDivider />
