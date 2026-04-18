@@ -258,6 +258,7 @@ export function useOgThumbnails(
         )
         .catch((error) => {
           inflightRef.current.delete(url);
+          if (error instanceof DOMException && error.name === "AbortError") return;
           const currentCache = readCache();
           
           // Log error details for debugging
