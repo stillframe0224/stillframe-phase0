@@ -72,11 +72,15 @@ export default function Waitlist({
 
       setSubmitted(true);
     } catch (error) {
-      setErrorMessage(c.error[lang]);
+      // Network errors (fetch failed) show connection-specific message
+      const isNetworkError = error instanceof TypeError && 
+        (error.message.includes("Failed to fetch") || error.message.includes("Network request failed"));
+      setErrorMessage(isNetworkError ? c.errorNetwork[lang] : c.error[lang]);
       track("waitlist_submit_failed", {
         email: normalizedEmail,
         destination,
         reason: error instanceof Error ? error.message : "unknown_error",
+        isNetworkError: String(isNetworkError),
       });
     } finally {
       setLoading(false);
@@ -85,8 +89,8 @@ export default function Waitlist({
 
   if (submitted) {
     return (
-      <div style={{ textAlign: "center", padding: "32px 0" }}>
-        <span style={{ fontSize: 32, display: "block", marginBottom: 12 }}>
+      <div style={{ textAlign: "center", padding: "32px 0" }} role="status" aria-live="polite">
+        <span style={{ fontSize: 32, display: "block", marginBottom: 12 }} aria-hidden="true">
           &#10003;
         </span>
         <p
@@ -98,24 +102,13 @@ export default function Waitlist({
         >
           {c.success[lang]}
         </p>
-        <a
-          href="#pricing"
+        <PrimaryButton
           data-testid="waitlist-pricing-cta"
-          style={{
-            display: "inline-block",
-            marginTop: 16,
-            padding: "10px 24px",
-            borderRadius: 999,
-            background: "#2a2a2a",
-            color: "#fff",
-            fontSize: 14,
-            fontFamily: "var(--font-dm)",
-            fontWeight: 600,
-            textDecoration: "none",
-          }}
+          onClick={() => document.getElementById("pricing")?.scrollIntoView({ behavior: "smooth" })}
+          className="rounded-full px-6 py-2.5 text-sm mt-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[var(--accent-strong)]"
         >
           {lang === "ja" ? "料金を見る" : "View Pricing"}
-        </a>
+        </PrimaryButton>
       </div>
     );
   }
@@ -131,8 +124,10 @@ export default function Waitlist({
         }}
       >
         <input
+          data-testid="waitlist-email"
           type="email"
           required
+          aria-label={c.placeholder[lang]}
           placeholder={c.placeholder[lang]}
           value={email}
           onChange={(e) => {
@@ -145,6 +140,7 @@ export default function Waitlist({
           autoCorrect="off"
           aria-invalid={errorMessage ? "true" : "false"}
           aria-describedby={errorMessage ? "waitlist-error" : undefined}
+          className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-[#2a2a2a]"
           style={{
             flex: "1 1 240px",
             minWidth: 0,
@@ -153,8 +149,8 @@ export default function Waitlist({
             border: errorMessage ? "1px solid #b42318" : "1px solid #ddd",
             fontSize: 15,
             fontFamily: "var(--font-dm)",
-            outline: "none",
             background: "#fff",
+            transition: "border-color 0.2s ease",
           }}
         />
         <PrimaryButton
@@ -182,6 +178,7 @@ export default function Waitlist({
             color: "#b42318",
             fontFamily: "var(--font-dm)",
             textAlign: "center",
+            animation: "fadeIn 0.2s ease-in",
           }}
         >
           {errorMessage}
