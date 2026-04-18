@@ -51,6 +51,7 @@ export default function InputBar({ onSubmit, onFileUpload, time }: InputBarProps
   const [submitting, setSubmitting] = useState(false);
   const [fileError, setFileError] = useState<string | null>(null);
   const [lastFailedFile, setLastFailedFile] = useState<File | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleSubmit = useCallback(() => {
@@ -60,6 +61,11 @@ export default function InputBar({ onSubmit, onFileUpload, time }: InputBarProps
     setSubmitting(true);
     setTimeout(() => setSubmitting(false), 600);
   }, [text, onSubmit]);
+
+  const showError = useCallback((message: string) => {
+    setErrorMessage(message);
+    setTimeout(() => setErrorMessage(null), 3000);
+  }, []);
 
   const processFile = useCallback(
     (file: File) => {
@@ -78,6 +84,9 @@ export default function InputBar({ onSubmit, onFileUpload, time }: InputBarProps
               type: 9, // file
               file: { name: file.name, size: file.size, mimeType: file.type },
             });
+          };
+          reader.onerror = () => {
+            showError("Failed to read file");
           };
           reader.readAsText(file);
           return;
@@ -102,9 +111,10 @@ export default function InputBar({ onSubmit, onFileUpload, time }: InputBarProps
         console.error("File processing error:", error);
         setFileError(error instanceof Error ? error.message : "ファイルの処理に失敗しました");
         setLastFailedFile(file);
+        showError("Failed to process file");
       }
     },
-    [onFileUpload],
+    [onFileUpload, showError],
   );
 
   const handleFileChange = useCallback(
@@ -113,6 +123,7 @@ export default function InputBar({ onSubmit, onFileUpload, time }: InputBarProps
       if (file) {
         setFileError(null);
         setLastFailedFile(null);
+        setErrorMessage(null);
         processFile(file);
       }
       // Reset input so same file can be re-selected
@@ -300,6 +311,25 @@ export default function InputBar({ onSubmit, onFileUpload, time }: InputBarProps
       >
         no folders · no tags · just thoughts
       </div>
+      {errorMessage && (
+        <div
+          role="alert"
+          style={{
+            marginTop: 8,
+            padding: "8px 12px",
+            borderRadius: 8,
+            background: "rgba(180, 35, 24, 0.08)",
+            border: "1px solid rgba(180, 35, 24, 0.2)",
+            fontSize: 12,
+            color: "#b42318",
+            fontFamily: "'DM Sans', sans-serif",
+            textAlign: "center",
+            animation: "fadeIn 0.2s ease-in",
+          }}
+        >
+          {errorMessage}
+        </div>
+      )}
     </div>
   );
 }

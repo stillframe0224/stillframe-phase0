@@ -199,12 +199,7 @@ export function useOgThumbnails(
       fetch(`/api/link-preview?url=${encodeURIComponent(url)}`, {
         signal: controller.signal,
       })
-        .then((res) => {
-          if (!res.ok) {
-            return { image: null, favicon: null, retryAfterMs: 5 * 60 * 1000 };
-          }
-          return res.json();
-        })
+        .then((res) => res.json())
         .then(
           (data: {
             image?: string | null;
@@ -261,13 +256,48 @@ export function useOgThumbnails(
             }
           },
         )
-        .catch((err: unknown) => {
+        .catch((error) => {
           inflightRef.current.delete(url);
-          // AbortError means the component unmounted — don't cache as failure
-          if (err instanceof DOMException && err.name === "AbortError") return;
+          if (error instanceof DOMException && error.name === "AbortError") return;
           const currentCache = readCache();
-          currentCache[url] = { image: null, fetchedAt: Date.now() };
+          
+          // Log error details for debugging
+          const errorType = error instanceof Error ? error.name : 'UnknownError';
+          const errorMsg = error instanceof Error ? error.message : String(error);
+          console.warn(
+            `[OG Fetch Failed] ${url}\n` +
+            `Type: ${errorType}\n` +
+            `Message: ${errorMsg}\n` +
+            `Card ID: ${id}`
+          );
+          
+          // Cache the failure with default retry TTL
+          currentCache[url] = { 
+            image: null, 
+            fetchedAt: Date.now(),
+            retryAfterMs: DEFAULT_FAILURE_TTL
+          };
           writeCache(currentCache);
+          
+          // Try to at least show the favicon as fallback
+          setCards((prev) =>
+            prev.map((c) => {
+              if (c.id !== id || !c.source) return c;
+              // If we already have media or favicon, don't overwrite
+              if (c.media || c.source.favicon) return c;
+              // Extract favicon from URL (protocol + hostname)
+              try {
+                const u = new URL(url);
+                const faviconUrl = `${u.origin}/favicon.ico`;
+                return {
+                  ...c,
+                  source: { ...c.source, favicon: faviconUrl }
+                };
+              } catch {
+                return c;
+              }
+            })
+          );
         });
     }
 
