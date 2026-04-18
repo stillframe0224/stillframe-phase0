@@ -16,8 +16,12 @@ const copy = {
       ja: "URLを貼れば画像が現れる。写真を落とせばカードになる。何もしなくても、やさしいイラストが空白を埋める。画像探しも、空白のカードも、もういらない。",
     },
     cta: {
-      en: "Join Waitlist →",
-      ja: "ウェイトリストに参加 →",
+      en: "Try Free Demo →",
+      ja: "無料で試す →",
+    },
+    ctaSecondary: {
+      en: "$10/mo Forever (First 20)",
+      ja: "$10/月 永久保証（先着20名）",
     },
   },
   demo: {
@@ -41,29 +45,29 @@ const copy = {
       {
         title: { en: "Paste a URL", ja: "URLを貼る" },
         desc: {
-          en: "OGP image fetches automatically. Zero steps. Zero friction. Done.",
-          ja: "OGP画像が自動で取得される。手作業ゼロ。摩擦ゼロ。完了。",
+          en: "OGP image is fetched automatically, no manual fetch needed.",
+          ja: "OGP画像を自動取得。手作業の取得は不要。",
         },
       },
       {
         title: { en: "Drop a photo", ja: "写真をドロップ" },
         desc: {
-          en: "One click. Your image becomes the card. No editing, no uploading.",
-          ja: "ワンクリック。画像がカードになる。編集も、アップロードも不要。",
+          en: "Your image becomes the card thumbnail.",
+          ja: "画像がそのままサムネイルに。",
         },
       },
       {
         title: { en: "Or do nothing", ja: "何もしなくても" },
         desc: {
-          en: "We'll add a gentle illustration. No blank cards. Ever.",
-          ja: "やさしいイラストが自動で入る。空白のカードは、もう存在しない。",
+          en: "A gentle SVG illustration fills the space.",
+          ja: "やさしいSVGイラストが空白を埋める。",
         },
       },
     ],
   },
   pricing: {
     h2: { en: "Simple pricing", ja: "シンプルな料金" },
-    price: "$29",
+    price: "$10",
     period: { en: "/mo", ja: "/月" },
     features: {
       en: [
@@ -79,10 +83,10 @@ const copy = {
         "エクスポート & API",
       ],
     },
-    cta: { en: "Claim Early Access →", ja: "早期アクセスを確保 →" },
+    cta: { en: "Lock in $10/mo Forever →", ja: "$10/月 を永久確保 →" },
     urgency: {
-      en: "Early-bird pricing · first 20 members keep this price forever",
-      ja: "先着20名限定 · この価格をずっと維持できます",
+      en: "⚡ Only 20 spots at this price — lock it in now or pay more later",
+      ja: "⚡ この価格は先着20名のみ — 今確保しないと後から値上げ",
     },
   },
   waitlist: {

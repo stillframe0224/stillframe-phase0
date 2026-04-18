@@ -154,7 +154,10 @@ async function fetchViaJina(
     const image = resolveUrl(ogImage ?? twImage, origin);
     const title = extractMeta(html, "og:title");
     return { image, title };
-  } catch {
+  } catch (error) {
+    if (error instanceof Error && (error.name === "TimeoutError" || error.name === "AbortError")) {
+      trackLinkPreview("jina_timeout", { url: summarizeUrlForLog(url), timeout_ms: JINA_TIMEOUT });
+    }
     return null;
   }
 }
@@ -169,19 +172,12 @@ async function fetchViaJinaHtml(url: string): Promise<string | null> {
       },
       signal: AbortSignal.timeout(JINA_TIMEOUT),
     });
-    if (!res.ok) {
-      trackLinkPreview("jina_html_fail", {
-        url: summarizeUrlForLog(url),
-        status: res.status,
-      });
-      return null;
-    }
+    if (!res.ok) return null;
     return await res.text();
-  } catch (e) {
-    trackLinkPreview("jina_html_error", {
-      url: summarizeUrlForLog(url),
-      reason: e instanceof Error ? e.message : "unknown",
-    });
+  } catch (error) {
+    if (error instanceof Error && (error.name === "TimeoutError" || error.name === "AbortError")) {
+      trackLinkPreview("jina_timeout", { url: summarizeUrlForLog(url), timeout_ms: JINA_TIMEOUT });
+    }
     return null;
   }
 }
@@ -238,7 +234,10 @@ async function fetchSyndicationTweet(tweetId: string): Promise<Record<string, un
     if (!res.ok) return null;
     const data = await res.json();
     return data && typeof data === "object" ? data as Record<string, unknown> : null;
-  } catch {
+  } catch (error) {
+    if (error instanceof Error && (error.name === "TimeoutError" || error.name === "AbortError")) {
+      trackLinkPreview("syndication_timeout", { tweet_id: tweetId, timeout_ms: SYNDICATION_TIMEOUT });
+    }
     return null;
   }
 }
@@ -647,7 +646,8 @@ export async function GET(request: Request) {
             );
           }
         }
-      } catch {
+      } catch (err) {
+        console.error("Instagram oEmbed error:", err instanceof Error ? err.message : String(err));
         trackLinkPreview("ig_oembed_failed", { url: summarizeUrlForLog(url) });
       }
 
@@ -674,7 +674,8 @@ export async function GET(request: Request) {
             );
           }
         }
-      } catch {
+      } catch (err) {
+        console.error("Instagram Jina error:", err instanceof Error ? err.message : String(err));
         trackLinkPreview("ig_jina_failed", { url: summarizeUrlForLog(url) });
       }
     }
@@ -719,7 +720,7 @@ export async function GET(request: Request) {
       // Non-2xx from safeFetch — try Jina as fallback before giving up
       const jina = await fetchViaJina(url, parsed.origin);
       if (jina?.image) {
-        trackLinkPreview("jina_fallback_fetch_failed", { url: summarizeUrlForLog(url), hostname: parsed.hostname, status: res.status });
+        trackLinkPreview("jina_fallback_fetch_failed", { url: summarizeUrlForLog(url) });
         return NextResponse.json(
           { image: jina.image, favicon: `${parsed.origin}/favicon.ico`, title: jina.title },
           { headers: { "Cache-Control": "public, max-age=3600" } }
@@ -727,7 +728,7 @@ export async function GET(request: Request) {
       }
 
 
-      trackLinkPreview("fetch_failure", { url: summarizeUrlForLog(url), hostname: parsed.hostname, status: res.status, jinaFailed: true });
+      trackLinkPreview("fetch_failure", { url: summarizeUrlForLog(url), status: res.status, jinaFailed: true });
       const retryAfterMs = failureRetryAfterMs(res.status, res.headers.get("retry-after"));
       return NextResponse.json(
         { image: null, favicon: `${parsed.origin}/favicon.ico`, title: null, retryAfterMs },
@@ -804,8 +805,9 @@ export async function GET(request: Request) {
     );
   } catch (e) {
     const reason = e instanceof Error ? e.message : "unknown";
-    if (debug) console.log(JSON.stringify({ event: "link_preview_error", url, reason }));
-    trackLinkPreview("exception", { url: summarizeUrlForLog(url), hostname: parsed.hostname, reason, isTimeout: reason.includes("abort") || reason.includes("timeout") });
+    if (debug) console.log(JSON.stringify({ event: "link_preview_error", url, reason, stack: e instanceof Error ? e.stack : undefined }));
+    console.error("Link preview error:", { url: summarizeUrlForLog(url), reason, error: e });
+    trackLinkPreview("exception", { url: summarizeUrlForLog(url), reason });
     if (reason === "blocked") {
       return NextResponse.json({ error: "blocked_url" }, { status: 400 });
     }
