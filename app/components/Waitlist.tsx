@@ -157,11 +157,10 @@ export default function Waitlist({
           data-testid="cta-waitlist"
           aria-label={loading ? c.submitting[lang] : c.cta[lang]}
           type="submit"
-          disabled={loading || !normalizedEmail || !isEmailValid}
+          disabled={loading}
           className="rounded-full px-6 py-3 text-sm whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[var(--accent-strong)]"
           style={{
-            cursor: loading ? "wait" : !normalizedEmail || !isEmailValid ? "not-allowed" : undefined,
-            opacity: !normalizedEmail || !isEmailValid ? 0.5 : 1,
+            cursor: loading ? "wait" : undefined,
             flex: "1 0 auto",
           }}
         >
