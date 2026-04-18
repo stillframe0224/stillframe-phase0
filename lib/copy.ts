@@ -106,6 +106,10 @@ const copy = {
       en: "Could not submit. Please try again.",
       ja: "送信できませんでした。もう一度お試しください。",
     },
+    errorNetwork: {
+      en: "Could not connect. Please check your internet connection and try again.",
+      ja: "接続できませんでした。インターネット接続を確認してもう一度お試しください。",
+    },
   },
   footer: {
     brand: "StillFrame",
