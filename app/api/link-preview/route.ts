@@ -41,7 +41,7 @@ function trackLinkPreview(event: string, data: Record<string, unknown>): void {
     ts: new Date().toISOString(),
   }));
 }
-const FETCH_TIMEOUT = 6000; // 4s→6s for slow sites (Substack etc.)
+const FETCH_TIMEOUT = 5000; // 5s timeout for slow sites (Substack etc.)
 const JINA_TIMEOUT = 7000;  // Jina needs a bit more headroom
 const SYNDICATION_TIMEOUT = 4500;
 
