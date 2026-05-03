@@ -96,7 +96,11 @@ export async function POST(request: NextRequest) {
       .eq("id", cardId);
 
     if (updateError) {
-      console.error("Update error:", updateError);
+      console.error(JSON.stringify({
+        event: "ai_organize_update_error",
+        error: updateError instanceof Error ? updateError.message : String(updateError),
+        timestamp: new Date().toISOString()
+      }));
       return NextResponse.json(
         { error: "Failed to update card" },
         { status: 500 }
@@ -108,7 +112,11 @@ export async function POST(request: NextRequest) {
       result: aiResult,
     });
   } catch (error: any) {
-    console.error("AI organize error:", error);
+    console.error(JSON.stringify({
+      event: "ai_organize_error",
+      error: error instanceof Error ? error.message : String(error),
+      timestamp: new Date().toISOString()
+    }));
     return NextResponse.json(
       { error: error.message || "Internal error" },
       { status: 500 }

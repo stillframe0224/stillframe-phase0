@@ -584,7 +584,11 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
       }
       setDebugExportError(null);
     } catch (error) {
-      console.error("export_failed", error);
+      console.error(JSON.stringify({
+        event: "export_failed",
+        error: error instanceof Error ? error.message : String(error),
+        timestamp: new Date().toISOString()
+      }));
       setDebugExportError(error instanceof Error ? error.message : "unknown_error");
     }
   }, [cards, memoById, tagById, debugMode, debugBuildLabel]);
@@ -1256,7 +1260,11 @@ export default function ShinenCanvas({ initialCards, e2eMode = false }: ShinenCa
                 );
                 setDebugExportError(null);
               } catch (error) {
-                console.error("diagnostics_export_failed", error);
+                console.error(JSON.stringify({
+                  event: "diagnostics_export_failed",
+                  error: error instanceof Error ? error.message : String(error),
+                  timestamp: new Date().toISOString()
+                }));
                 setDebugExportError(error instanceof Error ? error.message : "unknown_error");
               }
             }}

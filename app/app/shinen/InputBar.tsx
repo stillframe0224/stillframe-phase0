@@ -108,7 +108,14 @@ export default function InputBar({ onSubmit, onFileUpload, time }: InputBarProps
 
         onFileUpload?.(result);
       } catch (error) {
-        console.error("File processing error:", error);
+        console.error(JSON.stringify({
+          event: "file_processing_error",
+          file_name: file.name,
+          file_size: file.size,
+          file_type: file.type,
+          error: error instanceof Error ? error.message : String(error),
+          timestamp: new Date().toISOString()
+        }));
         setFileError(error instanceof Error ? error.message : "ファイルの処理に失敗しました");
         setLastFailedFile(file);
         showError("Failed to process file");
