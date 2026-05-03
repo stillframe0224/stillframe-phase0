@@ -16,8 +16,8 @@ const copy = {
       ja: "URLを貼れば画像が現れる。写真を落とせばカードになる。何もしなくても、やさしいイラストが空白を埋める。画像探しも、空白のカードも、もういらない。",
     },
     cta: {
-      en: "Try Free Demo →",
-      ja: "無料で試す →",
+      en: "Capture Your First Thought →",
+      ja: "最初の思考をキャプチャ →",
     },
     ctaSecondary: {
       en: "Join Waitlist for Early Access",
