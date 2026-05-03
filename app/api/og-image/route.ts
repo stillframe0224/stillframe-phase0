@@ -58,7 +58,7 @@ export async function POST(request: Request) {
         "User-Agent": "SHINEN-Bot/1.0 (OGP fetcher)",
         Accept: "text/html",
       },
-      signal: AbortSignal.timeout(3000),
+      signal: AbortSignal.timeout(5000),
     });
 
     if (!res.ok) {
@@ -77,7 +77,15 @@ export async function POST(request: Request) {
       );
     }
 
-    const html = await res.text();
+    // Add timeout for text parsing too
+    const textController = new AbortController();
+    const textTimeout = setTimeout(() => textController.abort(), 2000);
+    let html: string;
+    try {
+      html = await res.text();
+    } finally {
+      clearTimeout(textTimeout);
+    }
 
     // Extract og:image
     const ogMatch = html.match(
