@@ -11,6 +11,7 @@ import AppHeader from "@/ui/components/AppHeader";
 import Pricing from "@/app/components/Pricing";
 import Waitlist from "@/app/components/Waitlist";
 import TrackEvent from "@/app/components/TrackEvent";
+import BackToTop from "@/app/components/BackToTop";
 import { PrimaryButton, Card } from "@/ui/components/ui";
 
 const GUMROAD_URL = process.env.NEXT_PUBLIC_GUMROAD_PRODUCT_URL || "#";
@@ -749,6 +750,7 @@ export default function Home() {
           {copy.footer.copyright[lang]}
         </p>
       </footer>
+      <BackToTop lang={lang} />
     </div>
   );
 }
