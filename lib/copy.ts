@@ -20,8 +20,8 @@ const copy = {
       ja: "無料で試す →",
     },
     ctaSecondary: {
-      en: "$10/mo Forever (First 20)",
-      ja: "$10/月 永久保証（先着20名）",
+      en: "Join Waitlist for Early Access",
+      ja: "早期アクセスの通知を受け取る",
     },
   },
   demo: {
