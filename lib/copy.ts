@@ -92,7 +92,7 @@ const copy = {
   waitlist: {
     h2: { en: "Stay in the loop", ja: "最新情報を受け取る" },
     placeholder: { en: "you@email.com", ja: "you@email.com" },
-    cta: { en: "Notify me", ja: "通知を受け取る" },
+    cta: { en: "Get Early Access", ja: "早期アクセスを申請" },
     submitting: { en: "Sending...", ja: "送信中..." },
     trust: {
       en: "Just launch updates. No spam, no sharing.",
