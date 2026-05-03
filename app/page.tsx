@@ -348,7 +348,8 @@ export default function Home() {
               aria-selected={selectedType === t.label}
               onClick={() => setSelectedType(t.label)}
               style={{
-                padding: "5px 14px",
+                padding: "8px 18px",
+                minHeight: 44,
                 borderRadius: 999,
                 border: `1.5px solid ${
                   selectedType === t.label ? t.border : "transparent"
