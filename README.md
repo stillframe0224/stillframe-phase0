@@ -143,6 +143,26 @@ npm run test:unit
 | `npm run dev` | Start development server |
 | `npm run build` | Build for production |
 | `npm start` | Start production server |
+
+---
+
+## 📊 KPI Dashboard
+
+Access the Phase0 KPI dashboard at `/kpi` to track progress toward OKR targets:
+
+- **KR1**: Waitlist registrations (target: 50)
+- **KR2**: Gumroad purchases (target: 3, $29 tier)
+- **KR3**: DAU (target: 10, 7-day streak)
+- **KR4**: Total cards created (target: 100)
+
+The dashboard displays:
+- Real-time card creation metrics (total, last 7 days, last 24 hours)
+- Distinct user count
+- Progress bars for each KR
+- External data notes (Waitlist/Gumroad tracked outside Supabase)
+
+To view: `http://localhost:3000/kpi` (development) or `https://your-domain.vercel.app/kpi` (production)
+
 | `npm run test:e2e` | Run E2E tests |
 | `npm run test:e2e:guard` | Run guard tests (security) |
 | `npm run test:smoke` | Run smoke tests |
