@@ -247,25 +247,30 @@ export default function Home() {
             onClick={() => track("hero_cta_early_access_click")}
             aria-label={copy.hero.ctaSecondary[lang]}
             style={{
-              padding: "10px 28px",
+              padding: "12px 32px",
               borderRadius: 999,
               border: "none",
-              background: "rgba(0,0,0,0.85)",
+              background: "#000",
               color: "#fff",
-              fontSize: 15,
+              fontSize: 16,
               fontWeight: 600,
               letterSpacing: "0.04em",
               fontFamily: "var(--font-dm), system-ui, sans-serif",
               cursor: "pointer",
               textDecoration: "none",
               display: "inline-block",
-              transition: "background 0.15s",
+              transition: "all 0.2s ease",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
             }}
             onMouseEnter={(e) => {
-              (e.currentTarget as HTMLAnchorElement).style.background = "rgba(0,0,0,0.95)";
+              (e.currentTarget as HTMLAnchorElement).style.background = "#222";
+              (e.currentTarget as HTMLAnchorElement).style.transform = "translateY(-1px)";
+              (e.currentTarget as HTMLAnchorElement).style.boxShadow = "0 4px 12px rgba(0,0,0,0.25)";
             }}
             onMouseLeave={(e) => {
-              (e.currentTarget as HTMLAnchorElement).style.background = "rgba(0,0,0,0.85)";
+              (e.currentTarget as HTMLAnchorElement).style.background = "#000";
+              (e.currentTarget as HTMLAnchorElement).style.transform = "translateY(0)";
+              (e.currentTarget as HTMLAnchorElement).style.boxShadow = "0 2px 8px rgba(0,0,0,0.15)";
             }}
           >
             {copy.hero.ctaSecondary[lang]}
