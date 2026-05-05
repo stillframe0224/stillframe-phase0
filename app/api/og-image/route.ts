@@ -3,6 +3,11 @@ import { NextResponse } from "next/server";
 const YT_RE =
   /(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/|live\/|v\/)|youtu\.be\/)([\w-]{11})/;
 
+// Timeout constants
+const FETCH_TIMEOUT_MS = 5000;  // 5 seconds for initial fetch
+const TEXT_TIMEOUT_MS = 3000;   // 3 seconds for reading response body
+const TOTAL_TIMEOUT_MS = 8000;  // 8 seconds total (with margin)
+
 function logOgImageError(context: {
   event: string;
   url?: string;
@@ -13,6 +18,30 @@ function logOgImageError(context: {
   type?: string;
 }) {
   console.error(JSON.stringify({ ...context, timestamp: new Date().toISOString() }));
+}
+
+/**
+ * Wrapper to add timeout to res.text() operation
+ */
+async function readTextWithTimeout(response: Response, timeoutMs: number): Promise<string> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  
+  try {
+    // res.text() doesn't accept signal directly, so we race it with timeout
+    const textPromise = response.text();
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      controller.signal.addEventListener('abort', () => {
+        const err = new Error('Text read timeout');
+        err.name = 'TimeoutError';
+        reject(err);
+      });
+    });
+    
+    return await Promise.race([textPromise, timeoutPromise]);
+  } finally {
+    clearTimeout(timeoutId);
+  }
 }
 
 export async function POST(request: Request) {
@@ -58,7 +87,7 @@ export async function POST(request: Request) {
         "User-Agent": "SHINEN-Bot/1.0 (OGP fetcher)",
         Accept: "text/html",
       },
-      signal: AbortSignal.timeout(5000),
+      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
     });
 
     if (!res.ok) {
@@ -77,7 +106,8 @@ export async function POST(request: Request) {
       );
     }
 
-    const html = await res.text();
+    // Read response body with timeout protection
+    const html = await readTextWithTimeout(res, TEXT_TIMEOUT_MS);
 
     // Extract og:image
     const ogMatch = html.match(
@@ -105,6 +135,7 @@ export async function POST(request: Request) {
         hostname: parsedUrl.hostname,
         duration_ms: Date.now() - startTime,
       });
+      return NextResponse.json({ image: null, title, fallback: true });
     }
 
     return NextResponse.json({ image, title });
