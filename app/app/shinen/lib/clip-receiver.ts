@@ -13,6 +13,8 @@
  *   }, []);
  */
 
+import { logError } from "@/lib/error-logger";
+
 const CHANNEL = "SAVE_TO_SHINEN_V1";
 
 export interface ClipData {
@@ -64,6 +66,23 @@ export function initClipReceiver(onClip: ClipHandler): () => void {
         currentHandler(data);
       } catch (e) {
         console.error("[SHINEN clip-receiver] Handler error:", e);
+        
+        // Log error to Supabase for observability
+        const error = e instanceof Error ? e : new Error(String(e));
+        logError({
+          errorType: 'clip_receiver',
+          errorMessage: error.message,
+          errorStack: error.stack,
+          metadata: {
+            clipId,
+            clipData: data,
+            timestamp: Date.now(),
+          },
+        }).catch((logErr) => {
+          // Suppress logging errors to avoid noise
+          console.warn('[clip-receiver] Failed to log error:', logErr);
+        });
+        
         // Do NOT ACK — leave in queue for retry on next drain
         return;
       }
