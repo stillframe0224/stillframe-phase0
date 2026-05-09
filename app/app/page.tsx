@@ -71,20 +71,72 @@ export default function AppPage() {
           width: "100%",
           height: "100vh",
           display: "flex",
+          flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
           background: "#fdfdfd",
           fontFamily: "'DM Sans',sans-serif",
-          color: "rgba(0,0,0,0.2)",
-          fontSize: 13,
+          gap: 16,
         }}
       >
-        loading...
+        <div
+          style={{
+            width: 32,
+            height: 32,
+            border: "3px solid rgba(0,0,0,0.1)",
+            borderTopColor: "rgba(0,0,0,0.4)",
+            borderRadius: "50%",
+            animation: "spin 0.8s linear infinite",
+          }}
+        />
+        <div
+          style={{
+            color: "rgba(0,0,0,0.3)",
+            fontSize: 13,
+          }}
+        >
+          loading...
+        </div>
+        <style>{`
+          @keyframes spin {
+            to { transform: rotate(360deg); }
+          }
+        `}</style>
       </div>
     );
   }
 
-  if (!authed) return null;
+  if (!authed) {
+    return (
+      <div
+        style={{
+          width: "100%",
+          height: "100vh",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          background: "#fdfdfd",
+          fontFamily: "'DM Sans',sans-serif",
+          color: "rgba(0,0,0,0.4)",
+          fontSize: 14,
+          gap: 12,
+        }}
+      >
+        <div>Authentication required</div>
+        <a
+          href="/auth/login"
+          style={{
+            color: "rgba(0,0,0,0.6)",
+            textDecoration: "underline",
+            fontSize: 13,
+          }}
+        >
+          Go to login
+        </a>
+      </div>
+    );
+  }
 
   return (
     <div className="app-grid-bg">
