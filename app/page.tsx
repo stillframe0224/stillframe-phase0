@@ -202,6 +202,21 @@ export default function Home() {
         >
           {copy.hero.sub[lang]}
         </p>
+        {/* Market Pulse insight: scattered information pain point */}
+        <p
+          style={{
+            fontSize: 13,
+            lineHeight: 1.6,
+            color: "#999",
+            maxWidth: 460,
+            margin: "0 auto 32px",
+            fontStyle: "italic",
+          }}
+        >
+          {lang === "ja"
+            ? "パスワード、アイデア、読んだ記事…頭の中で散らばった情報を、視覚的に1つの場所へ。"
+            : "Passwords, ideas, articles you read... bring scattered thoughts into one visual space."}
+        </p>
         <div
           style={{
             display: "flex",
