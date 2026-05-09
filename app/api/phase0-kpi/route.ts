@@ -81,6 +81,13 @@ export async function GET() {
       distinct_users: distinctUsers ?? 0,
       cards_7d: e3 ? null : (cards7d ?? 0),
       cards_1d: e4 ? null : (cards1d ?? 0),
+      // ── Error metrics (future: parse logs or store events in DB) ──
+      error_metrics: {
+        og_image_errors_7d: null,
+        link_preview_errors_7d: null,
+        error_rate: null,
+        notes: "Future implementation: aggregate og_image_fetch_failed / link_preview_exception from logs or DB events",
+      },
       // ── External data (not available server-side) ──
       waitlist_total: null,
       payment_intent: null,
