@@ -86,13 +86,14 @@ export default function AppPage() {
             border: "3px solid rgba(0,0,0,0.1)",
             borderTopColor: "rgba(0,0,0,0.4)",
             borderRadius: "50%",
-            animation: "spin 0.8s linear infinite",
+            animation: "fadeIn 0.4s ease-out, spin 0.8s linear infinite, pulse 1.8s ease-in-out infinite",
           }}
         />
         <div
           style={{
             color: "rgba(0,0,0,0.3)",
             fontSize: 13,
+            animation: "fadeIn 0.6s ease-out 0.2s backwards",
           }}
         >
           loading...
@@ -100,6 +101,14 @@ export default function AppPage() {
         <style>{`
           @keyframes spin {
             to { transform: rotate(360deg); }
+          }
+          @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+          }
+          @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
           }
         `}</style>
       </div>
