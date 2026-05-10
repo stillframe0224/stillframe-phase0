@@ -12,7 +12,10 @@ export async function fetchCards(): Promise<DbCard[]> {
     .select("*")
     .order("created_at", { ascending: false });
 
-  if (error) throw error;
+  if (error) {
+    console.error("[fetchCards] Supabase error:", error);
+    throw error;
+  }
   return (data ?? []) as DbCard[];
 }
 
@@ -29,18 +32,31 @@ export async function insertCard(card: NewDbCard): Promise<DbCard> {
     .select()
     .single();
 
-  if (error) throw error;
+  if (error) {
+    console.error("[insertCard] Supabase error:", {
+      error,
+      card_text: card.text,
+      card_type: card.type,
+    });
+    throw error;
+  }
   return data as DbCard;
 }
 
 export async function updateCard(id: string, updates: DbCardUpdates): Promise<void> {
   const { error } = await supabase.from("cards").update(updates).eq("id", id);
-  if (error) throw error;
+  if (error) {
+    console.error("[updateCard] Supabase error:", { error, id, updates });
+    throw error;
+  }
 }
 
 export async function deleteCards(ids: string[]): Promise<void> {
   const { error } = await supabase.from("cards").delete().in("id", ids);
-  if (error) throw error;
+  if (error) {
+    console.error("[deleteCards] Supabase error:", { error, ids });
+    throw error;
+  }
 }
 
 export async function uploadFile(cardId: string, file: File): Promise<string> {
@@ -53,7 +69,15 @@ export async function uploadFile(cardId: string, file: File): Promise<string> {
   const path = `${user.id}/${cardId}/${file.name}`;
   const { error } = await supabase.storage.from("shinen-files").upload(path, file, { upsert: true });
 
-  if (error) throw error;
+  if (error) {
+    console.error("[uploadFile] Supabase storage error:", {
+      error,
+      cardId,
+      fileName: file.name,
+      fileSize: file.size,
+    });
+    throw error;
+  }
 
   const { data } = supabase.storage.from("shinen-files").getPublicUrl(path);
   return data.publicUrl;
