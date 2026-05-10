@@ -110,6 +110,10 @@ const copy = {
       en: "You're in. We'll be in touch.",
       ja: "登録完了。ご連絡します。",
     },
+    successNext: {
+      en: "Check your inbox for a confirmation. Want to start right now?",
+      ja: "確認メールをご確認ください。今すぐ始めたい方は：",
+    },
     error: {
       en: "Could not submit. Please try again.",
       ja: "送信できませんでした。もう一度お試しください。",

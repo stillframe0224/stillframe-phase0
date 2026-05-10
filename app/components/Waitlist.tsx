@@ -98,9 +98,20 @@ export default function Waitlist({
             fontSize: 16,
             color: "#2a2a2a",
             fontFamily: "var(--font-dm)",
+            marginBottom: 8,
           }}
         >
           {c.success[lang]}
+        </p>
+        <p
+          style={{
+            fontSize: 14,
+            color: "#6a6a6a",
+            fontFamily: "var(--font-dm)",
+            marginBottom: 16,
+          }}
+        >
+          {c.successNext[lang]}
         </p>
         <PrimaryButton
           data-testid="waitlist-pricing-cta"
