@@ -35,6 +35,14 @@ const copy = {
       en: "Nothing is saved — just explore freely.",
       ja: "何も保存されません。自由に試してみてください。",
     },
+    errorEmpty: {
+      en: "Please enter a thought",
+      ja: "思考を入力してください",
+    },
+    errorGeneral: {
+      en: "Failed to create card.",
+      ja: "カード作成に失敗しました。",
+    },
   },
   howImages: {
     h2: {

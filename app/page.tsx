@@ -112,7 +112,7 @@ export default function Home() {
   const addCard = () => {
     const text = input.trim();
     if (!text) {
-      setCardError("思考を入力してください");
+      setCardError(copy.demo.errorEmpty[lang]);
       return;
     }
     setCardError(null);
@@ -123,7 +123,7 @@ export default function Home() {
       track("card_add", { type: selectedType });
       inputRef.current?.focus();
     } catch (e) {
-      setCardError("カード作成に失敗しました。");
+      setCardError(copy.demo.errorGeneral[lang]);
     }
   };
 
