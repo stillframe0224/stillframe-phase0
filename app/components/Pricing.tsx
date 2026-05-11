@@ -84,15 +84,17 @@ export default function Pricing({ lang, gumroadUrl }: PricingProps) {
       </ul>
       <p
         style={{
-          margin: "0 0 14px",
-          fontSize: 13,
+          margin: "0 0 18px",
+          fontSize: 14,
           color: "#8a5a00",
           fontFamily: "var(--font-dm)",
+          fontWeight: 600,
           background: "#fff4da",
           border: "1px solid #f3dfb3",
           borderRadius: 999,
-          padding: "6px 12px",
+          padding: "8px 16px",
           display: "inline-block",
+          boxShadow: "0 2px 4px rgba(138, 90, 0, 0.1)",
         }}
       >
         {c.urgency[lang]}
@@ -105,10 +107,16 @@ export default function Pricing({ lang, gumroadUrl }: PricingProps) {
           onClick={() => track("checkout_start")}
           data-testid="cta-pricing"
           aria-label={c.cta[lang]}
-          className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[var(--accent-strong)] rounded-full"
-          style={{ textDecoration: "none" }}
+          className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[var(--accent-strong)] rounded-full transition-all hover:scale-105"
+          style={{ 
+            textDecoration: "none",
+            display: "inline-block",
+          }}
         >
-          <PrimaryButton data-testid="cta-pricing" className="rounded-full px-10 py-4 text-base font-semibold">
+          <PrimaryButton 
+            data-testid="cta-pricing" 
+            className="rounded-full px-12 py-5 text-lg font-bold shadow-lg hover:shadow-xl transition-shadow"
+          >
             {c.cta[lang]}
           </PrimaryButton>
         </a>
@@ -118,7 +126,7 @@ export default function Pricing({ lang, gumroadUrl }: PricingProps) {
           type="button"
           onClick={() => track("checkout_unavailable")}
           aria-label={`${c.cta[lang]} (unavailable)`}
-          className="rounded-full px-10 py-4 text-base font-semibold"
+          className="rounded-full px-12 py-5 text-lg font-bold shadow-lg"
           disabled
           title="Checkout URL is not configured"
         >
