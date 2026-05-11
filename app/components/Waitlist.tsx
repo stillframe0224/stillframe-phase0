@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import copy from "@/lib/copy";
 import type { Lang } from "@/lib/copy";
 import { track } from "@/lib/track";
@@ -18,6 +18,31 @@ function isValidEmail(email: string): boolean {
   return emailRegex.test(email);
 }
 
+const WAITLIST_STORAGE_KEY = "shinen_waitlist_emails";
+
+function getSubmittedEmails(): string[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const stored = localStorage.getItem(WAITLIST_STORAGE_KEY);
+    return stored ? JSON.parse(stored) : [];
+  } catch {
+    return [];
+  }
+}
+
+function addSubmittedEmail(email: string) {
+  if (typeof window === "undefined") return;
+  try {
+    const emails = getSubmittedEmails();
+    if (!emails.includes(email)) {
+      emails.push(email);
+      localStorage.setItem(WAITLIST_STORAGE_KEY, JSON.stringify(emails));
+    }
+  } catch {
+    // localStorage quota exceeded or disabled — silent fail
+  }
+}
+
 export default function Waitlist({
   lang,
   postUrl,
@@ -27,10 +52,16 @@ export default function Waitlist({
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [submittedEmails, setSubmittedEmails] = useState<string[]>([]);
   const c = copy.waitlist;
+
+  useEffect(() => {
+    setSubmittedEmails(getSubmittedEmails());
+  }, []);
 
   const normalizedEmail = email.trim().toLowerCase();
   const isEmailValid = isValidEmail(normalizedEmail);
+  const isDuplicate = submittedEmails.includes(normalizedEmail);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,6 +70,15 @@ export default function Waitlist({
         lang === "ja"
           ? "有効なメールアドレスを入力してください"
           : "Please enter a valid email address"
+      );
+      return;
+    }
+
+    if (isDuplicate) {
+      setErrorMessage(
+        lang === "ja"
+          ? "このメールアドレスは既に登録済みです"
+          : "This email has already been submitted"
       );
       return;
     }
@@ -70,6 +110,8 @@ export default function Waitlist({
         throw new Error("waitlist_destination_missing");
       }
 
+      addSubmittedEmail(normalizedEmail);
+      setSubmittedEmails([...submittedEmails, normalizedEmail]);
       setSubmitted(true);
     } catch (error) {
       // Network errors (fetch failed) show connection-specific message
