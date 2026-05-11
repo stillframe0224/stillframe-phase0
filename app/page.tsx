@@ -108,8 +108,10 @@ export default function Home() {
   const toggleLang = () => setLang((l) => (l === "en" ? "ja" : "en"));
 
   const [cardError, setCardError] = useState<string | null>(null);
+  const [isCreating, setIsCreating] = useState(false);
 
-  const addCard = () => {
+  const addCard = async () => {
+    setIsCreating(true);
     const text = input.trim();
     if (!text) {
       setCardError("思考を入力してください");
@@ -121,9 +123,11 @@ export default function Home() {
       setNextId((n) => n + 1);
       setInput("");
       track("card_add", { type: selectedType });
+      setIsCreating(false);
       inputRef.current?.focus();
     } catch (e) {
       setCardError("カード作成に失敗しました。");
+      setIsCreating(false);
     }
   };
 
@@ -227,7 +231,7 @@ export default function Home() {
               fontWeight: 500,
               letterSpacing: "0.04em",
               fontFamily: "var(--font-dm), system-ui, sans-serif",
-              cursor: "pointer",
+              cursor: isCreating ? "not-allowed" : "pointer",
               transition: "background 0.15s, color 0.15s",
             }}
             onMouseEnter={(e) => {
@@ -256,7 +260,7 @@ export default function Home() {
               fontWeight: 600,
               letterSpacing: "0.04em",
               fontFamily: "var(--font-dm), system-ui, sans-serif",
-              cursor: "pointer",
+              cursor: isCreating ? "not-allowed" : "pointer",
               textDecoration: "none",
               display: "inline-block",
               transition: "background 0.15s",
@@ -360,7 +364,7 @@ export default function Home() {
                 fontSize: 12,
                 fontWeight: 600,
                 fontFamily: "var(--font-dm)",
-                cursor: "pointer",
+                cursor: isCreating ? "not-allowed" : "pointer",
                 transition: "all 0.15s",
                 textTransform: "uppercase",
                 letterSpacing: "0.05em",
@@ -406,6 +410,7 @@ export default function Home() {
             />
             <button
               onClick={addCard}
+              disabled={isCreating}
               style={{
                 width: 48,
                 height: 48,
@@ -415,7 +420,7 @@ export default function Home() {
                 color: "#fff",
                 fontSize: 22,
                 fontWeight: 300,
-                cursor: "pointer",
+                cursor: isCreating ? "not-allowed" : "pointer",
                 transition: "opacity 0.2s",
                 display: "flex",
                 alignItems: "center",
@@ -424,7 +429,7 @@ export default function Home() {
               onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.8")}
               onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
             >
-              +
+              {isCreating ? "..." : "+"}
             </button>
           </div>
           {cardError && (
@@ -465,7 +470,7 @@ export default function Home() {
                   border: "1px solid #ddd",
                   borderRadius: 999,
                   padding: "6px 18px",
-                  cursor: "pointer",
+                  cursor: isCreating ? "not-allowed" : "pointer",
                   fontFamily: "var(--font-dm)",
                   transition: "border-color 0.2s",
                 }}
@@ -622,7 +627,7 @@ export default function Home() {
               fontWeight: 600,
               letterSpacing: "0.04em",
               fontFamily: "var(--font-dm), system-ui, sans-serif",
-              cursor: "pointer",
+              cursor: isCreating ? "not-allowed" : "pointer",
               textDecoration: "none",
               display: "inline-block",
               transition: "all 0.2s",
@@ -703,7 +708,7 @@ export default function Home() {
                 padding: 0,
                 fontSize: 13,
                 color: "#999",
-                cursor: "pointer",
+                cursor: isCreating ? "not-allowed" : "pointer",
                 fontFamily: "var(--font-dm)",
                 letterSpacing: "0.03em",
                 transition: "color 0.15s",
