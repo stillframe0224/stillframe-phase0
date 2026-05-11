@@ -58,13 +58,14 @@ export async function POST(request: Request) {
         "User-Agent": "SHINEN-Bot/1.0 (OGP fetcher)",
         Accept: "text/html",
       },
-      signal: AbortSignal.timeout(5000),
+      signal: AbortSignal.timeout(7000), // Extended from 5s to 7s
     });
 
     if (!res.ok) {
       const duration = Date.now() - startTime;
+      const is404 = res.status === 404;
       logOgImageError({
-        event: "og_image_fetch_failed",
+        event: is404 ? "og_image_404" : "og_image_fetch_failed",
         url,
         hostname: parsedUrl.hostname,
         status: res.status,
@@ -72,7 +73,7 @@ export async function POST(request: Request) {
         duration_ms: duration,
       });
       return NextResponse.json(
-        { error: "fetch_failed", image: null, title: null, retryAfterMs: 5 * 60 * 1000 },
+        { error: "fetch_failed", image: null, title: null, retryAfterMs: is404 ? null : 5 * 60 * 1000 },
         { status: 502 }
       );
     }
@@ -111,6 +112,7 @@ export async function POST(request: Request) {
   } catch (e) {
     const message = e instanceof Error ? e.message : "unknown error";
     const isTimeout = e instanceof Error && e.name === "TimeoutError";
+    const isCORS = message.includes("CORS") || message.includes("Network request failed");
     const duration = Date.now() - startTime;
 
     logOgImageError({
@@ -118,11 +120,11 @@ export async function POST(request: Request) {
       error: message,
       hostname: parsedUrl?.hostname,
       duration_ms: duration,
-      type: isTimeout ? "timeout" : "error",
+      type: isTimeout ? "timeout" : isCORS ? "cors" : "error",
     });
     return NextResponse.json(
       {
-        error: isTimeout ? "timeout" : "internal_error",
+        error: isTimeout ? "timeout" : isCORS ? "cors_error" : "internal_error",
         image: null,
         title: null,
         retryAfterMs: 5 * 60 * 1000,
