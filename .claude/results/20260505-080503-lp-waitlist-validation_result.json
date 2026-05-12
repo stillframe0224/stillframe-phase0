@@ -1,0 +1,13 @@
+{
+  "status": "blocked",
+  "summary": "Implementation complete (copy.ts + Waitlist.tsx refactored, build passes, triad report created) but git commit/push/PR blocked by .claude/hooks/scripts/block-git-ops.sh hook",
+  "files_changed": [
+    "lib/copy.ts",
+    "app/components/Waitlist.tsx",
+    "reports/triad/20260505-080503-lp-waitlist-validation.md"
+  ],
+  "reason": "Git operations (add, commit, push, checkout) are all blocked by the block-git-ops.sh hook. Cannot create branch, commit, or PR as required by DoD.",
+  "_parse_source": "fenced",
+  "_task_id": "20260505-080503-lp-waitlist-validation",
+  "_at": "2026-05-05T13:12:23.799Z"
+}

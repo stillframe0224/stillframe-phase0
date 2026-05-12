@@ -1,0 +1,34 @@
+{
+  "id": "20260429-080005-typescript-strict-prep",
+  "goal": "TypeScript strict mode 有効化の前準備（tsconfig.json検証＋型エラー箇所リストアップ）",
+  "est_minutes": 15,
+  "dod": [
+    "tsconfig.jsonでstrict: trueを試行",
+    "型エラー箇所を reports/triad/20260429-080005-typescript-strict-prep.md にリスト化",
+    "修正不要（調査タスク）",
+    "次回タスクの計画を記載"
+  ],
+  "evidence_paths": [
+    "reports/triad/20260429-080005-typescript-strict-prep.md"
+  ],
+  "allowed_files": [
+    "tsconfig.json",
+    "reports/triad/20260429-080005-typescript-strict-prep.md"
+  ],
+  "required_files": [
+    "reports/triad/20260429-080005-typescript-strict-prep.md"
+  ],
+  "verification_commands": [
+    "npm run type-check"
+  ],
+  "triad_review": {
+    "contract": "PENDING",
+    "regression": "PENDING",
+    "safety": "PENDING",
+    "reviewed_commit": null,
+    "report_path": "reports/triad/20260429-080005-typescript-strict-prep.md"
+  },
+  "created_at": "2026-04-29T08:00:05+09:00",
+  "status": "current",
+  "_filename": "20260429-080005-typescript-strict-prep.json"
+}

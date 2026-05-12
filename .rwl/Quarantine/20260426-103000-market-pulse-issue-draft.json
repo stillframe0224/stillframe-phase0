@@ -1,0 +1,25 @@
+{
+  "id": "20260426-103000-market-pulse-issue-draft",
+  "goal": "reports/market_pulse の上位候補を1件、未Issue化の実行可能なIssue草案として起票する",
+  "est_minutes": 20,
+  "dod": [
+    "reports/market_pulse/candidates.json と raw.jsonl から未Issue化候補を1件選定し、issues/auto_generated/20260426-103000-market-pulse-issue-draft.md を作成",
+    "reports/triad/20260426-103000-market-pulse-issue-draft.md に変更ファイル・build結果・PR URL/変更なし・動作確認を記録",
+    "npm run build 通過",
+    "変更は issues/auto_generated/20260426-103000-market-pulse-issue-draft.md と reports/triad/20260426-103000-market-pulse-issue-draft.md の作成のみ"
+  ],
+  "evidence_paths": [
+    "reports/triad/20260426-103000-market-pulse-issue-draft.md"
+  ],
+  "allowed_files": {
+    "create": [
+      "issues/auto_generated/20260426-103000-market-pulse-issue-draft.md",
+      "reports/triad/20260426-103000-market-pulse-issue-draft.md"
+    ],
+    "modify": [],
+    "delete": []
+  },
+  "created_at": "2026-04-26T10:30:00+09:00",
+  "status": "current",
+  "_filename": "20260426-103000-market-pulse-issue-draft.json"
+}

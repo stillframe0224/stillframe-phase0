@@ -1,0 +1,1 @@
+blocked_reason: manual emergency quarantine of corrupt Current task; original content was non-JSON literal "current\n"; no recoverable task payload found in Queue or RWL history for 20260428-080000-fix-ogp-fetch-timeout

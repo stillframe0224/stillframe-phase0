@@ -1,0 +1,13 @@
+{
+  "id": "20260512-230000-og-fetch-feedback",
+  "goal": "OG画像取得失敗時にユーザーへの視覚的フィードバックを追加（再試行ボタン付き）",
+  "est_minutes": 90,
+  "dod": [
+    "npm run build 通過",
+    "/Users/array0224/stillframe-phase0/reports/triad/20260512-230000-og-fetch-feedback.md 作成",
+    "PR作成"
+  ],
+  "evidence_paths": ["/Users/array0224/stillframe-phase0/reports/triad/20260512-230000-og-fetch-feedback.md"],
+  "created_at": "2026-05-12T14:00:00.000Z",
+  "status": "queue"
+}

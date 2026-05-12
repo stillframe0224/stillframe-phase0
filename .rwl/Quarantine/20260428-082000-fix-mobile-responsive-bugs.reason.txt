@@ -1,0 +1,1 @@
+blocked_reason: task_invalid: schema validation failed: missing task.allowed_files; missing or non-array task.verification_commands; missing task.triad_review

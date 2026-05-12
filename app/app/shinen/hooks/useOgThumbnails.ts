@@ -279,22 +279,21 @@ export function useOgThumbnails(
           };
           writeCache(currentCache);
           
-          // Try to at least show the favicon as fallback
+          // Set ogFetchFailed flag for user feedback + fallback favicon
           setCards((prev) =>
             prev.map((c) => {
               if (c.id !== id || !c.source) return c;
-              // If we already have media or favicon, don't overwrite
-              if (c.media || c.source.favicon) return c;
               // Extract favicon from URL (protocol + hostname)
               try {
                 const u = new URL(url);
                 const faviconUrl = `${u.origin}/favicon.ico`;
                 return {
                   ...c,
-                  source: { ...c.source, favicon: faviconUrl }
+                  ogFetchFailed: true,
+                  source: { ...c.source, favicon: c.source.favicon ?? faviconUrl }
                 };
               } catch {
-                return c;
+                return { ...c, ogFetchFailed: true };
               }
             })
           );

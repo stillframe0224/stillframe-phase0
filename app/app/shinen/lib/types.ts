@@ -33,6 +33,8 @@ export interface ShinenCard {
     mimeType: string;
   };
   createdAt?: number;
+  /** Flag indicating OG image fetch failed (for user feedback). */
+  ogFetchFailed?: boolean;
 }
 
 export interface Projection {

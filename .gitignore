@@ -76,6 +76,7 @@ test-results/
 # --- local dev artifacts ---
 .plan/
 .rwl/Done/
+.rwl/Holding/
 .rwl/Queue/
 .rwl/logs/slack_runner.*.log
 reports/transcribe/

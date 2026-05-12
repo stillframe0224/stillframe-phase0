@@ -1,0 +1,16 @@
+{
+  "id": "20260505-080502-card-creation-loading-state",
+  "goal": "カード作成フローにローディング状態の視覚フィードバック追加",
+  "est_minutes": 20,
+  "dod": [
+    "npm run build 通過",
+    "reports/triad/20260505-080502-card-creation-loading-state.md 作成",
+    "PR作成"
+  ],
+  "evidence_paths": [
+    "/Users/array0224/stillframe-phase0/reports/triad/20260505-080502-card-creation-loading-state.md"
+  ],
+  "created_at": "2026-05-05T08:05:02+09:00",
+  "status": "current",
+  "_filename": "20260505-080502-card-creation-loading-state.json"
+}

@@ -1,0 +1,1 @@
+{"id":"20260428-081500-fix-nextjs-build-warnings","goal":"Next.js のビルド警告を修正しコード品質を向上させる","est_minutes":25,"dod":["npm run build 通過","reports/triad/20260428-081500-fix-nextjs-build-warnings.md 作成","PR作成"],"evidence_paths":["/Users/array0224/stillframe-phase0/reports/triad/20260428-081500-fix-nextjs-build-warnings.md"],"created_at":"2026-04-28T08:15:00+09:00","status":"queue"}

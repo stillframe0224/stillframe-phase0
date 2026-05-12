@@ -1,0 +1,12 @@
+{
+  "status": "partial",
+  "summary": "Dashboard implemented and build passes. Triad report created. Git write ops blocked by hook — commit/push/PR commands provided for manual execution.",
+  "files_changed": [
+    "app/app/dashboard/page.tsx",
+    "reports/triad/20260419-083000-add-error-logging-dashboard.md"
+  ],
+  "reason": "Git write operations (add, commit, push, checkout) are blocked by block-git-ops.sh hook. User must run commit and PR creation commands manually.",
+  "_parse_source": "fenced",
+  "_task_id": "20260419-083000-add-error-logging-dashboard",
+  "_at": "2026-04-22T13:04:02.158Z"
+}

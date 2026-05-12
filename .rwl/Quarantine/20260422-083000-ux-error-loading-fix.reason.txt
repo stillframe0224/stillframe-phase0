@@ -1,0 +1,1 @@
+blocked_reason: human_quarantine 2026-04-23 — triad_review_missing, execution_succeeded; manually quarantined because runner quarantineTask call failed (file remained in Current/)

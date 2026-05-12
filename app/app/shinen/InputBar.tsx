@@ -56,9 +56,9 @@ export default function InputBar({ onSubmit, onFileUpload, time }: InputBarProps
 
   const handleSubmit = useCallback(() => {
     if (!text.trim()) return;
+    setSubmitting(true);
     onSubmit(text.trim());
     setText("");
-    setSubmitting(true);
     setTimeout(() => setSubmitting(false), 600);
   }, [text, onSubmit]);
 
@@ -311,6 +311,44 @@ export default function InputBar({ onSubmit, onFileUpload, time }: InputBarProps
       >
         no folders · no tags · just thoughts
       </div>
+      {submitting && (
+        <div
+          role="status"
+          aria-live="polite"
+          data-testid="card-creating-status"
+          style={{
+            marginTop: 8,
+            padding: "8px 12px",
+            borderRadius: 8,
+            background: "rgba(79,110,217,0.06)",
+            border: "1px solid rgba(79,110,217,0.18)",
+            fontSize: 12,
+            color: "rgba(0,0,0,0.55)",
+            fontFamily: "'DM Sans', sans-serif",
+            textAlign: "center",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 8,
+            animation: "fadeIn 0.2s ease-in",
+          }}
+        >
+          <svg
+            width={12}
+            height={12}
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            style={{ animation: "spin 0.8s linear infinite" }}
+          >
+            <circle cx="12" cy="12" r="10" strokeDasharray="31.4 31.4" opacity="0.25" />
+            <path d="M12 2 A10 10 0 0 1 22 12" strokeDasharray="15.7" />
+          </svg>
+          <span>カードを保存しています…</span>
+        </div>
+      )}
       {errorMessage && (
         <div
           role="alert"

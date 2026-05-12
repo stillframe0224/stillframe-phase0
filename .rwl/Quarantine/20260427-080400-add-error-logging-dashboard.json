@@ -1,0 +1,16 @@
+{
+  "id": "20260427-080400-add-error-logging-dashboard",
+  "goal": "簡易エラーログ表示ダッシュボードを実装しビルド通過",
+  "est_minutes": 30,
+  "dod": [
+    "npm run build 通過",
+    "reports/triad/20260427-080400-add-error-logging-dashboard.md 作成",
+    "PR作成"
+  ],
+  "evidence_paths": [
+    "reports/triad/20260427-080400-add-error-logging-dashboard.md"
+  ],
+  "created_at": "2026-04-27T08:04:00+09:00",
+  "status": "current",
+  "_filename": "20260427-080400-add-error-logging-dashboard.json"
+}

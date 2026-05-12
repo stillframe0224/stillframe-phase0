@@ -1,0 +1,9 @@
+{
+  "id": "20260505-080500-ogp-fetch-error-handling",
+  "goal": "OGP画像取得失敗時のエラーハンドリング強化（fallback画像表示）",
+  "est_minutes": 25,
+  "dod": ["npm run build 通過", "reports/triad/20260505-080500-ogp-fetch-error-handling.md 作成", "PR作成"],
+  "evidence_paths": ["/Users/array0224/stillframe-phase0/reports/triad/20260505-080500-ogp-fetch-error-handling.md"],
+  "created_at": "2026-05-05T08:05:00+09:00",
+  "status": "queue"
+}

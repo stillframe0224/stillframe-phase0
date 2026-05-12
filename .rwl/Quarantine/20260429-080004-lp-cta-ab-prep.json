@@ -1,0 +1,39 @@
+{
+  "id": "20260429-080004-lp-cta-ab-prep",
+  "goal": "LP CTAコピーのA/Bテスト準備（環境変数でコピーを切り替え可能にする）",
+  "est_minutes": 22,
+  "dod": [
+    "CTA_VARIANT env varを読み込む実装",
+    "variant A/B のコピーを定義",
+    "npm run build 通過",
+    "reports/triad/20260429-080004-lp-cta-ab-prep.md 作成",
+    "PR作成"
+  ],
+  "evidence_paths": [
+    "reports/triad/20260429-080004-lp-cta-ab-prep.md"
+  ],
+  "allowed_files": [
+    "app/page.tsx",
+    "app/components/CTAButton.tsx",
+    ".env.example",
+    "reports/triad/20260429-080004-lp-cta-ab-prep.md"
+  ],
+  "required_files": [
+    "app/page.tsx",
+    "reports/triad/20260429-080004-lp-cta-ab-prep.md"
+  ],
+  "verification_commands": [
+    "npm run build",
+    "npm run type-check"
+  ],
+  "triad_review": {
+    "contract": "PENDING",
+    "regression": "PENDING",
+    "safety": "PENDING",
+    "reviewed_commit": null,
+    "report_path": "reports/triad/20260429-080004-lp-cta-ab-prep.md"
+  },
+  "created_at": "2026-04-29T08:00:04+09:00",
+  "status": "current",
+  "_filename": "20260429-080004-lp-cta-ab-prep.json"
+}

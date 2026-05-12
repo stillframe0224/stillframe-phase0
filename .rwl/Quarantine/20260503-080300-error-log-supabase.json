@@ -1,0 +1,19 @@
+{
+  "id": "20260503-080300-error-log-supabase",
+  "goal": "Supabaseエラーの構造化ログ追加（カード作成・認証失敗を追跡）",
+  "est_minutes": 25,
+  "dod": [
+    "app/api/*/route.ts（カード作成系）にエラーログ追加",
+    "ログフォーマット統一（JSON、timestamp、event名）",
+    "npm run build 通過",
+    "reports/triad/20260503-080300-error-log-supabase.md 作成",
+    "PR作成"
+  ],
+  "evidence_paths": [
+    "/Users/array0224/stillframe-phase0/reports/triad/20260503-080300-error-log-supabase.md"
+  ],
+  "created_at": "2026-05-03T08:03:00+09:00",
+  "status": "current",
+  "rationale": "現在OGPエラーのみ構造化ログあり。Supabase操作（カード作成・認証）のエラーも同様に追跡して可観測性向上。Phase0 KR3（DAU≥10）の障害検出に必須。",
+  "_filename": "20260503-080300-error-log-supabase.json"
+}

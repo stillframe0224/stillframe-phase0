@@ -1,0 +1,9 @@
+{
+  "id": "20260427-080200-fix-mobile-card-ui-layout",
+  "goal": "モバイル画面のカードUIレイアウト不具合を修正しビルド通過",
+  "est_minutes": 25,
+  "dod": ["npm run build 通過", "reports/triad/20260427-080200-fix-mobile-card-ui-layout.md 作成", "PR作成"],
+  "evidence_paths": ["reports/triad/20260427-080200-fix-mobile-card-ui-layout.md"],
+  "created_at": "2026-04-27T08:02:00+09:00",
+  "status": "queue"
+}

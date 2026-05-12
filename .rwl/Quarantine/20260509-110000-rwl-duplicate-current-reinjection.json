@@ -1,0 +1,31 @@
+{
+  "id": "20260509-110000-rwl-duplicate-current-reinjection",
+  "goal": "Done/Quarantine済みのRWLタスクが再びCurrentへ注入された経路を特定する",
+  "est_minutes": 25,
+  "dod": [
+    "20260319-080000-fix-card-create-error が 2026-05-06 に Current へ再注入された経路の候補を列挙",
+    "task generator / Queue / schedule / git restore 経路の証拠を確認",
+    "reports/triad/20260509-110000-rwl-duplicate-current-reinjection.md 作成"
+  ],
+  "evidence_paths": [
+    "reports/triad/20260509-110000-rwl-duplicate-current-reinjection.md"
+  ],
+  "allowed_files": [
+    "reports/triad/20260509-110000-rwl-duplicate-current-reinjection.md"
+  ],
+  "verification_commands": [
+    "test -f reports/triad/20260509-110000-rwl-duplicate-current-reinjection.md"
+  ],
+  "triad_review": {
+    "contract": "PENDING",
+    "regression": "PENDING",
+    "safety": "PENDING",
+    "reviewed_commit": null,
+    "report_path": "reports/triad/20260509-110000-rwl-duplicate-current-reinjection.md"
+  },
+  "created_at": "2026-05-09T11:00:00+09:00",
+  "status": "current",
+  "priority": "high",
+  "area": "RWL運用",
+  "_filename": "20260509-110000-rwl-duplicate-current-reinjection.json"
+}

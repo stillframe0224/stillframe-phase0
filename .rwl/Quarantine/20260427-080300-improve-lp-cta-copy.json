@@ -1,0 +1,16 @@
+{
+  "id": "20260427-080300-improve-lp-cta-copy",
+  "goal": "LPのCTAコピーを改善しABテスト可能に",
+  "est_minutes": 20,
+  "dod": [
+    "npm run build 通過",
+    "reports/triad/20260427-080300-improve-lp-cta-copy.md 作成",
+    "PR作成"
+  ],
+  "evidence_paths": [
+    "reports/triad/20260427-080300-improve-lp-cta-copy.md"
+  ],
+  "created_at": "2026-04-27T08:03:00+09:00",
+  "status": "current",
+  "_filename": "20260427-080300-improve-lp-cta-copy.json"
+}

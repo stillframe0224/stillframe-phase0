@@ -1,0 +1,11 @@
+{
+  "status": "partial",
+  "summary": "Created GitHub issue #317 from market-pulse draft; build passed; triad report written. Branch+PR steps skipped due to block-git-ops.sh hook & rwl-safety.md (runner.js owns git ops).",
+  "files_changed": [
+    "reports/triad/20260510-080300-issue-auto-generated-create.md"
+  ],
+  "reason": "Branch creation (git checkout -b) and PR creation (requires git push) are denied by .claude/hooks/scripts/block-git-ops.sh per rwl-safety.md policy. Issue creation, build verification, and report (the executable subset of the DoD) all completed. Issue URL: https://github.com/stillframe0224/stillframe-phase0/issues/317",
+  "_parse_source": "fenced",
+  "_task_id": "20260510-080300-issue-auto-generated-create",
+  "_at": "2026-05-10T13:04:25.213Z"
+}

@@ -1,0 +1,1 @@
+blocked_reason: allowed_files mismatch: unexpected=[.claude/results/20260429-080005-typescript-strict-prep_result.json] missing=[reports/triad/20260429-080005-typescript-strict-prep.md]

@@ -1,0 +1,33 @@
+{
+  "id": "20260428-230000-ogp-error-handling",
+  "goal": "OGP画像取得失敗時のエラーハンドリングとログ強化",
+  "est_minutes": 90,
+  "dod": [
+    "npm run build 通過",
+    "/Users/array0224/stillframe-phase0/reports/triad/20260428-230000-ogp-error-handling.md 作成",
+    "PR作成"
+  ],
+  "evidence_paths": [
+    "/Users/array0224/stillframe-phase0/reports/triad/20260428-230000-ogp-error-handling.md"
+  ],
+  "allowed_files": [
+    "app/api/og-image/route.ts",
+    "reports/triad/20260428-230000-ogp-error-handling.md",
+    "README.md"
+  ],
+  "required_files": [
+    "app/api/og-image/route.ts"
+  ],
+  "verification_commands": [
+    "npm run build"
+  ],
+  "triad_review": {
+    "contract": "PENDING",
+    "regression": "PENDING",
+    "safety": "PENDING",
+    "reviewed_commit": null,
+    "report_path": "reports/triad/20260428-230000-ogp-error-handling.md"
+  },
+  "created_at": "2026-04-28T14:00:00.000Z",
+  "status": "current"
+}

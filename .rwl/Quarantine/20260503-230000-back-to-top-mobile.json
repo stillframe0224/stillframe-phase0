@@ -1,0 +1,17 @@
+{
+  "id": "20260503-230000-back-to-top-mobile",
+  "goal": "Add floating 'Back to Top' button for improved mobile navigation UX",
+  "est_minutes": 60,
+  "dod": [
+    "npm run build passes with zero errors",
+    "/Users/array0224/stillframe-phase0/reports/triad/20260503-230000-back-to-top-mobile.md created",
+    "Button appears after scrolling ~300px",
+    "Smooth scroll animation on click",
+    "ARIA labels for accessibility",
+    "Mobile tap target ≥ 44px",
+    "PR created"
+  ],
+  "evidence_paths": ["/Users/array0224/stillframe-phase0/reports/triad/20260503-230000-back-to-top-mobile.md"],
+  "created_at": "2026-05-03T14:00:00.000Z",
+  "status": "queue"
+}

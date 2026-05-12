@@ -138,5 +138,122 @@
     "goal": "link-previewのOGP取得失敗・成功パターンをtelemetry経由で記録し可観測性を向上",
     "completed_at": "2026-03-18T14:08:21.492Z",
     "session": "nightly"
+  },
+  {
+    "id": "20260506-080100-ogp-fetch-timeout",
+    "goal": "OGP画像取得にタイムアウト設定を追加してハングを防止する",
+    "completed_at": "2026-05-05T23:03:10.432825+00:00",
+    "pr_url": "https://github.com/stillframe0224/stillframe-phase0/pull/310",
+    "evidence": "/Users/array0224/stillframe-phase0/reports/triad/20260506-080100-ogp-fetch-timeout.md",
+    "session": "morning"
+  },
+  {
+    "id": "20260506-080200-error-logging",
+    "goal": "カード作成失敗時のエラーログをSupabaseに記録する仕組みを追加",
+    "completed_at": "2026-05-05T23:06:07.600390+00:00",
+    "pr_url": "https://github.com/stillframe0224/stillframe-phase0/pull/311",
+    "evidence": "/Users/array0224/stillframe-phase0/reports/triad/20260506-080200-error-logging.md",
+    "session": "morning"
+  },
+  {
+    "id": "20260506-080300-lp-cta-visibility",
+    "goal": "LPのCTAボタンの視認性を改善（サイズ・色・配置調整）",
+    "completed_at": "2026-05-05T23:08:08.366577+00:00",
+    "pr_url": "https://github.com/stillframe0224/stillframe-phase0/pull/312",
+    "evidence": "/Users/array0224/stillframe-phase0/reports/triad/20260506-080300-lp-cta-visibility.md",
+    "session": "morning"
+  },
+  {
+    "id": "20260509-230000-app-loading-ux",
+    "goal": "app/page.tsx のloading/error状態に視覚フィードバックを追加",
+    "completed_at": "2026-05-09T14:00:00.000Z",
+    "session": "nightly",
+    "pr_url": "https://github.com/stillframe0224/stillframe-phase0/pull/313",
+    "evidence": "/Users/array0224/stillframe-phase0/reports/triad/20260509-230000-app-loading-ux.md"
+  },
+  {
+    "id": "20260510-080100-app-loading-spinner-animation",
+    "goal": "アプリローディングスピナーにフェードイン・パルスアニメーションを追加し、待機体験を改善",
+    "completed_at": "2026-05-10T08:15:00+09:00",
+    "pr_url": "https://github.com/stillframe0224/stillframe-phase0/pull/314",
+    "evidence": "/Users/array0224/stillframe-phase0/reports/triad/20260510-080100-app-loading-spinner-animation.md"
+  },
+  {
+    "id": "20260510-080000-lp-market-pulse-messaging",
+    "goal": "Market Pulse トップクラスターをLP訴求に反映（パスワード管理・セキュリティ監査など関連痛みを訴求コピーに追加）",
+    "completed_at": "2026-05-10T08:30:00+09:00",
+    "pr_url": "https://github.com/stillframe0224/stillframe-phase0/pull/315",
+    "evidence": "/Users/array0224/stillframe-phase0/reports/triad/20260510-080000-lp-market-pulse-messaging.md"
+  },
+  {
+    "id": "20260510-080200-kpi-error-rate-metric",
+    "goal": "Phase0 KPI APIにOGP fetch/link-preview エラー率メトリクスを追加し、可観測性を向上",
+    "completed_at": "2026-05-10T08:45:00+09:00",
+    "pr_url": "https://github.com/stillframe0224/stillframe-phase0/pull/316",
+    "evidence": "/Users/array0224/stillframe-phase0/reports/triad/20260510-080200-kpi-error-rate-metric.md"
+  },
+  {
+    "id": "20260510-080300-issue-auto-generated-create",
+    "goal": "issues/auto_generated/20260426-103000-market-pulse-issue-draft.md を GitHub Issue として作成",
+    "completed_at": "2026-05-10T13:04:25.287Z",
+    "session": "nightly"
+  },
+  {
+    "id": "20260510-230000-error-message-i18n",
+    "goal": "Localize error messages in LP card creation flow (demo section)",
+    "completed_at": "2026-05-10T14:18:00.000Z",
+    "session": "nightly",
+    "pr_url": "https://github.com/stillframe0224/stillframe-phase0/pull/318",
+    "evidence": "/Users/array0224/stillframe-phase0/reports/triad/20260510-230000-error-message-i18n.md"
+  },
+  {
+    "id": "20260511-080300-error-logging",
+    "goal": "カード作成失敗時にSupabaseエラー詳細をconsole.errorで出力",
+    "completed_at": "2026-05-11T08:05:00+09:00",
+    "pr_url": "https://github.com/stillframe0224/stillframe-phase0/pull/319",
+    "evidence": "/Users/array0224/stillframe-phase0/reports/triad/20260511-080300-error-logging.md"
+  },
+  {
+    "id": "20260511-080100-waitlist-feedback",
+    "goal": "Waitlist送信後に成功メッセージと次のステップを明示表示",
+    "completed_at": "2026-05-11T08:18:00+09:00",
+    "pr_url": "https://github.com/stillframe0224/stillframe-phase0/pull/320",
+    "evidence": "/Users/array0224/stillframe-phase0/reports/triad/20260511-080100-waitlist-feedback.md"
+  },
+  {
+    "id": "20260511-080000-ogp-fetch-timeout",
+    "goal": "OGP画像取得にタイムアウト（10秒）を追加し、失敗時のフォールバック処理を実装",
+    "completed_at": "2026-05-11T08:30:00+09:00",
+    "pr_url": "https://github.com/stillframe0224/stillframe-phase0/pull/321",
+    "evidence": "/Users/array0224/stillframe-phase0/reports/triad/20260511-080000-ogp-fetch-timeout.md"
+  },
+  {
+    "id": "20260511-230000-gumroad-cta-visual-boost",
+    "goal": "Gumroad CTA ボタンの視覚的強調改善（サイズ・シャドウ・ホバー効果）でKR2（決済≥3件）に貢献",
+    "completed_at": "2026-05-11T14:03:23.122Z",
+    "session": "nightly",
+    "pr_url": "https://github.com/stillframe0224/stillframe-phase0/pull/322",
+    "evidence": "/Users/array0224/stillframe-phase0/reports/triad/20260511-230000-gumroad-cta-visual-boost.md"
+  },
+  {
+    "id": "20260512-080100-ogp-fetch-error-handling",
+    "goal": "OGP画像取得の失敗時フォールバック強化（timeout/404/CORS）",
+    "completed_at": "2026-05-12T08:15:00+09:00",
+    "pr_url": "https://github.com/stillframe0224/stillframe-phase0/pull/323",
+    "evidence": "/Users/array0224/stillframe-phase0/reports/triad/20260512-080100-ogp-fetch-error-handling.md"
+  },
+  {
+    "id": "20260512-080200-card-creation-loading-ux",
+    "goal": "カード作成中のローディング状態改善（スピナー追加・disable submit）",
+    "completed_at": "2026-05-12T08:25:00+09:00",
+    "pr_url": "https://github.com/stillframe0224/stillframe-phase0/pull/324",
+    "evidence": "/Users/array0224/stillframe-phase0/reports/triad/20260512-080200-card-creation-loading-ux.md"
+  },
+  {
+    "id": "20260512-080400-waitlist-form-validation",
+    "goal": "Waitlistフォームのバリデーション強化（email重複チェック・必須項目）",
+    "completed_at": "2026-05-12T08:35:00+09:00",
+    "pr_url": "https://github.com/stillframe0224/stillframe-phase0/pull/325",
+    "evidence": "/Users/array0224/stillframe-phase0/reports/triad/20260512-080400-waitlist-form-validation.md"
   }
 ]

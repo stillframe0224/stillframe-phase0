@@ -1,0 +1,9 @@
+{
+  "id": "20260505-080503-lp-waitlist-validation",
+  "goal": "LPのWaitlistフォームにバリデーション・エラー表示追加",
+  "est_minutes": 15,
+  "dod": ["npm run build 通過", "reports/triad/20260505-080503-lp-waitlist-validation.md 作成", "PR作成"],
+  "evidence_paths": ["/Users/array0224/stillframe-phase0/reports/triad/20260505-080503-lp-waitlist-validation.md"],
+  "created_at": "2026-05-05T08:05:03+09:00",
+  "status": "queue"
+}

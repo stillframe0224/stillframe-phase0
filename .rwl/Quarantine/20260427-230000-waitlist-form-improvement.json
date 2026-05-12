@@ -1,0 +1,14 @@
+{
+  "id": "20260427-230000-waitlist-form-improvement",
+  "goal": "Waitlistフォームの動作確認・改善",
+  "est_minutes": 120,
+  "dod": [
+    "npm run build 通過",
+    "/Users/array0224/stillframe-phase0/reports/triad/20260427-230000-waitlist-form-improvement.md 作成",
+    "READMEに実行手順追記（新機能の場合）",
+    "PR作成"
+  ],
+  "evidence_paths": ["/Users/array0224/stillframe-phase0/reports/triad/20260427-230000-waitlist-form-improvement.md"],
+  "created_at": "2026-04-27T23:00:00+09:00",
+  "status": "queue"
+}

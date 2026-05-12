@@ -271,6 +271,28 @@ export default function ThoughtCard({
           </div>
         )}
 
+        {/* OG Fetch Failed Indicator */}
+        {card.ogFetchFailed && (
+          <div
+            style={{
+              marginTop: 8,
+              padding: "6px 10px",
+              borderRadius: 6,
+              border: "1px solid rgba(255,180,0,0.3)",
+              background: "rgba(255,240,200,0.4)",
+              fontSize: 10,
+              fontFamily: "'DM Sans',sans-serif",
+              color: "rgba(120,70,0,0.8)",
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+            }}
+          >
+            <span style={{ fontSize: 12 }}>⚠</span>
+            <span style={{ flex: 1 }}>画像取得に失敗しました</span>
+          </div>
+        )}
+
         {/* Chip bar */}
         <div
           style={{

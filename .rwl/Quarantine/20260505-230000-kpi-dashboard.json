@@ -1,0 +1,16 @@
+{
+  "id": "20260505-230000-kpi-dashboard",
+  "goal": "Phase0 KPI ダッシュボードページを作成（/kpi に簡易進捗可視化）",
+  "est_minutes": 90,
+  "dod": [
+    "npm run build 通過",
+    "/Users/array0224/stillframe-phase0/reports/triad/20260505-230000-kpi-dashboard.md 作成",
+    "/app/kpi/page.tsx 作成完了",
+    "/api/phase0-kpi からデータ取得＆表示",
+    "README.md に /kpi ページの説明追記",
+    "PR作成"
+  ],
+  "evidence_paths": ["/Users/array0224/stillframe-phase0/reports/triad/20260505-230000-kpi-dashboard.md"],
+  "created_at": "2026-05-05T23:00:00+09:00",
+  "status": "queue"
+}

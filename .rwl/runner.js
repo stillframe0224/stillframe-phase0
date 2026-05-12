@@ -10,7 +10,7 @@
 
 import fs from 'fs';
 import path from 'path';
-import { execSync } from 'child_process';
+import { execFileSync, execSync } from 'child_process';
 import { createHash } from 'crypto';
 import { fileURLToPath } from 'url';
 
@@ -32,9 +32,10 @@ const ADDON_PATH = path.join(LESSONS_DIR, 'system-addon.txt');
 const MAX_LESSONS = 7;
 
 const QUARANTINE = path.join(RWL, 'Quarantine');
+const HOLDING = path.join(RWL, 'Holding');
 
 // Ensure dirs exist
-[CURRENT, DONE_DIR, QUEUE, LOGS, SESSIONS_DIR, LESSONS_DIR, QUARANTINE].forEach(d => fs.mkdirSync(d, { recursive: true }));
+[CURRENT, DONE_DIR, QUEUE, LOGS, SESSIONS_DIR, LESSONS_DIR, QUARANTINE, HOLDING].forEach(d => fs.mkdirSync(d, { recursive: true }));
 
 function parsePositiveIntEnv(name, fallback) {
   const raw = process.env[name];
@@ -67,9 +68,15 @@ function readStatus() {
   }
 }
 
+function writeFileAtomic(filePath, content) {
+  const tmpPath = `${filePath}.${process.pid}.${Date.now()}.tmp`;
+  fs.writeFileSync(tmpPath, content);
+  fs.renameSync(tmpPath, filePath);
+}
+
 function writeStatus(s) {
   s.last_run_at = new Date().toISOString();
-  fs.writeFileSync(STATUS, JSON.stringify(s, null, 2));
+  writeFileAtomic(STATUS, JSON.stringify(s, null, 2));
 }
 
 // === Lessons: セッション間学習 ===
@@ -326,9 +333,17 @@ function executeTask(task) {
 
   try {
     // Try to use claude-code CLI
-    rawOutput = execSync(
-      `cd "${ROOT}" && claude -p "${prompt}" --max-turns 20 --output-format text --bare`,
+    rawOutput = execFileSync(
+      'claude',
+      [
+        '-p', prompt,
+        '--max-turns', '20',
+        '--output-format', 'text',
+        '--model', 'claude-opus-4-7',
+        '--fallback-model', 'claude-opus-4-6',
+      ],
       {
+        cwd: ROOT,
         encoding: 'utf8',
         timeout: 240000, // 4 minutes (run.sh has 5 min timeout)
         stdio: ['pipe', 'pipe', 'pipe'],
@@ -673,6 +688,7 @@ function captureWorkingTreeSnapshot() {
 function isRunnerInternalPath(relPath) {
   return relPath === '.rwl/logs/runner.jsonl'
     || relPath === '.rwl/breaker_inputs.json'
+    || relPath.startsWith('.claude/results/')
     || /^\.rwl\/[^/]+\.patch$/.test(relPath);
 }
 
@@ -903,6 +919,176 @@ function verifyAllowedFiles(task, beforeSnapshot, afterSnapshot) {
   return { ok: false, unexpected_changes, missing_changes };
 }
 
+function hasArg(name) {
+  return process.argv.includes(name);
+}
+
+function getArgValue(name) {
+  const index = process.argv.indexOf(name);
+  if (index < 0) return null;
+  return process.argv[index + 1] || null;
+}
+
+function runUnblockCommand() {
+  const reason = (getArgValue('--reason') || '').trim();
+  if (!reason || /[\r\n]/.test(reason)) {
+    console.error('[runner] --unblock requires a one-line --reason');
+    process.exit(1);
+  }
+
+  const status = readStatus();
+  const maxFailures = status.max_failures || 5;
+  const prevFailureCount = status.failure_count || 0;
+  const prevLastTaskId = status.last_task_id || null;
+
+  if (prevFailureCount < maxFailures) {
+    console.log(`already healthy: failure_count=${prevFailureCount}/${maxFailures}`);
+    return;
+  }
+
+  status.failure_count = 0;
+  status.last_error = null;
+  status.note = `breaker reset: ${reason}`;
+  writeStatus(status);
+
+  log({
+    step: 'breaker_reset',
+    reason,
+    prev_failure_count: prevFailureCount,
+    prev_last_task_id: prevLastTaskId,
+  });
+  logEvent('ops', {
+    phase: 'ops',
+    event_type: 'breaker_reset',
+    reason,
+    prev_failure_count: prevFailureCount,
+    prev_last_task_id: prevLastTaskId,
+  });
+}
+
+function validateTaskId(taskId) {
+  return typeof taskId === 'string' && /^[A-Za-z0-9._-]+$/.test(taskId);
+}
+
+function filesByteEqual(leftPath, rightPath) {
+  if (!fs.existsSync(leftPath) || !fs.existsSync(rightPath)) return false;
+  return fs.readFileSync(leftPath).equals(fs.readFileSync(rightPath));
+}
+
+function utcFileTimestamp() {
+  return new Date().toISOString().replace(/[:.]/g, '-');
+}
+
+function runQuarantineCurrentCommand() {
+  const taskId = getArgValue('--quarantine-current');
+  const reason = (getArgValue('--reason') || '').trim();
+  if (!validateTaskId(taskId)) {
+    console.error('[runner] --quarantine-current requires a safe task id');
+    process.exit(1);
+  }
+  if (!reason || /[\r\n]/.test(reason)) {
+    console.error('[runner] --quarantine-current requires a one-line --reason');
+    process.exit(1);
+  }
+
+  const filename = `${taskId}.json`;
+  const currentPath = path.join(CURRENT, filename);
+  if (!fs.existsSync(currentPath)) {
+    console.log(`no current task: ${taskId}`);
+    return;
+  }
+
+  const quarantinePath = path.join(QUARANTINE, filename);
+  let reasonPath = path.join(QUARANTINE, filename.replace(/\.json$/, '.reason.txt'));
+  let mode = 'new';
+
+  if (!fs.existsSync(quarantinePath)) {
+    fs.renameSync(currentPath, quarantinePath);
+    writeFileAtomic(reasonPath, `blocked_reason: ${reason}\n`);
+  } else if (filesByteEqual(currentPath, quarantinePath)) {
+    fs.unlinkSync(currentPath);
+    fs.appendFileSync(reasonPath, `ops_append: ${new Date().toISOString()} ${reason}\n`);
+    mode = 'append';
+  } else {
+    const timestamp = utcFileTimestamp();
+    const timestampedFilename = `${taskId}.${timestamp}.json`;
+    const timestampedPath = path.join(QUARANTINE, timestampedFilename);
+    reasonPath = path.join(QUARANTINE, timestampedFilename.replace(/\.json$/, '.reason.txt'));
+    fs.renameSync(currentPath, timestampedPath);
+    writeFileAtomic(reasonPath, `blocked_reason: ${reason}\n`);
+    mode = 'timestamped';
+  }
+
+  log({
+    step: 'current_quarantined',
+    task_id: taskId,
+    reason,
+    mode,
+  });
+  logEvent('ops', {
+    phase: 'ops',
+    event_type: 'current_quarantined',
+    task_id: taskId,
+    reason,
+    mode,
+  });
+}
+
+function runDequeueCommand() {
+  const taskId = getArgValue('--dequeue');
+  const reason = (getArgValue('--reason') || '').trim();
+  if (!validateTaskId(taskId)) {
+    console.error('[runner] --dequeue requires a safe task id');
+    process.exit(1);
+  }
+  if (!reason || /[\r\n]/.test(reason)) {
+    console.error('[runner] --dequeue requires a one-line --reason');
+    process.exit(1);
+  }
+
+  const filename = `${taskId}.json`;
+  const queuePath = path.join(QUEUE, filename);
+  if (!fs.existsSync(queuePath)) {
+    console.log(`no queued task: ${taskId}`);
+    return;
+  }
+
+  const holdingPath = path.join(HOLDING, filename);
+  let reasonPath = path.join(HOLDING, filename.replace(/\.json$/, '.reason.txt'));
+  let mode = 'new';
+
+  if (!fs.existsSync(holdingPath)) {
+    fs.renameSync(queuePath, holdingPath);
+    writeFileAtomic(reasonPath, `blocked_reason: ${reason}\n`);
+  } else if (filesByteEqual(queuePath, holdingPath)) {
+    fs.unlinkSync(queuePath);
+    fs.appendFileSync(reasonPath, `ops_append: ${new Date().toISOString()} ${reason}\n`);
+    mode = 'append';
+  } else {
+    const timestamp = utcFileTimestamp();
+    const timestampedFilename = `${taskId}.${timestamp}.json`;
+    const timestampedPath = path.join(HOLDING, timestampedFilename);
+    reasonPath = path.join(HOLDING, timestampedFilename.replace(/\.json$/, '.reason.txt'));
+    fs.renameSync(queuePath, timestampedPath);
+    writeFileAtomic(reasonPath, `blocked_reason: ${reason}\n`);
+    mode = 'timestamped';
+  }
+
+  log({
+    step: 'dequeued',
+    task_id: taskId,
+    reason,
+    mode,
+  });
+  logEvent('ops', {
+    phase: 'ops',
+    event_type: 'dequeued',
+    task_id: taskId,
+    reason,
+    mode,
+  });
+}
+
 // Main
 function main() {
   const status = readStatus();
@@ -1093,6 +1279,21 @@ async function maybeRunTaskLoader() {
 }
 
 (async () => {
+  if (hasArg('--dequeue')) {
+    runDequeueCommand();
+    return;
+  }
+
+  if (hasArg('--quarantine-current')) {
+    runQuarantineCurrentCommand();
+    return;
+  }
+
+  if (hasArg('--unblock')) {
+    runUnblockCommand();
+    return;
+  }
+
   await maybeRunTaskLoader();
   main();
 })();

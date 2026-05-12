@@ -1,0 +1,7 @@
+Quarantined: 2026-04-30 (JST)
+Reason: Duplicate of an already-completed task. Done/20260319-080000-fix-card-create-error.json と内容完全一致 (diff rc=0)、reports/triad/20260319-080000-fix-card-create-error.md 存在、PR #247 でマージ済み。
+Trigger: 2026-04-29 22:03〜22:27 JST に runner が同タスクを5回連続実行 (output_length:0)、failure_count=5/5 でブレーカー作動。原因は Claude CLI 認証切れ (`/usr/local/bin/claude -p ... --bare` rc=1, "Not logged in · Please run /login")。
+CLI 認証状態 (2026-04-30 09:38 JST 時点): 未復旧。`/usr/local/bin/claude -p 'Return exactly OK' --max-turns 1 --output-format text --bare` は依然 rc=1。ユーザーが `/login` 実施するまで nightly は再開しても再度落ちる前提。
+注: 9:35 JST の `claude -p` 確認は wrapper (`~/stillframe/tools/claude_run.sh` aliased) 経由で誤検知。launchd と同じ非TTY条件は `/usr/local/bin/claude ... --bare` で見ること。
+Action: Current から Quarantine へ退避し、status.json の failure_count=0, last_error=null にリセット。CLI 認証復旧は別途。
+ops_append: 2026-05-09T01:53:20.718Z auth-cli outage recurrence; identical to Quarantine entry from 2026-04-30
