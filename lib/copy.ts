@@ -20,8 +20,8 @@ const copy = {
       ja: "無料で試す →",
     },
     ctaSecondary: {
-      en: "$10/mo Forever (First 20)",
-      ja: "$10/月 永久保証（先着20名）",
+      en: "Get Early Access - $10/mo →",
+      ja: "今すぐ始める - $10/月 →",
     },
   },
   demo: {
@@ -83,7 +83,7 @@ const copy = {
         "エクスポート & API",
       ],
     },
-    cta: { en: "Lock in $10/mo Forever →", ja: "$10/月 を永久確保 →" },
+    cta: { en: "Start Capturing Now - $10/mo →", ja: "今すぐ思考を記録 - $10/月 →" },
     urgency: {
       en: "⚡ Only 20 spots at this price — lock it in now or pay more later",
       ja: "⚡ この価格は先着20名のみ — 今確保しないと後から値上げ",
