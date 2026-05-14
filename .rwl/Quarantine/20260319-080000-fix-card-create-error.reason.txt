@@ -1,0 +1,17 @@
+quarantined: 2026-05-14 manual intervention (daily-morning-check)
+
+Root cause: re-injection bug — same task file existed simultaneously in Current/ and Done/ (diff exit=0).
+This is the documented "RWL Current 再注入バグ" pattern from memory.
+
+Symptoms:
+- failure_count reached 5/5 (breaker tripped) at 2026-05-13 18:53 UTC
+- runner.jsonl shows continuous `breaker_stop` from then onward
+- Done/20260319-080000-fix-card-create-error.json already exists (task previously completed)
+
+Action taken:
+1. Moved Current/20260319-080000-fix-card-create-error.json -> Quarantine/
+2. Reset status.json: failure_count 5 -> 0
+3. Logged this reason file
+
+Note: runner.js has no `--unblock` / `--quarantine-current` CLI flags (process.argv unused),
+so manual intervention was required. The OPS entrypoint memory was outdated.
