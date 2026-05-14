@@ -84,15 +84,17 @@ export default function Pricing({ lang, gumroadUrl }: PricingProps) {
       </ul>
       <p
         style={{
-          margin: "0 0 14px",
-          fontSize: 13,
+          margin: "0 0 18px",
+          fontSize: 14,
           color: "#8a5a00",
           fontFamily: "var(--font-dm)",
-          background: "#fff4da",
-          border: "1px solid #f3dfb3",
-          borderRadius: 999,
-          padding: "6px 12px",
+          fontWeight: 500,
+          background: "linear-gradient(135deg, #fff4da 0%, #ffe8b3 100%)",
+          border: "1.5px solid #f3c563",
+          borderRadius: 12,
+          padding: "10px 16px",
           display: "inline-block",
+          boxShadow: "0 2px 8px rgba(243, 197, 99, 0.15)",
         }}
       >
         {c.urgency[lang]}
