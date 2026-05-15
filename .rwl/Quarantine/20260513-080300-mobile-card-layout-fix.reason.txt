@@ -1,0 +1,3 @@
+Quarantined by Codex daily-check follow-up on 2026-05-15.
+
+Reason: task was re-injected into .rwl/Current after a prior manual reset and tripped the local RWL breaker again at failure_count=5/5.
