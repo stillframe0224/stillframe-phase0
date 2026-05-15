@@ -264,18 +264,108 @@ function getCurrentTask() {
   return content;
 }
 
-function promoteFromQueue() {
-  const files = fs.readdirSync(QUEUE).filter(f => f.endsWith('.json')).sort();
-  if (files.length === 0) return null;
-  const src = path.join(QUEUE, files[0]);
-  const dst = path.join(CURRENT, files[0]);
+function listJsonFiles(dir) {
+  try {
+    return fs.readdirSync(dir).filter(f => f.endsWith('.json')).sort();
+  } catch {
+    return [];
+  }
+}
+
+function readJsonFile(filePath) {
+  try {
+    return JSON.parse(fs.readFileSync(filePath, 'utf8'));
+  } catch {
+    return null;
+  }
+}
+
+function findExistingTaskRecord(task, filename, {
+  doneJsonPath = DONE_JSON,
+  doneDir = DONE_DIR,
+  quarantineDir = QUARANTINE,
+} = {}) {
+  const taskId = task?.id;
+  const doneList = readJsonFile(doneJsonPath);
+  if (taskId && Array.isArray(doneList) && doneList.some(item => item?.id === taskId)) {
+    return { source: 'DONE.json', match: 'id' };
+  }
+
+  for (const [source, dir] of [['Done', doneDir], ['Quarantine', quarantineDir]]) {
+    for (const file of listJsonFiles(dir)) {
+      if (file === filename) return { source, match: 'filename' };
+      const existing = readJsonFile(path.join(dir, file));
+      if (taskId && existing?.id === taskId) return { source, match: 'id', filename: file };
+    }
+  }
+
+  return null;
+}
+
+function uniquePath(targetPath) {
+  if (!fs.existsSync(targetPath)) return targetPath;
+  const ext = path.extname(targetPath);
+  const base = targetPath.slice(0, targetPath.length - ext.length);
+  for (let index = 1; ; index += 1) {
+    const candidate = `${base}.duplicate-${index}${ext}`;
+    if (!fs.existsSync(candidate)) return candidate;
+  }
+}
+
+function quarantineQueueDuplicate(src, filename, task, existing, quarantineDir, logFn) {
+  const dst = uniquePath(path.join(quarantineDir, filename));
   fs.renameSync(src, dst);
-  const content = JSON.parse(fs.readFileSync(dst, 'utf8'));
-  content._filename = files[0];
-  content.status = 'current';
-  fs.writeFileSync(dst, JSON.stringify(content, null, 2));
-  log({ step: 'promote', task_id: content.id, from: 'Queue' });
-  return content;
+  const reasonPath = uniquePath(dst.replace(/\.json$/, '.reason.txt'));
+  fs.writeFileSync(
+    reasonPath,
+    [
+      'blocked_reason: stale Queue task already exists in completed/quarantined state',
+      `duplicate_source: ${existing.source}`,
+      `duplicate_match: ${existing.match}`,
+      `task_id: ${task?.id || 'unknown'}`,
+      '',
+    ].join('\n')
+  );
+  logFn({
+    step: 'queue_duplicate_quarantine',
+    task_id: task?.id || null,
+    from: 'Queue',
+    duplicate_source: existing.source,
+    duplicate_match: existing.match,
+    quarantined_as: path.basename(dst),
+  });
+}
+
+function promoteFromQueue({
+  queueDir = QUEUE,
+  currentDir = CURRENT,
+  doneDir = DONE_DIR,
+  doneJsonPath = DONE_JSON,
+  quarantineDir = QUARANTINE,
+  logFn = log,
+} = {}) {
+  const files = listJsonFiles(queueDir);
+  if (files.length === 0) return null;
+
+  for (const file of files) {
+    const src = path.join(queueDir, file);
+    const content = JSON.parse(fs.readFileSync(src, 'utf8'));
+    const existing = findExistingTaskRecord(content, file, { doneJsonPath, doneDir, quarantineDir });
+    if (existing) {
+      quarantineQueueDuplicate(src, file, content, existing, quarantineDir, logFn);
+      continue;
+    }
+
+    const dst = path.join(currentDir, file);
+    fs.renameSync(src, dst);
+    content._filename = file;
+    content.status = 'current';
+    fs.writeFileSync(dst, JSON.stringify(content, null, 2));
+    logFn({ step: 'promote', task_id: content.id, from: 'Queue' });
+    return content;
+  }
+
+  return null;
 }
 
 function markDone(task) {
@@ -1092,7 +1182,14 @@ async function maybeRunTaskLoader() {
   console.log('[runner] task-loader results:', JSON.stringify(taskResults));
 }
 
-(async () => {
-  await maybeRunTaskLoader();
-  main();
-})();
+if (process.env.RWL_RUNNER_SKIP_MAIN !== '1') {
+  (async () => {
+    await maybeRunTaskLoader();
+    main();
+  })();
+}
+
+export {
+  findExistingTaskRecord,
+  promoteFromQueue,
+};
