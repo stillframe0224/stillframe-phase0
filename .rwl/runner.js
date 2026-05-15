@@ -402,8 +402,23 @@ function quarantineTask(task, reason) {
   log({ step: 'quarantine', task_id: task.id, reason });
 }
 
+function isDisabledFlag(value) {
+  return ['0', 'false', 'no', 'off'].includes(String(value || '').toLowerCase());
+}
+
+function shouldUseBareClaude(env = process.env) {
+  if (env.RWL_CLAUDE_BARE) return !isDisabledFlag(env.RWL_CLAUDE_BARE);
+  return Boolean(env.ANTHROPIC_API_KEY);
+}
+
+function buildClaudeCommand(prompt, env = process.env) {
+  const bareArg = shouldUseBareClaude(env) ? ' --bare' : '';
+  return `cd "${ROOT}" && /usr/local/bin/claude -p "${prompt}" --max-turns 20 --output-format text${bareArg}`;
+}
+
 function executeTask(task) {
-  log({ step: 'execute_start', task_id: task.id, goal: task.goal });
+  const useBareClaude = shouldUseBareClaude();
+  log({ step: 'execute_start', task_id: task.id, goal: task.goal, claude_mode: useBareClaude ? 'bare' : 'oauth_keychain' });
 
   // Load lessons addon for prompt injection
   const lessonsAddon = loadLessonsAddon();
@@ -417,7 +432,7 @@ function executeTask(task) {
   try {
     // Try to use claude-code CLI
     rawOutput = execSync(
-      `cd "${ROOT}" && claude -p "${prompt}" --max-turns 20 --output-format text --bare`,
+      buildClaudeCommand(prompt),
       {
         encoding: 'utf8',
         timeout: 240000, // 4 minutes (run.sh has 5 min timeout)
@@ -1190,6 +1205,8 @@ if (process.env.RWL_RUNNER_SKIP_MAIN !== '1') {
 }
 
 export {
+  buildClaudeCommand,
   findExistingTaskRecord,
   promoteFromQueue,
+  shouldUseBareClaude,
 };
