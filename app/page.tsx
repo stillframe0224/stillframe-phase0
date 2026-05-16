@@ -218,12 +218,12 @@ export default function Home() {
             }}
             aria-label={copy.hero.cta[lang]}
             style={{
-              padding: "10px 28px",
+              padding: "14px 36px",
               borderRadius: 999,
               border: "1.5px solid rgba(0,0,0,0.75)",
               background: "transparent",
               color: "rgba(0,0,0,0.8)",
-              fontSize: 14,
+              fontSize: 16,
               fontWeight: 500,
               letterSpacing: "0.04em",
               fontFamily: "var(--font-dm), system-ui, sans-serif",
@@ -247,25 +247,28 @@ export default function Home() {
             onClick={() => track("hero_cta_early_access_click")}
             aria-label={copy.hero.ctaSecondary[lang]}
             style={{
-              padding: "10px 28px",
+              padding: "14px 36px",
               borderRadius: 999,
               border: "none",
-              background: "rgba(0,0,0,0.85)",
+              background: "linear-gradient(135deg, #4a6cf7 0%, #3b5cd9 100%)",
               color: "#fff",
-              fontSize: 15,
+              fontSize: 16,
               fontWeight: 600,
               letterSpacing: "0.04em",
               fontFamily: "var(--font-dm), system-ui, sans-serif",
               cursor: "pointer",
               textDecoration: "none",
               display: "inline-block",
-              transition: "background 0.15s",
+              transition: "all 0.15s ease",
+              boxShadow: "0 4px 12px rgba(74, 108, 247, 0.25)",
             }}
             onMouseEnter={(e) => {
-              (e.currentTarget as HTMLAnchorElement).style.background = "rgba(0,0,0,0.95)";
+              (e.currentTarget as HTMLAnchorElement).style.background = "linear-gradient(135deg, #3b5cd9 0%, #2a4bc7 100%)";
+              (e.currentTarget as HTMLAnchorElement).style.transform = "translateY(-1px)";
             }}
             onMouseLeave={(e) => {
-              (e.currentTarget as HTMLAnchorElement).style.background = "rgba(0,0,0,0.85)";
+              (e.currentTarget as HTMLAnchorElement).style.background = "linear-gradient(135deg, #4a6cf7 0%, #3b5cd9 100%)";
+              (e.currentTarget as HTMLAnchorElement).style.transform = "translateY(0)";
             }}
           >
             {copy.hero.ctaSecondary[lang]}
