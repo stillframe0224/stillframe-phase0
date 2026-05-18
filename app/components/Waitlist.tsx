@@ -114,7 +114,7 @@ export default function Waitlist({
   }
 
   return (
-    <div style={{ maxWidth: 440, margin: "0 auto" }}>
+    <div style={{ maxWidth: 440, margin: "0 auto", padding: "0 16px" }}>
       <form
         onSubmit={handleSubmit}
         style={{
@@ -142,7 +142,7 @@ export default function Waitlist({
           aria-describedby={errorMessage ? "waitlist-error" : undefined}
           className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-[#2a2a2a]"
           style={{
-            flex: "1 1 240px",
+            flex: "1 1 200px",
             minWidth: 0,
             padding: "12px 18px",
             borderRadius: 999,
@@ -150,6 +150,7 @@ export default function Waitlist({
             fontSize: 15,
             fontFamily: "var(--font-dm)",
             background: "#fff",
+            WebkitAppearance: "none",
             transition: "border-color 0.2s ease",
           }}
         />
@@ -162,6 +163,7 @@ export default function Waitlist({
           style={{
             cursor: loading ? "wait" : undefined,
             flex: "1 0 auto",
+            minHeight: 44,
           }}
         >
           {loading ? c.submitting[lang] : c.cta[lang]}
