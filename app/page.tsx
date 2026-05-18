@@ -590,7 +590,7 @@ export default function Home() {
               marginBottom: 16,
             }}
           >
-            {lang === "ja" ? "今すぐ始める" : "Ready to start?"}
+            {lang === "ja" ? "今日から始める" : "Start capturing thoughts today"}
           </h3>
           <p
             style={{
@@ -603,8 +603,8 @@ export default function Home() {
             }}
           >
             {lang === "ja"
-              ? "すべての思考に画像がつく体験を、今日から。"
-              : "Every thought with an image, starting today."}
+              ? "すべての思考に画像がつく。迷わない、探さない、すぐ記録。"
+              : "Every thought gets an image. No searching, no deciding — just capture."}
           </p>
           <a
             href={GUMROAD_URL}
