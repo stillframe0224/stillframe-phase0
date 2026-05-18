@@ -13,6 +13,7 @@ import type { ShinenCard } from "../lib/types";
 const OG_CACHE_KEY = "shinen_og_v1";
 const DEFAULT_FAILURE_TTL = 5 * 60 * 1000; // 5 min
 const MAX_CACHE_SIZE = 200;
+const ERROR_STATS_KEY = "shinen_og_error_stats_v1";
 
 // Domains where OG images are structurally unavailable (login walls, JS-only, etc.)
 // The server-side Jina fallback handles Twitter/X and Facebook — still allow them through.
@@ -96,6 +97,28 @@ function writeCache(cache: OgCache): void {
   } catch {
     // Storage full or disabled — silently ignore.
   }
+}
+
+interface ErrorStats {
+  total: number;
+  byType: Record<string, number>;
+  lastError: { url: string; type: string; message: string; timestamp: number } | null;
+}
+
+function updateErrorStats(url: string, errorType: string, errorMsg: string): void {
+  try {
+    const raw = localStorage.getItem(ERROR_STATS_KEY);
+    const stats: ErrorStats = raw ? JSON.parse(raw) : { total: 0, byType: {}, lastError: null };
+    stats.total += 1;
+    stats.byType[errorType] = (stats.byType[errorType] || 0) + 1;
+    stats.lastError = { url, type: errorType, message: errorMsg, timestamp: Date.now() };
+    // Keep only last 100 errors by limiting byType entries
+    const types = Object.keys(stats.byType);
+    if (types.length > 50) {
+      types.slice(0, types.length - 50).forEach(k => delete stats.byType[k]);
+    }
+    localStorage.setItem(ERROR_STATS_KEY, JSON.stringify(stats));
+  } catch {}
 }
 
 export function useOgThumbnails(
@@ -264,6 +287,7 @@ export function useOgThumbnails(
           // Log error details for debugging
           const errorType = error instanceof Error ? error.name : 'UnknownError';
           const errorMsg = error instanceof Error ? error.message : String(error);
+          updateErrorStats(url, errorType, errorMsg);
           console.warn(
             `[OG Fetch Failed] ${url}\n` +
             `Type: ${errorType}\n` +
