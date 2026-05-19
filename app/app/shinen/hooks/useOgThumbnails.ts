@@ -11,6 +11,7 @@ import { useEffect, useRef } from "react";
 import type { ShinenCard } from "../lib/types";
 
 const OG_CACHE_KEY = "shinen_og_v1";
+const CLIENT_FETCH_TIMEOUT = 10000; // 10s (API has 6s, +buffer for network)
 const DEFAULT_FAILURE_TTL = 5 * 60 * 1000; // 5 min
 const MAX_CACHE_SIZE = 200;
 
@@ -196,8 +197,13 @@ export function useOgThumbnails(
       if (inflightRef.current.has(url)) continue;
       inflightRef.current.add(url);
 
+      const fetchController = new AbortController();
+      const fetchTimeout = setTimeout(() => {
+        fetchController.abort();
+      }, CLIENT_FETCH_TIMEOUT);
+
       fetch(`/api/link-preview?url=${encodeURIComponent(url)}`, {
-        signal: controller.signal,
+        signal: fetchController.signal,
       })
         .then((res) => res.json())
         .then(
@@ -210,6 +216,7 @@ export function useOgThumbnails(
             posterUrl?: string | null;
             provider?: "youtube" | "x" | "instagram";
           }) => {
+            clearTimeout(fetchTimeout);
             inflightRef.current.delete(url);
             const currentCache = readCache();
             currentCache[url] = {
@@ -257,6 +264,7 @@ export function useOgThumbnails(
           },
         )
         .catch((error) => {
+          clearTimeout(fetchTimeout);
           inflightRef.current.delete(url);
           if (error instanceof DOMException && error.name === "AbortError") return;
           const currentCache = readCache();
