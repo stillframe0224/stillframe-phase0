@@ -13,9 +13,41 @@ interface WaitlistProps {
 }
 
 function isValidEmail(email: string): boolean {
-  // More strict than HTML5 type="email"
+  // Basic format check
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email);
+  if (!emailRegex.test(email)) return false;
+  
+  // TLD must be at least 2 characters
+  const parts = email.split('@');
+  if (parts.length !== 2) return false;
+  const domain = parts[1];
+  const tld = domain.split('.').pop();
+  if (!tld || tld.length < 2) return false;
+  
+  return true;
+}
+
+// Common typo patterns that should be flagged
+function getEmailSuggestion(email: string): string | null {
+  const typos: Record<string, string> = {
+    "gmai.com": "gmail.com",
+    "gmil.com": "gmail.com",
+    "gnail.com": "gmail.com",
+    "yahooo.com": "yahoo.com",
+    "yaho.com": "yahoo.com",
+    "hotmial.com": "hotmail.com",
+    "outloo.com": "outlook.com",
+  };
+  
+  const [local, domain] = email.split('@');
+  if (!domain) return null;
+  
+  const suggestion = typos[domain.toLowerCase()];
+  if (suggestion) {
+    return `${local}@${suggestion}`;
+  }
+  
+  return null;
 }
 
 export default function Waitlist({
@@ -27,6 +59,7 @@ export default function Waitlist({
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [suggestion, setSuggestion] = useState<string | null>(null);
   const c = copy.waitlist;
 
   const normalizedEmail = email.trim().toLowerCase();
@@ -133,6 +166,21 @@ export default function Waitlist({
           onChange={(e) => {
             setEmail(e.target.value);
             if (errorMessage) setErrorMessage(null);
+            if (suggestion) setSuggestion(null);
+          }}
+          onBlur={() => {
+            const trimmed = email.trim().toLowerCase();
+            if (trimmed && !isValidEmail(trimmed)) {
+              setErrorMessage(
+                lang === "ja"
+                  ? "有効なメールアドレスを入力してください"
+                  : "Please enter a valid email address"
+              );
+            }
+            const emailSuggestion = getEmailSuggestion(trimmed);
+            if (emailSuggestion) {
+              setSuggestion(emailSuggestion);
+            }
           }}
           autoComplete="email"
           inputMode="email"
@@ -167,6 +215,38 @@ export default function Waitlist({
           {loading ? c.submitting[lang] : c.cta[lang]}
         </PrimaryButton>
       </form>
+      {suggestion && !errorMessage && (
+        <p
+          role="status"
+          style={{
+            marginTop: 10,
+            fontSize: 13,
+            color: "#f59e0b",
+            fontFamily: "var(--font-dm)",
+            textAlign: "center",
+          }}
+        >
+          {lang === "ja" ? "もしかして: " : "Did you mean: "}
+          <button
+            type="button"
+            onClick={() => {
+              setEmail(suggestion);
+              setSuggestion(null);
+            }}
+            style={{
+              color: "#2563eb",
+              textDecoration: "underline",
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              fontSize: 13,
+              fontFamily: "var(--font-dm)",
+            }}
+          >
+            {suggestion}
+          </button>
+        </p>
+      )}
       {errorMessage && (
         <p
           id="waitlist-error"
