@@ -6,6 +6,7 @@ interface ThoughtCardProps {
   text: string;
   type: string;
   index: number;
+  onDelete?: () => void;
 }
 
 /** Monochrome SVG illustrations — paper texture, no color fills */
@@ -95,7 +96,7 @@ const svgIllustrations: Record<string, React.ReactNode> = {
   ),
 };
 
-export default function ThoughtCard({ text, type, index }: ThoughtCardProps) {
+export default function ThoughtCard({ text, type, index, onDelete }: ThoughtCardProps) {
   const ct = getCardType(type);
 
   return (
@@ -135,6 +136,42 @@ export default function ThoughtCard({ text, type, index }: ThoughtCardProps) {
             "var(--card-shadow, 0 4px 20px -6px rgba(0,0,0,0.12), 0 1px 4px rgba(0,0,0,0.05))";
         }}
       >
+        {/* Delete button (only shown if onDelete is provided) */}
+        {onDelete && (
+          <button
+            onClick={onDelete}
+            aria-label="Delete card"
+            style={{
+              position: "absolute",
+              top: 8,
+              right: 8,
+              width: 24,
+              height: 24,
+              borderRadius: "50%",
+              border: "none",
+              background: "rgba(0,0,0,0.5)",
+              color: "#fff",
+              fontSize: 16,
+              fontWeight: 300,
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              opacity: 0,
+              transition: "opacity 0.2s, background 0.2s",
+              zIndex: 10,
+            }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLElement).style.background = "rgba(0,0,0,0.7)";
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLElement).style.background = "rgba(0,0,0,0.5)";
+            }}
+            className="delete-button"
+          >
+            ×
+          </button>
+        )}
         {/* SVG Illustration (monochrome) */}
         <div style={{ aspectRatio: "7/4", overflow: "hidden", position: "relative", background: "#fafafa" }}>
           {svgIllustrations[type] || svgIllustrations.memo}
@@ -183,6 +220,11 @@ export default function ThoughtCard({ text, type, index }: ThoughtCardProps) {
           </div>
         </div>
       </div>
+      <style jsx>{`
+        .thought-card:hover .delete-button {
+          opacity: 1;
+        }
+      `}</style>
     </div>
   );
 }

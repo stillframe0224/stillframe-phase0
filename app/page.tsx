@@ -132,6 +132,11 @@ export default function Home() {
     setNextId(1);
   };
 
+  const deleteCard = (id: number) => {
+    setCards((prev) => prev.filter((card) => card.id !== id));
+    track("card_delete", { id: id.toString() });
+  };
+
   const scrollTo = (id: string) => {
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
   };
@@ -453,7 +458,8 @@ export default function Home() {
                   text={card.text}
                   type={card.type}
                   index={i}
-                />
+                onDelete={() => deleteCard(card.id)}
+              />
               ))}
             </div>
             <div style={{ textAlign: "center" }}>
