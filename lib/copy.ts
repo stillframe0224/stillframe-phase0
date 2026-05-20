@@ -20,8 +20,8 @@ const copy = {
       ja: "最初の思考をキャプチャ →",
     },
     ctaSecondary: {
-      en: "Join Waitlist for Early Access",
-      ja: "早期アクセスの通知を受け取る",
+      en: "Get Early Access",
+      ja: "早期アクセスを申し込む",
     },
   },
   demo: {
