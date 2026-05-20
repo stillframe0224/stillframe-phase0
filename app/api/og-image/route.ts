@@ -3,6 +3,9 @@ import { NextResponse } from "next/server";
 const YT_RE =
   /(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/|live\/|v\/)|youtu\.be\/)([\w-]{11})/;
 
+// Fallback placeholder image for failed OGP fetches
+const FALLBACK_IMAGE = "https://via.placeholder.com/1200x630/cccccc/666666?text=No+Preview+Available";
+
 function logOgImageError(context: {
   event: string;
   url?: string;
@@ -23,7 +26,7 @@ export async function POST(request: Request) {
     const { url } = await request.json();
     if (!url || typeof url !== "string") {
       logOgImageError({ event: "og_image_validation_failed", error: "url_required" });
-      return NextResponse.json({ error: "url required" }, { status: 400 });
+      return NextResponse.json({ error: "url required", image: FALLBACK_IMAGE, title: null }, { status: 400 });
     }
 
     // Validate URL
@@ -31,7 +34,7 @@ export async function POST(request: Request) {
       parsedUrl = new URL(url);
     } catch {
       logOgImageError({ event: "og_image_validation_failed", error: "invalid_url", url });
-      return NextResponse.json({ error: "invalid url" }, { status: 400 });
+      return NextResponse.json({ error: "invalid url", image: FALLBACK_IMAGE, title: null }, { status: 400 });
     }
 
     if (!["http:", "https:"].includes(parsedUrl.protocol)) {
@@ -41,7 +44,7 @@ export async function POST(request: Request) {
         url,
         hostname: parsedUrl.hostname,
       });
-      return NextResponse.json({ error: "invalid protocol" }, { status: 400 });
+      return NextResponse.json({ error: "invalid protocol", image: FALLBACK_IMAGE, title: null }, { status: 400 });
     }
 
     // YouTube shortcut — return hqdefault (always available) instead of maxresdefault (sometimes 404)
@@ -58,7 +61,7 @@ export async function POST(request: Request) {
         "User-Agent": "SHINEN-Bot/1.0 (OGP fetcher)",
         Accept: "text/html",
       },
-      signal: AbortSignal.timeout(3000),
+      signal: AbortSignal.timeout(5000), // 3s → 5s
     });
 
     if (!res.ok) {
@@ -72,7 +75,7 @@ export async function POST(request: Request) {
         duration_ms: duration,
       });
       return NextResponse.json(
-        { error: "fetch_failed", image: null, title: null, retryAfterMs: 5 * 60 * 1000 },
+        { error: "fetch_failed", image: FALLBACK_IMAGE, title: null, retryAfterMs: 5 * 60 * 1000 },
         { status: 502 }
       );
     }
@@ -95,10 +98,10 @@ export async function POST(request: Request) {
         /<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:title["']/i
       );
 
-    const image = ogMatch?.[1] || null;
+    const image = ogMatch?.[1] || FALLBACK_IMAGE; // Return fallback instead of null
     const title = titleMatch?.[1] || null;
 
-    if (!image) {
+    if (!ogMatch) {
       logOgImageError({
         event: "og_image_not_found",
         url,
@@ -123,7 +126,7 @@ export async function POST(request: Request) {
     return NextResponse.json(
       {
         error: isTimeout ? "timeout" : "internal_error",
-        image: null,
+        image: FALLBACK_IMAGE,
         title: null,
         retryAfterMs: 5 * 60 * 1000,
       },
