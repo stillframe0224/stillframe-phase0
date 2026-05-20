@@ -71,15 +71,62 @@ export default function AppPage() {
           width: "100%",
           height: "100vh",
           display: "flex",
+          flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
           background: "#fdfdfd",
           fontFamily: "'DM Sans',sans-serif",
-          color: "rgba(0,0,0,0.2)",
-          fontSize: 13,
+          overflow: "hidden",
         }}
       >
-        loading...
+        {/* Animated card hint */}
+        <div
+          style={{
+            width: 180,
+            height: 120,
+            background: "white",
+            borderRadius: 8,
+            boxShadow: "0 2px 12px rgba(0,0,0,0.08)",
+            marginBottom: 32,
+            animation: "pulseCard 2s ease-in-out infinite",
+          }}
+        />
+        
+        {/* Loading text */}
+        <div
+          style={{
+            color: "rgba(0,0,0,0.3)",
+            fontSize: 14,
+            fontWeight: 500,
+            letterSpacing: "0.05em",
+            animation: "fadeInOut 2s ease-in-out infinite",
+          }}
+        >
+          SHINEN
+        </div>
+        
+        {/* Keyframes for animations */}
+        <style>{`
+          @keyframes pulseCard {
+            0%, 100% {
+              transform: scale(1) translateY(0);
+              opacity: 0.4;
+            }
+            50% {
+              transform: scale(1.05) translateY(-4px);
+              opacity: 0.7;
+            }
+          }
+          
+          @keyframes fadeInOut {
+            0%, 100% {
+              opacity: 0.2;
+            }
+            50% {
+              opacity: 0.5;
+            }
+          }
+        `}</style>
       </div>
     );
   }
