@@ -71,15 +71,49 @@ export default function AppPage() {
           width: "100%",
           height: "100vh",
           display: "flex",
+          flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
           background: "#fdfdfd",
           fontFamily: "'DM Sans',sans-serif",
-          color: "rgba(0,0,0,0.2)",
-          fontSize: 13,
+          gap: 16,
         }}
       >
-        loading...
+        {/* Spinner */}
+        <svg
+          width={32}
+          height={32}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="rgba(0,0,0,0.15)"
+          strokeWidth="2"
+          strokeLinecap="round"
+          style={{
+            animation: "spin 1s linear infinite",
+          }}
+        >
+          <circle cx="12" cy="12" r="10" opacity="0.25" />
+          <path d="M12 2 A10 10 0 0 1 22 12" stroke="rgba(79,110,217,0.5)" />
+        </svg>
+        <div
+          style={{
+            color: "rgba(0,0,0,0.2)",
+            fontSize: 13,
+            letterSpacing: "0.05em",
+          }}
+        >
+          loading your thoughts…
+        </div>
+        <style jsx>{`
+          @keyframes spin {
+            from {
+              transform: rotate(0deg);
+            }
+            to {
+              transform: rotate(360deg);
+            }
+          }
+        `}</style>
       </div>
     );
   }
