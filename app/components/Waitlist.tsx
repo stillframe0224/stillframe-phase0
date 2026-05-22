@@ -27,13 +27,27 @@ export default function Waitlist({
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [touched, setTouched] = useState(false);
   const c = copy.waitlist;
 
   const normalizedEmail = email.trim().toLowerCase();
   const isEmailValid = isValidEmail(normalizedEmail);
+  const showValidationError = touched && email && !isEmailValid;
+
+  const handleBlur = () => {
+    setTouched(true);
+    if (email && !isEmailValid) {
+      setErrorMessage(
+        lang === "ja"
+          ? "有効なメールアドレスを入力してください"
+          : "Please enter a valid email address"
+      );
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setTouched(true);
     if (!normalizedEmail || !isEmailValid) {
       setErrorMessage(
         lang === "ja"
@@ -87,6 +101,14 @@ export default function Waitlist({
     }
   };
 
+  const handleReset = () => {
+    setSubmitted(false);
+    setEmail("");
+    setTouched(false);
+    setErrorMessage(null);
+    track("waitlist_register_another", {});
+  };
+
   if (submitted) {
     return (
       <div style={{ textAlign: "center", padding: "32px 0" }} role="status" aria-live="polite">
@@ -98,17 +120,32 @@ export default function Waitlist({
             fontSize: 16,
             color: "#2a2a2a",
             fontFamily: "var(--font-dm)",
+            marginBottom: 16,
           }}
         >
           {c.success[lang]}
         </p>
-        <PrimaryButton
-          data-testid="waitlist-pricing-cta"
-          onClick={() => document.getElementById("pricing")?.scrollIntoView({ behavior: "smooth" })}
-          className="rounded-full px-6 py-2.5 text-sm mt-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[var(--accent-strong)]"
-        >
-          {lang === "ja" ? "料金を見る" : "View Pricing"}
-        </PrimaryButton>
+        <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
+          <PrimaryButton
+            data-testid="waitlist-pricing-cta"
+            onClick={() => document.getElementById("pricing")?.scrollIntoView({ behavior: "smooth" })}
+            className="rounded-full px-6 py-2.5 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[var(--accent-strong)]"
+          >
+            {lang === "ja" ? "料金を見る" : "View Pricing"}
+          </PrimaryButton>
+          <button
+            data-testid="waitlist-register-another"
+            onClick={handleReset}
+            className="rounded-full px-6 py-2.5 text-sm border border-gray-300 hover:border-gray-400 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#2a2a2a]"
+            style={{
+              background: "#fff",
+              color: "#2a2a2a",
+              fontFamily: "var(--font-dm)",
+            }}
+          >
+            {lang === "ja" ? "別のメールアドレスで登録" : "Register Another Email"}
+          </button>
+        </div>
       </div>
     );
   }
@@ -134,11 +171,12 @@ export default function Waitlist({
             setEmail(e.target.value);
             if (errorMessage) setErrorMessage(null);
           }}
+          onBlur={handleBlur}
           autoComplete="email"
           inputMode="email"
           autoCapitalize="none"
           autoCorrect="off"
-          aria-invalid={errorMessage ? "true" : "false"}
+          aria-invalid={showValidationError || errorMessage ? "true" : "false"}
           aria-describedby={errorMessage ? "waitlist-error" : undefined}
           className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-[#2a2a2a]"
           style={{
@@ -146,7 +184,7 @@ export default function Waitlist({
             minWidth: 0,
             padding: "12px 18px",
             borderRadius: 999,
-            border: errorMessage ? "1px solid #b42318" : "1px solid #ddd",
+            border: (showValidationError || errorMessage) ? "1px solid #b42318" : "1px solid #ddd",
             fontSize: 15,
             fontFamily: "var(--font-dm)",
             background: "#fff",
