@@ -311,23 +311,90 @@ export default function InputBar({ onSubmit, onFileUpload, time }: InputBarProps
       >
         no folders · no tags · just thoughts
       </div>
-      {errorMessage && (
+      {(errorMessage || fileError) && (
         <div
           role="alert"
           style={{
             marginTop: 8,
-            padding: "8px 12px",
+            padding: "10px 14px",
             borderRadius: 8,
             background: "rgba(180, 35, 24, 0.08)",
             border: "1px solid rgba(180, 35, 24, 0.2)",
             fontSize: 12,
             color: "#b42318",
             fontFamily: "'DM Sans', sans-serif",
-            textAlign: "center",
             animation: "fadeIn 0.2s ease-in",
           }}
         >
-          {errorMessage}
+          <div style={{ textAlign: "center", marginBottom: fileError && lastFailedFile ? 8 : 0 }}>
+            {errorMessage || fileError}
+          </div>
+          {fileError && lastFailedFile && (
+            <div
+              style={{
+                display: "flex",
+                gap: 8,
+                alignItems: "center",
+                justifyContent: "center",
+                paddingTop: 8,
+                borderTop: "1px solid rgba(180, 35, 24, 0.15)",
+              }}
+            >
+              <button
+                onClick={handleRetry}
+                data-testid="retry-upload-btn"
+                style={{
+                  background: "rgba(180, 35, 24, 0.12)",
+                  border: "1px solid rgba(180, 35, 24, 0.25)",
+                  borderRadius: 6,
+                  padding: "6px 14px",
+                  fontSize: 11,
+                  color: "#b42318",
+                  fontFamily: "'DM Sans', sans-serif",
+                  fontWeight: 500,
+                  cursor: "pointer",
+                  transition: "all 0.15s",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = "rgba(180, 35, 24, 0.18)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = "rgba(180, 35, 24, 0.12)";
+                }}
+              >
+                ↻ Retry {lastFailedFile.name.length > 20 ? lastFailedFile.name.slice(0, 17) + "..." : lastFailedFile.name}
+              </button>
+              <button
+                onClick={() => {
+                  setFileError(null);
+                  setLastFailedFile(null);
+                  setErrorMessage(null);
+                }}
+                data-testid="dismiss-error-btn"
+                style={{
+                  background: "transparent",
+                  border: "1px solid rgba(180, 35, 24, 0.2)",
+                  borderRadius: 6,
+                  padding: "6px 10px",
+                  fontSize: 11,
+                  color: "#b42318",
+                  fontFamily: "'DM Sans', sans-serif",
+                  cursor: "pointer",
+                  transition: "all 0.15s",
+                  opacity: 0.7,
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.opacity = "1";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.opacity = "0.7";
+                }}
+                title="Dismiss"
+              >
+                ✕
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>
