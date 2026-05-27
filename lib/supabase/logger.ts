@@ -3,7 +3,7 @@
  *
  * Outputs JSON to console.error for Vercel Function Logs ingestion.
  * Each entry includes: error category, operation, userId, timestamp,
- * and the original error details.
+ * stack trace, and the original error details.
  */
 
 export type SupabaseErrorCategory =
@@ -15,7 +15,7 @@ export type SupabaseErrorCategory =
   | "unknown";
 
 interface LogEntry {
-  level: "error" | "warn";
+  level: "error" | "warn" | "info";
   category: SupabaseErrorCategory;
   operation: string;
   message: string;
@@ -23,6 +23,7 @@ interface LogEntry {
   timestamp: string;
   code?: string;
   details?: unknown;
+  stack?: string;
 }
 
 /**
@@ -122,6 +123,11 @@ export function logSupabaseError(
     entry.details = (error as { details: unknown }).details;
   }
 
+  // Add stack trace for Error instances
+  if (error instanceof Error && error.stack) {
+    entry.stack = error.stack;
+  }
+
   console.error(JSON.stringify(entry));
 }
 
@@ -147,5 +153,32 @@ export function logSupabaseWarn(
     entry.code = String((error as { code: string }).code);
   }
 
+  // Add stack trace for Error instances
+  if (error instanceof Error && error.stack) {
+    entry.stack = error.stack;
+  }
+
   console.error(JSON.stringify(entry));
+}
+
+/**
+ * Log a structured Supabase info message (operational events).
+ */
+export function logSupabaseInfo(
+  operation: string,
+  message: string,
+  userId?: string | null,
+  details?: unknown,
+): void {
+  const entry: LogEntry = {
+    level: "info",
+    category: "unknown",
+    operation,
+    message,
+    userId: userId ?? undefined,
+    timestamp: new Date().toISOString(),
+    details,
+  };
+
+  console.log(JSON.stringify(entry));
 }
