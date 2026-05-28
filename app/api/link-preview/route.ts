@@ -805,9 +805,19 @@ export async function GET(request: Request) {
     );
   } catch (e) {
     const reason = e instanceof Error ? e.message : "unknown";
-    if (debug) console.log(JSON.stringify({ event: "link_preview_error", url, reason, stack: e instanceof Error ? e.stack : undefined }));
-    console.error("Link preview error:", { url: summarizeUrlForLog(url), reason, error: e });
-    trackLinkPreview("exception", { url: summarizeUrlForLog(url), reason });
+    const isTimeout = e instanceof Error && (e.name === "TimeoutError" || e.name === "AbortError");
+    
+    if (isTimeout) {
+      trackLinkPreview("fetch_timeout", { 
+        url: summarizeUrlForLog(url), 
+        timeout_ms: FETCH_TIMEOUT,
+        errorName: e instanceof Error ? e.name : "unknown"
+      });
+    }
+    
+    if (debug) console.log(JSON.stringify({ event: "link_preview_error", url, reason, isTimeout, stack: e instanceof Error ? e.stack : undefined }));
+    console.error("Link preview error:", { url: summarizeUrlForLog(url), reason, isTimeout, error: e });
+    trackLinkPreview("exception", { url: summarizeUrlForLog(url), reason, isTimeout });
     if (reason === "blocked") {
       return NextResponse.json({ error: "blocked_url" }, { status: 400 });
     }
