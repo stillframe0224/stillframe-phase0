@@ -1,4 +1,5 @@
 export type Lang = "en" | "ja";
+export type CtaVariant = "a" | "b";
 
 const copy = {
   nav: {
@@ -23,6 +24,10 @@ const copy = {
       en: "Join Waitlist for Early Access",
       ja: "早期アクセスの通知を受け取る",
     },
+    ctaSecondaryB: {
+      en: "Get Early Access — $10/mo",
+      ja: "早期アクセスを取得 — $10/月",
+    },
   },
   demo: {
     h2: { en: "Try Quick Capture", ja: "Quick Capture を試す" },
@@ -34,6 +39,16 @@ const copy = {
     note: {
       en: "Nothing is saved — just explore freely.",
       ja: "何も保存されません。自由に試してみてください。",
+    },
+    error: {
+      empty: {
+        en: "Please enter a thought",
+        ja: "思考を入力してください",
+      },
+      failed: {
+        en: "Failed to create card",
+        ja: "カード作成に失敗しました",
+      },
     },
   },
   howImages: {
@@ -84,9 +99,14 @@ const copy = {
       ],
     },
     cta: { en: "Lock in $10/mo Forever →", ja: "$10/月 を永久確保 →" },
+    ctaB: { en: "Start Now — $10/mo →", ja: "今すぐ始める — $10/月 →" },
     urgency: {
       en: "⚡ Only 20 spots at this price — lock it in now or pay more later",
       ja: "⚡ この価格は先着20名のみ — 今確保しないと後から値上げ",
+    },
+    urgencyB: {
+      en: "⚡ Founding member price — $10/mo locked forever. Limited spots.",
+      ja: "⚡ 創設メンバー価格 — $10/月を永久固定。残りわずか。",
     },
   },
   waitlist: {
@@ -166,6 +186,37 @@ const copy = {
       ja: "凍った音楽でできた建物",
     },
   },
+  readyCta: {
+    h3: {
+      en: "Ready to start?",
+      ja: "今すぐ始める",
+    },
+    h3B: {
+      en: "Your thoughts deserve images.",
+      ja: "あなたの思考に、画像を。",
+    },
+    sub: {
+      en: "Every thought with an image, starting today.",
+      ja: "すべての思考に画像がつく体験を、今日から。",
+    },
+    subB: {
+      en: "Join now for $10/mo — price locked forever for early members.",
+      ja: "$10/月で今すぐ参加 — 早期メンバーは永久にこの価格。",
+    },
+  },
 } as const;
+
+/** Pick CTA variant from ?cta= param or 50/50 random stored in localStorage */
+export function getCtaVariant(): CtaVariant {
+  if (typeof window === "undefined") return "a";
+  const params = new URLSearchParams(window.location.search);
+  const param = params.get("cta");
+  if (param === "a" || param === "b") return param;
+  const stored = localStorage.getItem("shinen_cta_variant");
+  if (stored === "a" || stored === "b") return stored;
+  const v: CtaVariant = Math.random() < 0.5 ? "a" : "b";
+  try { localStorage.setItem("shinen_cta_variant", v); } catch {}
+  return v;
+}
 
 export default copy;
