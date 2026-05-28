@@ -12,6 +12,7 @@ import type { ShinenCard } from "../lib/types";
 
 const OG_CACHE_KEY = "shinen_og_v1";
 const DEFAULT_FAILURE_TTL = 5 * 60 * 1000; // 5 min
+const FETCH_TIMEOUT_MS = 8000; // 8s (slightly longer than server-side 6s timeout)
 const MAX_CACHE_SIZE = 200;
 
 // Domains where OG images are structurally unavailable (login walls, JS-only, etc.)
@@ -196,10 +197,26 @@ export function useOgThumbnails(
       if (inflightRef.current.has(url)) continue;
       inflightRef.current.add(url);
 
+      const requestController = new AbortController();
+      let didTimeout = false;
+      const abortRequest = () => requestController.abort();
+      controller.signal.addEventListener("abort", abortRequest, { once: true });
+
+      const timeoutId = setTimeout(() => {
+        didTimeout = true;
+        requestController.abort();
+      }, FETCH_TIMEOUT_MS);
+
       fetch(`/api/link-preview?url=${encodeURIComponent(url)}`, {
-        signal: controller.signal,
+        signal: requestController.signal,
       })
-        .then((res) => res.json())
+        .then(async (res) => {
+          const status = res.status;
+          if (!res.ok) {
+            throw new Error(`HTTP ${status}: ${res.statusText}`);
+          }
+          return res.json();
+        })
         .then(
           (data: {
             image?: string | null;
@@ -210,7 +227,6 @@ export function useOgThumbnails(
             posterUrl?: string | null;
             provider?: "youtube" | "x" | "instagram";
           }) => {
-            inflightRef.current.delete(url);
             const currentCache = readCache();
             currentCache[url] = {
               image: data.image ?? null,
@@ -257,28 +273,58 @@ export function useOgThumbnails(
           },
         )
         .catch((error) => {
-          inflightRef.current.delete(url);
-          if (error instanceof DOMException && error.name === "AbortError") return;
+          if (
+            error instanceof DOMException &&
+            error.name === "AbortError" &&
+            !didTimeout
+          ) {
+            return;
+          }
+
           const currentCache = readCache();
-          
-          // Log error details for debugging
-          const errorType = error instanceof Error ? error.name : 'UnknownError';
-          const errorMsg = error instanceof Error ? error.message : String(error);
+
+          // Enhanced error logging with type, message, and stack trace
+          const errorType = didTimeout
+            ? "TimeoutError"
+            : error instanceof Error
+              ? error.name
+              : "UnknownError";
+          const errorMsg = didTimeout
+            ? `Timed out after ${FETCH_TIMEOUT_MS}ms`
+            : error instanceof Error
+              ? error.message
+              : String(error);
+          const stack = error instanceof Error && error.stack ? error.stack : "";
+
           console.warn(
             `[OG Fetch Failed] ${url}\n` +
             `Type: ${errorType}\n` +
             `Message: ${errorMsg}\n` +
-            `Card ID: ${id}`
+            `Card ID: ${id}` +
+            (stack ? `\nStack: ${stack}` : ""),
           );
-          
-          // Cache the failure with default retry TTL
-          currentCache[url] = { 
-            image: null, 
+
+          // Determine retry TTL based on error type/status
+          let retryTtl = DEFAULT_FAILURE_TTL;
+          if (errorMsg.includes("HTTP 404")) {
+            retryTtl = 30 * 60 * 1000; // 30min for 404 (likely permanent)
+          } else if (errorMsg.includes("HTTP 429") || errorMsg.includes("HTTP 503")) {
+            retryTtl = 10 * 60 * 1000; // 10min for rate-limit/unavailable
+          } else if (errorMsg.includes("HTTP 403")) {
+            retryTtl = 15 * 60 * 1000; // 15min for forbidden
+          } else if (errorType === "TimeoutError" || errorType === "AbortError") {
+            retryTtl = 2 * 60 * 1000; // 2min for timeout (might be temporary)
+          }
+
+          // Cache the failure with adjusted retry TTL
+          currentCache[url] = {
+            image: null,
+            favicon: null,
             fetchedAt: Date.now(),
-            retryAfterMs: DEFAULT_FAILURE_TTL
+            retryAfterMs: retryTtl,
           };
           writeCache(currentCache);
-          
+
           // Try to at least show the favicon as fallback
           setCards((prev) =>
             prev.map((c) => {
@@ -291,13 +337,18 @@ export function useOgThumbnails(
                 const faviconUrl = `${u.origin}/favicon.ico`;
                 return {
                   ...c,
-                  source: { ...c.source, favicon: faviconUrl }
+                  source: { ...c.source, favicon: faviconUrl },
                 };
               } catch {
                 return c;
               }
-            })
+            }),
           );
+        })
+        .finally(() => {
+          clearTimeout(timeoutId);
+          controller.signal.removeEventListener("abort", abortRequest);
+          inflightRef.current.delete(url);
         });
     }
 
