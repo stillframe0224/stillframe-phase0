@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import copy from "@/lib/copy";
-import type { Lang } from "@/lib/copy";
+import copy, { getCtaVariant } from "@/lib/copy";
+import type { Lang, CtaVariant } from "@/lib/copy";
 import { cardTypes } from "@/lib/cardTypes";
 import { track } from "@/lib/track";
 import ThoughtCard from "@/app/components/ThoughtCard";
@@ -98,6 +98,7 @@ const FOOTER_SECTIONS = [
 
 export default function Home() {
   const [lang, setLang] = useState<Lang>("en");
+  const [ctaVariant, setCtaVariant] = useState<CtaVariant>("a");
   const [selectedType, setSelectedType] = useState("memo");
   const [input, setInput] = useState("");
   const [cards, setCards] = useState<DemoCard[]>([]);
@@ -112,7 +113,7 @@ export default function Home() {
   const addCard = () => {
     const text = input.trim();
     if (!text) {
-      setCardError("思考を入力してください");
+      setCardError(copy.demo.error.empty[lang]);
       return;
     }
     setCardError(null);
@@ -123,7 +124,7 @@ export default function Home() {
       track("card_add", { type: selectedType });
       inputRef.current?.focus();
     } catch (e) {
-      setCardError("カード作成に失敗しました。");
+      setCardError(copy.demo.error.failed[lang]);
     }
   };
 
@@ -136,9 +137,11 @@ export default function Home() {
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
   };
 
-  // Track page_view on mount
+  // Determine CTA variant and track page_view on mount
   useEffect(() => {
-    track("page_view");
+    const v = getCtaVariant();
+    setCtaVariant(v);
+    track("page_view", { cta_variant: v });
   }, []);
 
   // Get hero sample cards
@@ -244,8 +247,8 @@ export default function Home() {
             href={GUMROAD_URL}
             target="_blank"
             rel="noopener noreferrer"
-            onClick={() => track("hero_cta_early_access_click")}
-            aria-label={copy.hero.ctaSecondary[lang]}
+            onClick={() => track("hero_cta_early_access_click", { cta_variant: ctaVariant })}
+            aria-label={ctaVariant === "b" ? copy.hero.ctaSecondaryB[lang] : copy.hero.ctaSecondary[lang]}
             style={{
               padding: "10px 28px",
               borderRadius: 999,
@@ -268,7 +271,7 @@ export default function Home() {
               (e.currentTarget as HTMLAnchorElement).style.background = "rgba(0,0,0,0.85)";
             }}
           >
-            {copy.hero.ctaSecondary[lang]}
+            {ctaVariant === "b" ? copy.hero.ctaSecondaryB[lang] : copy.hero.ctaSecondary[lang]}
           </a>
         </div>
       </section>
@@ -590,7 +593,7 @@ export default function Home() {
               marginBottom: 16,
             }}
           >
-            {lang === "ja" ? "今すぐ始める" : "Ready to start?"}
+            {ctaVariant === "b" ? copy.readyCta.h3B[lang] : copy.readyCta.h3[lang]}
           </h3>
           <p
             style={{
@@ -602,17 +605,15 @@ export default function Home() {
               margin: "0 auto 28px",
             }}
           >
-            {lang === "ja"
-              ? "すべての思考に画像がつく体験を、今日から。"
-              : "Every thought with an image, starting today."}
+            {ctaVariant === "b" ? copy.readyCta.subB[lang] : copy.readyCta.sub[lang]}
           </p>
           <a
             href={GUMROAD_URL}
             target="_blank"
             rel="noopener noreferrer"
-            onClick={() => track("ready_cta_click")}
+            onClick={() => track("ready_cta_click", { cta_variant: ctaVariant })}
             data-testid="cta-ready"
-            aria-label={copy.hero.ctaSecondary[lang]}
+            aria-label={ctaVariant === "b" ? copy.hero.ctaSecondaryB[lang] : copy.hero.ctaSecondary[lang]}
             style={{
               padding: "14px 36px",
               borderRadius: 999,
@@ -640,7 +641,7 @@ export default function Home() {
               (e.currentTarget as HTMLAnchorElement).style.boxShadow = "0 2px 8px rgba(0,0,0,0.12)";
             }}
           >
-            {copy.hero.ctaSecondary[lang]}
+            {ctaVariant === "b" ? copy.hero.ctaSecondaryB[lang] : copy.hero.ctaSecondary[lang]}
           </a>
         </div>
       </section>

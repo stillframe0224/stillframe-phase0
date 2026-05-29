@@ -28,7 +28,7 @@ export const PrimaryButton = React.forwardRef<
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-orange-600",
         className,
       )}
-      style={{ background: disabled ? undefined : "rgb(234,88,12)", ...rest.style }}
+      style={{ background: disabled ? undefined : "rgb(194,65,12)", ...rest.style }}
       {...rest}
     >
       {children}
