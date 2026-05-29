@@ -74,6 +74,10 @@ NEXT_PUBLIC_WAITLIST_FALLBACK_EMAIL=your_fallback_email
 
 # Analytics (optional)
 NEXT_PUBLIC_ANALYTICS_ENABLED=false
+
+# A/B Testing (optional)
+# CTA variant: A (default), B (urgency), or C (pain point)
+NEXT_PUBLIC_CTA_VARIANT=A
 ```
 
 ### 4. Run the development server

@@ -23,6 +23,21 @@ const copy = {
       en: "Join Waitlist for Early Access",
       ja: "早期アクセスの通知を受け取る",
     },
+    // A/B test variants for primary CTA
+    ctaVariants: {
+      A: {
+        en: "Capture Your First Thought →",
+        ja: "最初の思考をキャプチャ →",
+      },
+      B: {
+        en: "Start Capturing Today →",
+        ja: "今日からキャプチャを始める →",
+      },
+      C: {
+        en: "No More Blank Cards →",
+        ja: "空白のカードはもういらない →",
+      },
+    },
   },
   demo: {
     h2: { en: "Try Quick Capture", ja: "Quick Capture を試す" },
