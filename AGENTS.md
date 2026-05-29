@@ -41,7 +41,7 @@
 5. Supabase mail(Gmail MCP)
 6. Skill Candidates(`/Users/array0224/.claude/skill-candidates/`)
 
-出力: `/Users/array0224/company/secretary/daily-checks/YYYY-MM-DD.md`(JSTの今日)
+出力: `reports/secretary/YYYY-MM-DD.md`(JSTの今日)
 
 実行モード: **Local**(横断パスアクセスとMCP必要)
 
