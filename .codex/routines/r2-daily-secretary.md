@@ -6,7 +6,7 @@
 
 ## Output
 
-`/Users/array0224/company/secretary/daily-checks/YYYY-MM-DD.md`(JSTの今日)
+`reports/secretary/YYYY-MM-DD.md`(JSTの今日)
 
 ディレクトリが存在しなければ作成。既存ファイルがあれば上書きOK(冪等)。
 
@@ -69,6 +69,9 @@
   - 直近24h以内のエラー → 記載
 - `ps aux | grep n8n-failure-watch | grep -v grep`
   - プロセスなし → 「⚠️ failure-watch 停止中」要対応
+  - `ps aux` が読めない環境では `/Users/array0224/.n8n-failure-watch.log` の mtime を fallback として確認
+  - mtime が直近5分以内 → 「⚠️ failure-watchプロセス状態未確認、ログ更新あり」
+  - mtime が5分以上古い → 「⚠️ failure-watch更新停止(プロセス未確認)」要対応
 
 ### 5. Supabase mail(Gmail MCP)
 
@@ -102,6 +105,7 @@
 - stillframe-phase0 関連の失敗 → 常に要対応
 - gh CLI コマンド失敗 → 「gh CLI エラー」と記録、エラー内容明示
 - n8n failure-watch プロセス停止 → 要対応
+- `ps aux` 不可かつ failure-watch log mtime が5分以上古い → 要対応
 - Supabase pause予告 / security alert → 要対応
 - Gmail MCP 未接続 → 要対応(手動確認促し)
 
