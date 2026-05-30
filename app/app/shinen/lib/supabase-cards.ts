@@ -12,7 +12,15 @@ export async function fetchCards(): Promise<DbCard[]> {
     .select("*")
     .order("created_at", { ascending: false });
 
-  if (error) throw error;
+  if (error) {
+    console.error("supabase_fetch_cards_failed", {
+      error: error.message,
+      code: error.code,
+      details: error.details,
+      hint: error.hint,
+    });
+    throw error;
+  }
   return (data ?? []) as DbCard[];
 }
 
@@ -21,7 +29,16 @@ export async function insertCard(card: NewDbCard): Promise<DbCard> {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) throw new Error("Not authenticated");
+  if (!user) {
+    const authError = new Error("Not authenticated");
+    console.error("supabase_insert_card_auth_failed", {
+      error: authError.message,
+      cardType: card.type,
+      hasText: Boolean(card.text),
+      timestamp: new Date().toISOString(),
+    });
+    throw authError;
+  }
 
   const { data, error } = await supabase
     .from("cards")
@@ -29,18 +46,50 @@ export async function insertCard(card: NewDbCard): Promise<DbCard> {
     .select()
     .single();
 
-  if (error) throw error;
+  if (error) {
+    console.error("supabase_insert_card_failed", {
+      error: error.message,
+      code: error.code,
+      details: error.details,
+      hint: error.hint,
+      userId: user.id,
+      cardType: card.type,
+      cardTextLength: card.text?.length || 0,
+      timestamp: new Date().toISOString(),
+    });
+    throw error;
+  }
   return data as DbCard;
 }
 
 export async function updateCard(id: string, updates: DbCardUpdates): Promise<void> {
   const { error } = await supabase.from("cards").update(updates).eq("id", id);
-  if (error) throw error;
+  if (error) {
+    console.error("supabase_update_card_failed", {
+      error: error.message,
+      code: error.code,
+      details: error.details,
+      hint: error.hint,
+      cardId: id,
+      timestamp: new Date().toISOString(),
+    });
+    throw error;
+  }
 }
 
 export async function deleteCards(ids: string[]): Promise<void> {
   const { error } = await supabase.from("cards").delete().in("id", ids);
-  if (error) throw error;
+  if (error) {
+    console.error("supabase_delete_cards_failed", {
+      error: error.message,
+      code: error.code,
+      details: error.details,
+      hint: error.hint,
+      cardCount: ids.length,
+      timestamp: new Date().toISOString(),
+    });
+    throw error;
+  }
 }
 
 export async function uploadFile(cardId: string, file: File): Promise<string> {
@@ -48,12 +97,34 @@ export async function uploadFile(cardId: string, file: File): Promise<string> {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) throw new Error("Not authenticated");
+  if (!user) {
+    const authError = new Error("Not authenticated");
+    console.error("supabase_upload_file_auth_failed", {
+      error: authError.message,
+      cardId,
+      fileName: file.name,
+      fileSize: file.size,
+      timestamp: new Date().toISOString(),
+    });
+    throw authError;
+  }
 
   const path = `${user.id}/${cardId}/${file.name}`;
   const { error } = await supabase.storage.from("shinen-files").upload(path, file, { upsert: true });
 
-  if (error) throw error;
+  if (error) {
+    console.error("supabase_upload_file_failed", {
+      error: error.message,
+      // @ts-expect-error - storage error may have additional fields
+      code: error.code,
+      path,
+      cardId,
+      fileName: file.name,
+      fileSize: file.size,
+      timestamp: new Date().toISOString(),
+    });
+    throw error;
+  }
 
   const { data } = supabase.storage.from("shinen-files").getPublicUrl(path);
   return data.publicUrl;
