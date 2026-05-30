@@ -17,6 +17,7 @@ const GUMROAD_URL = process.env.NEXT_PUBLIC_GUMROAD_PRODUCT_URL || "#";
 const WAITLIST_POST_URL = process.env.NEXT_PUBLIC_WAITLIST_POST_URL || "";
 const WAITLIST_FALLBACK_EMAIL =
   process.env.NEXT_PUBLIC_WAITLIST_FALLBACK_EMAIL || "";
+const CTA_VARIANT = (process.env.NEXT_PUBLIC_CTA_VARIANT || "A") as keyof typeof copy.hero.ctaVariants;
 
 interface DemoCard {
   id: number;
@@ -216,7 +217,7 @@ export default function Home() {
               track("hero_cta_demo_click");
               scrollTo("demo");
             }}
-            aria-label={copy.hero.cta[lang]}
+            aria-label={copy.hero.ctaVariants[CTA_VARIANT][lang]}
             style={{
               padding: "10px 28px",
               borderRadius: 999,
@@ -237,7 +238,7 @@ export default function Home() {
               e.currentTarget.style.background = "transparent";
             }}
           >
-            {copy.hero.cta[lang]}
+            {copy.hero.ctaVariants[CTA_VARIANT][lang]}
           </button>
           <a
             data-testid="cta-early-access"
