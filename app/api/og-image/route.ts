@@ -58,7 +58,7 @@ export async function POST(request: Request) {
         "User-Agent": "SHINEN-Bot/1.0 (OGP fetcher)",
         Accept: "text/html",
       },
-      signal: AbortSignal.timeout(3000),
+      signal: AbortSignal.timeout(5000),
     });
 
     if (!res.ok) {
