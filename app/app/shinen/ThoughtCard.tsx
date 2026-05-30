@@ -217,6 +217,26 @@ export default function ThoughtCard({
                     }}
                   />
                 )}
+                {/* OG fetch failed badge */}
+                {card.source?.ogFetchFailed && (
+                  <span
+                    title="Image preview unavailable"
+                    style={{
+                      fontSize: 10,
+                      color: "rgba(180, 35, 24, 0.7)",
+                      background: "rgba(180, 35, 24, 0.08)",
+                      border: "1px solid rgba(180, 35, 24, 0.2)",
+                      borderRadius: 3,
+                      padding: "1px 4px",
+                      marginTop: 5,
+                      flexShrink: 0,
+                      fontFamily: "'DM Sans', sans-serif",
+                      fontWeight: 500,
+                    }}
+                  >
+                    ⚠
+                  </span>
+                )}
                 <span
                   style={{
                     display: "-webkit-box",

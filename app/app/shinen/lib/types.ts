@@ -15,6 +15,7 @@ export interface ShinenCard {
     url: string;
     site: string;
     favicon?: string;
+    ogFetchFailed?: boolean;
   };
   media?: {
     type: "image" | "video" | "audio" | "youtube" | "pdf" | "embed";
