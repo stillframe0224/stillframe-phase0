@@ -46,4 +46,15 @@ console.log('\n=== explicit override can force --bare ===');
   console.log('PASS');
 }
 
+console.log('\n=== prompt metacharacters are shell-quoted ===');
+{
+  const prompt = 'Fence it with ```json ... ``` and say {"status":"completed|partial"}; do not run $(echo bad)';
+  const command = buildClaudeCommand(prompt, {});
+  assert.doesNotMatch(command, /-p "/, 'prompt must not be embedded in double quotes');
+  assert.match(command, /-p '/, 'prompt should be single-quoted for shell safety');
+  assert.match(command, /`{3}json/, 'prompt content should be preserved');
+  assert.match(command, /\$\(echo bad\)/, 'literal command substitution text should be preserved inside quotes');
+  console.log('PASS');
+}
+
 console.log('\n=== ALL TESTS PASSED ===\n');
