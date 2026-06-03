@@ -416,6 +416,39 @@ function buildClaudeCommand(prompt, env = process.env) {
   return `cd "${ROOT}" && /usr/local/bin/claude -p "${prompt}" --max-turns 20 --output-format text${bareArg}`;
 }
 
+function toText(value) {
+  if (value == null) return '';
+  if (Buffer.isBuffer(value)) return value.toString('utf8');
+  return String(value);
+}
+
+function redactSensitive(text) {
+  return toText(text)
+    .replace(/(Authorization:\s*Bearer\s+)[^\s]+/gi, '$1[REDACTED]')
+    .replace(/((?:ANTHROPIC|OPENAI|SUPABASE|GITHUB|GH|VERCEL|N8N)?_?(?:API_)?(?:KEY|TOKEN|SECRET|PASSWORD)\s*=\s*)[^\s]+/gi, '$1[REDACTED]')
+    .replace(/\b(?:sk-ant|sk-proj|ghp|github_pat)_[A-Za-z0-9_\-]+/g, '[REDACTED]');
+}
+
+function tailText(text, maxChars = 500) {
+  const redacted = redactSensitive(text);
+  return redacted.length > maxChars ? redacted.slice(-maxChars) : redacted;
+}
+
+function buildExecutionFailureDiagnostic(err) {
+  return {
+    message: toText(err?.message).slice(0, 500),
+    status: Number.isInteger(err?.status) ? err.status : null,
+    signal: err?.signal || null,
+    stdout_tail: tailText(err?.stdout),
+    stderr_tail: tailText(err?.stderr),
+  };
+}
+
+function summarizeFailureDiagnostic(diagnostic) {
+  if (!diagnostic) return 'unknown execution failure';
+  return diagnostic.stderr_tail || diagnostic.stdout_tail || diagnostic.message || 'unknown execution failure';
+}
+
 function executeTask(task) {
   const useBareClaude = shouldUseBareClaude();
   log({ step: 'execute_start', task_id: task.id, goal: task.goal, claude_mode: useBareClaude ? 'bare' : 'oauth_keychain' });
@@ -428,6 +461,7 @@ function executeTask(task) {
 
   let rawOutput = '';
   let execOk = false;
+  let failureDiagnostic = null;
 
   try {
     // Try to use claude-code CLI
@@ -442,9 +476,9 @@ function executeTask(task) {
     );
     execOk = true;
   } catch (err) {
-    // Capture partial stdout even on non-zero exit
-    rawOutput = err.stdout || '';
-    log({ step: 'execute_end', task_id: task.id, status: 'error', error: err.message?.slice(0, 500) });
+    failureDiagnostic = buildExecutionFailureDiagnostic(err);
+    rawOutput = toText(err.stdout);
+    log({ step: 'execute_end', task_id: task.id, status: 'error', error: failureDiagnostic.message, failure_diagnostic: failureDiagnostic });
   }
 
   // Parse structured result (best-effort)
@@ -471,9 +505,10 @@ function executeTask(task) {
     output_length: rawOutput.length,
     task_result_status: taskResult?.status || null,
     task_result_source: parseSource,
+    ...(failureDiagnostic ? { failure_diagnostic: failureDiagnostic } : {}),
   });
 
-  return { execOk, taskResult };
+  return { execOk, taskResult, failureDiagnostic };
 }
 
 function checkTaskComplexityPreconditions(task) {
@@ -1072,7 +1107,7 @@ function main() {
   }
 
   // Execute
-  const { execOk: success, taskResult } = executeTask(task);
+  const { execOk: success, taskResult, failureDiagnostic } = executeTask(task);
   let afterSnapshot = null;
   try {
     afterSnapshot = captureWorkingTreeSnapshot();
@@ -1170,7 +1205,11 @@ function main() {
   } else {
     // Execution FAILED — this is the only path that increments failure_count
     governance_result = 'n/a';
-    recordLesson(task.id, { status: 'error', error: `Task failed (attempt ${(status.failure_count || 0) + 1})` });
+    const failureSummary = summarizeFailureDiagnostic(failureDiagnostic);
+    recordLesson(task.id, {
+      status: 'error',
+      error: `Task failed (attempt ${(status.failure_count || 0) + 1}): ${failureSummary}`,
+    });
     status.failure_count = (status.failure_count || 0) + 1;
     status.last_task_id = task.id;
     status.last_error = `execution_failure at attempt ${status.failure_count}`;
@@ -1178,6 +1217,7 @@ function main() {
       step: 'execution_failure', task_id: task.id,
       execution_result, governance_result,
       failure_count: status.failure_count,
+      ...(failureDiagnostic ? { failure_diagnostic: failureDiagnostic } : {}),
     });
   }
 
@@ -1205,6 +1245,7 @@ if (process.env.RWL_RUNNER_SKIP_MAIN !== '1') {
 }
 
 export {
+  buildExecutionFailureDiagnostic,
   buildClaudeCommand,
   findExistingTaskRecord,
   promoteFromQueue,
