@@ -411,9 +411,13 @@ function shouldUseBareClaude(env = process.env) {
   return Boolean(env.ANTHROPIC_API_KEY);
 }
 
+function shellQuote(value) {
+  return `'${String(value).replace(/'/g, `'\\''`)}'`;
+}
+
 function buildClaudeCommand(prompt, env = process.env) {
   const bareArg = shouldUseBareClaude(env) ? ' --bare' : '';
-  return `cd "${ROOT}" && /usr/local/bin/claude -p "${prompt}" --max-turns 20 --output-format text${bareArg}`;
+  return `cd "${ROOT}" && /usr/local/bin/claude -p ${shellQuote(prompt)} --max-turns 20 --output-format text${bareArg}`;
 }
 
 function toText(value) {
