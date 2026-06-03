@@ -1,9 +1,9 @@
 {
   "failure_count": 0,
   "max_failures": 5,
-  "last_run_at": "2026-03-23T08:25:00+09:00",
-  "last_task_id": "20260323-080003-link-preview-telemetry",
-  "note": "Nightly run completed successfully: Waitlist CTA styling improvement",
+  "last_run_at": "2026-06-03T02:03:20.214Z",
+  "last_task_id": "20260602-080001-fix-typescript-build",
+  "note": "R2 follow-up quarantined stale breaker task after manual npm run build passed",
   "last_task_type": "lp_improvement",
   "last_error": null
 }
