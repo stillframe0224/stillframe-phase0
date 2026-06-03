@@ -607,3 +607,153 @@
 {"ts":"2026-03-18T22:46:51.301Z","step":"idle","reason":"no_tasks"}
 {"ts":"2026-03-18T22:51:51.716Z","step":"idle","reason":"no_tasks"}
 {"ts":"2026-03-18T22:56:52.180Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-06-02T13:05:01.366Z","step":"promote","task_id":"20260602-080001-fix-typescript-build","from":"Queue"}
+{"ts":"2026-06-02T13:05:01.367Z","step":"task_complexity_preflight","task_id":"20260602-080001-fix-typescript-build","result":"pass","metrics":{"prompt_length_chars":2995,"plan_section_length_chars":0,"allowed_files_count":0,"required_files_count":0,"scope_files_count":0,"verification_commands_count":0,"dod_items_count":3},"limits":{"maxPromptChars":2200,"maxPlanSectionChars":300,"maxScopeFiles":3,"maxVerificationCommands":2,"maxDodItems":4},"prompt_warnings":["prompt length 2995 exceeds 2200"]}
+{"ts":"2026-06-02T13:05:01.367Z","step":"verification_preflight","task_id":"20260602-080001-fix-typescript-build","result":"skipped","reason":"verification_commands not defined"}
+{"ts":"2026-06-02T13:05:01.393Z","step":"execute_start","task_id":"20260602-080001-fix-typescript-build","goal":"Next.js buildで出力されるTypeScriptエラー・警告を解消","claude_mode":"oauth_keychain"}
+{"ts":"2026-06-02T13:05:26.763Z","step":"execute_end","task_id":"20260602-080001-fix-typescript-build","status":"error","error":"Command failed: cd \"/Users/array0224/stillframe-phase0\" && /usr/local/bin/claude -p \"You are working on SHINEN (stillframe-phase0).\nRead CLAUDE.md for project context.\n## IMPORTANT — Structured result output\nWhen you finish (success or failure), output EXACTLY one JSON block as the LAST thing in your response.\nFence it with ```json ... ```. The JSON MUST have these fields:\n  {\"status\":\"completed|partial|failed|blocked\",\"summary\":\"1-2 line summary\",\"files_changed\":[\"path/to/file\"],\"reason\":\"why, "}
+{"ts":"2026-06-02T13:05:26.766Z","step":"execute_end","task_id":"20260602-080001-fix-typescript-build","status":"error","output_length":0,"task_result_status":null,"task_result_source":"none"}
+{"ts":"2026-06-02T13:05:26.813Z","step":"lesson_recorded","task_id":"20260602-080001-fix-typescript-build","status":"error"}
+{"ts":"2026-06-02T13:05:26.813Z","step":"execution_failure","task_id":"20260602-080001-fix-typescript-build","execution_result":"failure","governance_result":"n/a","failure_count":1}
+{"ts":"2026-06-02T13:10:29.768Z","step":"task_complexity_preflight","task_id":"20260602-080001-fix-typescript-build","result":"pass","metrics":{"prompt_length_chars":2930,"plan_section_length_chars":0,"allowed_files_count":0,"required_files_count":0,"scope_files_count":0,"verification_commands_count":0,"dod_items_count":3},"limits":{"maxPromptChars":2200,"maxPlanSectionChars":300,"maxScopeFiles":3,"maxVerificationCommands":2,"maxDodItems":4},"prompt_warnings":["prompt length 2930 exceeds 2200"]}
+{"ts":"2026-06-02T13:10:29.768Z","step":"verification_preflight","task_id":"20260602-080001-fix-typescript-build","result":"skipped","reason":"verification_commands not defined"}
+{"ts":"2026-06-02T13:10:29.785Z","step":"execute_start","task_id":"20260602-080001-fix-typescript-build","goal":"Next.js buildで出力されるTypeScriptエラー・警告を解消","claude_mode":"oauth_keychain"}
+{"ts":"2026-06-02T13:10:41.801Z","step":"execute_end","task_id":"20260602-080001-fix-typescript-build","status":"error","error":"Command failed: cd \"/Users/array0224/stillframe-phase0\" && /usr/local/bin/claude -p \"You are working on SHINEN (stillframe-phase0).\nRead CLAUDE.md for project context.\n## IMPORTANT — Structured result output\nWhen you finish (success or failure), output EXACTLY one JSON block as the LAST thing in your response.\nFence it with ```json ... ```. The JSON MUST have these fields:\n  {\"status\":\"completed|partial|failed|blocked\",\"summary\":\"1-2 line summary\",\"files_changed\":[\"path/to/file\"],\"reason\":\"why, "}
+{"ts":"2026-06-02T13:10:41.802Z","step":"execute_end","task_id":"20260602-080001-fix-typescript-build","status":"error","output_length":0,"task_result_status":null,"task_result_source":"none"}
+{"ts":"2026-06-02T13:10:41.844Z","step":"lesson_recorded","task_id":"20260602-080001-fix-typescript-build","status":"error"}
+{"ts":"2026-06-02T13:10:41.844Z","step":"execution_failure","task_id":"20260602-080001-fix-typescript-build","execution_result":"failure","governance_result":"n/a","failure_count":2}
+{"ts":"2026-06-02T13:15:44.917Z","step":"task_complexity_preflight","task_id":"20260602-080001-fix-typescript-build","result":"pass","metrics":{"prompt_length_chars":2832,"plan_section_length_chars":0,"allowed_files_count":0,"required_files_count":0,"scope_files_count":0,"verification_commands_count":0,"dod_items_count":3},"limits":{"maxPromptChars":2200,"maxPlanSectionChars":300,"maxScopeFiles":3,"maxVerificationCommands":2,"maxDodItems":4},"prompt_warnings":["prompt length 2832 exceeds 2200"]}
+{"ts":"2026-06-02T13:15:44.918Z","step":"verification_preflight","task_id":"20260602-080001-fix-typescript-build","result":"skipped","reason":"verification_commands not defined"}
+{"ts":"2026-06-02T13:15:44.936Z","step":"execute_start","task_id":"20260602-080001-fix-typescript-build","goal":"Next.js buildで出力されるTypeScriptエラー・警告を解消","claude_mode":"oauth_keychain"}
+{"ts":"2026-06-02T13:15:58.265Z","step":"execute_end","task_id":"20260602-080001-fix-typescript-build","status":"error","error":"Command failed: cd \"/Users/array0224/stillframe-phase0\" && /usr/local/bin/claude -p \"You are working on SHINEN (stillframe-phase0).\nRead CLAUDE.md for project context.\n## IMPORTANT — Structured result output\nWhen you finish (success or failure), output EXACTLY one JSON block as the LAST thing in your response.\nFence it with ```json ... ```. The JSON MUST have these fields:\n  {\"status\":\"completed|partial|failed|blocked\",\"summary\":\"1-2 line summary\",\"files_changed\":[\"path/to/file\"],\"reason\":\"why, "}
+{"ts":"2026-06-02T13:15:58.267Z","step":"execute_end","task_id":"20260602-080001-fix-typescript-build","status":"error","output_length":0,"task_result_status":null,"task_result_source":"none"}
+{"ts":"2026-06-02T13:15:58.304Z","step":"lesson_recorded","task_id":"20260602-080001-fix-typescript-build","status":"error"}
+{"ts":"2026-06-02T13:15:58.304Z","step":"execution_failure","task_id":"20260602-080001-fix-typescript-build","execution_result":"failure","governance_result":"n/a","failure_count":3}
+{"ts":"2026-06-02T13:21:01.219Z","step":"task_complexity_preflight","task_id":"20260602-080001-fix-typescript-build","result":"pass","metrics":{"prompt_length_chars":2717,"plan_section_length_chars":0,"allowed_files_count":0,"required_files_count":0,"scope_files_count":0,"verification_commands_count":0,"dod_items_count":3},"limits":{"maxPromptChars":2200,"maxPlanSectionChars":300,"maxScopeFiles":3,"maxVerificationCommands":2,"maxDodItems":4},"prompt_warnings":["prompt length 2717 exceeds 2200"]}
+{"ts":"2026-06-02T13:21:01.219Z","step":"verification_preflight","task_id":"20260602-080001-fix-typescript-build","result":"skipped","reason":"verification_commands not defined"}
+{"ts":"2026-06-02T13:21:01.236Z","step":"execute_start","task_id":"20260602-080001-fix-typescript-build","goal":"Next.js buildで出力されるTypeScriptエラー・警告を解消","claude_mode":"oauth_keychain"}
+{"ts":"2026-06-02T13:21:15.038Z","step":"execute_end","task_id":"20260602-080001-fix-typescript-build","status":"error","error":"Command failed: cd \"/Users/array0224/stillframe-phase0\" && /usr/local/bin/claude -p \"You are working on SHINEN (stillframe-phase0).\nRead CLAUDE.md for project context.\n## IMPORTANT — Structured result output\nWhen you finish (success or failure), output EXACTLY one JSON block as the LAST thing in your response.\nFence it with ```json ... ```. The JSON MUST have these fields:\n  {\"status\":\"completed|partial|failed|blocked\",\"summary\":\"1-2 line summary\",\"files_changed\":[\"path/to/file\"],\"reason\":\"why, "}
+{"ts":"2026-06-02T13:21:15.041Z","step":"execute_end","task_id":"20260602-080001-fix-typescript-build","status":"error","output_length":0,"task_result_status":null,"task_result_source":"none"}
+{"ts":"2026-06-02T13:21:15.081Z","step":"lesson_recorded","task_id":"20260602-080001-fix-typescript-build","status":"error"}
+{"ts":"2026-06-02T13:21:15.081Z","step":"execution_failure","task_id":"20260602-080001-fix-typescript-build","execution_result":"failure","governance_result":"n/a","failure_count":4}
+{"ts":"2026-06-02T13:26:18.090Z","step":"task_complexity_preflight","task_id":"20260602-080001-fix-typescript-build","result":"pass","metrics":{"prompt_length_chars":2623,"plan_section_length_chars":0,"allowed_files_count":0,"required_files_count":0,"scope_files_count":0,"verification_commands_count":0,"dod_items_count":3},"limits":{"maxPromptChars":2200,"maxPlanSectionChars":300,"maxScopeFiles":3,"maxVerificationCommands":2,"maxDodItems":4},"prompt_warnings":["prompt length 2623 exceeds 2200"]}
+{"ts":"2026-06-02T13:26:18.091Z","step":"verification_preflight","task_id":"20260602-080001-fix-typescript-build","result":"skipped","reason":"verification_commands not defined"}
+{"ts":"2026-06-02T13:26:18.108Z","step":"execute_start","task_id":"20260602-080001-fix-typescript-build","goal":"Next.js buildで出力されるTypeScriptエラー・警告を解消","claude_mode":"oauth_keychain"}
+{"ts":"2026-06-02T13:26:34.888Z","step":"execute_end","task_id":"20260602-080001-fix-typescript-build","status":"error","error":"Command failed: cd \"/Users/array0224/stillframe-phase0\" && /usr/local/bin/claude -p \"You are working on SHINEN (stillframe-phase0).\nRead CLAUDE.md for project context.\n## IMPORTANT — Structured result output\nWhen you finish (success or failure), output EXACTLY one JSON block as the LAST thing in your response.\nFence it with ```json ... ```. The JSON MUST have these fields:\n  {\"status\":\"completed|partial|failed|blocked\",\"summary\":\"1-2 line summary\",\"files_changed\":[\"path/to/file\"],\"reason\":\"why, "}
+{"ts":"2026-06-02T13:26:34.891Z","step":"execute_end","task_id":"20260602-080001-fix-typescript-build","status":"error","output_length":0,"task_result_status":null,"task_result_source":"none"}
+{"ts":"2026-06-02T13:26:34.932Z","step":"lesson_recorded","task_id":"20260602-080001-fix-typescript-build","status":"error"}
+{"ts":"2026-06-02T13:26:34.932Z","step":"execution_failure","task_id":"20260602-080001-fix-typescript-build","execution_result":"failure","governance_result":"n/a","failure_count":5}
+{"ts":"2026-06-02T13:31:38.090Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T13:36:41.096Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T13:41:44.075Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T13:46:47.171Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T13:51:50.165Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T13:56:53.508Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T14:01:56.827Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T14:06:59.947Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T14:12:02.930Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T14:17:05.970Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T14:22:09.062Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T14:27:12.271Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T14:32:15.255Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T14:37:18.311Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T14:42:21.439Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T14:47:24.558Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T14:52:27.700Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T14:57:30.674Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T15:02:33.643Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T15:07:36.831Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T15:12:40.329Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T15:17:43.273Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T15:22:46.296Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T15:27:49.172Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T15:32:52.203Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T15:37:55.255Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T15:42:58.281Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T15:48:01.329Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T15:53:04.396Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T15:58:07.413Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T16:03:10.536Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T16:08:13.690Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T16:13:16.602Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T16:18:19.676Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T16:23:22.618Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T16:28:25.572Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T16:33:28.496Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T16:38:31.547Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T16:43:34.561Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T16:48:37.396Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T16:53:40.326Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T16:58:43.255Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T17:03:46.245Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T17:08:49.187Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T17:13:52.115Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T17:18:55.142Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T17:23:58.143Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T17:29:01.183Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T17:34:04.130Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T17:39:07.047Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T17:44:10.297Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T17:49:13.362Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T17:54:16.385Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T17:59:19.884Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T18:04:23.221Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T18:09:26.487Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T18:14:30.068Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T18:19:33.556Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T18:24:36.937Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T18:29:40.176Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T18:34:43.243Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T18:39:46.867Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T18:44:50.653Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T18:49:53.826Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T18:54:57.778Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T19:00:01.142Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T19:05:05.229Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T19:10:08.774Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T19:15:11.894Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T19:20:14.768Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T19:25:17.710Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T19:30:20.833Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T19:35:23.878Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T19:40:26.845Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T19:45:29.884Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T19:50:32.857Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T19:55:35.991Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T20:00:38.849Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T20:05:41.856Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T20:10:44.867Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T20:15:47.800Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T20:20:50.792Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T20:25:53.685Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T20:30:56.580Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T20:35:59.644Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T20:41:02.537Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T20:46:05.505Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T20:51:08.525Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T20:56:11.528Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T21:01:14.445Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T21:06:17.334Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T21:11:20.355Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T21:16:23.314Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T21:21:26.234Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T21:26:29.192Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T21:31:32.191Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T21:36:35.202Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T21:41:38.180Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T21:46:41.150Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T21:51:44.463Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T21:56:47.341Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T22:01:50.251Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T22:06:53.205Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T22:11:56.241Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T22:16:59.134Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T22:22:02.120Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T22:27:05.138Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T22:32:08.081Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T22:37:11.066Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T22:42:13.895Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T22:47:16.885Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T22:52:19.780Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-02T22:57:22.561Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-03T02:03:20.215Z","step":"manual_quarantine_reset","task_id":"20260602-080001-fix-typescript-build","reason":"R2 follow-up: npm run build passes; stale breaker task quarantined; failure_count reset to 0"}

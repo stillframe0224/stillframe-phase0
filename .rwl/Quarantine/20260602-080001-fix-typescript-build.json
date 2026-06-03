@@ -1,0 +1,16 @@
+{
+  "id": "20260602-080001-fix-typescript-build",
+  "goal": "Next.js buildで出力されるTypeScriptエラー・警告を解消",
+  "est_minutes": 20,
+  "dod": [
+    "npm run build で warning 0件",
+    "reports/triad/20260602-080001-fix-typescript-build.md 作成",
+    "PR作成"
+  ],
+  "evidence_paths": [
+    "/Users/array0224/stillframe-phase0/reports/triad/20260602-080001-fix-typescript-build.md"
+  ],
+  "created_at": "2026-06-02T08:00:01+09:00",
+  "status": "current",
+  "_filename": "20260602-080001-fix-typescript-build.json"
+}

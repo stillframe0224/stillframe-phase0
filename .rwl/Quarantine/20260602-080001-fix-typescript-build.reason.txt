@@ -1,0 +1,6 @@
+quarantined: 2026-06-03 R2 daily-check follow-up
+
+Root cause: RWL breaker tripped after five execution failures for this current task, but failure output was not persisted beyond attempt counters.
+Manual reproduction on main passed: npm run build completed successfully with TypeScript phase green on 2026-06-03 JST.
+Action taken: moved Current/20260602-080001-fix-typescript-build.json to Quarantine and reset failure_count so the runner can continue to the next queued task.
+Residual risk: original Claude execution failure stderr/stdout was unavailable, so this is a stale-task quarantine rather than a source-level fix.
