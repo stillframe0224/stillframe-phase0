@@ -1,4 +1,9 @@
 import { createClient } from "@/utils/supabase/client";
+import {
+  extractErrorCode,
+  extractErrorMessage,
+  logCardError,
+} from "@/lib/supabase/errorLog";
 import type { DbCard } from "./types";
 
 const supabase = createClient();
@@ -6,13 +11,29 @@ const supabase = createClient();
 type NewDbCard = Omit<DbCard, "id" | "user_id" | "created_at" | "updated_at">;
 type DbCardUpdates = Partial<NewDbCard>;
 
+async function logSupabaseCardFailure(
+  source: string,
+  error: unknown,
+  context: Record<string, unknown> = {},
+): Promise<void> {
+  await logCardError({
+    source,
+    message: extractErrorMessage(error),
+    errorCode: extractErrorCode(error),
+    context,
+  });
+}
+
 export async function fetchCards(): Promise<DbCard[]> {
   const { data, error } = await supabase
     .from("cards")
     .select("*")
     .order("created_at", { ascending: false });
 
-  if (error) throw error;
+  if (error) {
+    await logSupabaseCardFailure("supabase_fetch_cards_failed", error);
+    throw error;
+  }
   return (data ?? []) as DbCard[];
 }
 
@@ -21,7 +42,17 @@ export async function insertCard(card: NewDbCard): Promise<DbCard> {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) throw new Error("Not authenticated");
+  if (!user) {
+    const error = new Error("Not authenticated");
+    await logSupabaseCardFailure("supabase_insert_card_auth_failed", error, {
+      cardType: card.type,
+      cardTextLength: card.text?.length ?? 0,
+      hasMedia: !!card.media,
+      hasSource: !!card.source,
+      hasFile: !!card.file,
+    });
+    throw error;
+  }
 
   const { data, error } = await supabase
     .from("cards")
@@ -29,18 +60,38 @@ export async function insertCard(card: NewDbCard): Promise<DbCard> {
     .select()
     .single();
 
-  if (error) throw error;
+  if (error) {
+    await logSupabaseCardFailure("supabase_insert_card_failed", error, {
+      cardType: card.type,
+      cardTextLength: card.text?.length ?? 0,
+      hasMedia: !!card.media,
+      hasSource: !!card.source,
+      hasFile: !!card.file,
+    });
+    throw error;
+  }
   return data as DbCard;
 }
 
 export async function updateCard(id: string, updates: DbCardUpdates): Promise<void> {
   const { error } = await supabase.from("cards").update(updates).eq("id", id);
-  if (error) throw error;
+  if (error) {
+    await logSupabaseCardFailure("supabase_update_card_failed", error, {
+      cardId: id,
+      updateKeys: Object.keys(updates),
+    });
+    throw error;
+  }
 }
 
 export async function deleteCards(ids: string[]): Promise<void> {
   const { error } = await supabase.from("cards").delete().in("id", ids);
-  if (error) throw error;
+  if (error) {
+    await logSupabaseCardFailure("supabase_delete_cards_failed", error, {
+      cardCount: ids.length,
+    });
+    throw error;
+  }
 }
 
 export async function uploadFile(cardId: string, file: File): Promise<string> {
@@ -48,12 +99,27 @@ export async function uploadFile(cardId: string, file: File): Promise<string> {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) throw new Error("Not authenticated");
+  if (!user) {
+    const error = new Error("Not authenticated");
+    await logSupabaseCardFailure("supabase_upload_file_auth_failed", error, {
+      cardId,
+      fileSize: file.size,
+      fileType: file.type,
+    });
+    throw error;
+  }
 
   const path = `${user.id}/${cardId}/${file.name}`;
   const { error } = await supabase.storage.from("shinen-files").upload(path, file, { upsert: true });
 
-  if (error) throw error;
+  if (error) {
+    await logSupabaseCardFailure("supabase_upload_file_failed", error, {
+      cardId,
+      fileSize: file.size,
+      fileType: file.type,
+    });
+    throw error;
+  }
 
   const { data } = supabase.storage.from("shinen-files").getPublicUrl(path);
   return data.publicUrl;
