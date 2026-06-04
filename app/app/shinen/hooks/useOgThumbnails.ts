@@ -8,6 +8,7 @@
  */
 
 import { useEffect, useRef } from "react";
+import { logCardError } from "@/lib/supabase/errorLog";
 import type { ShinenCard } from "../lib/types";
 
 const OG_CACHE_KEY = "shinen_og_v1";
@@ -32,6 +33,14 @@ function shouldSkipOg(url: string): boolean {
     return SKIP_OG_HOSTS.has(hostname.toLowerCase());
   } catch {
     return false;
+  }
+}
+
+function getHostname(url: string): string | null {
+  try {
+    return new URL(url).hostname.toLowerCase();
+  } catch {
+    return null;
   }
 }
 
@@ -199,7 +208,14 @@ export function useOgThumbnails(
       fetch(`/api/link-preview?url=${encodeURIComponent(url)}`, {
         signal: controller.signal,
       })
-        .then((res) => res.json())
+        .then((res) => {
+          if (!res.ok) {
+            const error = new Error(`link preview request failed with status ${res.status}`);
+            error.name = "LinkPreviewFetchError";
+            throw error;
+          }
+          return res.json();
+        })
         .then(
           (data: {
             image?: string | null;
@@ -270,6 +286,15 @@ export function useOgThumbnails(
             `Message: ${errorMsg}\n` +
             `Card ID: ${id}`
           );
+          void logCardError({
+            source: "og_fetch_failed",
+            message: errorMsg,
+            errorCode: errorType,
+            context: {
+              cardId: id,
+              domain: getHostname(url),
+            },
+          });
           
           // Cache the failure with default retry TTL
           currentCache[url] = { 
