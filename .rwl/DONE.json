@@ -138,5 +138,13 @@
     "goal": "link-previewのOGP取得失敗・成功パターンをtelemetry経由で記録し可観測性を向上",
     "completed_at": "2026-03-18T14:08:21.492Z",
     "session": "nightly"
+  },
+  {
+    "id": "20260602-080002-card-error-logging",
+    "goal": "カード作成失敗時のエラーログをSupabaseに記録する仕組みを追加",
+    "completed_at": "2026-06-04T01:03:01.264Z",
+    "session": "nightly-manual-followup",
+    "pr_url": "https://github.com/stillframe0224/stillframe-phase0/pull/368",
+    "evidence": "/Users/array0224/stillframe-phase0/reports/triad/20260602-080002-card-error-logging.md"
   }
 ]
