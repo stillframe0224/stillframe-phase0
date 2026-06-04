@@ -3,13 +3,13 @@
 履歴の詳細説明より、再利用可能な作業原則として扱うこと。
 
 ## 最近の失敗パターン（再発を避けること）
-- **20260602-080001-fix-typescript-build**: Task failed (attempt 4). 回避策: 未特定
 - **20260602-080001-fix-typescript-build**: Task failed (attempt 5). 回避策: 未特定
 - **20260602-080002-card-error-logging**: Task failed (attempt 1): runner prompt was interpreted by shell (`json: command not found`). 回避策: PR #366 の shell quoting 修正で再試行
 - **20260602-080002-card-error-logging**: Task failed (attempt 2): runner prompt was interpreted by shell (`json: command not found`). 回避策: PR #366 の shell quoting 修正で再試行
 - **20260602-080002-card-error-logging**: Task failed (attempt 3): runner prompt was interpreted by shell (`json: command not found`). 回避策: PR #366 の shell quoting 修正で再試行
 - **20260602-080002-card-error-logging**: Task failed (attempt 4): runner prompt was interpreted by shell (`json: command not found`). 回避策: PR #366 の shell quoting 修正で再試行
 - **20260602-080002-card-error-logging**: Task failed (attempt 5): runner prompt was interpreted by shell (`json: command not found`). 回避策: PR #366 の shell quoting 修正で再試行
+- **20260602-080002-card-error-logging**: Task failed (attempt 1): Error: Reached max turns (20). 回避策: 手動フォローでPR #368を作成・mergeし、CurrentをDoneへ移動
 
 ## 最近の成功パターン（優先して採用すること）
 - **20260318-obsv-01-build-a**: Apply a small UX copy refinement for landing page with build-only verification

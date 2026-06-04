@@ -12,6 +12,9 @@
     "/Users/array0224/stillframe-phase0/reports/triad/20260602-080002-card-error-logging.md"
   ],
   "created_at": "2026-06-02T08:00:02+09:00",
-  "status": "current",
-  "_filename": "20260602-080002-card-error-logging.json"
+  "status": "done",
+  "_filename": "20260602-080002-card-error-logging.json",
+  "completed_at": "2026-06-04T01:03:01.264Z",
+  "pr_url": "https://github.com/stillframe0224/stillframe-phase0/pull/368",
+  "evidence": "/Users/array0224/stillframe-phase0/reports/triad/20260602-080002-card-error-logging.md"
 }
