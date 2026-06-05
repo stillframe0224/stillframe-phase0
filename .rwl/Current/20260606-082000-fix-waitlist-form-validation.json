@@ -1,0 +1,1 @@
+{"id":"20260606-082000-fix-waitlist-form-validation","goal":"Waitlistフォームの入力検証の強化","est_minutes":25,"dod":["npm run build 通過","reports/triad/20260606-082000-fix-waitlist-form-validation.md 作成","PR作成"],"evidence_paths":["reports/triad/20260606-082000-fix-waitlist-form-validation.md"],"created_at":"2026-06-06T08:20:00+09:00","status":"queue"}

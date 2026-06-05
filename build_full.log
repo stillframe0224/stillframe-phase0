@@ -1,0 +1,43 @@
+
+> stillframe-phase0@1.0.0 build
+> next build
+
+▲ Next.js 16.1.6 (Turbopack)
+- Environments: .env.local
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 1878.4ms
+  Running TypeScript ...
+  Collecting page data using 7 workers ...
+  Generating static pages using 7 workers (0/13) ...
+  Generating static pages using 7 workers (3/13) 
+  Generating static pages using 7 workers (6/13) 
+  Generating static pages using 7 workers (9/13) 
+✓ Generating static pages using 7 workers (13/13) in 66.1ms
+  Finalizing page optimization ...
+
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├ ƒ /api/__version
+├ ƒ /api/ai-organize
+├ ƒ /api/db-schema-check
+├ ƒ /api/debug-auth
+├ ƒ /api/env-check
+├ ƒ /api/image-proxy
+├ ƒ /api/link-preview
+├ ƒ /api/metrics/preview
+├ ƒ /api/og-image
+├ ƒ /api/phase0-kpi
+├ ƒ /api/track
+├ ƒ /api/version
+├ ○ /app
+├ ƒ /auth/callback
+├ ƒ /auth/login
+├ ○ /bookmarklet
+└ ○ /capture
+
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
