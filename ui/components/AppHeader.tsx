@@ -50,6 +50,7 @@ export default function AppHeader({
 
   return (
     <nav
+      className="appheader-nav"
       style={{
         display: "flex",
         justifyContent: "space-between",
@@ -74,6 +75,7 @@ export default function AppHeader({
         <J7Logo size={24} showText={true} dataTestId="j7-logo" />
         {byline && (
           <span
+            className="appheader-byline"
             style={{
               fontFamily: "var(--font-dm)",
               fontSize: 12,
@@ -99,6 +101,7 @@ export default function AppHeader({
           <a
             key={link.href}
             href={link.href}
+            className="appheader-navlink"
             style={{
               textDecoration: "none",
               display: "flex",

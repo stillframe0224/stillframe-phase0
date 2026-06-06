@@ -3,6 +3,8 @@
 Deterministic index of `reports/triad/*.md`. Do not add timestamps here.
 
 - [INDEX_ig_preview_pipeline: INDEX: IG Preview Pipeline](INDEX_ig_preview_pipeline.md)
+- [20260606-083000-fix-nextjs-warnings: Task: Next.jsのビルド警告の解消](20260606-083000-fix-nextjs-warnings.md)
+- [20260605-080200-fix-nextjs-build-warnings: Task: Next.jsのビルド警告解消](20260605-080200-fix-nextjs-build-warnings.md)
 - [20260602-080002-card-error-logging: Task: カード作成失敗時のエラーログ永続化](20260602-080002-card-error-logging.md)
 - [20260225_x_ig_saveflow_regression: 2026-02-25 X/IG save-flow regression follow-up](20260225_x_ig_saveflow_regression.md)
 - [20260225_x_ig_media_fix_video_player: 2026-02-25 X/Instagram media fix + in-app video playback](20260225_x_ig_media_fix_video_player.md)

@@ -1,0 +1,14 @@
+{
+  "status": "completed",
+  "summary": "モバイル表示UIバグ修正: viewport + AppHeader/CSS でヘッダ overflow を解消。build成功、triad report作成済み。git ops (branch/commit/PR) は runner.js が管理。",
+  "files_changed": [
+    "app/layout.tsx",
+    "ui/components/AppHeader.tsx",
+    "app/globals.css",
+    "reports/triad/20260606-081000-fix-mobile-ui-bugs.md"
+  ],
+  "reason": "",
+  "_parse_source": "fenced",
+  "_task_id": "20260606-081000-fix-mobile-ui-bugs",
+  "_at": "2026-06-06T13:22:54.537Z"
+}

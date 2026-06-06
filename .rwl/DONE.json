@@ -146,5 +146,25 @@
     "session": "nightly-manual-followup",
     "pr_url": "https://github.com/stillframe0224/stillframe-phase0/pull/368",
     "evidence": "/Users/array0224/stillframe-phase0/reports/triad/20260602-080002-card-error-logging.md"
+  },
+  {
+    "id": "20260606-081000-fix-mobile-ui-bugs",
+    "goal": "モバイル表示のUIバグ修正",
+    "completed_at": "2026-06-06T13:22:54.578Z",
+    "session": "nightly"
+  },
+  {
+    "id": "20260606-083000-fix-nextjs-warnings",
+    "goal": "Next.jsのビルド警告の解消",
+    "completed_at": "2026-06-06T13:37:54.488Z",
+    "session": "nightly"
+  },
+  {
+    "id": "20260606-230000-app-loading-spinner",
+    "goal": "app/page.tsx のローディング状態を視覚的に改善（スピナー追加）",
+    "completed_at": "2026-06-06T14:00:00.000Z",
+    "session": "nightly",
+    "pr_url": "https://github.com/stillframe0224/stillframe-phase0/pull/372",
+    "evidence": "/Users/array0224/stillframe-phase0/reports/triad/20260606-230000-app-loading-spinner.md"
   }
 ]
