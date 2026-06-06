@@ -110,14 +110,17 @@ export default function Home() {
 
   const [cardError, setCardError] = useState<string | null>(null);
 
-  const addCard = () => {
+  const addCard = async () => {
     const text = input.trim();
     if (!text) {
       setCardError("思考を入力してください");
       return;
     }
     setCardError(null);
+    setIsCreating(true);
     try {
+      // Simulate async card creation delay
+      await new Promise((resolve) => setTimeout(resolve, 500));
       setCards((prev) => [...prev, { id: nextId, text, type: selectedType }]);
       setNextId((n) => n + 1);
       setInput("");
@@ -125,8 +128,12 @@ export default function Home() {
       inputRef.current?.focus();
     } catch (e) {
       setCardError("カード作成に失敗しました。");
+    } finally {
+      setIsCreating(false);
     }
   };
+
+  const [isCreating, setIsCreating] = useState(false);
 
   const resetCards = () => {
     setCards([]);

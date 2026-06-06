@@ -117,6 +117,7 @@ export default function Waitlist({
     <div style={{ maxWidth: 440, margin: "0 auto" }}>
       <form
         onSubmit={handleSubmit}
+        aria-busy={loading}
         style={{
           display: "flex",
           gap: 10,
@@ -127,6 +128,7 @@ export default function Waitlist({
           data-testid="waitlist-email"
           type="email"
           required
+          maxLength={254}
           aria-label={c.placeholder[lang]}
           placeholder={c.placeholder[lang]}
           value={email}
