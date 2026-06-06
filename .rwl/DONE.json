@@ -146,11 +146,5 @@
     "session": "nightly-manual-followup",
     "pr_url": "https://github.com/stillframe0224/stillframe-phase0/pull/368",
     "evidence": "/Users/array0224/stillframe-phase0/reports/triad/20260602-080002-card-error-logging.md"
-  },
-  {
-    "id": "20260605-080200-fix-nextjs-build-warnings",
-    "goal": "Next.jsのビルド警告解消を行う",
-    "completed_at": "2026-06-05T13:33:33.733Z",
-    "session": "nightly"
   }
 ]

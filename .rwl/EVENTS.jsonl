@@ -32,5 +32,3 @@
 {"ts":"2026-03-14T13:01:53.854Z","run_id":"1773493313848","task_id":"20260314-080400-error-log-dashboard","phase":"preflight","event_type":"preflight_clear"}
 {"ts":"2026-03-14T13:04:34.299Z","run_id":"1773493313848","task_id":"20260314-080400-error-log-dashboard","phase":"execute","event_type":"task_succeeded","output_length":580}
 {"ts":"2026-03-14T13:04:34.300Z","run_id":"1773493313848","task_id":"20260314-080400-error-log-dashboard","phase":"done","event_type":"done.marked"}
-{"ts":"2026-06-05T13:04:01.057Z","run_id":"20260605-080100-improve-waitlist-form","task_id":"20260605-080100-improve-waitlist-form","event_type":"triad_review_missing"}
-{"ts":"2026-06-05T13:33:33.732Z","run_id":"20260605-080200-fix-nextjs-build-warnings","task_id":"20260605-080200-fix-nextjs-build-warnings","event_type":"triad_review_low_risk_bypass","changed_files":[".claude/results/20260605-080200-fix-nextjs-build-warnings_result.json","reports/triad/INDEX.md"]}

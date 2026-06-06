@@ -1,9 +1,0 @@
-{
-  "ts": "2026-06-06T07:59:24+09:00",
-  "root_cause": "stale_live_worktree",
-  "evidence": {
-    "reason": "branch_not_main",
-    "branch": "claude/card-flow-error-loading-improve",
-    "head": "ed5d1d5fa860613f410deaa0bc54bcf5bada1a2f"
-  }
-}
