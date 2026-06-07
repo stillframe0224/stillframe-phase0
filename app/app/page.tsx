@@ -66,21 +66,47 @@ export default function AppPage() {
 
   if (loading) {
     return (
-      <div
-        style={{
-          width: "100%",
-          height: "100vh",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          background: "#fdfdfd",
-          fontFamily: "'DM Sans',sans-serif",
-          color: "rgba(0,0,0,0.2)",
-          fontSize: 13,
-        }}
-      >
-        loading...
-      </div>
+      <>
+        <style>{`
+          @keyframes spin-app-load {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+        `}</style>
+        <div
+          style={{
+            width: "100%",
+            height: "100vh",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            background: "#fdfdfd",
+            fontFamily: "'DM Sans',sans-serif",
+            color: "rgba(0,0,0,0.2)",
+            fontSize: 13,
+            gap: 16,
+          }}
+        >
+          <svg
+            width={24}
+            height={24}
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            style={{
+              animation: "spin-app-load 0.8s linear infinite",
+              color: "rgba(0,0,0,0.15)",
+            }}
+          >
+            <circle cx="12" cy="12" r="10" strokeDasharray="31.4 31.4" strokeDashoffset="0" opacity="0.25" />
+            <path d="M12 2 A10 10 0 0 1 22 12" strokeDasharray="15.7" strokeDashoffset="0" />
+          </svg>
+          <div>loading your workspace...</div>
+        </div>
+      </>
     );
   }
 
