@@ -1,9 +1,0 @@
-{
-  "ts": "2026-06-07T07:58:43+09:00",
-  "root_cause": "stale_live_worktree",
-  "evidence": {
-    "reason": "branch_not_main",
-    "branch": "claude/app-loading-spinner",
-    "head": "5e1ea412f8ba1221275f44d94f900ca58dc53689"
-  }
-}
