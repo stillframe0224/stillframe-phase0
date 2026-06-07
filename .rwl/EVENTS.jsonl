@@ -32,3 +32,6 @@
 {"ts":"2026-03-14T13:01:53.854Z","run_id":"1773493313848","task_id":"20260314-080400-error-log-dashboard","phase":"preflight","event_type":"preflight_clear"}
 {"ts":"2026-03-14T13:04:34.299Z","run_id":"1773493313848","task_id":"20260314-080400-error-log-dashboard","phase":"execute","event_type":"task_succeeded","output_length":580}
 {"ts":"2026-03-14T13:04:34.300Z","run_id":"1773493313848","task_id":"20260314-080400-error-log-dashboard","phase":"done","event_type":"done.marked"}
+{"ts":"2026-06-06T13:22:54.577Z","run_id":"20260606-081000-fix-mobile-ui-bugs","task_id":"20260606-081000-fix-mobile-ui-bugs","event_type":"triad_review_low_risk_bypass","changed_files":[".claude/results/20260606-081000-fix-mobile-ui-bugs_result.json"]}
+{"ts":"2026-06-06T13:30:49.749Z","run_id":"20260606-082000-fix-waitlist-form-validation","task_id":"20260606-082000-fix-waitlist-form-validation","event_type":"triad_review_missing"}
+{"ts":"2026-06-06T13:37:54.488Z","run_id":"20260606-083000-fix-nextjs-warnings","task_id":"20260606-083000-fix-nextjs-warnings","event_type":"triad_review_low_risk_bypass","changed_files":[".claude/results/20260606-083000-fix-nextjs-warnings_result.json","reports/triad/INDEX.md"]}

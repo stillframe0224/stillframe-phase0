@@ -12,10 +12,79 @@ interface WaitlistProps {
   fallbackEmail: string;
 }
 
-function isValidEmail(email: string): boolean {
-  // More strict than HTML5 type="email"
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email);
+type EmailValidationError =
+  | "empty"
+  | "too_long"
+  | "local_too_long"
+  | "missing_at"
+  | "missing_domain"
+  | "missing_tld"
+  | "invalid_chars"
+  | "consecutive_dots"
+  | "edge_dots";
+
+function validateEmail(email: string): EmailValidationError | null {
+  if (!email) return "empty";
+  // RFC 5321 — overall address max 254 chars
+  if (email.length > 254) return "too_long";
+
+  const atCount = (email.match(/@/g) || []).length;
+  if (atCount === 0) return "missing_at";
+  if (atCount > 1) return "invalid_chars";
+
+  const [local, domain] = email.split("@");
+  if (!local) return "missing_at";
+  if (!domain) return "missing_domain";
+
+  // RFC 5321 — local part max 64 chars
+  if (local.length > 64) return "local_too_long";
+
+  // No leading/trailing dots, no consecutive dots
+  if (local.startsWith(".") || local.endsWith(".")) return "edge_dots";
+  if (domain.startsWith(".") || domain.endsWith(".")) return "edge_dots";
+  if (local.includes("..") || domain.includes("..")) return "consecutive_dots";
+
+  // Domain must contain a dot and a TLD of 2+ chars
+  const domainParts = domain.split(".");
+  if (domainParts.length < 2) return "missing_tld";
+  const tld = domainParts[domainParts.length - 1];
+  if (tld.length < 2) return "missing_tld";
+
+  // Allowed characters (conservative subset of RFC 5322)
+  const localRegex = /^[A-Za-z0-9._%+-]+$/;
+  const domainRegex = /^[A-Za-z0-9.-]+$/;
+  if (!localRegex.test(local) || !domainRegex.test(domain)) return "invalid_chars";
+
+  return null;
+}
+
+function errorMessageFor(
+  code: EmailValidationError,
+  lang: Lang
+): string {
+  const ja: Record<EmailValidationError, string> = {
+    empty: "メールアドレスを入力してください",
+    too_long: "メールアドレスが長すぎます（254文字以内）",
+    local_too_long: "@より前の部分が長すぎます（64文字以内）",
+    missing_at: "「@」を含む有効なメールアドレスを入力してください",
+    missing_domain: "「@」のあとにドメインを入力してください",
+    missing_tld: "ドメインが不完全です（例: example.com）",
+    invalid_chars: "使用できない文字が含まれています",
+    consecutive_dots: "「..」のように連続したドットは使用できません",
+    edge_dots: "先頭または末尾にドットは使用できません",
+  };
+  const en: Record<EmailValidationError, string> = {
+    empty: "Please enter an email address",
+    too_long: "Email is too long (max 254 characters)",
+    local_too_long: "The part before @ is too long (max 64 characters)",
+    missing_at: "Please enter a valid email address including @",
+    missing_domain: "Please enter a domain after @",
+    missing_tld: "Domain looks incomplete (e.g. example.com)",
+    invalid_chars: "Contains characters that aren't allowed",
+    consecutive_dots: "Consecutive dots like \"..\" aren't allowed",
+    edge_dots: "Dots can't appear at the start or end",
+  };
+  return lang === "ja" ? ja[code] : en[code];
 }
 
 export default function Waitlist({
@@ -30,16 +99,16 @@ export default function Waitlist({
   const c = copy.waitlist;
 
   const normalizedEmail = email.trim().toLowerCase();
-  const isEmailValid = isValidEmail(normalizedEmail);
+  const validationError = validateEmail(normalizedEmail);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!normalizedEmail || !isEmailValid) {
-      setErrorMessage(
-        lang === "ja"
-          ? "有効なメールアドレスを入力してください"
-          : "Please enter a valid email address"
-      );
+    if (validationError) {
+      setErrorMessage(errorMessageFor(validationError, lang));
+      track("waitlist_submit_invalid", {
+        reason: validationError,
+        length: String(normalizedEmail.length),
+      });
       return;
     }
 
@@ -135,6 +204,11 @@ export default function Waitlist({
           onChange={(e) => {
             setEmail(e.target.value);
             if (errorMessage) setErrorMessage(null);
+          }}
+          onBlur={() => {
+            if (email.length > 0 && validationError) {
+              setErrorMessage(errorMessageFor(validationError, lang));
+            }
           }}
           autoComplete="email"
           inputMode="email"

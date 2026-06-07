@@ -1,0 +1,12 @@
+{
+  "status": "completed",
+  "summary": "Hardened Waitlist email validation with typed error codes (9 cases), localized JA/EN error copy, onBlur validation, and invalid-submit telemetry. npm run build passes; triad report written.",
+  "files_changed": [
+    "app/components/Waitlist.tsx",
+    "reports/triad/20260606-082000-fix-waitlist-form-validation.md"
+  ],
+  "reason": "Branch/commit/push/PR are blocked by .claude/hooks/scripts/block-git-ops.sh per RWL safety rules; runner.js is responsible for those steps.",
+  "_parse_source": "fenced",
+  "_task_id": "20260606-082000-fix-waitlist-form-validation",
+  "_at": "2026-06-06T13:30:49.713Z"
+}

@@ -1,0 +1,12 @@
+{
+  "status": "completed",
+  "summary": "Next.js 16.1.6 build再検証で警告ゼロ確認。ソース変更なし。triad reportとINDEX.md更新のみ。",
+  "files_changed": [
+    "reports/triad/20260606-083000-fix-nextjs-warnings.md",
+    "reports/triad/INDEX.md"
+  ],
+  "reason": "",
+  "_parse_source": "fenced",
+  "_task_id": "20260606-083000-fix-nextjs-warnings",
+  "_at": "2026-06-06T13:37:54.450Z"
+}
