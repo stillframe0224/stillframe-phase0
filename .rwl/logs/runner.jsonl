@@ -964,3 +964,152 @@
 {"ts":"2026-06-06T13:48:00.202Z","step":"idle","reason":"no_tasks"}
 {"ts":"2026-06-06T13:53:03.045Z","step":"idle","reason":"no_tasks"}
 {"ts":"2026-06-06T13:58:05.829Z","step":"idle","reason":"no_tasks"}
+{"ts":"2026-06-11T13:01:35.783Z","step":"promote","task_id":"20260610-080500-fix-mobile-layout-bug","from":"Queue"}
+{"ts":"2026-06-11T13:01:35.784Z","step":"task_complexity_preflight","task_id":"20260610-080500-fix-mobile-layout-bug","result":"pass","metrics":{"prompt_length_chars":2791,"plan_section_length_chars":0,"allowed_files_count":0,"required_files_count":0,"scope_files_count":0,"verification_commands_count":0,"dod_items_count":3},"limits":{"maxPromptChars":2200,"maxPlanSectionChars":300,"maxScopeFiles":3,"maxVerificationCommands":2,"maxDodItems":4},"prompt_warnings":["prompt length 2791 exceeds 2200"]}
+{"ts":"2026-06-11T13:01:35.784Z","step":"verification_preflight","task_id":"20260610-080500-fix-mobile-layout-bug","result":"skipped","reason":"verification_commands not defined"}
+{"ts":"2026-06-11T13:01:35.813Z","step":"execute_start","task_id":"20260610-080500-fix-mobile-layout-bug","goal":"モバイル表示時のレイアウト崩れ修正","claude_mode":"oauth_keychain"}
+{"ts":"2026-06-11T13:03:30.399Z","step":"execute_end","task_id":"20260610-080500-fix-mobile-layout-bug","status":"error","error":"Command failed: cd \"/Users/array0224/stillframe-phase0\" && /usr/local/bin/claude -p 'You are working on SHINEN (stillframe-phase0).\nRead CLAUDE.md for project context.\n## IMPORTANT — Structured result output\nWhen you finish (success or failure), output EXACTLY one JSON block as the LAST thing in your response.\nFence it with ```json ... ```. The JSON MUST have these fields:\n  {\"status\":\"completed|partial|failed|blocked\",\"summary\":\"1-2 line summary\",\"files_changed\":[\"path/to/file\"],\"reason\":\"why, ","failure_diagnostic":{"message":"Command failed: cd \"/Users/array0224/stillframe-phase0\" && /usr/local/bin/claude -p 'You are working on SHINEN (stillframe-phase0).\nRead CLAUDE.md for project context.\n## IMPORTANT — Structured result output\nWhen you finish (success or failure), output EXACTLY one JSON block as the LAST thing in your response.\nFence it with ```json ... ```. The JSON MUST have these fields:\n  {\"status\":\"completed|partial|failed|blocked\",\"summary\":\"1-2 line summary\",\"files_changed\":[\"path/to/file\"],\"reason\":\"why, ","status":1,"signal":null,"stdout_tail":"Error: Reached max turns (20)","stderr_tail":""}}
+{"ts":"2026-06-11T13:03:30.401Z","step":"execute_end","task_id":"20260610-080500-fix-mobile-layout-bug","status":"error","output_length":29,"task_result_status":null,"task_result_source":"none","failure_diagnostic":{"message":"Command failed: cd \"/Users/array0224/stillframe-phase0\" && /usr/local/bin/claude -p 'You are working on SHINEN (stillframe-phase0).\nRead CLAUDE.md for project context.\n## IMPORTANT — Structured result output\nWhen you finish (success or failure), output EXACTLY one JSON block as the LAST thing in your response.\nFence it with ```json ... ```. The JSON MUST have these fields:\n  {\"status\":\"completed|partial|failed|blocked\",\"summary\":\"1-2 line summary\",\"files_changed\":[\"path/to/file\"],\"reason\":\"why, ","status":1,"signal":null,"stdout_tail":"Error: Reached max turns (20)","stderr_tail":""}}
+{"ts":"2026-06-11T13:03:30.441Z","step":"lesson_recorded","task_id":"20260610-080500-fix-mobile-layout-bug","status":"error"}
+{"ts":"2026-06-11T13:03:30.441Z","step":"execution_failure","task_id":"20260610-080500-fix-mobile-layout-bug","execution_result":"failure","governance_result":"n/a","failure_count":1,"failure_diagnostic":{"message":"Command failed: cd \"/Users/array0224/stillframe-phase0\" && /usr/local/bin/claude -p 'You are working on SHINEN (stillframe-phase0).\nRead CLAUDE.md for project context.\n## IMPORTANT — Structured result output\nWhen you finish (success or failure), output EXACTLY one JSON block as the LAST thing in your response.\nFence it with ```json ... ```. The JSON MUST have these fields:\n  {\"status\":\"completed|partial|failed|blocked\",\"summary\":\"1-2 line summary\",\"files_changed\":[\"path/to/file\"],\"reason\":\"why, ","status":1,"signal":null,"stdout_tail":"Error: Reached max turns (20)","stderr_tail":""}}
+{"ts":"2026-06-11T13:08:33.201Z","step":"task_complexity_preflight","task_id":"20260610-080500-fix-mobile-layout-bug","result":"pass","metrics":{"prompt_length_chars":2730,"plan_section_length_chars":0,"allowed_files_count":0,"required_files_count":0,"scope_files_count":0,"verification_commands_count":0,"dod_items_count":3},"limits":{"maxPromptChars":2200,"maxPlanSectionChars":300,"maxScopeFiles":3,"maxVerificationCommands":2,"maxDodItems":4},"prompt_warnings":["prompt length 2730 exceeds 2200"]}
+{"ts":"2026-06-11T13:08:33.202Z","step":"verification_preflight","task_id":"20260610-080500-fix-mobile-layout-bug","result":"skipped","reason":"verification_commands not defined"}
+{"ts":"2026-06-11T13:08:33.217Z","step":"execute_start","task_id":"20260610-080500-fix-mobile-layout-bug","goal":"モバイル表示時のレイアウト崩れ修正","claude_mode":"oauth_keychain"}
+{"ts":"2026-06-11T13:09:42.478Z","step":"execute_end","task_id":"20260610-080500-fix-mobile-layout-bug","status":"error","error":"Command failed: cd \"/Users/array0224/stillframe-phase0\" && /usr/local/bin/claude -p 'You are working on SHINEN (stillframe-phase0).\nRead CLAUDE.md for project context.\n## IMPORTANT — Structured result output\nWhen you finish (success or failure), output EXACTLY one JSON block as the LAST thing in your response.\nFence it with ```json ... ```. The JSON MUST have these fields:\n  {\"status\":\"completed|partial|failed|blocked\",\"summary\":\"1-2 line summary\",\"files_changed\":[\"path/to/file\"],\"reason\":\"why, ","failure_diagnostic":{"message":"Command failed: cd \"/Users/array0224/stillframe-phase0\" && /usr/local/bin/claude -p 'You are working on SHINEN (stillframe-phase0).\nRead CLAUDE.md for project context.\n## IMPORTANT — Structured result output\nWhen you finish (success or failure), output EXACTLY one JSON block as the LAST thing in your response.\nFence it with ```json ... ```. The JSON MUST have these fields:\n  {\"status\":\"completed|partial|failed|blocked\",\"summary\":\"1-2 line summary\",\"files_changed\":[\"path/to/file\"],\"reason\":\"why, ","status":1,"signal":null,"stdout_tail":"You've hit your weekly limit · resets 11pm (Asia/Tokyo)\n","stderr_tail":""}}
+{"ts":"2026-06-11T13:09:42.480Z","step":"execute_end","task_id":"20260610-080500-fix-mobile-layout-bug","status":"error","output_length":56,"task_result_status":null,"task_result_source":"none","failure_diagnostic":{"message":"Command failed: cd \"/Users/array0224/stillframe-phase0\" && /usr/local/bin/claude -p 'You are working on SHINEN (stillframe-phase0).\nRead CLAUDE.md for project context.\n## IMPORTANT — Structured result output\nWhen you finish (success or failure), output EXACTLY one JSON block as the LAST thing in your response.\nFence it with ```json ... ```. The JSON MUST have these fields:\n  {\"status\":\"completed|partial|failed|blocked\",\"summary\":\"1-2 line summary\",\"files_changed\":[\"path/to/file\"],\"reason\":\"why, ","status":1,"signal":null,"stdout_tail":"You've hit your weekly limit · resets 11pm (Asia/Tokyo)\n","stderr_tail":""}}
+{"ts":"2026-06-11T13:09:42.526Z","step":"lesson_recorded","task_id":"20260610-080500-fix-mobile-layout-bug","status":"error"}
+{"ts":"2026-06-11T13:09:42.526Z","step":"execution_failure","task_id":"20260610-080500-fix-mobile-layout-bug","execution_result":"failure","governance_result":"n/a","failure_count":2,"failure_diagnostic":{"message":"Command failed: cd \"/Users/array0224/stillframe-phase0\" && /usr/local/bin/claude -p 'You are working on SHINEN (stillframe-phase0).\nRead CLAUDE.md for project context.\n## IMPORTANT — Structured result output\nWhen you finish (success or failure), output EXACTLY one JSON block as the LAST thing in your response.\nFence it with ```json ... ```. The JSON MUST have these fields:\n  {\"status\":\"completed|partial|failed|blocked\",\"summary\":\"1-2 line summary\",\"files_changed\":[\"path/to/file\"],\"reason\":\"why, ","status":1,"signal":null,"stdout_tail":"You've hit your weekly limit · resets 11pm (Asia/Tokyo)\n","stderr_tail":""}}
+{"ts":"2026-06-11T13:14:45.377Z","step":"task_complexity_preflight","task_id":"20260610-080500-fix-mobile-layout-bug","result":"pass","metrics":{"prompt_length_chars":2685,"plan_section_length_chars":0,"allowed_files_count":0,"required_files_count":0,"scope_files_count":0,"verification_commands_count":0,"dod_items_count":3},"limits":{"maxPromptChars":2200,"maxPlanSectionChars":300,"maxScopeFiles":3,"maxVerificationCommands":2,"maxDodItems":4},"prompt_warnings":["prompt length 2685 exceeds 2200"]}
+{"ts":"2026-06-11T13:14:45.377Z","step":"verification_preflight","task_id":"20260610-080500-fix-mobile-layout-bug","result":"skipped","reason":"verification_commands not defined"}
+{"ts":"2026-06-11T13:14:45.393Z","step":"execute_start","task_id":"20260610-080500-fix-mobile-layout-bug","goal":"モバイル表示時のレイアウト崩れ修正","claude_mode":"oauth_keychain"}
+{"ts":"2026-06-11T13:14:49.617Z","step":"execute_end","task_id":"20260610-080500-fix-mobile-layout-bug","status":"error","error":"Command failed: cd \"/Users/array0224/stillframe-phase0\" && /usr/local/bin/claude -p 'You are working on SHINEN (stillframe-phase0).\nRead CLAUDE.md for project context.\n## IMPORTANT — Structured result output\nWhen you finish (success or failure), output EXACTLY one JSON block as the LAST thing in your response.\nFence it with ```json ... ```. The JSON MUST have these fields:\n  {\"status\":\"completed|partial|failed|blocked\",\"summary\":\"1-2 line summary\",\"files_changed\":[\"path/to/file\"],\"reason\":\"why, ","failure_diagnostic":{"message":"Command failed: cd \"/Users/array0224/stillframe-phase0\" && /usr/local/bin/claude -p 'You are working on SHINEN (stillframe-phase0).\nRead CLAUDE.md for project context.\n## IMPORTANT — Structured result output\nWhen you finish (success or failure), output EXACTLY one JSON block as the LAST thing in your response.\nFence it with ```json ... ```. The JSON MUST have these fields:\n  {\"status\":\"completed|partial|failed|blocked\",\"summary\":\"1-2 line summary\",\"files_changed\":[\"path/to/file\"],\"reason\":\"why, ","status":1,"signal":null,"stdout_tail":"You've hit your weekly limit · resets 11pm (Asia/Tokyo)\n","stderr_tail":""}}
+{"ts":"2026-06-11T13:14:49.619Z","step":"execute_end","task_id":"20260610-080500-fix-mobile-layout-bug","status":"error","output_length":56,"task_result_status":null,"task_result_source":"none","failure_diagnostic":{"message":"Command failed: cd \"/Users/array0224/stillframe-phase0\" && /usr/local/bin/claude -p 'You are working on SHINEN (stillframe-phase0).\nRead CLAUDE.md for project context.\n## IMPORTANT — Structured result output\nWhen you finish (success or failure), output EXACTLY one JSON block as the LAST thing in your response.\nFence it with ```json ... ```. The JSON MUST have these fields:\n  {\"status\":\"completed|partial|failed|blocked\",\"summary\":\"1-2 line summary\",\"files_changed\":[\"path/to/file\"],\"reason\":\"why, ","status":1,"signal":null,"stdout_tail":"You've hit your weekly limit · resets 11pm (Asia/Tokyo)\n","stderr_tail":""}}
+{"ts":"2026-06-11T13:14:49.666Z","step":"lesson_recorded","task_id":"20260610-080500-fix-mobile-layout-bug","status":"error"}
+{"ts":"2026-06-11T13:14:49.667Z","step":"execution_failure","task_id":"20260610-080500-fix-mobile-layout-bug","execution_result":"failure","governance_result":"n/a","failure_count":3,"failure_diagnostic":{"message":"Command failed: cd \"/Users/array0224/stillframe-phase0\" && /usr/local/bin/claude -p 'You are working on SHINEN (stillframe-phase0).\nRead CLAUDE.md for project context.\n## IMPORTANT — Structured result output\nWhen you finish (success or failure), output EXACTLY one JSON block as the LAST thing in your response.\nFence it with ```json ... ```. The JSON MUST have these fields:\n  {\"status\":\"completed|partial|failed|blocked\",\"summary\":\"1-2 line summary\",\"files_changed\":[\"path/to/file\"],\"reason\":\"why, ","status":1,"signal":null,"stdout_tail":"You've hit your weekly limit · resets 11pm (Asia/Tokyo)\n","stderr_tail":""}}
+{"ts":"2026-06-11T13:19:52.396Z","step":"task_complexity_preflight","task_id":"20260610-080500-fix-mobile-layout-bug","result":"pass","metrics":{"prompt_length_chars":2640,"plan_section_length_chars":0,"allowed_files_count":0,"required_files_count":0,"scope_files_count":0,"verification_commands_count":0,"dod_items_count":3},"limits":{"maxPromptChars":2200,"maxPlanSectionChars":300,"maxScopeFiles":3,"maxVerificationCommands":2,"maxDodItems":4},"prompt_warnings":["prompt length 2640 exceeds 2200"]}
+{"ts":"2026-06-11T13:19:52.397Z","step":"verification_preflight","task_id":"20260610-080500-fix-mobile-layout-bug","result":"skipped","reason":"verification_commands not defined"}
+{"ts":"2026-06-11T13:19:52.412Z","step":"execute_start","task_id":"20260610-080500-fix-mobile-layout-bug","goal":"モバイル表示時のレイアウト崩れ修正","claude_mode":"oauth_keychain"}
+{"ts":"2026-06-11T13:19:56.961Z","step":"execute_end","task_id":"20260610-080500-fix-mobile-layout-bug","status":"error","error":"Command failed: cd \"/Users/array0224/stillframe-phase0\" && /usr/local/bin/claude -p 'You are working on SHINEN (stillframe-phase0).\nRead CLAUDE.md for project context.\n## IMPORTANT — Structured result output\nWhen you finish (success or failure), output EXACTLY one JSON block as the LAST thing in your response.\nFence it with ```json ... ```. The JSON MUST have these fields:\n  {\"status\":\"completed|partial|failed|blocked\",\"summary\":\"1-2 line summary\",\"files_changed\":[\"path/to/file\"],\"reason\":\"why, ","failure_diagnostic":{"message":"Command failed: cd \"/Users/array0224/stillframe-phase0\" && /usr/local/bin/claude -p 'You are working on SHINEN (stillframe-phase0).\nRead CLAUDE.md for project context.\n## IMPORTANT — Structured result output\nWhen you finish (success or failure), output EXACTLY one JSON block as the LAST thing in your response.\nFence it with ```json ... ```. The JSON MUST have these fields:\n  {\"status\":\"completed|partial|failed|blocked\",\"summary\":\"1-2 line summary\",\"files_changed\":[\"path/to/file\"],\"reason\":\"why, ","status":1,"signal":null,"stdout_tail":"You've hit your weekly limit · resets 11pm (Asia/Tokyo)\n","stderr_tail":""}}
+{"ts":"2026-06-11T13:19:56.962Z","step":"execute_end","task_id":"20260610-080500-fix-mobile-layout-bug","status":"error","output_length":56,"task_result_status":null,"task_result_source":"none","failure_diagnostic":{"message":"Command failed: cd \"/Users/array0224/stillframe-phase0\" && /usr/local/bin/claude -p 'You are working on SHINEN (stillframe-phase0).\nRead CLAUDE.md for project context.\n## IMPORTANT — Structured result output\nWhen you finish (success or failure), output EXACTLY one JSON block as the LAST thing in your response.\nFence it with ```json ... ```. The JSON MUST have these fields:\n  {\"status\":\"completed|partial|failed|blocked\",\"summary\":\"1-2 line summary\",\"files_changed\":[\"path/to/file\"],\"reason\":\"why, ","status":1,"signal":null,"stdout_tail":"You've hit your weekly limit · resets 11pm (Asia/Tokyo)\n","stderr_tail":""}}
+{"ts":"2026-06-11T13:19:56.997Z","step":"lesson_recorded","task_id":"20260610-080500-fix-mobile-layout-bug","status":"error"}
+{"ts":"2026-06-11T13:19:56.997Z","step":"execution_failure","task_id":"20260610-080500-fix-mobile-layout-bug","execution_result":"failure","governance_result":"n/a","failure_count":4,"failure_diagnostic":{"message":"Command failed: cd \"/Users/array0224/stillframe-phase0\" && /usr/local/bin/claude -p 'You are working on SHINEN (stillframe-phase0).\nRead CLAUDE.md for project context.\n## IMPORTANT — Structured result output\nWhen you finish (success or failure), output EXACTLY one JSON block as the LAST thing in your response.\nFence it with ```json ... ```. The JSON MUST have these fields:\n  {\"status\":\"completed|partial|failed|blocked\",\"summary\":\"1-2 line summary\",\"files_changed\":[\"path/to/file\"],\"reason\":\"why, ","status":1,"signal":null,"stdout_tail":"You've hit your weekly limit · resets 11pm (Asia/Tokyo)\n","stderr_tail":""}}
+{"ts":"2026-06-11T13:24:59.698Z","step":"task_complexity_preflight","task_id":"20260610-080500-fix-mobile-layout-bug","result":"pass","metrics":{"prompt_length_chars":2622,"plan_section_length_chars":0,"allowed_files_count":0,"required_files_count":0,"scope_files_count":0,"verification_commands_count":0,"dod_items_count":3},"limits":{"maxPromptChars":2200,"maxPlanSectionChars":300,"maxScopeFiles":3,"maxVerificationCommands":2,"maxDodItems":4},"prompt_warnings":["prompt length 2622 exceeds 2200"]}
+{"ts":"2026-06-11T13:24:59.699Z","step":"verification_preflight","task_id":"20260610-080500-fix-mobile-layout-bug","result":"skipped","reason":"verification_commands not defined"}
+{"ts":"2026-06-11T13:24:59.715Z","step":"execute_start","task_id":"20260610-080500-fix-mobile-layout-bug","goal":"モバイル表示時のレイアウト崩れ修正","claude_mode":"oauth_keychain"}
+{"ts":"2026-06-11T13:25:04.148Z","step":"execute_end","task_id":"20260610-080500-fix-mobile-layout-bug","status":"error","error":"Command failed: cd \"/Users/array0224/stillframe-phase0\" && /usr/local/bin/claude -p 'You are working on SHINEN (stillframe-phase0).\nRead CLAUDE.md for project context.\n## IMPORTANT — Structured result output\nWhen you finish (success or failure), output EXACTLY one JSON block as the LAST thing in your response.\nFence it with ```json ... ```. The JSON MUST have these fields:\n  {\"status\":\"completed|partial|failed|blocked\",\"summary\":\"1-2 line summary\",\"files_changed\":[\"path/to/file\"],\"reason\":\"why, ","failure_diagnostic":{"message":"Command failed: cd \"/Users/array0224/stillframe-phase0\" && /usr/local/bin/claude -p 'You are working on SHINEN (stillframe-phase0).\nRead CLAUDE.md for project context.\n## IMPORTANT — Structured result output\nWhen you finish (success or failure), output EXACTLY one JSON block as the LAST thing in your response.\nFence it with ```json ... ```. The JSON MUST have these fields:\n  {\"status\":\"completed|partial|failed|blocked\",\"summary\":\"1-2 line summary\",\"files_changed\":[\"path/to/file\"],\"reason\":\"why, ","status":1,"signal":null,"stdout_tail":"You've hit your weekly limit · resets 11pm (Asia/Tokyo)\n","stderr_tail":""}}
+{"ts":"2026-06-11T13:25:04.150Z","step":"execute_end","task_id":"20260610-080500-fix-mobile-layout-bug","status":"error","output_length":56,"task_result_status":null,"task_result_source":"none","failure_diagnostic":{"message":"Command failed: cd \"/Users/array0224/stillframe-phase0\" && /usr/local/bin/claude -p 'You are working on SHINEN (stillframe-phase0).\nRead CLAUDE.md for project context.\n## IMPORTANT — Structured result output\nWhen you finish (success or failure), output EXACTLY one JSON block as the LAST thing in your response.\nFence it with ```json ... ```. The JSON MUST have these fields:\n  {\"status\":\"completed|partial|failed|blocked\",\"summary\":\"1-2 line summary\",\"files_changed\":[\"path/to/file\"],\"reason\":\"why, ","status":1,"signal":null,"stdout_tail":"You've hit your weekly limit · resets 11pm (Asia/Tokyo)\n","stderr_tail":""}}
+{"ts":"2026-06-11T13:25:04.188Z","step":"lesson_recorded","task_id":"20260610-080500-fix-mobile-layout-bug","status":"error"}
+{"ts":"2026-06-11T13:25:04.189Z","step":"execution_failure","task_id":"20260610-080500-fix-mobile-layout-bug","execution_result":"failure","governance_result":"n/a","failure_count":5,"failure_diagnostic":{"message":"Command failed: cd \"/Users/array0224/stillframe-phase0\" && /usr/local/bin/claude -p 'You are working on SHINEN (stillframe-phase0).\nRead CLAUDE.md for project context.\n## IMPORTANT — Structured result output\nWhen you finish (success or failure), output EXACTLY one JSON block as the LAST thing in your response.\nFence it with ```json ... ```. The JSON MUST have these fields:\n  {\"status\":\"completed|partial|failed|blocked\",\"summary\":\"1-2 line summary\",\"files_changed\":[\"path/to/file\"],\"reason\":\"why, ","status":1,"signal":null,"stdout_tail":"You've hit your weekly limit · resets 11pm (Asia/Tokyo)\n","stderr_tail":""}}
+{"ts":"2026-06-11T13:30:07.097Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T13:35:09.875Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T13:40:12.839Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T13:45:15.760Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T13:50:18.662Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T13:55:21.623Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T14:00:24.844Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T14:05:27.725Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T14:10:30.534Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T14:15:33.366Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T14:20:36.223Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T14:25:39.125Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T14:30:42.318Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T14:35:45.316Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T14:40:48.231Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T14:45:52.256Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T14:50:55.295Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T14:55:58.378Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T15:01:01.362Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T15:06:04.155Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T15:11:06.986Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T15:16:09.791Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T15:21:12.704Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T15:26:15.557Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T15:31:18.417Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T15:36:21.155Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T15:41:23.919Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T15:46:26.779Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T15:51:29.542Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T15:56:32.305Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T16:01:35.242Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T16:06:38.034Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T16:11:40.769Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T16:16:43.535Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T16:21:46.225Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T16:26:48.974Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T16:31:51.806Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T16:36:54.611Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T16:41:57.461Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T16:47:00.273Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T16:52:03.156Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T16:57:06.013Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T17:02:08.920Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T17:07:12.710Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T17:12:15.596Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T17:17:18.377Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T17:22:21.199Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T17:27:24.014Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T17:32:26.828Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T17:37:29.686Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T17:42:33.123Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T17:47:35.903Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T17:52:38.778Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T17:57:41.525Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T18:02:44.393Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T18:07:47.143Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T18:12:49.949Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T18:17:52.756Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T18:22:55.582Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T18:27:58.460Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T18:33:01.323Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T18:38:04.472Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T18:43:07.236Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T18:48:10.053Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T18:53:12.806Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T18:58:15.700Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T19:03:18.758Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T19:08:21.547Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T19:13:24.409Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T19:18:27.163Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T19:23:30.000Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T19:28:32.859Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T19:33:35.769Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T19:38:38.554Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T19:43:41.422Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T19:48:44.480Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T19:53:47.839Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T19:58:50.919Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T20:03:54.116Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T20:08:57.779Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T20:14:00.696Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T20:19:03.781Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T20:24:06.725Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T20:29:09.857Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T20:34:12.773Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T20:39:15.687Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T20:44:18.717Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T20:49:21.664Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T20:54:24.770Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T20:59:27.681Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T21:04:30.834Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T21:09:34.054Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T21:14:37.123Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T21:19:40.202Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T21:24:43.264Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T21:29:46.344Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T21:34:49.462Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T21:39:52.447Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T21:44:55.308Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T21:49:58.374Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T21:55:01.494Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T22:00:05.906Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T22:05:08.952Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T22:10:12.631Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T22:15:15.540Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T22:20:18.477Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T22:25:21.779Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T22:30:25.335Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T22:35:28.488Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T22:40:31.479Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T22:45:34.547Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T22:50:37.574Z","step":"breaker_stop","failure_count":5}
+{"ts":"2026-06-11T22:56:17.622Z","step":"breaker_stop","failure_count":5}

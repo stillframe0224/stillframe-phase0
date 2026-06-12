@@ -1,0 +1,7 @@
+Blocked: R2 follow-up quarantined this task on 2026-06-12.
+
+Root cause: runner attempt 1 ended with `Error: Reached max turns (20)`, then attempts 2-5 failed with Claude weekly limit (`You've hit your weekly limit · resets 11pm (Asia/Tokyo)`), causing breaker stop at failure_count=5.
+
+Decision: do not invent a mobile layout fix without a concrete reproduction, allowed_files scope, or failing visual/test evidence. The live main worktree had no product-code diff for this task and `npm run build` passed on 2026-06-12.
+
+Recovery: move the task out of Current and reset `.rwl/status.json` so RWL can continue with the next bounded queue item.
