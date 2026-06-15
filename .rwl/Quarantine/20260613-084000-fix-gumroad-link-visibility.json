@@ -1,0 +1,16 @@
+{
+  "id": "20260613-084000-fix-gumroad-link-visibility",
+  "goal": "Gumroadリンクの目立ちやすさを改善してビルドを通す",
+  "est_minutes": 20,
+  "dod": [
+    "npm run build 通過",
+    "reports/triad/20260613-084000-fix-gumroad-link-visibility.md 作成",
+    "PR作成"
+  ],
+  "evidence_paths": [
+    "reports/triad/20260613-084000-fix-gumroad-link-visibility.md"
+  ],
+  "created_at": "2026-06-13T08:40:00+09:00",
+  "status": "current",
+  "_filename": "20260613-084000-fix-gumroad-link-visibility.json"
+}

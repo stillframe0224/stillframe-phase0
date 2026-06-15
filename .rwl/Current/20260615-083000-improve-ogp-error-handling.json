@@ -1,0 +1,1 @@
+{"id":"20260615-083000-improve-ogp-error-handling","goal":"OGP画像取得失敗時のエラー処理を強化しUXを改善する","est_minutes":20,"dod":["npm run build 通過","reports/triad/20260615-083000-improve-ogp-error-handling.md 作成","PR作成"],"evidence_paths":["/Users/array0224/stillframe-phase0/reports/triad/20260615-083000-improve-ogp-error-handling.md"],"created_at":"2026-06-15T08:30:00+09:00","status":"queue"}

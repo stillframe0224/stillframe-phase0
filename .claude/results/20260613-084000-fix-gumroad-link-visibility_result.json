@@ -1,0 +1,13 @@
+{
+  "status": "partial",
+  "summary": "Hero/Ready のGumroad CTAをブランドグリーンに強化、ビルド通過。Triadレポート+INDEX追加。git mutation hookによりブランチ作成・commit・push・PR作成は実行不可。",
+  "files_changed": [
+    "app/page.tsx",
+    "reports/triad/20260613-084000-fix-gumroad-link-visibility.md",
+    "reports/triad/INDEX.md"
+  ],
+  "reason": "git checkout/commit/push are blocked by .claude/hooks/scripts/block-git-ops.sh (readonly allowlist only). RWL runner must perform feature branch creation and PR.",
+  "_parse_source": "fenced",
+  "_task_id": "20260613-084000-fix-gumroad-link-visibility",
+  "_at": "2026-06-13T13:54:07.011Z"
+}

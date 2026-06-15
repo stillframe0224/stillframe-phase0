@@ -1,0 +1,13 @@
+{
+  "status": "completed",
+  "summary": "OGP route error handling improved (classifyError/classifyStatus, body parse guard, abort→499, status_class, url preserved on exception). Build passes zero errors. Triad report and INDEX entry created. Git mutations are blocked by policy hook — runner.js handles branch/commit/PR.",
+  "files_changed": [
+    "app/api/og-image/route.ts",
+    "reports/triad/20260613-080000-fix-ogp-error-handling.md",
+    "reports/triad/INDEX.md"
+  ],
+  "reason": "",
+  "_parse_source": "fenced",
+  "_task_id": "20260613-080000-fix-ogp-error-handling",
+  "_at": "2026-06-13T13:10:19.744Z"
+}

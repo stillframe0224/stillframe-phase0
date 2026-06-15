@@ -1,0 +1,9 @@
+{
+  "ts": "2026-06-16T07:56:24+09:00",
+  "root_cause": "stale_live_worktree",
+  "evidence": {
+    "reason": "branch_not_main",
+    "branch": "claude/fix-mobile-card-loading-ux",
+    "head": "cfc1b695dad81767a290166fe862a7f65a6e13ac"
+  }
+}

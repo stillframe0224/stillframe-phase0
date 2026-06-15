@@ -1,0 +1,13 @@
+{
+  "status": "completed",
+  "summary": "Strengthened Waitlist email validation (reject hyphen-edged domain labels and all-numeric TLDs), memoized validation; build passes; triad report + INDEX entry created.",
+  "files_changed": [
+    "app/components/Waitlist.tsx",
+    "reports/triad/20260613-081000-fix-waitlist-form-validation.md",
+    "reports/triad/INDEX.md"
+  ],
+  "reason": "Branch/commit/PR managed by runner.js (git ops blocked per .claude/rules/rwl-safety.md).",
+  "_parse_source": "fenced",
+  "_task_id": "20260613-081000-fix-waitlist-form-validation",
+  "_at": "2026-06-13T13:17:47.637Z"
+}

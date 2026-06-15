@@ -1,0 +1,9 @@
+{
+  "id": "20260614-081500-fix-nextjs-build-warnings",
+  "goal": "Next.jsのビルド警告を修正してビルドを安定化する",
+  "est_minutes": 30,
+  "dod": ["npm run build 通過", "reports/triad/20260614-081500-fix-nextjs-build-warnings.md 作成", "PR作成"],
+  "evidence_paths": ["reports/triad/20260614-081500-fix-nextjs-build-warnings.md"],
+  "created_at": "2026-06-14T08:15:00+09:00",
+  "status": "queue"
+}

@@ -166,5 +166,12 @@
     "session": "nightly",
     "pr_url": "https://github.com/stillframe0224/stillframe-phase0/pull/372",
     "evidence": "/Users/array0224/stillframe-phase0/reports/triad/20260606-230000-app-loading-spinner.md"
+  },
+  {
+    "id": "20260615-080000-improve-waitlist-form-validation",
+    "goal": "Waitlistフォームのバリデーション改善で登録ミスを減らす",
+    "completed_at": "2026-06-15T08:00:00+09:00",
+    "pr_url": "https://github.com/stillframe0224/stillframe-phase0/pull/376",
+    "evidence": "/Users/array0224/stillframe-phase0/reports/triad/20260615-080000-improve-waitlist-form-validation.md"
   }
 ]

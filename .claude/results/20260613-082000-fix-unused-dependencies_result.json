@@ -1,0 +1,13 @@
+{
+  "status": "partial",
+  "summary": "Verified @subframe/core is the sole unused dep; build passes; triad report + INDEX entry created. Branch/commit/push/PR blocked by block-git-ops hook — copy-paste commands provided for user.",
+  "files_changed": [
+    "package.json",
+    "reports/triad/20260613-082000-fix-unused-dependencies.md",
+    "reports/triad/INDEX.md"
+  ],
+  "reason": "block-git-ops hook denies git checkout/commit/push; user must run the provided commands to land the PR. The package.json modification was already present from prior task (2026-06-12) and was confirmed correct; no source code changes were required.",
+  "_parse_source": "fenced",
+  "_task_id": "20260613-082000-fix-unused-dependencies",
+  "_at": "2026-06-13T13:25:49.824Z"
+}
