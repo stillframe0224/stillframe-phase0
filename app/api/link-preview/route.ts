@@ -41,8 +41,9 @@ function trackLinkPreview(event: string, data: Record<string, unknown>): void {
     ts: new Date().toISOString(),
   }));
 }
-const FETCH_TIMEOUT = 6000; // 4s→6s for slow sites (Substack etc.)
-const JINA_TIMEOUT = 7000;  // Jina needs a bit more headroom
+const FETCH_TIMEOUT = 8000; // 4s→6s→8s for slow sites (Substack, personal blogs, etc.)
+// DEFAULT_OGP_PLACEHOLDER: future improvement - return data URI placeholder when all methods fail
+const JINA_TIMEOUT = 9000;  // Jina needs headroom above FETCH_TIMEOUT
 const SYNDICATION_TIMEOUT = 4500;
 
 // Default Chrome-like UA — most sites allow Googlebot/Chrome; bot UAs are widely blocked.
@@ -65,6 +66,7 @@ function summarizeUrlForLog(rawUrl: string): string {
 const JINA_FIRST_HOSTS = new Set([
   "twitter.com",
   "x.com",
+// DEFAULT_OGP_PLACEHOLDER: future improvement - return data URI placeholder when all methods fail
   "t.co",
   "facebook.com",
   "www.facebook.com",
