@@ -727,7 +727,8 @@ function MediaPreview({
           lineHeight: 0,
           textDecoration: "none",
           position: "relative",
-          height: 96,
+          aspectRatio: "16/9",
+          maxHeight: 180,
         }}
       >
         {renderMode === "contain_blur" && (
