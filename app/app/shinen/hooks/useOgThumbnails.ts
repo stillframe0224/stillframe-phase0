@@ -316,7 +316,7 @@ export function useOgThumbnails(
                 const faviconUrl = `${u.origin}/favicon.ico`;
                 return {
                   ...c,
-                  source: { ...c.source, favicon: faviconUrl }
+                  source: { ...c.source, favicon: faviconUrl, ogFetchFailed: true }
                 };
               } catch {
                 return c;
