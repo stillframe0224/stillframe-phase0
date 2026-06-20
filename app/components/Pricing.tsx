@@ -90,11 +90,11 @@ export default function Pricing({ lang, gumroadUrl }: PricingProps) {
           fontFamily: "var(--font-dm)",
           fontWeight: 500,
           background: "linear-gradient(135deg, #fff4da 0%, #ffe8b3 100%)",
-          border: "1.5px solid #f3c563",
+          border: "2px solid #f3c563",
           borderRadius: 12,
           padding: "10px 16px",
           display: "inline-block",
-          boxShadow: "0 2px 8px rgba(243, 197, 99, 0.15)",
+          boxShadow: "0 4px 12px rgba(243, 197, 99, 0.25)",
         }}
       >
         {c.urgency[lang]}
@@ -110,7 +110,7 @@ export default function Pricing({ lang, gumroadUrl }: PricingProps) {
           className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[var(--accent-strong)] rounded-full"
           style={{ textDecoration: "none" }}
         >
-          <PrimaryButton data-testid="cta-pricing" className="rounded-full px-10 py-4 text-base font-semibold">
+          <PrimaryButton data-testid="cta-pricing" className="rounded-full px-12 py-5 text-lg font-semibold transition-transform hover:scale-105 active:scale-95">
             {c.cta[lang]}
           </PrimaryButton>
         </a>
@@ -120,7 +120,7 @@ export default function Pricing({ lang, gumroadUrl }: PricingProps) {
           type="button"
           onClick={() => track("checkout_unavailable")}
           aria-label={`${c.cta[lang]} (unavailable)`}
-          className="rounded-full px-10 py-4 text-base font-semibold"
+          className="rounded-full px-12 py-5 text-lg font-semibold transition-transform hover:scale-105 active:scale-95"
           disabled
           title="Checkout URL is not configured"
         >
