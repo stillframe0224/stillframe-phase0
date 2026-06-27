@@ -16,6 +16,7 @@ async function logSupabaseCardFailure(
   error: unknown,
   context: Record<string, unknown> = {},
 ): Promise<void> {
+  console.error(`[Supabase Card Error] source=${source}:`, error, context);
   await logCardError({
     source,
     message: extractErrorMessage(error),
