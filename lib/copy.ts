@@ -108,6 +108,25 @@ const copy = {
     h2: { en: "Stay in the loop", ja: "最新情報を受け取る" },
     placeholder: { en: "you@email.com", ja: "you@email.com" },
     cta: { en: "Notify me", ja: "通知を受け取る" },
+    // A/B test variants for waitlist CTA
+    ctaVariants: {
+      A: {
+        en: "Notify me",
+        ja: "通知を受け取る",
+      },
+      B: {
+        en: "Get Early Access",
+        ja: "早期アクセスを受け取る",
+      },
+      C: {
+        en: "Join Waitlist",
+        ja: "ウェイトリストに参加",
+      },
+      D: {
+        en: "I'm Interested",
+        ja: "興味あり",
+      },
+    },
     submitting: { en: "Sending...", ja: "送信中..." },
     trust: {
       en: "Just launch updates. No spam, no sharing.",
