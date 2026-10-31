@@ -1,155 +1,58 @@
 [
   {
-    "id": "8dc23490963f",
-    "url": "https://news.ycombinator.com/item?id=47042431",
-    "title": "Ask HN: Which password manager do you use / would you recommend?",
-    "source": "hn_ask",
-    "sourceName": "Hacker News: Ask HN",
-    "publishedAt": "2026-02-17T01:07:01.000Z",
+    "id": "ae1a51b2eab3",
+    "url": "https://www.fastbrowse.ai/",
+    "title": "Show HN: Fastbrowse, Browser agent that picks clicks with a System One model",
+    "source": "hn_show",
+    "sourceName": "Hacker News: Show HN",
+    "publishedAt": "2026-10-30T22:37:34.000Z",
     "score": {
-      "total": 46,
-      "pain": 8,
+      "total": 54,
+      "pain": 24,
       "demand": 10,
       "urgency": 10,
       "frequency": 10,
-      "sourceWeight": 1.2,
+      "sourceWeight": 1,
       "matchedKeywords": [
-        "help",
-        "recommend",
-        "today"
+        "can't",
+        "issue",
+        "need",
+        "alternative",
+        "right now"
       ]
     },
     "tags": [
-      "pain",
-      "demand",
-      "community"
+      "product",
+      "launch",
+      "demo"
     ],
     "summaryBullets": [
-      "I still use a unique password for every site, and plan to educate myself on p...",
-      "We don't have any special requirements; I'm into tech but others in the fam s...",
-      "Everyone in the family has a smart phone, some have a tablet, most do not own...",
-      "I'm starting to educate myself today, starting with a computerphile video on ...",
-      "Comments URL: https://news.ycombinator.com/item?id=47042431\nPoints: 4\n# Comme..."
+      "Hi HN, I'm Furqan founder of Nebula.",
+      "We've spent a lot of time building, using and breaking browser agents.",
+      "The main issues we ran into were costs and speed.",
+      "So we built our own and open sourced it.",
+      "It's pretty simple, give it a task and it drives Chrome faster and cheaper th..."
     ]
   },
   {
-    "id": "39b125061f26",
-    "url": "https://news.ycombinator.com/item?id=47044151",
-    "title": "Ask HN: How does the cost of CPU-bound computations scale in cloud computing?",
+    "id": "1de69c8d0433",
+    "url": "https://news.ycombinator.com/item?id=50307060",
+    "title": "Ask HN: Are you putting off hardware upgrades because of AI coding tools?",
     "source": "hn_ask",
     "sourceName": "Hacker News: Ask HN",
-    "publishedAt": "2026-02-17T05:48:51.000Z",
+    "publishedAt": "2026-10-30T17:18:06.000Z",
     "score": {
-      "total": 38,
-      "pain": 16,
-      "demand": 0,
-      "urgency": 10,
-      "frequency": 6,
-      "sourceWeight": 1.2,
-      "matchedKeywords": [
-        "problem",
-        "ugh",
-        "today"
-      ]
-    },
-    "tags": [
-      "pain",
-      "demand",
-      "community"
-    ],
-    "summaryBullets": [
-      "Let's say that I'm a rich mathematician (that would be nice) and want to spon...",
-      "The I/O and storage costs are low; the bulk of the cost is going to be pure c...",
-      "Now I'm ready to get out my checkbook.",
-      "What factors influence the cost of such a computation in today's cloud comput...",
-      "How does the price scale with N and the rate at which I want to complete the ..."
-    ]
-  },
-  {
-    "id": "17bb75e1c37b",
-    "url": "https://news.ycombinator.com/item?id=47043293",
-    "title": "Looking for Founding Engineers – Esbern",
-    "source": "hn_ask",
-    "sourceName": "Hacker News: Ask HN",
-    "publishedAt": "2026-02-17T03:15:47.000Z",
-    "score": {
-      "total": 38,
-      "pain": 16,
+      "total": 48,
+      "pain": 24,
       "demand": 10,
       "urgency": 0,
       "frequency": 6,
-      "sourceWeight": 1.2,
-      "matchedKeywords": [
-        "ugh",
-        "need",
-        "looking for"
-      ]
-    },
-    "tags": [
-      "pain",
-      "demand",
-      "community"
-    ],
-    "summaryBullets": [
-      "Technical roles only.",
-      "Must be able to ship: code, infra, AI/LLM, API.",
-      "Location: Will happen either in Los Angeles or San Francisco (In-person neede...",
-      "Founding Team / Equity\nCompensation: 5% equity + $100/day (For 60 days until ...",
-      "Timeline: 60-day sprint to MVP, then bring investors\nTHE MISSION\nWe're ending..."
-    ]
-  },
-  {
-    "id": "bd27fa070513",
-    "url": "https://dev.to/archibaldtitan/how-to-automate-security-audits-with-ai-a-complete-guide-for-devops-teams-1co0",
-    "title": "How to Automate Security Audits with AI: A Complete Guide for DevOps Teams",
-    "source": "devto_top",
-    "sourceName": "Dev.to: Top",
-    "publishedAt": "2026-02-17T07:39:39.000Z",
-    "score": {
-      "total": 32,
-      "pain": 24,
-      "demand": 0,
-      "urgency": 10,
-      "frequency": 6,
-      "sourceWeight": 0.8,
-      "matchedKeywords": [
-        "impossible",
-        "manual",
-        "ugh",
-        "today"
-      ]
-    },
-    "tags": [
-      "dev",
-      "tools",
-      "pain"
-    ],
-    "summaryBullets": [
-      "How to Automate Security Audits with AI: A Complete Guide for DevOps Teams\n\n\n...",
-      "However, this agility must not come at the expense of security.",
-      "Traditional, manual security audits often struggle to keep pace with continuo...",
-      "This is where Artificial Intelligence (AI) steps in, offering a transformativ...",
-      "DevOps methodologies emphasize collaboration, automation, and rapid delivery."
-    ]
-  },
-  {
-    "id": "159f7447ef87",
-    "url": "https://news.ycombinator.com/item?id=47044081",
-    "title": "Smart-KNN: A production-focused, feature-weighted KNN optimized for CPU",
-    "source": "hn_ask",
-    "sourceName": "Hacker News: Ask HN",
-    "publishedAt": "2026-02-17T05:38:08.000Z",
-    "score": {
-      "total": 31,
-      "pain": 24,
-      "demand": 0,
-      "urgency": 0,
-      "frequency": 2,
       "sourceWeight": 1.2,
       "matchedKeywords": [
         "issue",
-        "manual",
-        "ugh"
+        "slow",
+        "need",
+        "waiting for"
       ]
     },
     "tags": [
@@ -158,118 +61,86 @@
       "community"
     ],
     "summaryBullets": [
-      "Hi HN,\nI’ve been working on SmartKNN, a nearest-neighbor system designed spec...",
-      "The goal was not to slightly tweak classical KNN, but to restructure it into ...",
-      "What it does differently\nTraditional KNN is simple and interpretable, but in ...",
-      "Learned Feature Weighting\nFeature importance is learned automatically and inc...",
-      "This reduces noise and improves neighbor quality without manual tuning."
+      "or has it encouraged you to upgrade?",
+      "I'm still using an 8th gen i7 (w/ linux) for most of my dev work.",
+      "I was going to upgrade, but now I just run like 10 terminal tabs instead of I...",
+      "Concurrent builds even w/ Rust and Java usually aren't a big issue.",
+      "I have several backup machines so if it dies, not a big deal."
     ]
   },
   {
-    "id": "d5574f71852c",
-    "url": "https://news.ycombinator.com/item?id=47041751",
-    "title": "Ask HN: What code repository inspires you?",
-    "source": "hn_ask",
-    "sourceName": "Hacker News: Ask HN",
-    "publishedAt": "2026-02-16T23:30:09.000Z",
+    "id": "de6e86585322",
+    "url": "https://www.reddit.com/r/Entrepreneur/comments/1xjhlow/business_owners_is_your_website_actually_bringing/",
+    "title": "Business Owners, Is Your Website Actually Bringing You Customers?",
+    "source": "reddit_entrepreneur",
+    "sourceName": "Reddit: r/Entrepreneur",
+    "publishedAt": "2026-10-30T14:56:48.000Z",
     "score": {
-      "total": 31,
-      "pain": 0,
+      "total": 38,
+      "pain": 16,
       "demand": 10,
-      "urgency": 10,
+      "urgency": 0,
       "frequency": 6,
       "sourceWeight": 1.2,
       "matchedKeywords": [
-        "looking for",
-        "today"
+        "can't",
+        "ugh",
+        "buy"
       ]
     },
     "tags": [
       "pain",
-      "demand",
-      "community"
+      "business",
+      "startup"
     ],
     "summaryBullets": [
-      "I was thinking today how we will in such a cool age.",
-      "Yes, AI slop is rampant, but there are so many skilled individuals and teams ...",
-      "I'm trying to grow and looking for examples of things like excellent architec...",
-      "I am even more curious about repositories (on the smaller side) written by a ...",
-      "Comments URL: https://news.ycombinator.com/item?id=47041751\nPoints: 2\n# Comme..."
+      "I've noticed something interesting when it comes to small businesses and thei...",
+      "A lot of business owners invest hundreds or even thousands of dollars into ge...",
+      "And I'm not talking about how professional it looks.",
+      "I'm talking about whether people are actually finding it, reaching out, reque...",
+      "You could have a great-looking website, offer an amazing service, and still b..."
     ]
   },
   {
-    "id": "3ce314bd5dfc",
-    "url": "https://www.latent.space/p/ainews-qwen35-397b-a17b-the-smallest",
-    "title": "[AINews] Qwen3.5-397B-A17B: the smallest Open-Opus class, very efficient model",
-    "source": "latent-space",
-    "sourceName": "Latent Space",
-    "publishedAt": "2026-02-17T04:22:56.000Z",
+    "id": "612a4e4b4ddb",
+    "url": "https://lobste.rs/s/eccbci/shared_password_manager_for_families",
+    "title": "Shared password manager for families?",
+    "source": "lobsters",
+    "sourceName": "Lobste.rs",
+    "publishedAt": "2026-10-29T14:39:51.000Z",
     "score": {
       "total": 29,
-      "pain": 8,
-      "demand": 0,
-      "urgency": 10,
+      "pain": 16,
+      "demand": 10,
+      "urgency": 0,
       "frequency": 6,
-      "sourceWeight": 1.2,
+      "sourceWeight": 0.9,
       "matchedKeywords": [
-        "issue",
-        "today"
+        "help",
+        "need",
+        "recommend"
       ]
     },
     "tags": [
-      "llm",
-      "ai-agent",
-      "frontier-tech"
+      "tech",
+      "tools",
+      "community"
     ],
     "summaryBullets": [
-      "a good ship from Qwen.",
-      "AI News for 2/13/2026-2/16/2026.",
-      "We checked 12 subreddits, 544 Twitters and 24 Discords ( 261 channels, and 26...",
-      "Estimated reading time saved (at 200wpm): 2606 minutes.",
-      "AINews&#8217; website lets you search all past issues."
+      "Long story short, I need to have a bunch of shared accounts with family for f...",
+      "So the requirements are:\nShared over long distances; just having each of us h...",
+      "I could always use KeepassXC and keep the file in a Google Drive folder, or m...",
+      "Anyone have any recommendations for how to do this well?",
+      "Long story short, I need to have a bunch of shared accounts with family for f..."
     ]
   },
   {
-    "id": "4f9f3e0f544b",
-    "url": "https://dev.to/theo_hsiung_912d07109a35e/python-quality-tools-for-juniors-ruff-mypy-59af",
-    "title": "Python Quality Tools for Juniors: Ruff & Mypy",
+    "id": "484f0dac7234",
+    "url": "https://dev.to/andreagomez/separate-etcd-peer-and-client-trust-before-scaling-the-cluster-g8h",
+    "title": "Separate etcd peer and client trust before scaling the cluster",
     "source": "devto_top",
     "sourceName": "Dev.to: Top",
-    "publishedAt": "2026-02-17T07:12:56.000Z",
-    "score": {
-      "total": 27,
-      "pain": 32,
-      "demand": 0,
-      "urgency": 0,
-      "frequency": 2,
-      "sourceWeight": 0.8,
-      "matchedKeywords": [
-        "problem",
-        "issue",
-        "bug",
-        "slow"
-      ]
-    },
-    "tags": [
-      "dev",
-      "tools",
-      "pain"
-    ],
-    "summaryBullets": [
-      "Your code runs — that doesn't mean it's correct.",
-      "These two tools catch problems before they become bugs.",
-      "Python is a very \"permissive\" language.",
-      "It lets you do a lot of things without telling you something is wrong:\ndef ad...",
-      "Ruff and Mypy catch these problems before they become bugs."
-    ]
-  },
-  {
-    "id": "3415b0407a35",
-    "url": "https://seodisias.com",
-    "title": "Show HN: Free SEO Crawler and Analyze App",
-    "source": "hn_newest",
-    "sourceName": "Hacker News: Newest",
-    "publishedAt": "2026-02-17T07:37:08.000Z",
+    "publishedAt": "2026-10-31T06:00:37.000Z",
     "score": {
       "total": 26,
       "pain": 16,
@@ -278,30 +149,191 @@
       "frequency": 6,
       "sourceWeight": 0.8,
       "matchedKeywords": [
-        "issue",
+        "ugh",
         "need",
+        "alternative"
+      ]
+    },
+    "tags": [
+      "dev",
+      "tools",
+      "pain"
+    ],
+    "summaryBullets": [
+      "Separate etcd peer and client trust before scaling the cluster\n\n\netcd is the ...",
+      "Its peer connections replicate state among members.",
+      "Client connections read and write the same state.",
+      "A certificate that authenticates a peer is therefore not interchangeable with...",
+      "Treating both as one broad TLS population weakens the cluster boundary."
+    ]
+  },
+  {
+    "id": "0f6155cb1b8f",
+    "url": "https://dev.to/gamepadtesterpro/controller-not-detected-on-pc-run-this-5-minute-diagnosis-before-you-buy-a-new-one-2072",
+    "title": "Controller Not Detected on PC? Run This 5-Minute Diagnosis Before You Buy a New One",
+    "source": "devto_top",
+    "sourceName": "Dev.to: Top",
+    "publishedAt": "2026-10-31T05:52:33.000Z",
+    "score": {
+      "total": 26,
+      "pain": 16,
+      "demand": 10,
+      "urgency": 0,
+      "frequency": 6,
+      "sourceWeight": 0.8,
+      "matchedKeywords": [
+        "annoying",
+        "problem",
+        "buy"
+      ]
+    },
+    "tags": [
+      "dev",
+      "tools",
+      "pain"
+    ],
+    "summaryBullets": [
+      "Nothing is more annoying than plugging in a controller and getting silence: n...",
+      "Before you order a replacement, run this five-minute diagnosis.",
+      "In most cases the pad is fine and something upstream — cable, port, driver, o...",
+      "Step 1: Rule out the cable and port.",
+      "Swap to a different USB cable, preferably one you know transfers data (some c..."
+    ]
+  },
+  {
+    "id": "bd37168ccde5",
+    "url": "https://balk.club",
+    "title": "Show HN: Balk – A Baseball Game",
+    "source": "hn_show",
+    "sourceName": "Hacker News: Show HN",
+    "publishedAt": "2026-10-30T21:29:39.000Z",
+    "score": {
+      "total": 26,
+      "pain": 24,
+      "demand": 0,
+      "urgency": 0,
+      "frequency": 2,
+      "sourceWeight": 1,
+      "matchedKeywords": [
+        "broken",
+        "problem",
+        "ugh"
+      ]
+    },
+    "tags": [
+      "product",
+      "launch",
+      "demo"
+    ],
+    "summaryBullets": [
+      "Balk is a baseball game.",
+      "Things like MLB Showdown and other baseball games captured my attention growi...",
+      "They were fun to look at and scheme, but the game itself was missing something.",
+      "I think baseball lends itself really well to game design.",
+      "There are a lot of games that exist inside the game of baseball."
+    ]
+  },
+  {
+    "id": "77b8021d805e",
+    "url": "https://www.interconnects.ai/p/was-i-wrong-about-open-models-and",
+    "title": "Was I wrong about open models & cyber risks?",
+    "source": "interconnects",
+    "sourceName": "Interconnects (Nathan Lambert)",
+    "publishedAt": "2026-10-30T17:36:56.000Z",
+    "score": {
+      "total": 26,
+      "pain": 8,
+      "demand": 0,
+      "urgency": 10,
+      "frequency": 6,
+      "sourceWeight": 1.1,
+      "matchedKeywords": [
+        "ugh",
+        "critical"
+      ]
+    },
+    "tags": [
+      "llm",
+      "frontier-tech"
+    ],
+    "summaryBullets": [
+      "Last week coined the term “Black October“ after an onslaught of critical vuln...",
+      "Last week coined the term &#8220; Black October &#8220; after an onslaught of...",
+      "It seemed like the news cycle had stabilized a bit when I started writing thi...",
+      "The crypto industry has a very long history of hacks , so it&#8217;s not the ..."
+    ]
+  },
+  {
+    "id": "d9235f067c39",
+    "url": "https://www.reddit.com/r/Entrepreneur/comments/1xj9d7h/feedback_friday_rate_my_ideas_october_30_2026/",
+    "title": "Feedback Friday: Rate My Ideas | October 30, 2026",
+    "source": "reddit_entrepreneur",
+    "sourceName": "Reddit: r/Entrepreneur",
+    "publishedAt": "2026-10-30T08:00:54.000Z",
+    "score": {
+      "total": 26,
+      "pain": 0,
+      "demand": 20,
+      "urgency": 0,
+      "frequency": 2,
+      "sourceWeight": 1.2,
+      "matchedKeywords": [
+        "pricing",
+        "looking for"
+      ]
+    },
+    "tags": [
+      "pain",
+      "business",
+      "startup"
+    ],
+    "summaryBullets": [
+      "Share your website, pitch, logo, idea, pricing, copy, or anything else you wa...",
+      "Tell us what you're looking for: brutal honesty, general impressions, or spec...",
+      "Return the favour and leave feedback for someone else while you're here.",
+      "submitted by    /u/AutoModerator  \n [link]   [comments] Share your website, p...",
+      "Tell us what you're looking for: brutal honesty, general impressions, or spec..."
+    ]
+  },
+  {
+    "id": "db4f8cb3fa1c",
+    "url": "https://news.ycombinator.com/item?id=50310650",
+    "title": "Show HN: I'm killing AI slop spam with a simple Google script",
+    "source": "hn_show",
+    "sourceName": "Hacker News: Show HN",
+    "publishedAt": "2026-10-30T21:53:31.000Z",
+    "score": {
+      "total": 24,
+      "pain": 8,
+      "demand": 10,
+      "urgency": 0,
+      "frequency": 6,
+      "sourceWeight": 1,
+      "matchedKeywords": [
+        "ugh",
         "subscription"
       ]
     },
     "tags": [
-      "general",
-      "tech"
+      "product",
+      "launch",
+      "demo"
     ],
     "summaryBullets": [
-      "Most SEO tools hide basic features behind paywalls and expensive plans.",
-      "I wanted something simple, honest, and actually useful.",
-      "So I built Seodisias.",
-      "It crawls your website, finds technical SEO issues, and clearly shows what ne...",
-      "You run it on your own computer and keep full control of your data."
+      "As a founder, I've been getting an increasing amount of useless unsolicited o...",
+      "For some reason, Google's spam filter doesn't flag these emails as spam, so m...",
+      "I know there are some subscription tools I could use to filter these out, and...",
+      "But I figured there had to be a better solution that is (1) free and (2) not ...",
+      "After a chat with Gemini, I ended up creating a Google script that works very..."
     ]
   },
   {
-    "id": "cd2e3122a5e5",
-    "url": "https://news.ycombinator.com/item?id=47041571",
-    "title": "Ask HN: Why can't I reply to \"Who wants to be hired?\"?",
-    "source": "hn_ask",
-    "sourceName": "Hacker News: Ask HN",
-    "publishedAt": "2026-02-16T23:05:05.000Z",
+    "id": "3d38f84a4091",
+    "url": "https://latent.space/p/ainews-google-admits-ai-mode-hurts-search-revenue-15-500b-drop-worst-since-2004-ipo-ai-bear-market-c/",
+    "title": "[AINews] Google admits AI Mode hurts Search revenue; -15% $500B drop worst since 2004 IPO. AI Bear Market coming?",
+    "source": "latent-space",
+    "sourceName": "Latent Space",
+    "publishedAt": "2026-10-31T05:00:48.000Z",
     "score": {
       "total": 22,
       "pain": 16,
@@ -310,8 +342,40 @@
       "frequency": 2,
       "sourceWeight": 1.2,
       "matchedKeywords": [
-        "can't",
-        "ugh"
+        "ugh",
+        "need"
+      ]
+    },
+    "tags": [
+      "llm",
+      "ai-agent",
+      "frontier-tech"
+    ],
+    "summaryBullets": [
+      "It turns out you cannot have your cake AND eat it As an engineer-focused news...",
+      "At its heart is the tension between overview pages and underlying pages they ...",
+      "Any good enough summary obviates the need for you reading the source.",
+      "Google’s Featured Snippets or Knowledge Panels have long had that tension wit...",
+      "AI Bear Market coming?"
+    ]
+  },
+  {
+    "id": "976b3fd0e80e",
+    "url": "https://news.ycombinator.com/item?id=50313212",
+    "title": "Trouble finding a motivated co-founder",
+    "source": "hn_ask",
+    "sourceName": "Hacker News: Ask HN",
+    "publishedAt": "2026-10-31T04:27:45.000Z",
+    "score": {
+      "total": 22,
+      "pain": 16,
+      "demand": 0,
+      "urgency": 0,
+      "frequency": 2,
+      "sourceWeight": 1.2,
+      "matchedKeywords": [
+        "problem",
+        "hard to"
       ]
     },
     "tags": [
@@ -320,20 +384,84 @@
       "community"
     ],
     "summaryBullets": [
-      "Is there a limitation as to when someone can post a reply?",
-      "Does this mean the second half of the month is not going to be fruitful when ...",
-      "Is there another place one might look for jobs during that time?",
-      "Comments URL: https://news.ycombinator.com/item?id=47041571\nPoints: 2\n# Comme...",
-      "Does this mean the second half of the month is not going to be fruitful when ..."
+      "For context, I'm a college student running a consumer mobile app business.",
+      "I've been working on my own apps solo for about 6 months (both development an...",
+      "This is what originally led me to seek a co-founder in the consumer mobile ap...",
+      "The problem is that It's very hard for me to find someone who actually cares ...",
+      "Some past scenarios:\n1) I made a profile on the YC Co-founder matching site a..."
     ]
   },
   {
-    "id": "64fa457011bb",
-    "url": "https://dev.to/karthick17/knowledge-distillation-in-machine-learning-making-ai-models-smaller-and-faster-3l8h",
-    "title": "Knowledge Distillation in Machine Learning: Making AI Models Smaller and Faster",
+    "id": "42a1f2a1841c",
+    "url": "https://news.ycombinator.com/item?id=50313082",
+    "title": "Kayls -TUI lightweight text editor using rust",
+    "source": "hn_ask",
+    "sourceName": "Hacker News: Ask HN",
+    "publishedAt": "2026-10-31T04:00:55.000Z",
+    "score": {
+      "total": 22,
+      "pain": 16,
+      "demand": 0,
+      "urgency": 0,
+      "frequency": 2,
+      "sourceWeight": 1.2,
+      "matchedKeywords": [
+        "ugh",
+        "help"
+      ]
+    },
+    "tags": [
+      "pain",
+      "demand",
+      "community"
+    ],
+    "summaryBullets": [
+      "Kayls -As the title suggests, this is a hobby project that I created with the...",
+      "1.The reason I made this project is just a hobby, even though I don't really ...",
+      "2.The story behind the name Kayls is from the name of my girlfriend, (Kayla).",
+      "I don't want to continue the story because not everyone has to care.",
+      "3.link: https://github.com/iyjaa/Kayls\nI hope you understand that the docs an..."
+    ]
+  },
+  {
+    "id": "6507d734c1e9",
+    "url": "https://news.ycombinator.com/item?id=50305638",
+    "title": "Ask HN: What is your best hack to keep your agent's context in sync?",
+    "source": "hn_ask",
+    "sourceName": "Hacker News: Ask HN",
+    "publishedAt": "2026-10-30T15:48:14.000Z",
+    "score": {
+      "total": 22,
+      "pain": 16,
+      "demand": 0,
+      "urgency": 0,
+      "frequency": 2,
+      "sourceWeight": 1.2,
+      "matchedKeywords": [
+        "problem",
+        "manual"
+      ]
+    },
+    "tags": [
+      "pain",
+      "demand",
+      "community"
+    ],
+    "summaryBullets": [
+      "A lot of people manually maintain markdown files and use them to sync context.",
+      "Some people even use Obsidian.",
+      "I was wondering what is the best hack you have discovered to keep the agents ...",
+      "And how does it perform, does it work reliably well?",
+      "One of the problems I face is multiple agents writing to a common memory whic..."
+    ]
+  },
+  {
+    "id": "bb730643eda8",
+    "url": "https://dev.to/hariom_dubey_/how-i-built-an-asynchronous-predictive-compiler-using-git-worktrees-and-docker-1mfi",
+    "title": "How I built an asynchronous predictive compiler using Git Worktrees and Docker",
     "source": "devto_top",
     "sourceName": "Dev.to: Top",
-    "publishedAt": "2026-02-17T07:08:36.000Z",
+    "publishedAt": "2026-10-31T05:55:43.000Z",
     "score": {
       "total": 21,
       "pain": 24,
@@ -342,908 +470,8 @@
       "frequency": 2,
       "sourceWeight": 0.8,
       "matchedKeywords": [
-        "problem",
-        "slow",
-        "need"
-      ]
-    },
-    "tags": [
-      "dev",
-      "tools",
-      "pain"
-    ],
-    "summaryBullets": [
-      "Introduction\n\n\nIn modern Artificial Intelligence, deep learning models like l...",
-      "But the problem is, these models are very large, slow, and require high memor...",
-      "This is where Model Compression comes into the picture.",
-      "One of the most powerful and popular model compression techniques is Knowledg...",
-      "In this blog, we will understand Knowledge Distillation in a simple and begin..."
-    ]
-  },
-  {
-    "id": "7ecbd5902afe",
-    "url": "https://forestrydiary.com/",
-    "title": "Show HN: Scanned 1927-1945 Daily USFS Work Diary",
-    "source": "hn_frontpage",
-    "sourceName": "Hacker News: Front Page",
-    "publishedAt": "2026-02-16T23:40:33.000Z",
-    "score": {
-      "total": 20,
-      "pain": 16,
-      "demand": 0,
-      "urgency": 0,
-      "frequency": 2,
-      "sourceWeight": 1.1,
-      "matchedKeywords": [
-        "ugh",
-        "help"
-      ]
-    },
-    "tags": [
-      "trending",
-      "tech"
-    ],
-    "summaryBullets": [
-      "My great-grandfather Reuben P.",
-      "Box was a US Forest Ranger in Northern California, and I've got his daily wor...",
-      "I've scanned the entire thing, had Claude help with transcription, indexing, ...",
-      "As far as I know, this is the only US Forestry Diary that has been fully scan...",
-      "I understand that there are other diaries in some collections, but none have ..."
-    ]
-  },
-  {
-    "id": "489f14081840",
-    "url": "https://essays.debugyourpain.com/p/you-are-not-just-your-brain",
-    "title": "Neurons outside the brain",
-    "source": "hn_frontpage",
-    "sourceName": "Hacker News: Front Page",
-    "publishedAt": "2026-02-16T18:54:37.000Z",
-    "score": {
-      "total": 20,
-      "pain": 16,
-      "demand": 0,
-      "urgency": 0,
-      "frequency": 2,
-      "sourceWeight": 1.1,
-      "matchedKeywords": [
-        "pain",
-        "bug"
-      ]
-    },
-    "tags": [
-      "trending",
-      "tech"
-    ],
-    "summaryBullets": [
-      "Article URL: https://essays.debugyourpain.com/p/you-are-not-just-your-brain\nC..."
-    ]
-  },
-  {
-    "id": "b15f72850bfe",
-    "url": "http://coolwulfAI.com",
-    "title": "Show HN: CoolWulf AI – A personal AI assistant built in Go, optimized for macOS",
-    "source": "hn_show",
-    "sourceName": "Hacker News: Show HN",
-    "publishedAt": "2026-02-17T05:32:16.000Z",
-    "score": {
-      "total": 18,
-      "pain": 16,
-      "demand": 0,
-      "urgency": 0,
-      "frequency": 2,
-      "sourceWeight": 1,
-      "matchedKeywords": [
-        "problem",
-        "need"
-      ]
-    },
-    "tags": [
-      "product",
-      "launch",
-      "demo"
-    ],
-    "summaryBullets": [
-      "Hey HN,\nI've been building CoolWulf AI (https://coolwulfai.com), a self-hoste...",
-      "After seeing OpenClaw blow up, I wanted to share what I've been working on — ...",
-      "*Why I built this:*\nI tried OpenClaw and found the Node.js/TypeScript stack h...",
-      "pnpm, Node 22+, React — lots of moving parts.",
-      "I wanted something that's a single binary, zero runtime dependencies, and fee..."
-    ]
-  },
-  {
-    "id": "7c714bc5b1e6",
-    "url": "https://github.com/abokhalill/cuttlefish",
-    "title": "Show HN: How do you reliably benchmark sub-100ns code paths in Rust",
-    "source": "hn_show",
-    "sourceName": "Hacker News: Show HN",
-    "publishedAt": "2026-02-17T04:33:26.000Z",
-    "score": {
-      "total": 18,
-      "pain": 16,
-      "demand": 0,
-      "urgency": 0,
-      "frequency": 2,
-      "sourceWeight": 1,
-      "matchedKeywords": [
-        "ugh",
-        "need"
-      ]
-    },
-    "tags": [
-      "product",
-      "launch",
-      "demo"
-    ],
-    "summaryBullets": [
-      "Hi everyone,\nI just finished coding the core version of this library called C...",
-      "It’s a CRDT inspired framework that packs stuff like io_uring, SIMD, zero cop...",
-      "Here’s what it is:\nSo most distributed systems are strong consistency but the...",
-      "Cuttlefish is a coordination-free state kernel that preserves invariants and ...",
-      "Correctness here is defined by a property of algebra."
-    ]
-  },
-  {
-    "id": "898594f4ed02",
-    "url": "https://dev.to/srinivasamcjf/enterprise-jenkins-pipeline-deploy-war-to-dev-qa-uat-and-prod-with-approval-gates-rollback-3l5e",
-    "title": "Enterprise Jenkins Pipeline: Deploy WAR to DEV, QA, UAT, and PROD with Approval Gates, Rollback, and SCP",
-    "source": "devto_top",
-    "sourceName": "Dev.to: Top",
-    "publishedAt": "2026-02-17T07:18:01.000Z",
-    "score": {
-      "total": 14,
-      "pain": 16,
-      "demand": 0,
-      "urgency": 0,
-      "frequency": 2,
-      "sourceWeight": 0.8,
-      "matchedKeywords": [
-        "manual",
-        "need"
-      ]
-    },
-    "tags": [
-      "dev",
-      "tools",
-      "pain"
-    ],
-    "summaryBullets": [
-      "Introduction\nIn modern enterprise environments, deploying applications manual...",
-      "Organizations need:\nAutomated deployments\nIn this article, we will build a pr...",
-      "Enterprise Deployment Architecture\nDeveloper\nPrerequisites\nBefore implementin...",
-      "Jenkins Installed\nRequired plugins:\n2.",
-      "Add SSH Credentials in Jenkins\nNavigate:\n3."
-    ]
-  },
-  {
-    "id": "3f0c2ebc4a6e",
-    "url": "https://dev.to/camof1ow/i-built-a-pre-commit-security-scanner-with-claude-code-2lk",
-    "title": "I Built a Pre-commit Security Scanner with Claude Code",
-    "source": "devto_top",
-    "sourceName": "Dev.to: Top",
-    "publishedAt": "2026-02-17T07:14:17.000Z",
-    "score": {
-      "total": 14,
-      "pain": 16,
-      "demand": 0,
-      "urgency": 0,
-      "frequency": 2,
-      "sourceWeight": 0.8,
-      "matchedKeywords": [
-        "problem",
-        "issue"
-      ]
-    },
-    "tags": [
-      "dev",
-      "tools",
-      "pain"
-    ],
-    "summaryBullets": [
-      "👋\nI recently built vibe-guardian, a Claude Code skill that scans your code f...",
-      "Most security scanners check your code after you've already pushed to GitHub.",
-      "But here's the issue - even if you fix the vulnerability later, the original ...",
-      "Anyone with repo access can see it.",
-      "Traditional Flow (Risky):\nCode → Commit → Push → [SCAN] → Fix\n               ..."
-    ]
-  },
-  {
-    "id": "47ec6dbf3f5f",
-    "url": "https://news.ycombinator.com/item?id=47043370",
-    "title": "M Title: Show HN:P3 – AI Reputation-Based Lending",
-    "source": "hn_ask",
-    "sourceName": "Hacker News: Ask HN",
-    "publishedAt": "2026-02-17T03:26:08.000Z",
-    "score": {
-      "total": 14,
-      "pain": 0,
-      "demand": 10,
-      "urgency": 0,
-      "frequency": 2,
-      "sourceWeight": 1.2,
-      "matchedKeywords": [
-        "looking for"
-      ]
-    },
-    "tags": [
-      "pain",
-      "demand",
-      "community"
-    ],
-    "summaryBullets": [
-      "I’ve been building P3, a lending protocol that replaces FICO with AI-generate...",
-      "Each score snapshot is cryptographically hashed and verified before loan appr...",
-      "Preparing for beta and looking for technical feedback on architecture, risk m...",
-      "Comments URL: https://news.ycombinator.com/item?id=47043370\nPoints: 1\n# Comme...",
-      "Each score snapshot is cryptographically hashed and verified before loan appr..."
-    ]
-  },
-  {
-    "id": "508504d5fa55",
-    "url": "https://github.com/zachlatta/freeflow",
-    "title": "Show HN: Free alternative to Wispr Flow, Superwhisper, and Monologue",
-    "source": "hn_frontpage",
-    "sourceName": "Hacker News: Front Page",
-    "publishedAt": "2026-02-16T21:10:44.000Z",
-    "score": {
-      "total": 13,
-      "pain": 0,
-      "demand": 10,
-      "urgency": 0,
-      "frequency": 2,
-      "sourceWeight": 1.1,
-      "matchedKeywords": [
-        "alternative"
-      ]
-    },
-    "tags": [
-      "trending",
-      "tech"
-    ],
-    "summaryBullets": [
-      "Article URL: https://github.com/zachlatta/freeflow\nComments URL: https://news..."
-    ]
-  },
-  {
-    "id": "cf83d7d1b519",
-    "url": "https://www.smithsonianmag.com/innovation/this-14-year-old-is-using-origami-to-design-emergency-shelters-that-are-sturdy-cost-efficient-and-easy-to-deploy-180988179/",
-    "title": "14-year-old Miles Wu folded origami pattern that holds 10k times its own weight",
-    "source": "hn_frontpage",
-    "sourceName": "Hacker News: Front Page",
-    "publishedAt": "2026-02-16T18:41:50.000Z",
-    "score": {
-      "total": 13,
-      "pain": 0,
-      "demand": 0,
-      "urgency": 10,
-      "frequency": 2,
-      "sourceWeight": 1.1,
-      "matchedKeywords": [
-        "emergency"
-      ]
-    },
-    "tags": [
-      "trending",
-      "tech"
-    ],
-    "summaryBullets": [
-      "Article URL: https://www.smithsonianmag.com/innovation/this-14-year-old-is-us..."
-    ]
-  },
-  {
-    "id": "2c7476fd8a08",
-    "url": "https://www.producthunt.com/products/seamlessity",
-    "title": "CoThou Autonomous Superagent",
-    "source": "ph_daily",
-    "sourceName": "Product Hunt: Daily",
-    "publishedAt": "2026-02-16T06:04:28.000Z",
-    "score": {
-      "total": 13,
-      "pain": 8,
-      "demand": 0,
-      "urgency": 0,
-      "frequency": 2,
-      "sourceWeight": 1.3,
-      "matchedKeywords": [
-        "ugh"
-      ]
-    },
-    "tags": [
-      "product",
-      "launch",
-      "startup"
-    ],
-    "summaryBullets": [
-      "Discussion\n            |\n            Link Reasoning from first principles to ..."
-    ]
-  },
-  {
-    "id": "3f3c526408bd",
-    "url": "https://news.ycombinator.com/item?id=47044278",
-    "title": "'Like a Virgin' songwriter Billy Steinberg dies at 74",
-    "source": "hn_ask",
-    "sourceName": "Hacker News: Ask HN",
-    "publishedAt": "2026-02-17T06:14:50.000Z",
-    "score": {
-      "total": 12,
-      "pain": 8,
-      "demand": 0,
-      "urgency": 0,
-      "frequency": 2,
-      "sourceWeight": 1.2,
-      "matchedKeywords": [
-        "help"
-      ]
-    },
-    "tags": [
-      "pain",
-      "demand",
-      "community"
-    ],
-    "summaryBullets": [
-      "Legendary songwriter Billy Steinberg, whose lyrics helped define pop music in...",
-      "Steinberg died in Los Angeles’ Brentwood neighborhood, according to his attor...",
-      "Comments URL: https://news.ycombinator.com/item?id=47044278\nPoints: 1\n# Comme...",
-      "Steinberg died in Los Angeles’ Brentwood neighborhood, according to his attor...",
-      "Comments URL: https://news.ycombinator.com/item?id=47044278 Points: 1 # Comme..."
-    ]
-  },
-  {
-    "id": "21f3ea591ede",
-    "url": "https://github.com/openconstruct/freeclaw",
-    "title": "Show HN: OpenClaw alternative with no API costs",
-    "source": "hn_show",
-    "sourceName": "Hacker News: Show HN",
-    "publishedAt": "2026-02-17T05:19:16.000Z",
-    "score": {
-      "total": 12,
-      "pain": 0,
-      "demand": 10,
-      "urgency": 0,
-      "frequency": 2,
-      "sourceWeight": 1,
-      "matchedKeywords": [
-        "alternative"
-      ]
-    },
-    "tags": [
-      "product",
-      "launch",
-      "demo"
-    ],
-    "summaryBullets": [
-      "Freeclaw is in active development.",
-      "Written in python, simple setup for your old compute pr cheap VPS.",
-      "Uses about 500mb ram when active\nComments URL: https://news.ycombinator.com/i...",
-      "Written in python, simple setup for your old compute pr cheap VPS.",
-      "Uses about 500mb ram when active Comments URL: https://news.ycombinator.com/i..."
-    ]
-  },
-  {
-    "id": "abe1111a69e2",
-    "url": "https://github.com/superhq-ai/neko",
-    "title": "Show HN: Neko – AI agent runtime that fits on a Raspberry Pi Zero 2W",
-    "source": "hn_show",
-    "sourceName": "Hacker News: Show HN",
-    "publishedAt": "2026-02-17T04:20:50.000Z",
-    "score": {
-      "total": 12,
-      "pain": 0,
-      "demand": 0,
-      "urgency": 10,
-      "frequency": 2,
-      "sourceWeight": 1,
-      "matchedKeywords": [
-        "today"
-      ]
-    },
-    "tags": [
-      "product",
-      "launch",
-      "demo"
-    ],
-    "summaryBullets": [
-      "I wanted a personal AI agent I could leave running on cheap hardware, a Pi Ze...",
-      "Memory is markdown files the agent reads and writes itself.",
-      "There's a short-term layer for today's and yesterday's session logs, a long-t...",
-      "The files are plain text you can read, edit, and commit to git.",
-      "It also supports MCP for connecting external tools, and Telegram as a messagi..."
-    ]
-  },
-  {
-    "id": "e7b938658e3c",
-    "url": "https://news.ycombinator.com/item?id=47043484",
-    "title": "Ask HN: How do companies that use Cursor handle compliance?",
-    "source": "hn_ask",
-    "sourceName": "Hacker News: Ask HN",
-    "publishedAt": "2026-02-17T03:48:00.000Z",
-    "score": {
-      "total": 12,
-      "pain": 8,
-      "demand": 0,
-      "urgency": 0,
-      "frequency": 2,
-      "sourceWeight": 1.2,
-      "matchedKeywords": [
-        "ugh"
-      ]
-    },
-    "tags": [
-      "pain",
-      "demand",
-      "community"
-    ],
-    "summaryBullets": [
-      "I'm trying to decide whether to adopt Cursor for our company, but we're in a ...",
-      "The thing is, there are companies in regulated industries using it [1][2].",
-      "But Cursor has no HIPAA BAA, no FedRAMP certification, and is cloud-only with...",
-      "(This is probably true for Claude and other coding assistants, though I've on...",
-      "Or do most just avoid Cursor and other AI coding tools altogether?"
-    ]
-  },
-  {
-    "id": "ae53897d13f0",
-    "url": "https://news.ycombinator.com/item?id=47043302",
-    "title": "Ask HN: Why is there a negative sentiment towards crypto?",
-    "source": "hn_ask",
-    "sourceName": "Hacker News: Ask HN",
-    "publishedAt": "2026-02-17T03:16:38.000Z",
-    "score": {
-      "total": 12,
-      "pain": 8,
-      "demand": 0,
-      "urgency": 0,
-      "frequency": 2,
-      "sourceWeight": 1.2,
-      "matchedKeywords": [
-        "need"
-      ]
-    },
-    "tags": [
-      "pain",
-      "demand",
-      "community"
-    ],
-    "summaryBullets": [
-      "It seems to me like there’s an overall negative sentiment towards crypto here...",
-      "Why is this the case?",
-      "I get there’s a lot of false hype around various projects and the space has s...",
-      "Im taking about things like decentralised exchanges, RWAs, stablecoins, appea...",
-      "The programmable factor also allows for there to be a platform for new ways o..."
-    ]
-  },
-  {
-    "id": "b672b64acb82",
-    "url": "https://news.ycombinator.com/item?id=47042747",
-    "title": "Watching an elderly relative trying to use the modern web",
-    "source": "hn_ask",
-    "sourceName": "Hacker News: Ask HN",
-    "publishedAt": "2026-02-17T01:53:18.000Z",
-    "score": {
-      "total": 12,
-      "pain": 8,
-      "demand": 0,
-      "urgency": 0,
-      "frequency": 2,
-      "sourceWeight": 1.2,
-      "matchedKeywords": [
-        "frustrated"
-      ]
-    },
-    "tags": [
-      "pain",
-      "demand",
-      "community"
-    ],
-    "summaryBullets": [
-      "Watching my elderly mother trying to accomplish something on the internet and...",
-      "Modern website \"design\" amounts to abuse of the elderly.",
-      "I've now seen her driven to tears, knowing that she should be able to do some...",
-      "It makes me so angry.",
-      "Comments URL: https://news.ycombinator.com/item?id=47042747\nPoints: 23\n# Comm..."
-    ]
-  },
-  {
-    "id": "9fe1389256d8",
-    "url": "https://apps.apple.com/us/app/wildex-identify-plants-animals/id6748092158",
-    "title": "Show HN: Wildex – Pokémon Go for real wildlife",
-    "source": "hn_frontpage",
-    "sourceName": "Hacker News: Front Page",
-    "publishedAt": "2026-02-16T21:12:07.000Z",
-    "score": {
-      "total": 11,
-      "pain": 8,
-      "demand": 0,
-      "urgency": 0,
-      "frequency": 2,
-      "sourceWeight": 1.1,
-      "matchedKeywords": [
-        "ugh"
-      ]
-    },
-    "tags": [
-      "trending",
-      "tech"
-    ],
-    "summaryBullets": [
-      "Dear HN,\nMy wife and I both love nature and have always wanted a Pokémon go s...",
-      "All the usual species identifying apps were didn’t feel fun enough, so we des...",
-      "Would love for you guys to give it a try and share any thoughts you have.",
-      "Comments URL: https://news.ycombinator.com/item?id=47040390\nPoints: 73\n# Comm...",
-      "All the usual species identifying apps were didn’t feel fun enough, so we des..."
-    ]
-  },
-  {
-    "id": "d870e21d1dac",
-    "url": "https://arxiv.org/abs/2602.11988",
-    "title": "Evaluating AGENTS.md: are they helpful for coding agents?",
-    "source": "hn_frontpage",
-    "sourceName": "Hacker News: Front Page",
-    "publishedAt": "2026-02-16T12:15:39.000Z",
-    "score": {
-      "total": 11,
-      "pain": 8,
-      "demand": 0,
-      "urgency": 0,
-      "frequency": 2,
-      "sourceWeight": 1.1,
-      "matchedKeywords": [
-        "help"
-      ]
-    },
-    "tags": [
-      "trending",
-      "tech"
-    ],
-    "summaryBullets": [
-      "Article URL: https://arxiv.org/abs/2602.11988\nComments URL: https://news.ycom..."
-    ]
-  },
-  {
-    "id": "92a7cc0f60bf",
-    "url": "https://dev.to/andrew_da_miz/how-i-used-ai-to-build-a-programming-language-with-actors-an-orm-and-a-saas-backend-in-12-days-4j8p",
-    "title": "How I Used AI to Build a Programming Language with Actors, an ORM, and a SaaS Backend in 12 Days",
-    "source": "devto_top",
-    "sourceName": "Dev.to: Top",
-    "publishedAt": "2026-02-17T07:17:08.000Z",
-    "score": {
-      "total": 10,
-      "pain": 0,
-      "demand": 0,
-      "urgency": 10,
-      "frequency": 2,
-      "sourceWeight": 0.8,
-      "matchedKeywords": [
-        "today"
-      ]
-    },
-    "tags": [
-      "dev",
-      "tools",
-      "pain"
-    ],
-    "summaryBullets": [
-      "Twelve days ago, I had an empty directory.",
-      "Today, I have a compiled programming language with a distributed actor runtim...",
-      "111,000 lines of Rust.",
-      "I didn't write most of it.",
-      "Claude Opus 4.6 did."
-    ]
-  },
-  {
-    "id": "df003831cad6",
-    "url": "https://github.com/livetheoogway/python-uime",
-    "title": "Show HN: Python UI-Me – Turn functions into web forms with one decorator",
-    "source": "hn_show",
-    "sourceName": "Hacker News: Show HN",
-    "publishedAt": "2026-02-17T05:30:46.000Z",
-    "score": {
-      "total": 10,
-      "pain": 8,
-      "demand": 0,
-      "urgency": 0,
-      "frequency": 2,
-      "sourceWeight": 1,
-      "matchedKeywords": [
-        "need"
-      ]
-    },
-    "tags": [
-      "product",
-      "launch",
-      "demo"
-    ],
-    "summaryBullets": [
-      "I built UI-Me because Streamlit felt too heavy and Click/Argparse felt too li...",
-      "It’s a minimalist library that maps your Python functions to a clean web dash...",
-      "The Essentials:\n- One Decorator: Add @ui_enabled to any function to generate ...",
-      "- No Frontend Bloat: Built with vanilla HTML/JS and Flask.",
-      "No React, no NPM, no complex build steps."
-    ]
-  },
-  {
-    "id": "e2f714242585",
-    "url": "https://tagintegrity.com/",
-    "title": "Show HN: TagIntegrity – Free Consent Mode v2 Scanner",
-    "source": "hn_show",
-    "sourceName": "Hacker News: Show HN",
-    "publishedAt": "2026-02-17T05:00:40.000Z",
-    "score": {
-      "total": 10,
-      "pain": 8,
-      "demand": 0,
-      "urgency": 0,
-      "frequency": 2,
-      "sourceWeight": 1,
-      "matchedKeywords": [
-        "broken"
-      ]
-    },
-    "tags": [
-      "product",
-      "launch",
-      "demo"
-    ],
-    "summaryBullets": [
-      "I built this after seeing too many sites lose Google Ads conversion data due ...",
-      "Free scanner checks GTM/GA4/Ads + consent signals in 60 seconds.",
-      "Example scan: https://tagintegrity.lovable.app/results/347d5a06-541d-4d6c-...",
-      "Would love feedback on what would make this more useful!",
-      "Comments URL: https://news.ycombinator.com/item?id=47043867\nPoints: 1\n# Comme..."
-    ]
-  },
-  {
-    "id": "f5eb1b7be4d8",
-    "url": "https://github.com/maxritter/claude-pilot",
-    "title": "Show HN: Claude Pilot – Claude Code is powerful. Pilot makes it reliable",
-    "source": "hn_show",
-    "sourceName": "Hacker News: Show HN",
-    "publishedAt": "2026-02-17T04:55:29.000Z",
-    "score": {
-      "total": 10,
-      "pain": 8,
-      "demand": 0,
-      "urgency": 0,
-      "frequency": 2,
-      "sourceWeight": 1,
-      "matchedKeywords": [
-        "ugh"
-      ]
-    },
-    "tags": [
-      "product",
-      "launch",
-      "demo"
-    ],
-    "summaryBullets": [
-      "Start a task, grab a coffee, come back to production-grade code.",
-      "Claude Code moves fast but without structure, it skips tests, loses context, ...",
-      "I tried other frameworks — they burned tokens on bloated prompts without addi...",
-      "Some added process without enforcement.",
-      "Others were prompt templates that Claude ignored when context got tight."
-    ]
-  },
-  {
-    "id": "fa32894f8e12",
-    "url": "https://github.com/al1-nasir/codegraph-cli",
-    "title": "Show HN: CodeGraph CLI – Chat with your codebase using graph-augmented RAG",
-    "source": "hn_show",
-    "sourceName": "Hacker News: Show HN",
-    "publishedAt": "2026-02-17T04:39:54.000Z",
-    "score": {
-      "total": 10,
-      "pain": 8,
-      "demand": 0,
-      "urgency": 0,
-      "frequency": 2,
-      "sourceWeight": 1,
-      "matchedKeywords": [
-        "ugh"
-      ]
-    },
-    "tags": [
-      "product",
-      "launch",
-      "demo"
-    ],
-    "summaryBullets": [
-      "I built CodeGraph CLI because I was tired of grep-ing through \nmassive codeba...",
-      "It combines three things:\n- tree-sitter (AST parsing, error-tolerant)\n- SQLit...",
-      "So I combined vector search with BFS graph \ntraversal — find semantically sim...",
-      "Result: ask \"how does authentication work?\" and it finds \nvalidate_token(), i...",
-      "Other features:\n- Impact analysis (multi-hop BFS: what breaks before you chan..."
-    ]
-  },
-  {
-    "id": "b03aec5ce492",
-    "url": "https://changelog.com/news/181",
-    "title": "All the Claw things",
-    "source": "changelog_news",
-    "sourceName": "Changelog News",
-    "publishedAt": "2026-02-16T19:30:00.000Z",
-    "score": {
-      "total": 10,
-      "pain": 0,
-      "demand": 0,
-      "urgency": 10,
-      "frequency": 2,
-      "sourceWeight": 0.8,
-      "matchedKeywords": [
-        "today"
-      ]
-    },
-    "tags": [
-      "oss",
-      "tools",
-      "trend"
-    ],
-    "summaryBullets": [
-      "Peter Steinberger joins OpenAI, ZeroClaw is \"claw done right\", MimiClaw runs ...",
-      "Peter Steinberger joins OpenAI, ZeroClaw is “claw done right”, MimiClaw runs ...",
-      "View the newsletter Join the discussion Changelog++ members support our work,...",
-      "Sponsors: Tiger Data – Postgres for Developers, devices, and agents The data ...",
-      "Featuring: Jerod Santo &ndash; Website , GitH All the Claw things"
-    ]
-  },
-  {
-    "id": "2e9cc4ed7aef",
-    "url": "https://techcrunch.com/2026/02/15/anthropic-and-the-pentagon-are-reportedly-arguing-over-claude-usage/",
-    "title": "Anthropic and the Pentagon are reportedly arguing over Claude usage",
-    "source": "techcrunch_startups",
-    "sourceName": "TechCrunch AI",
-    "publishedAt": "2026-02-15T21:11:28.000Z",
-    "score": {
-      "total": 10,
-      "pain": 8,
-      "demand": 0,
-      "urgency": 0,
-      "frequency": 2,
-      "sourceWeight": 1,
-      "matchedKeywords": [
-        "issue"
-      ]
-    },
-    "tags": [
-      "llm",
-      "ai-agent",
-      "startup",
-      "trend"
-    ],
-    "summaryBullets": [
-      "The apparent issue: whether Claude can be used for mass domestic surveillance...",
-      "The apparent issue: whether Claude can be used for mass domestic surveillance...",
-      "Anthropic and the Pentagon are reportedly arguing over Claude usage"
-    ]
-  },
-  {
-    "id": "8ccc35657216",
-    "url": "https://lobste.rs/s/jdoe4x/please_consider_tagging_vibecoding",
-    "title": "Please consider tagging a vibecoding griefpost or hypepost as a rant",
-    "source": "lobsters",
-    "sourceName": "Lobste.rs",
-    "publishedAt": "2026-02-16T13:44:50.000Z",
-    "score": {
-      "total": 9,
-      "pain": 8,
-      "demand": 0,
-      "urgency": 0,
-      "frequency": 2,
-      "sourceWeight": 0.9,
-      "matchedKeywords": [
-        "ugh"
-      ]
-    },
-    "tags": [
-      "tech",
-      "tools",
-      "community"
-    ],
-    "summaryBullets": [
-      "Many of us going through the five stages of grief about AI.",
-      "But processing our collective trauma is neither practices nor programming.",
-      "And people have left because we're not talking about computing!",
-      "(e.g.)\nSome rules of thumb for great stories to submit: Will this improve the...",
-      "Will it deepen their understanding of their last program?"
-    ]
-  },
-  {
-    "id": "ee151ec1a190",
-    "url": "https://whynot.fail/human/ai-is-slowly-munching-away-my-passion/",
-    "title": "AI is slowly munching away my passion",
-    "source": "lobsters",
-    "sourceName": "Lobste.rs",
-    "publishedAt": "2026-02-15T14:36:09.000Z",
-    "score": {
-      "total": 9,
-      "pain": 8,
-      "demand": 0,
-      "urgency": 0,
-      "frequency": 2,
-      "sourceWeight": 0.9,
-      "matchedKeywords": [
-        "slow"
-      ]
-    },
-    "tags": [
-      "tech",
-      "tools",
-      "community"
-    ],
-    "summaryBullets": [
-      "Comments Comments AI is slowly munching away my passion"
-    ]
-  },
-  {
-    "id": "a48f71793667",
-    "url": "https://dev.to/amonoff/why-ai-is-unlikely-to-be-a-game-changer-in-african-economies-4g38",
-    "title": "Why AI Is Unlikely to Be a Game-Changer in African Economies",
-    "source": "devto_top",
-    "sourceName": "Dev.to: Top",
-    "publishedAt": "2026-02-17T07:34:27.000Z",
-    "score": {
-      "total": 8,
-      "pain": 8,
-      "demand": 0,
-      "urgency": 0,
-      "frequency": 2,
-      "sourceWeight": 0.8,
-      "matchedKeywords": [
-        "need"
-      ]
-    },
-    "tags": [
-      "dev",
-      "tools",
-      "pain"
-    ],
-    "summaryBullets": [
-      "Everyone is talking about AI transforming Africa, but the reality on the grou...",
-      "While AI has enormous potential globally, in many African contexts it is unli...",
-      "Electricity Shortages Are a Major Bottleneck\nAI systems, whether cloud-hosted...",
-      "Training even a single large AI model can use as much power as a small town i...",
-      "Many African countries struggle with unreliable grids and frequent load shedd..."
-    ]
-  },
-  {
-    "id": "cb0a9af66d22",
-    "url": "https://www.theglobeandmail.com/opinion/article-ai-writing-just-isnt-good-enough-and-if-youre-using-it-everyone-can/",
-    "title": "AI writing just isn't good enough – if you're using it everyone can tell",
-    "source": "hn_newest",
-    "sourceName": "Hacker News: Newest",
-    "publishedAt": "2026-02-17T07:30:18.000Z",
-    "score": {
-      "total": 8,
-      "pain": 8,
-      "demand": 0,
-      "urgency": 0,
-      "frequency": 2,
-      "sourceWeight": 0.8,
-      "matchedKeywords": [
-        "ugh"
-      ]
-    },
-    "tags": [
-      "general",
-      "tech"
-    ],
-    "summaryBullets": [
-      "Article URL: https://www.theglobeandmail.com/opinion/article-ai-writing-just-..."
-    ]
-  },
-  {
-    "id": "fff077fbf976",
-    "url": "https://dev.to/msmyaqoob25/how-to-track-ai-citation-traffic-in-ga4-and-why-its-replacing-google-organic-559k",
-    "title": "How to Track AI Citation Traffic in GA4 (And Why It's Replacing Google Organic)",
-    "source": "devto_top",
-    "sourceName": "Dev.to: Top",
-    "publishedAt": "2026-02-17T07:12:09.000Z",
-    "score": {
-      "total": 8,
-      "pain": 8,
-      "demand": 0,
-      "urgency": 0,
-      "frequency": 2,
-      "sourceWeight": 0.8,
-      "matchedKeywords": [
+        "broken",
+        "can't",
         "problem"
       ]
     },
@@ -1253,28 +481,157 @@
       "pain"
     ],
     "summaryBullets": [
-      "A technical breakdown of how AI systems decide what to cite, how to measure A...",
-      "impression inflation problem, and it's caused by Google's AI Overviews counti...",
-      "How to set up GA4 to properly track AI referral sources\nLet's get technical.",
-      "Setting Up AI Citation Tracking in GA4\nDimensions: Session source/medium, Lan...",
-      "<h3>Specific Aspect</h3>\n<p>Precise answer to implied question...</p>\n\n<!-- F..."
+      "Current AI coding tools have a fundamental workflow problem: they are entirel...",
+      "You write a function, you run your test suite, it fails, you copy the error l...",
+      "You are the orchestrator, and the AI is just glorified autocomplete.",
+      "I wanted an engine that operates entirely in the gap between keystrokes.",
+      "I wanted a system that detects my unfinished code, spins up a parallel replic..."
     ]
   },
   {
-    "id": "ff10b2fca610",
-    "url": "https://dev.to/theo_hsiung_912d07109a35e/gei-junior-de-python-pin-zhi-gong-ju-ru-men-ruff-yu-mypy-3hg0",
-    "title": "給 Junior 的 Python 品質工具入門：Ruff 與 Mypy",
+    "id": "e81a6002b9f4",
+    "url": "https://dev.to/mickamy/if-youre-looking-for-what-comes-after-wire-take-a-look-at-kanna-di-a4i",
+    "title": "If you're looking for what comes after wire, take a look at kanna-di",
     "source": "devto_top",
     "sourceName": "Dev.to: Top",
-    "publishedAt": "2026-02-17T07:07:29.000Z",
+    "publishedAt": "2026-10-31T05:58:56.000Z",
     "score": {
-      "total": 8,
+      "total": 19,
       "pain": 8,
+      "demand": 10,
+      "urgency": 0,
+      "frequency": 6,
+      "sourceWeight": 0.8,
+      "matchedKeywords": [
+        "tedious",
+        "looking for"
+      ]
+    },
+    "tags": [
+      "dev",
+      "tools",
+      "pain"
+    ],
+    "summaryBullets": [
+      "For a long time, compile-time DI in Go meant google/wire.",
+      "But wire is no longer taking new features, and every so often the question co...",
+      "This post introduces kanna-di, which I wrote to sit in that spot.",
+      "Like wire, the generated code is plain Go and imports nothing at run time.",
+      "The difference is that you register no providers."
+    ]
+  },
+  {
+    "id": "8c653bc0bc11",
+    "url": "https://dev.to/jungku_heo_9a91e894ccbeec/why-i-built-coin-radar-looking-for-feedback-on-discovering-crypto-market-movements-1d89",
+    "title": "Why I built Coin Radar: looking for feedback on discovering crypto market movements",
+    "source": "devto_top",
+    "sourceName": "Dev.to: Top",
+    "publishedAt": "2026-10-31T05:57:57.000Z",
+    "score": {
+      "total": 19,
+      "pain": 8,
+      "demand": 10,
+      "urgency": 0,
+      "frequency": 6,
+      "sourceWeight": 0.8,
+      "matchedKeywords": [
+        "help",
+        "looking for"
+      ]
+    },
+    "tags": [
+      "dev",
+      "tools",
+      "pain"
+    ],
+    "summaryBullets": [
+      "Hi, I’m the developer of Coin Radar, an Android app for exploring cryptocurre...",
+      "When trading crypto, it is easy to keep watching familiar altcoins because di...",
+      "I built Coin Radar to offer a clearer starting point for finding coins to res...",
+      "The app brings together daily and weekly price and volume rankings, market tr...",
+      "A watchlist lets you follow coins you want to revisit."
+    ]
+  },
+  {
+    "id": "5e6782e3fec1",
+    "url": "https://dev.to/aisolodesk/canva-vs-adobe-express-the-4-questions-i-ask-before-paying-for-a-design-tool-as-a-solo-founder-3p05",
+    "title": "Canva vs Adobe Express: the 4 questions I ask before paying for a design tool as a solo founder",
+    "source": "devto_top",
+    "sourceName": "Dev.to: Top",
+    "publishedAt": "2026-10-31T05:53:41.000Z",
+    "score": {
+      "total": 19,
+      "pain": 8,
+      "demand": 10,
+      "urgency": 0,
+      "frequency": 6,
+      "sourceWeight": 0.8,
+      "matchedKeywords": [
+        "need",
+        "subscription"
+      ]
+    },
+    "tags": [
+      "dev",
+      "tools",
+      "pain"
+    ],
+    "summaryBullets": [
+      "As a solo founder, every subscription comes out of the same pocket as my salary.",
+      "So when it came to picking a design tool for client graphics, social posts, a...",
+      "Here are the 4 questions that actually decided it for me.",
+      "What am I designing most of the time?",
+      "If 80% of your work is social graphics and presentations, Canva's template li..."
+    ]
+  },
+  {
+    "id": "cd0b2b1c6342",
+    "url": "https://dev.to/parallaxgrain/browser-fingerprinting-protection-randomize-blend-in-or-block-232n",
+    "title": "Browser Fingerprinting Protection: Randomize, Blend In or Block",
+    "source": "devto_top",
+    "sourceName": "Dev.to: Top",
+    "publishedAt": "2026-10-31T05:58:53.000Z",
+    "score": {
+      "total": 14,
+      "pain": 16,
       "demand": 0,
       "urgency": 0,
       "frequency": 2,
       "sourceWeight": 0.8,
       "matchedKeywords": [
+        "can't",
+        "ugh"
+      ]
+    },
+    "tags": [
+      "dev",
+      "tools",
+      "pain"
+    ],
+    "summaryBullets": [
+      "A page can ask the browser which graphics card it runs on, through WebGL, the...",
+      "An unprotected browser answers with the exact model.",
+      "Brave answers with one word, \"Brave\", for the vendor and the renderer alike.",
+      "That is deliberate: Brave decided the model is too identifying to give out, w...",
+      "A fingerprint works for a tracker only when it is distinctive (few other brow..."
+    ]
+  },
+  {
+    "id": "1014c2d65f38",
+    "url": "https://dev.to/pixelcrisscross/ghostline-the-terminal-that-remembers-49e5",
+    "title": "GHOSTLINE — The Terminal That Remembers",
+    "source": "devto_top",
+    "sourceName": "Dev.to: Top",
+    "publishedAt": "2026-10-31T05:56:29.000Z",
+    "score": {
+      "total": 14,
+      "pain": 16,
+      "demand": 0,
+      "urgency": 0,
+      "frequency": 2,
+      "sourceWeight": 0.8,
+      "matchedKeywords": [
+        "problem",
         "bug"
       ]
     },
@@ -1284,44 +641,881 @@
       "pain"
     ],
     "summaryBullets": [
-      "你的程式碼能跑不代表它沒問題。這兩個工具幫你在「出事之前」就抓到問題。",
-      "Python 是一個非常「寬容」的語言。它讓你做很多事情，但不會告訴你做錯了：\ndef add(a: int, b: int) -> int:\n    r...",
-      "Ruff 和 Mypy 就是幫你在這些問題變成 bug 之前就抓到它們。",
-      "Python 的 type hint（a: int）只是給人看的註解，執行時完全不檢查。Mypy 是那個真的去檢查的工具。",
-      "def get_user_name(user_id: int) -> str:\n    if user_id <= 0:\n        return N..."
+      "GHOSTLINE 👻 — The Terminal That Remembers\n\n\nThis is a submission for the Hac...",
+      "Meet GHOSTLINE — The Terminal That Remembers.",
+      "GHOSTLINE is a local-first AI-powered terminal companion designed to make dev...",
+      "Inspired by the idea of a ghost living inside an old computer, I wanted to bu...",
+      "Instead of building another web-based chatbot, I decided to bring AI directly..."
     ]
   },
   {
-    "id": "5f90eab1b871",
-    "url": "https://nebezb.com/30gb-ram/",
-    "title": "Site Runs on 30GB of RAM",
+    "id": "a0473096a6e9",
+    "url": "https://news.ycombinator.com/item?id=50313539",
+    "title": "Tell HN: Claude is using my limits even though it's infra is failing",
     "source": "hn_newest",
     "sourceName": "Hacker News: Newest",
-    "publishedAt": "2026-02-17T07:43:26.000Z",
+    "publishedAt": "2026-10-31T05:52:29.000Z",
     "score": {
-      "total": 0,
-      "pain": 0,
+      "total": 14,
+      "pain": 16,
       "demand": 0,
       "urgency": 0,
-      "frequency": 0,
+      "frequency": 2,
       "sourceWeight": 0.8,
-      "matchedKeywords": []
+      "matchedKeywords": [
+        "failing",
+        "ugh"
+      ]
     },
     "tags": [
       "general",
       "tech"
     ],
     "summaryBullets": [
-      "Article URL: https://nebezb.com/30gb-ram/\nComments URL: https://news.ycombina..."
+      "I am using Claude design, and a lot of times it's agent is failing mid-task, ...",
+      "My limits have been consumed already\n2.",
+      "There is no resume button, there is only retry, which starts again\n3.",
+      "Even retry fails, then consumes my tokens.",
+      "I had some chats where I lost 80% my limits by retrying the task, with no luc..."
     ]
   },
   {
-    "id": "78b03e400307",
-    "url": "https://dev.to/rpi1337/building-a-cloud-native-agentic-ai-research-app-a-comprehensive-deep-dive-into-pgvector-remix-mdm",
-    "title": "Building a Cloud-Native Agentic AI Research App: A Comprehensive Deep Dive into pgvector, Remix, and Multimodal LLMs",
+    "id": "17a500592aa5",
+    "url": "https://news.ycombinator.com/item?id=50306776",
+    "title": "Ask HN: What's it like working at Google nowadays? Core teams like Search, Ads?",
+    "source": "hn_ask",
+    "sourceName": "Hacker News: Ask HN",
+    "publishedAt": "2026-10-30T17:00:44.000Z",
+    "score": {
+      "total": 14,
+      "pain": 0,
+      "demand": 0,
+      "urgency": 10,
+      "frequency": 2,
+      "sourceWeight": 1.2,
+      "matchedKeywords": [
+        "critical"
+      ]
+    },
+    "tags": [
+      "pain",
+      "demand",
+      "community"
+    ],
+    "summaryBullets": [
+      "What's the culture at Google like these days?",
+      "For Core Teams Like Gmail, Search, Ads.",
+      "What's it like working in these traditionally critical departments now?",
+      "Comments URL: https://news.ycombinator.com/item?id=50306776\nPoints: 38\n# Comm...",
+      "For Core Teams Like Gmail, Search, Ads."
+    ]
+  },
+  {
+    "id": "69df49e856a7",
+    "url": "https://www.producthunt.com/products/faylee",
+    "title": "Faylee",
+    "source": "ph_daily",
+    "sourceName": "Product Hunt: Daily",
+    "publishedAt": "2026-10-29T17:54:14.000Z",
+    "score": {
+      "total": 13,
+      "pain": 8,
+      "demand": 0,
+      "urgency": 0,
+      "frequency": 2,
+      "sourceWeight": 1.3,
+      "matchedKeywords": [
+        "bug"
+      ]
+    },
+    "tags": [
+      "product",
+      "launch",
+      "startup"
+    ],
+    "summaryBullets": [
+      "Discussion\n            |\n            Link Bug reports your coding agent can f..."
+    ]
+  },
+  {
+    "id": "c80cb208774f",
+    "url": "https://news.ycombinator.com/item?id=50312756",
+    "title": "Tell HN: Scribd Breached",
+    "source": "hn_ask",
+    "sourceName": "Hacker News: Ask HN",
+    "publishedAt": "2026-10-31T02:46:36.000Z",
+    "score": {
+      "total": 12,
+      "pain": 8,
+      "demand": 0,
+      "urgency": 0,
+      "frequency": 2,
+      "sourceWeight": 1.2,
+      "matchedKeywords": [
+        "issue"
+      ]
+    },
+    "tags": [
+      "pain",
+      "demand",
+      "community"
+    ],
+    "summaryBullets": [
+      "Not seeing anything posted about this anywhere, received on Monday, 26th of O...",
+      "Hello,\nWe are writing to let you know that Scribd, Inc.",
+      "recently experienced a security incident that may have affected your data.",
+      "We detected that an unauthorized third party may have gained access to certai...",
+      "After investigating this activity, we found that the third party may have acc..."
+    ]
+  },
+  {
+    "id": "4fdd49dc3a71",
+    "url": "https://news.ycombinator.com/item?id=50312612",
+    "title": "How do you measure whether your coding agent is becoming more effective?",
+    "source": "hn_ask",
+    "sourceName": "Hacker News: Ask HN",
+    "publishedAt": "2026-10-31T02:14:14.000Z",
+    "score": {
+      "total": 12,
+      "pain": 8,
+      "demand": 0,
+      "urgency": 0,
+      "frequency": 2,
+      "sourceWeight": 1.2,
+      "matchedKeywords": [
+        "problem"
+      ]
+    },
+    "tags": [
+      "pain",
+      "demand",
+      "community"
+    ],
+    "summaryBullets": [
+      "I do my best to clean my repository, remove bad code examples, create lint ru...",
+      "but I haven't figured out how to measure the improvements.",
+      "Maybe it's moot and measuring the time between the model I'm using and the ne...",
+      "how do ya'll think about that problem?",
+      "Comments URL: https://news.ycombinator.com/item?id=50312612\nPoints: 1\n# Comme..."
+    ]
+  },
+  {
+    "id": "de00694d46e6",
+    "url": "https://news.ycombinator.com/item?id=50312582",
+    "title": "Ask HN: Has Fable begun to autocorrect itself inline in its responses for you?",
+    "source": "hn_ask",
+    "sourceName": "Hacker News: Ask HN",
+    "publishedAt": "2026-10-31T02:09:19.000Z",
+    "score": {
+      "total": 12,
+      "pain": 8,
+      "demand": 0,
+      "urgency": 0,
+      "frequency": 2,
+      "sourceWeight": 1.2,
+      "matchedKeywords": [
+        "can't"
+      ]
+    },
+    "tags": [
+      "pain",
+      "demand",
+      "community"
+    ],
+    "summaryBullets": [
+      "As of couple days now, I regularly get Fable provide me a response that leaks...",
+      "\"But if you do this No that can't be done here...",
+      "do something else then it will work\"\nThat's genuinely surprising because it's...",
+      "This somewhat corroborates they absolutely did change something, as my overal...",
+      "Opus, mind you, is even worse."
+    ]
+  },
+  {
+    "id": "e42dd401175c",
+    "url": "https://news.ycombinator.com/item?id=50311776",
+    "title": "Ask HN: What's the future like? For normies, will it still be apps and websites?",
+    "source": "hn_ask",
+    "sourceName": "Hacker News: Ask HN",
+    "publishedAt": "2026-10-31T00:03:05.000Z",
+    "score": {
+      "total": 12,
+      "pain": 8,
+      "demand": 0,
+      "urgency": 0,
+      "frequency": 2,
+      "sourceWeight": 1.2,
+      "matchedKeywords": [
+        "manual"
+      ]
+    },
+    "tags": [
+      "pain",
+      "demand",
+      "community"
+    ],
+    "summaryBullets": [
+      "Will we still be going on websites?",
+      "Will people continue to install mobile apps?",
+      "Or are we all going to be living in AI assistant walled gardens, telling it \"...",
+      "For the broader people (outside of tech, everyone else), what will the next 1...",
+      "Most people outside of tech circles don't use AI, at least not on purpose."
+    ]
+  },
+  {
+    "id": "8250ebaf26a6",
+    "url": "https://multispace.dev/",
+    "title": "Show HN: Free Unlimited Virtual Monitors+Watch Claude Work on Them+Community",
+    "source": "hn_show",
+    "sourceName": "Hacker News: Show HN",
+    "publishedAt": "2026-10-30T23:16:36.000Z",
+    "score": {
+      "total": 12,
+      "pain": 0,
+      "demand": 10,
+      "urgency": 0,
+      "frequency": 2,
+      "sourceWeight": 1,
+      "matchedKeywords": [
+        "alternative"
+      ]
+    },
+    "tags": [
+      "product",
+      "launch",
+      "demo"
+    ],
+    "summaryBullets": [
+      "Built Multispace to offer an easier alternative to Moonlight and other virtua...",
+      "Then discovered Claude/otherAI can use those Monitors to Work Live, if you li...",
+      "No Signup, No Coding, Simply Install and Go (or don't- Also possible directly...",
+      "Build Any System you want, in One Place.",
+      "Makes Multitasking much easier IMO."
+    ]
+  },
+  {
+    "id": "ee8cdd0ccae0",
+    "url": "https://news.ycombinator.com/item?id=50310690",
+    "title": "GEMM Tutorial and UlmBLAS",
+    "source": "hn_ask",
+    "sourceName": "Hacker News: Ask HN",
+    "publishedAt": "2026-10-30T21:57:48.000Z",
+    "score": {
+      "total": 12,
+      "pain": 8,
+      "demand": 0,
+      "urgency": 0,
+      "frequency": 2,
+      "sourceWeight": 1.2,
+      "matchedKeywords": [
+        "ugh"
+      ]
+    },
+    "tags": [
+      "pain",
+      "demand",
+      "community"
+    ],
+    "summaryBullets": [
+      "In 2014 I wrote a tutorial on how to write an efficient matrix multiplication...",
+      "This is actually not achieved by some Strassen algorithm variant.",
+      "It's achieved through a cache friendly algorithm (exploiting the cache hierar...",
+      "The tutorial showed how to achieve that step by step.",
+      "Beginning with a naive implementation using three loops."
+    ]
+  },
+  {
+    "id": "b274d2f09583",
+    "url": "https://news.ycombinator.com/item?id=50310590",
+    "title": "Ask HN: Will future archeologist know about us, with everything encrypted?",
+    "source": "hn_ask",
+    "sourceName": "Hacker News: Ask HN",
+    "publishedAt": "2026-10-30T21:48:10.000Z",
+    "score": {
+      "total": 12,
+      "pain": 8,
+      "demand": 0,
+      "urgency": 0,
+      "frequency": 2,
+      "sourceWeight": 1.2,
+      "matchedKeywords": [
+        "ugh"
+      ]
+    },
+    "tags": [
+      "pain",
+      "demand",
+      "community"
+    ],
+    "summaryBullets": [
+      "I had this thought the other day that back in the days you could find an old ..."
+    ]
+  },
+  {
+    "id": "ae2462b496bc",
+    "url": "https://aethelgard.news/",
+    "title": "Show HN: News article bias detector tool",
+    "source": "hn_show",
+    "sourceName": "Hacker News: Show HN",
+    "publishedAt": "2026-10-30T21:18:09.000Z",
+    "score": {
+      "total": 12,
+      "pain": 0,
+      "demand": 10,
+      "urgency": 0,
+      "frequency": 2,
+      "sourceWeight": 1,
+      "matchedKeywords": [
+        "looking for"
+      ]
+    },
+    "tags": [
+      "product",
+      "launch",
+      "demo"
+    ],
+    "summaryBullets": [
+      "I built a news article bias detector tool.",
+      "You paste the link of any article into it and it will give the article a bias...",
+      "It scores based on loaded wording in the article, the acknowledgement of diff...",
+      "It checks for vital information that the article leaves out and allows users ...",
+      "Looking for feedback."
+    ]
+  },
+  {
+    "id": "32b92f5d6e0c",
+    "url": "https://news.ycombinator.com/item?id=50307092",
+    "title": "\"Wrong\" Email",
+    "source": "hn_ask",
+    "sourceName": "Hacker News: Ask HN",
+    "publishedAt": "2026-10-30T17:19:39.000Z",
+    "score": {
+      "total": 12,
+      "pain": 8,
+      "demand": 0,
+      "urgency": 0,
+      "frequency": 2,
+      "sourceWeight": 1.2,
+      "matchedKeywords": [
+        "help"
+      ]
+    },
+    "tags": [
+      "pain",
+      "demand",
+      "community"
+    ],
+    "summaryBullets": [
+      "Let’s say your LinkedIn account has been restricted, and you can no longer ac...",
+      "You might try to visit:\nhttps://www.linkedin.com//help/linkedin/ask/sdsupport...",
+      "You fill out the form and click \"Submit,\" but for a split second, a pop-up ap...",
+      "There was an error creating your case.",
+      "Please try again\"\nand than redirect."
+    ]
+  },
+  {
+    "id": "56fa7327f2b2",
+    "url": "https://techcrunch.com/2026/10/29/openai-backed-thrive-holdings-acquires-adt/",
+    "title": "OpenAI-backed Thrive Holdings acquires ADT",
+    "source": "techcrunch_startups",
+    "sourceName": "TechCrunch AI",
+    "publishedAt": "2026-10-29T19:56:19.000Z",
+    "score": {
+      "total": 12,
+      "pain": 0,
+      "demand": 10,
+      "urgency": 0,
+      "frequency": 2,
+      "sourceWeight": 1,
+      "matchedKeywords": [
+        "buy"
+      ]
+    },
+    "tags": [
+      "llm",
+      "ai-agent",
+      "startup",
+      "trend"
+    ],
+    "summaryBullets": [
+      "OpenAI-backed Thrive Holdings is buying ADT in a $15.3 billion deal, with pla...",
+      "OpenAI-backed Thrive Holdings is buying ADT in a $15.3 billion deal, with pla...",
+      "OpenAI-backed Thrive Holdings acquires ADT"
+    ]
+  },
+  {
+    "id": "a8dfb27d816a",
+    "url": "https://www.reddit.com/r/Entrepreneur/comments/1xiduxx/thankful_thursday_free_resources_and_tools/",
+    "title": "Thankful Thursday: Free Resources and Tools | October 29, 2026",
+    "source": "reddit_entrepreneur",
+    "sourceName": "Reddit: r/Entrepreneur",
+    "publishedAt": "2026-10-29T08:00:49.000Z",
+    "score": {
+      "total": 12,
+      "pain": 8,
+      "demand": 0,
+      "urgency": 0,
+      "frequency": 2,
+      "sourceWeight": 1.2,
+      "matchedKeywords": [
+        "help"
+      ]
+    },
+    "tags": [
+      "pain",
+      "business",
+      "startup"
+    ],
+    "summaryBullets": [
+      "Drop your free resources, templates, tools, or anything else that's helped yo...",
+      "No strings attached; these resources have to be free.",
+      "submitted by    /u/AutoModerator  \n [link]   [comments] Pay it forward.",
+      "Drop your free resources, templates, tools, or anything else that's helped yo...",
+      "No strings attached; these resources have to be free."
+    ]
+  },
+  {
+    "id": "5c0fc448828e",
+    "url": "https://www.wkyc.com/article/news/investigations/flock-camera-searches-fall-95-percent-highland-heights-dispatcher-misconduct-caught/95-94b18f33-60e2-4bc7-a00f-d71d1e1fdd5e",
+    "title": "Flock camera searches fell 95% after a dispatcher's misconduct was caught",
+    "source": "hn_frontpage",
+    "sourceName": "Hacker News: Front Page",
+    "publishedAt": "2026-10-31T02:42:02.000Z",
+    "score": {
+      "total": 11,
+      "pain": 8,
+      "demand": 0,
+      "urgency": 0,
+      "frequency": 2,
+      "sourceWeight": 1.1,
+      "matchedKeywords": [
+        "ugh"
+      ]
+    },
+    "tags": [
+      "trending",
+      "tech"
+    ],
+    "summaryBullets": [
+      "Article URL: https://www.wkyc.com/article/news/investigations/flock-camera-se..."
+    ]
+  },
+  {
+    "id": "45335aaa530e",
+    "url": "https://www.bostonglobe.com/2026/10/29/metro/patrick-stewart-picard-star-trek-the-next-generation/",
+    "title": "Through Captain Jean-Luc Picard, Patrick Stewart taught us the measure of a man",
+    "source": "hn_frontpage",
+    "sourceName": "Hacker News: Front Page",
+    "publishedAt": "2026-10-30T20:23:30.000Z",
+    "score": {
+      "total": 11,
+      "pain": 8,
+      "demand": 0,
+      "urgency": 0,
+      "frequency": 2,
+      "sourceWeight": 1.1,
+      "matchedKeywords": [
+        "ugh"
+      ]
+    },
+    "tags": [
+      "trending",
+      "tech"
+    ],
+    "summaryBullets": [
+      "Article URL: https://www.bostonglobe.com/2026/10/29/metro/patrick-stewart-pic..."
+    ]
+  },
+  {
+    "id": "8492851df22e",
+    "url": "https://newsletter.pragmaticengineer.com/p/the-pulse-anthropic-kills-the-coding",
+    "title": "The Pulse: Anthropic kills the coding interview",
+    "source": "pragmatic-engineer",
+    "sourceName": "The Pragmatic Engineer",
+    "publishedAt": "2026-10-30T16:37:51.000Z",
+    "score": {
+      "total": 11,
+      "pain": 0,
+      "demand": 0,
+      "urgency": 10,
+      "frequency": 2,
+      "sourceWeight": 0.9,
+      "matchedKeywords": [
+        "today"
+      ]
+    },
+    "tags": [
+      "devtools",
+      "frontier-tech"
+    ],
+    "summaryBullets": [
+      "AI is rendering the Leetcode-style interview pointless and now Anthropic has ...",
+      "Also: details of incident.io’s AI spend, Microsoft’s exit offer to engineers,...",
+      "Today, we cover: Anthropic kills its coding interview.",
+      "A team at the leading frontier AI company gets zero signal from DSA interview...",
+      "The rest of the company, and other AI-native startups, could follow."
+    ]
+  },
+  {
+    "id": "10938b673a2a",
+    "url": "https://news.ycombinator.com/item?id=50313220",
+    "title": "Show HN: Smallest-editor–so-far.exe (912 bytes)",
+    "source": "hn_show",
+    "sourceName": "Hacker News: Show HN",
+    "publishedAt": "2026-10-31T04:29:53.000Z",
+    "score": {
+      "total": 10,
+      "pain": 8,
+      "demand": 0,
+      "urgency": 0,
+      "frequency": 2,
+      "sourceWeight": 1,
+      "matchedKeywords": [
+        "ugh"
+      ]
+    },
+    "tags": [
+      "product",
+      "launch",
+      "demo"
+    ],
+    "summaryBullets": [
+      "Pointless, almost good enough, and fun to build.",
+      "Inspired by Atto, the new tiny editor in NetBSD.",
+      "A 912-byte Windows text editor in Claude-written assembly: a thin wrapper aro...",
+      "It opens and saves text files up to about 3 MB.",
+      "https://github.com/andyrosa/smallest-editor--so-far\nComments URL: https://new..."
+    ]
+  },
+  {
+    "id": "6336aff37e57",
+    "url": "https://techcrunch.com/2026/10/30/nvidia-weighs-playing-the-cosigner-for-nscales-ai-data-center-in-west-virginia/",
+    "title": "Nvidia weighs playing the cosigner for Nscale’s AI data center in West Virginia",
+    "source": "techcrunch_startups",
+    "sourceName": "TechCrunch AI",
+    "publishedAt": "2026-10-31T01:20:05.000Z",
+    "score": {
+      "total": 10,
+      "pain": 8,
+      "demand": 0,
+      "urgency": 0,
+      "frequency": 2,
+      "sourceWeight": 1,
+      "matchedKeywords": [
+        "help"
+      ]
+    },
+    "tags": [
+      "llm",
+      "ai-agent",
+      "startup",
+      "trend"
+    ],
+    "summaryBullets": [
+      "When investors get nervous about AI spending, it helps to have the chipmaker ...",
+      "When investors get nervous about AI spending, it helps to have the chipmaker ...",
+      "Nvidia weighs playing the cosigner for Nscale’s AI data center in West Virginia"
+    ]
+  },
+  {
+    "id": "60ba719a0574",
+    "url": "https://techcrunch.com/2026/10/30/anthropic-expected-to-receive-high-junk-rating-from-credit-agencies-following-ipo-report-says/",
+    "title": "Anthropic expected to receive high ‘junk’ rating from credit agencies following IPO, FT report says",
+    "source": "techcrunch_startups",
+    "sourceName": "TechCrunch AI",
+    "publishedAt": "2026-10-30T21:52:03.000Z",
+    "score": {
+      "total": 10,
+      "pain": 8,
+      "demand": 0,
+      "urgency": 0,
+      "frequency": 2,
+      "sourceWeight": 1,
+      "matchedKeywords": [
+        "difficult"
+      ]
+    },
+    "tags": [
+      "llm",
+      "ai-agent",
+      "startup",
+      "trend"
+    ],
+    "summaryBullets": [
+      "Blackstone's forecast is just a prediction, but naturally, a high junk rating...",
+      "Blackstone's forecast is just a prediction, but naturally, a high junk rating...",
+      "Anthropic expected to receive high ‘junk’ rating from credit agencies followi..."
+    ]
+  },
+  {
+    "id": "d52c9778a55e",
+    "url": "https://techcrunch.com/2026/10/30/zests-new-ai-agent-finds-restaurants-and-books-reservations-over-text/",
+    "title": "Zest’s new AI agent finds restaurants and books reservations over text",
+    "source": "techcrunch_startups",
+    "sourceName": "TechCrunch AI",
+    "publishedAt": "2026-10-30T17:47:12.000Z",
+    "score": {
+      "total": 10,
+      "pain": 8,
+      "demand": 0,
+      "urgency": 0,
+      "frequency": 2,
+      "sourceWeight": 1,
+      "matchedKeywords": [
+        "can't"
+      ]
+    },
+    "tags": [
+      "llm",
+      "ai-agent",
+      "startup",
+      "trend"
+    ],
+    "summaryBullets": [
+      "Can't agree on where to eat?",
+      "Zest's AI concierge can combine everyone's tastes, put restaurant options to ...",
+      "Can't agree on where to eat?",
+      "Zest's AI concierge can combine everyone's tastes, put restaurant options to ...",
+      "Zest’s new AI agent finds restaurants and books reservations over text"
+    ]
+  },
+  {
+    "id": "3e1cebb1f9f3",
+    "url": "https://techcrunch.com/2026/10/29/you-dont-need-to-believe-in-a-god-to-get-a-religious-exemption-from-using-ai-at-work/",
+    "title": "You don’t need to believe in a god to get a religious exemption from using AI at work",
+    "source": "techcrunch_startups",
+    "sourceName": "TechCrunch AI",
+    "publishedAt": "2026-10-30T01:20:48.000Z",
+    "score": {
+      "total": 10,
+      "pain": 8,
+      "demand": 0,
+      "urgency": 0,
+      "frequency": 2,
+      "sourceWeight": 1,
+      "matchedKeywords": [
+        "need"
+      ]
+    },
+    "tags": [
+      "llm",
+      "ai-agent",
+      "startup",
+      "trend"
+    ],
+    "summaryBullets": [
+      "David Durman, a University of Kentucky administrator, recently earned a relig...",
+      "David Durman, a University of Kentucky administrator, recently earned a relig...",
+      "You don’t need to believe in a god to get a religious exemption from using AI..."
+    ]
+  },
+  {
+    "id": "31a141606e86",
+    "url": "https://techcrunch.com/2026/10/29/meta-quietly-launches-an-ai-fashion-app-called-style-sketch/",
+    "title": "Meta quietly launches an AI fashion app called Style Sketch",
+    "source": "techcrunch_startups",
+    "sourceName": "TechCrunch AI",
+    "publishedAt": "2026-10-29T19:14:36.000Z",
+    "score": {
+      "total": 10,
+      "pain": 8,
+      "demand": 0,
+      "urgency": 0,
+      "frequency": 2,
+      "sourceWeight": 1,
+      "matchedKeywords": [
+        "manual"
+      ]
+    },
+    "tags": [
+      "llm",
+      "ai-agent",
+      "startup",
+      "trend"
+    ],
+    "summaryBullets": [
+      "The app connects to Instagram to build a virtual closet from photos you’ve al...",
+      "The app connects to Instagram to build a virtual closet from photos you’ve al...",
+      "Meta quietly launches an AI fashion app called Style Sketch"
+    ]
+  },
+  {
+    "id": "38bb20748e03",
+    "url": "https://lobste.rs/s/u7dsbx/what_are_you_doing_this_weekend",
+    "title": "What are you doing this weekend?",
+    "source": "lobsters",
+    "sourceName": "Lobste.rs",
+    "publishedAt": "2026-10-30T09:55:20.000Z",
+    "score": {
+      "total": 9,
+      "pain": 8,
+      "demand": 0,
+      "urgency": 0,
+      "frequency": 2,
+      "sourceWeight": 0.9,
+      "matchedKeywords": [
+        "help"
+      ]
+    },
+    "tags": [
+      "tech",
+      "tools",
+      "community"
+    ],
+    "summaryBullets": [
+      "Feel free to tell what you plan on doing this weekend and even ask for help o...",
+      "Please keep in mind it’s more than OK to do nothing at all too!",
+      "Feel free to tell what you plan on doing this weekend and even ask for help o...",
+      "Please keep in mind it’s more than OK to do nothing at all too!",
+      "What are you doing this weekend?"
+    ]
+  },
+  {
+    "id": "700e419c205b",
+    "url": "https://dev.to/olaughter/on-policy-distillation-works-with-limited-additional-data-2i8f",
+    "title": "On‑policy distillation works with limited additional data",
     "source": "devto_top",
     "sourceName": "Dev.to: Top",
-    "publishedAt": "2026-02-17T07:41:33.000Z",
+    "publishedAt": "2026-10-31T06:00:00.000Z",
+    "score": {
+      "total": 8,
+      "pain": 8,
+      "demand": 0,
+      "urgency": 0,
+      "frequency": 2,
+      "sourceWeight": 0.8,
+      "matchedKeywords": [
+        "need"
+      ]
+    },
+    "tags": [
+      "dev",
+      "tools",
+      "pain"
+    ],
+    "summaryBullets": [
+      "AutoDAgger recovers teacher trajectories online, letting compact policies inh...",
+      "By embedding the teacher’s corrective behavior directly into the student’s ro...",
+      "Before this work, practitioners relied on pure behavior cloning from static h...",
+      "Human‑in‑the‑loop DAgger variants such as HG‑DAgger still needed a person to ...",
+      "These approaches made scaling down high‑capacity policies to edge devices an ..."
+    ]
+  },
+  {
+    "id": "7e19b7e29f11",
+    "url": "https://www.channelnewsasia.com/world/spain-transport-minister-resign-train-crash-6507826",
+    "title": "Spanish minister refuses to resign over second major train crash on his watch",
+    "source": "hn_newest",
+    "sourceName": "Hacker News: Newest",
+    "publishedAt": "2026-10-31T05:54:11.000Z",
+    "score": {
+      "total": 8,
+      "pain": 8,
+      "demand": 0,
+      "urgency": 0,
+      "frequency": 2,
+      "sourceWeight": 0.8,
+      "matchedKeywords": [
+        "pain"
+      ]
+    },
+    "tags": [
+      "general",
+      "tech"
+    ],
+    "summaryBullets": [
+      "Article URL: https://www.channelnewsasia.com/world/spain-transport-minister-r..."
+    ]
+  },
+  {
+    "id": "0c083350c0ba",
+    "url": "https://arxiv.org/abs/2606.03979",
+    "title": "Language Models Need Sleep: Learning to Self-Modify and Consolidate Memories",
+    "source": "hn_newest",
+    "sourceName": "Hacker News: Newest",
+    "publishedAt": "2026-10-31T05:53:27.000Z",
+    "score": {
+      "total": 8,
+      "pain": 8,
+      "demand": 0,
+      "urgency": 0,
+      "frequency": 2,
+      "sourceWeight": 0.8,
+      "matchedKeywords": [
+        "need"
+      ]
+    },
+    "tags": [
+      "general",
+      "tech"
+    ],
+    "summaryBullets": [
+      "Article URL: https://arxiv.org/abs/2606.03979\nComments URL: https://news.ycom..."
+    ]
+  },
+  {
+    "id": "544ff2b3cf11",
+    "url": "https://dev.to/foundry5/where-niche-community-apps-get-verification-wrong-2o82",
+    "title": "Where Niche Community Apps Get Verification Wrong",
+    "source": "devto_top",
+    "sourceName": "Dev.to: Top",
+    "publishedAt": "2026-10-31T05:52:24.000Z",
+    "score": {
+      "total": 8,
+      "pain": 8,
+      "demand": 0,
+      "urgency": 0,
+      "frequency": 2,
+      "sourceWeight": 0.8,
+      "matchedKeywords": [
+        "ugh"
+      ]
+    },
+    "tags": [
+      "dev",
+      "tools",
+      "pain"
+    ],
+    "summaryBullets": [
+      "The most common mistake in building a niche community app is treating verific...",
+      "Teams pour months into maps, chat, and profiles, then bolt on an approval flo...",
+      "What they end up with is a product that looks finished and behaves like a gho...",
+      "The instinct is to remove friction: let anyone in, grow the number, worry abo...",
+      "For a general social app that logic can hold."
+    ]
+  },
+  {
+    "id": "0d23f8a596a9",
+    "url": "https://www.theguardian.com/news/ng-interactive/2026/oct/31/mv-odyssey-cruise-passengers-nightmare-stranded-cambodia",
+    "title": "Cursed cruise: how the dream of never-ending luxury at sea became a nightmare",
+    "source": "hn_newest",
+    "sourceName": "Hacker News: Newest",
+    "publishedAt": "2026-10-31T05:37:38.000Z",
+    "score": {
+      "total": 8,
+      "pain": 8,
+      "demand": 0,
+      "urgency": 0,
+      "frequency": 2,
+      "sourceWeight": 0.8,
+      "matchedKeywords": [
+        "nightmare"
+      ]
+    },
+    "tags": [
+      "general",
+      "tech"
+    ],
+    "summaryBullets": [
+      "Article URL: https://www.theguardian.com/news/ng-interactive/2026/oct/31/mv-o..."
+    ]
+  },
+  {
+    "id": "96155f5b3e1b",
+    "url": "https://dev.to/ilya_mozerov_867dbdd91feb/the-watcher-is-a-striation-what-it-smooths-over-is-the-comment-thread-19al",
+    "title": "The watcher is a striation. What it smooths over is the comment thread.",
+    "source": "devto_top",
+    "sourceName": "Dev.to: Top",
+    "publishedAt": "2026-10-31T05:55:08.000Z",
     "score": {
       "total": 0,
       "pain": 0,
@@ -1337,160 +1531,11 @@
       "pain"
     ],
     "summaryBullets": [
-      "How I modernized a legacy computer vision project into an LLM-powered, cloud-...",
-      "I am a Full-spectrum Software Engineer, DevSecOps practitioner, and the CEO o...",
-      "Over my career, I’ve navigated the rapid evolution of software deployment—tra...",
-      "Back in 2014, for my Bachelor's thesis, I built a Three-Tier client-server ap...",
-      "It was a monolithic C++ and Node.js app utilizing traditional computer vision..."
-    ]
-  },
-  {
-    "id": "75b46199a7c2",
-    "url": "https://ethz.ch/en/news-and-events/eth-news/news/2026/02/password-managers-less-secure-than-promised.html",
-    "title": "Password managers less secure than promised",
-    "source": "hn_newest",
-    "sourceName": "Hacker News: Newest",
-    "publishedAt": "2026-02-17T07:41:18.000Z",
-    "score": {
-      "total": 0,
-      "pain": 0,
-      "demand": 0,
-      "urgency": 0,
-      "frequency": 0,
-      "sourceWeight": 0.8,
-      "matchedKeywords": []
-    },
-    "tags": [
-      "general",
-      "tech"
-    ],
-    "summaryBullets": [
-      "Article URL: https://ethz.ch/en/news-and-events/eth-news/news/2026/02/passwor..."
-    ]
-  },
-  {
-    "id": "fbeeb42fe2ac",
-    "url": "https://twitter.com/geoffreylitt/status/2023589705246200289",
-    "title": "Prototyping UIs has always been a good fit for vibe coding",
-    "source": "hn_newest",
-    "sourceName": "Hacker News: Newest",
-    "publishedAt": "2026-02-17T07:41:15.000Z",
-    "score": {
-      "total": 0,
-      "pain": 0,
-      "demand": 0,
-      "urgency": 0,
-      "frequency": 0,
-      "sourceWeight": 0.8,
-      "matchedKeywords": []
-    },
-    "tags": [
-      "general",
-      "tech"
-    ],
-    "summaryBullets": [
-      "Article URL: https://twitter.com/geoffreylitt/status/2023589705246200289\nComm..."
-    ]
-  },
-  {
-    "id": "795bfcad9607",
-    "url": "https://www.thetimes.com/business/companies-markets/article/apax-pinewood-technologies-bid-ai-fqql85jzz",
-    "title": "Apax pulls out of Pinewood Technologies takeover after AI scare",
-    "source": "hn_newest",
-    "sourceName": "Hacker News: Newest",
-    "publishedAt": "2026-02-17T07:40:49.000Z",
-    "score": {
-      "total": 0,
-      "pain": 0,
-      "demand": 0,
-      "urgency": 0,
-      "frequency": 0,
-      "sourceWeight": 0.8,
-      "matchedKeywords": []
-    },
-    "tags": [
-      "general",
-      "tech"
-    ],
-    "summaryBullets": [
-      "Article URL: https://www.thetimes.com/business/companies-markets/article/apax..."
-    ]
-  },
-  {
-    "id": "2d144904bf03",
-    "url": "https://github.com/ibkvictor/Rust-CAS",
-    "title": "Rust-CAS",
-    "source": "hn_newest",
-    "sourceName": "Hacker News: Newest",
-    "publishedAt": "2026-02-17T07:39:03.000Z",
-    "score": {
-      "total": 0,
-      "pain": 0,
-      "demand": 0,
-      "urgency": 0,
-      "frequency": 0,
-      "sourceWeight": 0.8,
-      "matchedKeywords": []
-    },
-    "tags": [
-      "general",
-      "tech"
-    ],
-    "summaryBullets": [
-      "Article URL: https://github.com/ibkvictor/Rust-CAS\nComments URL: https://news..."
-    ]
-  },
-  {
-    "id": "c85f26634e79",
-    "url": "https://github.com/nickjazz/product-lock",
-    "title": "Product Lock – A JSON spec that defines what your AI-built product is and isn't",
-    "source": "hn_newest",
-    "sourceName": "Hacker News: Newest",
-    "publishedAt": "2026-02-17T07:38:49.000Z",
-    "score": {
-      "total": 0,
-      "pain": 0,
-      "demand": 0,
-      "urgency": 0,
-      "frequency": 0,
-      "sourceWeight": 0.8,
-      "matchedKeywords": []
-    },
-    "tags": [
-      "general",
-      "tech"
-    ],
-    "summaryBullets": [
-      "Article URL: https://github.com/nickjazz/product-lock\nComments URL: https://n..."
-    ]
-  },
-  {
-    "id": "5d67c599db57",
-    "url": "https://dev.to/petrilahdelma/enforcing-your-spacing-standards-with-rhythmguard-a-custom-stylelint-plugin-1ojj",
-    "title": "Enforcing Your Spacing Standards with Rhythmguard (A Custom Stylelint Plugin)",
-    "source": "devto_top",
-    "sourceName": "Dev.to: Top",
-    "publishedAt": "2026-02-17T07:38:21.000Z",
-    "score": {
-      "total": 0,
-      "pain": 0,
-      "demand": 0,
-      "urgency": 0,
-      "frequency": 0,
-      "sourceWeight": 0.8,
-      "matchedKeywords": []
-    },
-    "tags": [
-      "dev",
-      "tools",
-      "pain"
-    ],
-    "summaryBullets": [
-      "Even on teams with a spacing scale and token system, random values still cree...",
-      "I built Rhythmguard to stop that at lint time.",
-      "stylelint-plugin-rhythmguard focuses on three rules:\nrhythmguard/use-scale\n\nC...",
-      "rhythmguard/prefer-token\n\nEnforces token usage over raw spacing literals and ...",
-      "rhythmguard/no-offscale-transform\n\nApplies scale rules to translation motion ..."
+      "In \"1440: The Smooth and the Striated\" in A Thousand Plateaus, Deleuze and Gu...",
+      "Striated space is organised by fixed grids and measured distances; in it, for...",
+      "Smooth space is \"filled by events or haecceities, far more than by formed and...",
+      "It is \"a space of affects, more than one of properties\", and in it \"materials...",
+      "I checked these sentences against the English text of the book as it is hoste..."
     ]
   }
 ]
